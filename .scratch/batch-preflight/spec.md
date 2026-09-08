@@ -1,6 +1,6 @@
 # 批前门自动化与文档去缓存（retro 改进第一批）
 
-Status: ready-for-agent（2026-09-08 用户逐项裁定获选，待实施）
+Status: resolved（2026-09-08 4 票全实施＋/code-review 返修复验，见各票 Comments 与 CHANGELOG 本批条目）
 
 ## 来源
 

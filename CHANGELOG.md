@@ -7,6 +7,43 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（批前门自动化与评审固定点基建——retro 改进第一批 batch-preflight，
+  2026-09-08 用户经 AskUserQuestion 逐项裁定 C1~C5 全获选并定方向＝授权）：
+  - **范围**：
+    - **git init 本地评审仓**（C2）：main 分支、无 remote、.gitignore 最小
+      集（node_modules/.DS_Store）、全树基线 commit `ba1856d`（259 文件）；
+      此后每批收尾一 commit，/code-review 固定点＝对基线 diff，**废除手工
+      /tmp 批前快照**（tmpfs 清空吞件前科，本文件 135/171/1273 行沿先例
+      终结）。
+    - **`npm run preflight` 一键批前门**（C1＋C5，scripts/preflight.mjs）：
+      ①全量回归（自设 TMPDIR=/dev/shm）；②冻结面复验——动态取
+      artifacts/packages/ **最新序号包** `executionEvidence.provenance.
+      sourceManifest` 逐文件 sha256＋byteLength 只读复验（0009+ 自动跟随）；
+      ③status-lint——扫 .scratch 全部 `Status:` 行对词表（五排程词＋
+      resolved）校验，claimed 仅限 wayfinder 票（effort 根有 map.md），
+      b5-sse-replay（done）/arch-client-fetch-exports（implemented）两
+      历史异词显式豁免不回改；单一 pass/fail、输出固定格式可直引条目。
+    - **tests/run.mjs EROFS 定向提示**（C4）：启动探测 tmpdir 不可写即打
+      一行指向 `TMPDIR=/dev/shm npm test`（照常失败不自动回退）；
+      tmpdirHint 导出＋入口守护（防测试 import 递归）。
+    - **README §2 删全部手工计数**（C3）：「19 个 md 全集」「根目录（7）」
+      「docs/（11）」「docs/agents/（3，…）」「docs/history/（4，…）」
+      共 5 处，目录列表为唯一事实源（F-RV-27 类漂移源清零）。
+    - **伴生修正**：arch-bot-mail-agent/issues/01 `Status: claimed→
+      ready-for-human`（preflight 首跑即抓出的词表违例——非 wayfinder
+      票不得 claimed；grilling＝human 侧语义贴切）。
+    - **/code-review 两轴返修**（固定点=基线 ba1856d，并行子代理）：
+      claimed 判定由「有 Type: 行」代理改为 map.md 结构判定（`Type: task`
+      亦放行的失真）；Status 正则补列表形态（`- `/`> `）；shmWritable
+      与 tmpdirHint 重复形状合并（preflight 复用后者）；死旗标删除。
+  - **验证**：`npm run preflight` PASS（回归 56/56、冻结面 0008 包 9/9、
+    status-lint 0 违例扫 19 md，exit 0）；tests/preflight.test.mjs 7 个
+    test 块＋tests/run-erofs-hint.test.mjs 3 用例全绿（fixture 全隔离）。
+  - **冻结面**：9/9 零触碰（preflight ②只读复验口径）；证据包链零写入。
+  - **README §2 地图同步**：md 零增删（scripts/tests 新增件非 md、
+    .scratch 非地图成员）；§2 计数 5 处删除已含在本批范围。
+  - **工单**：.scratch/batch-preflight/（spec＋4 票，全 resolved）。
+
 - ✅ 本轮（动图 GIF 转换——WebM→GIF 批，2026-09-08 用户「能转换成
   gif的格式吗」＝授权）：
   - **范围**：新增 docs/dsh-bots-architecture.trace.gif（1,913,015 B，

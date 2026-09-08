@@ -4,7 +4,7 @@
 
 **Blocked by:** None（可即行）。
 
-**Status:** claimed（2026-09-08 领取，进入 grilling 轮）
+**Status:** ready-for-human（2026-09-08 领取，进入 grilling 轮；原 claimed 非词表合规词，经词表治理批修正）
 
 **Parent spec:** `../spec.md`
 

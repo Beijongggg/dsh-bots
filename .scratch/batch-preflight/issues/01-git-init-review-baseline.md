@@ -8,11 +8,11 @@
 **Blocked by:** None（can start immediately；但必须先于本批 02~04 执行，
 否则基线混入本批改动）。
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] `git init`（无 remote、不配置 push 目标）
-- [ ] `.gitignore` 最小集（node_modules 等；不忽略任何在役文档与 artifacts 证据链）
-- [ ] 全树基线 commit（含 artifacts/packages 证据包链——git 只读跟踪，不改动冻结件）
-- [ ] 基线 commit 后 `git status` 干净；冻结面 9/9 sha 复验仍一致（git init 不得触碰文件内容）
+- [x] `git init`（无 remote、不配置 push 目标）— 分支 main，无 remote
+- [x] `.gitignore` 最小集 — 仅 node_modules/＋.DS_Store，在役文档与 artifacts 证据链全跟踪
+- [x] 全树基线 commit — ba1856d，259 文件
+- [x] 基线 commit 后 `git status` 干净（0 条）；冻结面 9/9 sha 复验一致（2026-09-08 跑通）
 
 ## Comments

@@ -6,10 +6,10 @@
 
 **Blocked by:** 01（基线 commit 须先落）。
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] §2 全节扫除所有「（N）」「N 个」式手工计数，标题与正文计数全删
-- [ ] 目录列表条目零增删（只删计数不改地图内容）
-- [ ] README 其余章节无引用这些计数数字的句子残留
+- [x] §2 全节扫除所有手工计数（「19 个 md 全集」「根目录（7）」「docs/（11）」「docs/agents/（3，…）」「docs/history/（4，…）」共 5 处）
+- [x] 目录列表条目零增删（git diff 仅 5 行标题改动）
+- [x] README 其余章节无引用残留（101 行「7 CRITICAL＋2 HIGH」为历史事实记载，非地图计数，保留）
 
 ## Comments
