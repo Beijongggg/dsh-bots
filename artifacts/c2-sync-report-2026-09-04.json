@@ -1,0 +1,116 @@
+{
+  "packageType": "c2-sync-report",
+  "executedAt": "2026-09-04T01:37:51.435Z",
+  "executedBy": "主审席（C2 统一同步批，用户授权「进行清单任务，授权所有方案请求」2026-09-04）",
+  "scope": "口径 A：parity 单源 8 文件（runtime）；lib/index.js 零漂移未触碰；文档/证据材料未同步（非 runtime）",
+  "restartNeeded": false,
+  "restartBasis": [
+    "本批零触碰 host 静态入口 lib/index.js（同步前后哈希 9e044041… 一致）",
+    "四 bot 重启＝用户运行运维裁定"
+  ],
+  "processAssertion": {
+    "before": [],
+    "after": [],
+    "expected": "零 dsh 进程"
+  },
+  "realSurfaceCheck": {
+    "scope": "/home/beijong/.dsh（排除 plugins/＝本批授权写面）",
+    "clean": true,
+    "modified": [],
+    "removed": [],
+    "added": [],
+    "addedIrregular": []
+  },
+  "backups": [
+    {
+      "file": "lib/review-enforcement.js",
+      "deployPreSha256": "511393295b8eaba250e603cbcb80c7592e28733ae1f42bbdcf399e6ddc4ca5a9",
+      "byteLength": 12481,
+      "mode": "0100600",
+      "mtime": "2026-08-29T13:30:03.903Z",
+      "backupPath": "/home/beijong/project/dsh-bots/artifacts/archive/deploy-pre-c2/lib/review-enforcement.js"
+    },
+    {
+      "file": "scripts/review-enforcement-probe.cjs",
+      "deployPreSha256": "bc60359d32c61e02690026439999c226f1f46454c192e2087057948174bb27c1",
+      "byteLength": 29325,
+      "mode": "0100600",
+      "mtime": "2026-08-29T13:30:03.899Z",
+      "backupPath": "/home/beijong/project/dsh-bots/artifacts/archive/deploy-pre-c2/scripts/review-enforcement-probe.cjs"
+    }
+  ],
+  "files": [
+    {
+      "file": "lib/review-enforcement.js",
+      "repoSha256": "5ee383294c33373bb9851c3415c61040d2e37f075f0717a168070790babfab91",
+      "byteLength": 20570,
+      "deployPreExisted": true,
+      "deployPreSha256": "511393295b8eaba250e603cbcb80c7592e28733ae1f42bbdcf399e6ddc4ca5a9",
+      "deployPostSha256": "5ee383294c33373bb9851c3415c61040d2e37f075f0717a168070790babfab91",
+      "deploySideNodeCheck": "ok"
+    },
+    {
+      "file": "lib/sentinel-provenance.js",
+      "repoSha256": "8c3c3d2726b9fb03d4524498d591472028e3497f60520990cfac7676d6aa1ad5",
+      "byteLength": 22857,
+      "deployPreExisted": false,
+      "deployPreSha256": null,
+      "deployPostSha256": "8c3c3d2726b9fb03d4524498d591472028e3497f60520990cfac7676d6aa1ad5",
+      "deploySideNodeCheck": "ok"
+    },
+    {
+      "file": "lib/sentinel-safety.js",
+      "repoSha256": "8d52fa3d674a0f0ee41131b3e7b74695b648407e51e61b40f59c2f68f0d9244a",
+      "byteLength": 11877,
+      "deployPreExisted": false,
+      "deployPreSha256": null,
+      "deployPostSha256": "8d52fa3d674a0f0ee41131b3e7b74695b648407e51e61b40f59c2f68f0d9244a",
+      "deploySideNodeCheck": "ok"
+    },
+    {
+      "file": "lib/sentinel-runner.js",
+      "repoSha256": "463c731941ed6161bb209079923745e41411a03ccddbbd5aed02a5a9e73a8cfc",
+      "byteLength": 22902,
+      "deployPreExisted": false,
+      "deployPreSha256": null,
+      "deployPostSha256": "463c731941ed6161bb209079923745e41411a03ccddbbd5aed02a5a9e73a8cfc",
+      "deploySideNodeCheck": "ok"
+    },
+    {
+      "file": "lib/evidence-packager.js",
+      "repoSha256": "0a0163a167aee3df4bc193a97f62edf18fe5bad0aff5f53652733c63ca5a6294",
+      "byteLength": 22689,
+      "deployPreExisted": false,
+      "deployPreSha256": null,
+      "deployPostSha256": "0a0163a167aee3df4bc193a97f62edf18fe5bad0aff5f53652733c63ca5a6294",
+      "deploySideNodeCheck": "ok"
+    },
+    {
+      "file": "scripts/review-enforcement-probe.cjs",
+      "repoSha256": "70a02afce5187e365406034cba5558d896110301bfc0e7bd0c57b38889f0b589",
+      "byteLength": 7494,
+      "deployPreExisted": true,
+      "deployPreSha256": "bc60359d32c61e02690026439999c226f1f46454c192e2087057948174bb27c1",
+      "deployPostSha256": "70a02afce5187e365406034cba5558d896110301bfc0e7bd0c57b38889f0b589",
+      "deploySideNodeCheck": "ok"
+    },
+    {
+      "file": "scripts/evidence-runner.mjs",
+      "repoSha256": "31257147063e11a6d6abc99c36bd0ef57ca92edd708be248937622253caf0092",
+      "byteLength": 25949,
+      "deployPreExisted": false,
+      "deployPreSha256": null,
+      "deployPostSha256": "31257147063e11a6d6abc99c36bd0ef57ca92edd708be248937622253caf0092",
+      "deploySideNodeCheck": "ok"
+    },
+    {
+      "file": "scripts/evidence-packager.mjs",
+      "repoSha256": "cfdfc97f6b2a8596258d2103d2a2f3cfa43c1256025e84e5cb7384fc983f4c75",
+      "byteLength": 9656,
+      "deployPreExisted": false,
+      "deployPreSha256": null,
+      "deployPostSha256": "cfdfc97f6b2a8596258d2103d2a2f3cfa43c1256025e84e5cb7384fc983f4c75",
+      "deploySideNodeCheck": "ok"
+    }
+  ]
+}

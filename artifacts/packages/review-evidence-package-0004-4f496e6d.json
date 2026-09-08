@@ -1,0 +1,210 @@
+{
+  "packageType": "review-evidence-package-v2",
+  "schemaVersion": "evidence-package/2",
+  "packageScope": "incremental",
+  "basePackage": {
+    "sha256": "07992681ff72de5e7d0e1aa4c25d38b3eadd9182d511e46d4f67c654413fdbd5",
+    "path": "/home/beijong/project/dsh-bots/artifacts/packages/review-evidence-package-0003-07992681.json"
+  },
+  "generatedAt": "2026-08-30T03:46:21.455Z",
+  "generatedBy": "evidence-packager v2 (coding-side)",
+  "conclusion": "提交独立验收",
+  "executionEvidence": {
+    "fullRegression": {
+      "passed": 44,
+      "total": 44,
+      "source": "tests/run.mjs"
+    },
+    "concurrencyStress": {
+      "runs": 1,
+      "results": [
+        "ok"
+      ],
+      "source": "tests/review-concurrency.test.mjs"
+    },
+    "deploymentImpact": {
+      "deploySyncNeeded": true,
+      "restartNeeded": false,
+      "basis": [
+        "lib/review-enforcement.js 与 lib/sentinel-provenance.js：host 静态导入图仅经 lib/index.js 使用 validateWorkspaceTriple（行为零变化）；probe/runner/packager 为 CLI 按次加载",
+        "repo↔deploy parity 实测 3 处漂移（review-enforcement.js hash-diff、sentinel-provenance.js missing、probe.cjs hash-diff）→ C2-1 同步范围"
+      ],
+      "manualOverride": null
+    },
+    "probe": {
+      "mode": "shadow",
+      "shadowRoot": "/dev/shm/dsh-enforcement-shadow-alBqLI",
+      "clean": true,
+      "cleanSemantics": "legacy probe-residue check only",
+      "treeIntegrity": {
+        "value": null,
+        "source": "assertShadowClean only（shadow 模式无全树快照/树差异/布局完整性复核，不虚增强断言）"
+      },
+      "scenePolicy": "auto-clean",
+      "results": [
+        {
+          "botId": "coder-probe",
+          "pid": 27601,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-alBqLI/project",
+          "action": "write:bots.json",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-alBqLI/dsh-home/bots/bots.json）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T03:44:34.886Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 27601,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-alBqLI/project",
+          "action": "write:inbox/",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-alBqLI/dsh-home/bots/inbox）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T03:44:34.886Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 27601,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-alBqLI/project",
+          "action": "write:outbox/",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-alBqLI/dsh-home/bots/outbox）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T03:44:34.886Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 27601,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-alBqLI/project",
+          "action": "write:started/",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-alBqLI/dsh-home/bots/started）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T03:44:34.886Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 27601,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-alBqLI/project",
+          "action": "write:profiles/",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-alBqLI/dsh-home/profiles）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T03:44:34.887Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 27601,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-alBqLI/project",
+          "action": "write:deploy-copy",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-alBqLI/deploy-copy）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T03:44:34.887Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 27601,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-alBqLI/project",
+          "action": "write:system-config",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-alBqLI/system-config）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T03:44:34.887Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 27601,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-alBqLI/project",
+          "action": "write:other-bot-workspaces",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-alBqLI/other-bot-workspaces）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T03:44:34.887Z"
+        }
+      ],
+      "observedAt": "2026-08-30T03:44:34.888Z",
+      "note": "shadow 环境写入通常畅通——ALLOWED 表示「未受阻」的真实观测；矩阵格子在 P6-3 实测前保持 pending，不得据此改写为「已实现默认拒绝」"
+    },
+    "treeDiff": {
+      "addedUnexpected": [],
+      "note": "shadow probe 无树差异面（payload.mode=shadow）"
+    },
+    "provenance": {
+      "runId": "58e81968-710f-41d9-b316-1ce41e1c01ff",
+      "rawBinding": {
+        "path": "/dev/shm/o4b-runs/58e81968-710f-41d9-b316-1ce41e1c01ff/raw.json",
+        "sha256": "8b35dbb6418d2d41be9d1e0d3a8fcf82fdf83630e3fa524f0093fcf0ae91dcac",
+        "byteLength": 6724
+      },
+      "sourceManifestSha256": "9a41d675dad92042c969a03eeb4dee539e31bac5c1df99278a842cb1de3dab87",
+      "captureManifest": {
+        "path": "/dev/shm/o4b-runs/58e81968-710f-41d9-b316-1ce41e1c01ff/capture-manifest.json",
+        "sha256": "8dfa3da0fec567c236958a1f45761765002b030ee4ca885919a1fbf97ab3da0f",
+        "artifactWriteCompletedAt": "2026-08-30T03:44:34.914Z",
+        "capturedAt": "2026-08-30T03:44:34.914Z"
+      },
+      "sourceManifest": [
+        {
+          "path": "lib/review-enforcement.js",
+          "sha256": "f5723be64cc627695e8de38d4e4481275b23d25d2bf82fe7607394706a81e289",
+          "byteLength": 32047
+        },
+        {
+          "path": "lib/sentinel-provenance.js",
+          "sha256": "16cf77af4c49d9fb7bb8a6cebd4b8146fdc9ef6b1abb9c1f392ad22cd6f739fb",
+          "byteLength": 17379
+        },
+        {
+          "path": "scripts/evidence-runner.mjs",
+          "sha256": "566d7aef110bcf2dbcebe714136cbfd02ae7ea82ab4477056ce7084ff1364a88",
+          "byteLength": 9666
+        }
+      ],
+      "registry": {
+        "status": "completed",
+        "dir": "/home/beijong/project/dsh-bots/artifacts/run-registry"
+      }
+    }
+  },
+  "human": {
+    "authorizationBasis": "用户 2026-08-30 指令「自行逐项进行」按 docs/TEMP-guidance-optimization-v3.2.1.md（SHA fba63f5f…699a 核验一致）固定顺序执行 O-4a/O-4b",
+    "pendingItems": [
+      "O-5 可选分层待执行；C2-1..C2-4 部署同步另授权；四 bot 重启裁定归用户",
+      "P6-4/P6-5/P7-5 门态维持；P9 不得启动"
+    ],
+    "humanReviewNotes": "本轮 O 批次交付待双席复核；runner parity 3 处漂移为 C2-1 预期输入",
+    "scope": "O-4a（provenance＋run-registry）＋O-4b（evidence-runner/packager v2 职责分离）"
+  },
+  "modifiedFiles": [
+    {
+      "file": "lib/sentinel-provenance.js",
+      "byteLength": 17379,
+      "sha256": "16cf77af4c49d9fb7bb8a6cebd4b8146fdc9ef6b1abb9c1f392ad22cd6f739fb"
+    },
+    {
+      "file": "lib/evidence-packager.js",
+      "byteLength": 12773,
+      "sha256": "c7bba267b3d778a9fc1eb40609cf0afce3c3f3a29dce3617852b42753e625b53"
+    },
+    {
+      "file": "scripts/evidence-runner.mjs",
+      "byteLength": 9666,
+      "sha256": "566d7aef110bcf2dbcebe714136cbfd02ae7ea82ab4477056ce7084ff1364a88"
+    },
+    {
+      "file": "scripts/evidence-packager.mjs",
+      "byteLength": 5493,
+      "sha256": "4c251544032c9e3981852f752e269d93b11549e17d5f7f516bf5f083bfdea225"
+    },
+    {
+      "file": "CHANGELOG.md",
+      "byteLength": 216374,
+      "sha256": "7d2ee209353d6b8b1189ae1fd27c816baad62733fc6340d72f2f0529a5d8ad6d"
+    }
+  ],
+  "newTestModules": [
+    {
+      "file": "tests/sentinel-provenance.test.mjs",
+      "byteLength": 18193,
+      "sha256": "bc63e8ab80d807ed31ac4cb17389c768cc70dd9ebfa5a33466ace9b630467f0c"
+    },
+    {
+      "file": "tests/evidence-packager.test.mjs",
+      "byteLength": 13379,
+      "sha256": "4241da21cd73da8d02aa276923fe1857f78cd1867b12ba7ae9fbd2d3f916a62e"
+    }
+  ]
+}

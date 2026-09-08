@@ -1,0 +1,59 @@
+agent-presets:
+  default: bot-nopersona
+
+llm-pi-ai:
+  providers:
+    siliconlow:
+      displayName: SiliconFlow
+      apiKeyEnv: SILICONLOW_API_KEY
+      api: openai-completions
+      baseURL: https://api.siliconflow.cn/v1
+      models:
+        - id: Qwen/Qwen3.6-27B
+          input: [ text, image ]
+    niko:
+      displayName: gpt
+      apiKeyEnv: NIKO_API_KEY
+      api: openai-completions
+      baseURL: https://nikoapi.xyz/v1
+      models:
+        - id: gpt-5.6-luna
+        - id: gpt-5.6-sol
+        - id: claude-opus-5
+          contextWindow: 1000000
+    opencode-go:
+      apiKeyEnv: OPENCODE_GO_API_KEY
+      models:
+        - id: deepseek-v4-flash
+          name: DeepSeek V4 Flash
+          contextWindow: 1000000
+          maxTokens: 384000
+        - id: hy3
+          name: Hy3
+          contextWindow: 256000
+          maxTokens: 64000
+        - id: deepseek-v4-pro
+          name: DeepSeek V4 Pro
+          contextWindow: 1000000
+          maxTokens: 384000
+    zen:
+      displayName: zen
+      apiKeyEnv: ZEN_API_KEY
+      api: openai-completions
+      baseURL: https://opencode.ai/zen/v1
+      models:
+        - id: x-preview-f-free
+          contextWindow: 1000000
+    nico:
+      apiKeyEnv: NICO_API_KEY
+      api: openai-completions
+      baseURL: https://nikoapi.xyz/v1
+      models:
+        - id: glm-5.3
+        - id: kimi-k3
+agent-default-model:
+  provider: 'niko'
+  model: 'gpt-5.6-sol'
+  reasoningEffort: 'high'
+ui-onboarding:
+  welcomeNoticeVersion: 2026-08-13.1

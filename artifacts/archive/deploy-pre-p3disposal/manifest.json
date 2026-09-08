@@ -1,0 +1,21 @@
+{
+  "createdAt": "2026-09-04T10:38:48.829Z",
+  "purpose": "P3 处置批部署前备份（3 改写件；另 3 件为新建无旧件）",
+  "files": {
+    "lib/index.js": {
+      "byteLength": 203133,
+      "sha256": "9e04404136fef3e4ca3c85605e0e9a044c4553ae61e3fe3cb2853d6cff1a2d9f",
+      "backup": "artifacts/archive/deploy-pre-p3disposal/lib__index.js"
+    },
+    "lib/review-capability.js": {
+      "byteLength": 29649,
+      "sha256": "140736af4aa3e4fd2aeee9bdf9225252ba78284c56af6764e7b0c1b51d9177ea",
+      "backup": "artifacts/archive/deploy-pre-p3disposal/lib__review-capability.js"
+    },
+    "lib/review-store.js": {
+      "byteLength": 52671,
+      "sha256": "79677fd1ec24d3291ddf8bdcd4e49bd87a08ecaff35b9466a31d785ef6a5cecf",
+      "backup": "artifacts/archive/deploy-pre-p3disposal/lib__review-store.js"
+    }
+  }
+}

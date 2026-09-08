@@ -1,0 +1,60 @@
+{
+  "observations": [
+    {
+      "name": "registry-patch-lost-update",
+      "reproduced": true,
+      "expected": "new-name",
+      "observed": "b"
+    },
+    {
+      "name": "concurrent-start-duplicates",
+      "reproduced": true,
+      "expected": 1,
+      "observed": 2,
+      "method": "real start with simulated spawn"
+    },
+    {
+      "name": "stop-during-restart-backoff",
+      "reproduced": true,
+      "response": {
+        "online": false
+      },
+      "restartStillScheduled": true
+    },
+    {
+      "name": "reply-dedup-cross-bot-collision",
+      "reproduced": true,
+      "existingFrom": "a",
+      "incomingReplyFrom": "b",
+      "localSeq": 1,
+      "suppressReplyFromB": true
+    },
+    {
+      "name": "finalized-before-routing-crash",
+      "reproduced": true,
+      "outboxReplies": 1,
+      "senderInboxReplies": 0,
+      "method": "persist exact crash-window state then call real handleIncoming"
+    },
+    {
+      "name": "first-offline-message-baselined-away",
+      "reproduced": true,
+      "cursor": {
+        "lastSeq": 1,
+        "replay": false,
+        "baseline": 1
+      },
+      "messageHasNewId": true
+    },
+    {
+      "name": "watcher-error-skips-unprocessed-batch",
+      "reproduced": true,
+      "unprocessedSeqs": [
+        2,
+        3
+      ],
+      "watermark": 4,
+      "replayOnRestart": false
+    }
+  ]
+}

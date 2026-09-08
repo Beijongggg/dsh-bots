@@ -1,0 +1,31 @@
+{
+  "batch": "F-S15 修复批部署＋重启链",
+  "authorizedBy": "用户「继续」（2026-09-04，对上轮待点名项的点名）",
+  "executedAt": "2026-09-04T13:45:51.537Z",
+  "deploySync": {
+    "files": [
+      "lib/index.js（改，旧件备份 deploy-pre-fs15/）",
+      "lib/mail-seq-lock.js（新建）"
+    ],
+    "postHash": "2/2",
+    "deployNodeCheck": "2/2"
+  },
+  "restart": {
+    "oldHost": 95753,
+    "newHost": 159906,
+    "bots": {
+      "lead": 159958,
+      "bot-mt0x6r0y": 159986,
+      "reviewer-lead": 160014,
+      "reviewer-second": 160042
+    },
+    "parentage": "四 bot 均为新宿主子进程"
+  },
+  "verification": {
+    "fiveField": "5/5 新行",
+    "review API": "200",
+    "host 日志": "零 error/fail/warn",
+    "repo↔deploy": "全树一致"
+  },
+  "note": "部署后生产代码即含跨进程 seq 写锁（F-S15）"
+}

@@ -1,0 +1,43 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { internals } from '/home/beijong/project/dsh-bots/lib/index.js';
+import { createSourceSnapshot } from '/home/beijong/project/dsh-bots/lib/review-evidence.js';
+import { submitReviewArtifact } from '/home/beijong/project/dsh-bots/lib/review-store.js';
+import { createInvocation } from '/home/beijong/project/dsh-bots/lib/review-orchestrator.js';
+import { readFlow, advanceFixFlow } from '/home/beijong/project/dsh-bots/lib/review-flow.js';
+import { writeUserDecision } from '/home/beijong/project/dsh-bots/lib/review-results.js';
+import { createEngineeringJob, claimJob, readJobState, botHoldsActiveLease } from '/home/beijong/project/dsh-bots/lib/review-jobs.js';
+const root = fs.mkdtempSync('/tmp/dsh-spec-extra-audit-');
+const source = path.join(root,'source'); fs.mkdirSync(source); fs.writeFileSync(path.join(source,'app.js'),'export const x=1;');
+const ctx={logger:{warn(){},info(){},error(){}}};
+const E={ 'initial-lead':{schemaVersion:1,body:'lead'},'initial-second':{schemaVersion:1,body:'second'},'delta-lead':{schemaVersion:1,body:'delta',nextAction:'final',discussionFindingIds:[]},'final-lead':{schemaVersion:1,body:'final',decision:'reject',findingIds:['F1']},'recheck-lead':{schemaVersion:1,body:'rl'},'recheck-second':{schemaVersion:1,body:'rs'},'recheck-delta-lead':{schemaVersion:1,body:'rd',nextAction:'final',discussionFindingIds:[]},'recheck-final-lead':{schemaVersion:1,body:'recheck final',decision:'reject',findingIds:['F1']}};
+async function setup(name) {
+ const home=path.join(root,name); fs.mkdirSync(home); createSourceSnapshot(home,{cycleId:'snap',root:source});
+ const api={dshHome:home,readRegistry:()=>({})}; const opts={runnerFactory:m=>async()=>({text:JSON.stringify(E[m.stage])}),copyToUserFacing:(id,meta)=>{const out=path.join(home,id+'.md');fs.copyFileSync(meta.bodyFile,out);return out;}};
+ for(const [stage,targetReviewer] of [['initial-lead','reviewer-lead'],['initial-second','reviewer-second']])createInvocation(home,{taskId:'T',artifactId:'spec',stage,targetReviewer,createdBy:'host',idempotencyKey:stage,parts:['taskId=T'],sourceSnapshotId:'snap'});
+ for(let i=0;i<4;i++)await internals.pumpReviewInvocations(ctx,api,opts);
+ return {home,api,opts};
+}
+const cycles=await setup('cycles');
+// Bypass the separate recheck author wiring defect to isolate cycle state reuse.
+cycles.opts.engineeringBotId='coder';
+const cf1=submitReviewArtifact(cycles.home,{taskId:'T',stage:'fix-report',authorBotId:'coder',body:'fix1',idempotencyKey:'fix1'});
+advanceFixFlow(cycles.home,{taskId:'T',fixReportArtifactId:cf1.artifactId,engineeringBotId:'coder',repairCycle:1});
+for(let i=0;i<4;i++)await internals.pumpReviewInvocations(ctx,cycles.api,cycles.opts);
+const firstCycle=readFlow(cycles.home,'T');
+const cf2=submitReviewArtifact(cycles.home,{taskId:'T',stage:'fix-report',authorBotId:'coder',body:'fix2',idempotencyKey:'fix2'});
+const secondCycle=advanceFixFlow(cycles.home,{taskId:'T',fixReportArtifactId:cf2.artifactId,engineeringBotId:'coder',repairCycle:2});
+console.log('SECOND_REPAIR_CYCLE',JSON.stringify({firstFinalArtifact:firstCycle.recheckFinalArtifactId,step:secondCycle.step,repairCycle:secondCycle.flow.repairCycle,retainedFirstFix:secondCycle.flow.fixReportArtifactId===cf1.artifactId}));
+const lease=await setup('job-lease');
+const decision=writeUserDecision(lease.home,{taskId:'T',artifactId:readFlow(lease.home,'T').finalArtifactId,revision:1,choice:'authorize-repair',findingIds:['F1'],scope:['app.js'],acceptanceCriteria:'pass',author:'user'},{ok:true,principal:{role:'user'}});
+if(!decision.ok)throw Error(decision.reason);
+const job=createEngineeringJob(lease.home,{taskId:'T',decisionRevision:1,authorizedFindingIds:['F1'],scope:['app.js'],acceptanceCriteria:'pass',engineeringBotId:'coder',sourceSnapshotId:'snap'});
+if(!job.ok)throw Error(job.reason);
+const startedDir=path.join(lease.home,'bots','started');fs.mkdirSync(startedDir,{recursive:true});const iso=new Date().toISOString();fs.writeFileSync(path.join(startedDir,'instances.jsonl'),JSON.stringify({botId:'coder',pid:process.pid,startedAt:iso,hostInstanceId:'host-'+process.pid,at:iso})+'\n');
+internals.issueJobDispatch(lease.home,job.jobId,'coder');
+const claimed=claimJob(lease.home,{jobId:job.jobId,botId:'coder',capability:internals.productionJobCapabilityProvider(lease.home,'coder','job.claim',job.jobId),leaseMs:1});
+if(!claimed.ok)throw Error(claimed.reason);
+await new Promise(resolve=>setTimeout(resolve,10));
+await internals.pumpReviewInvocations(ctx,lease.api,lease.opts);
+console.log('EXPIRED_JOB_LEASE',JSON.stringify({active:botHoldsActiveLease(lease.home,job.jobId,'coder'),state:readJobState(lease.home,job.jobId),claimCapability:internals.productionJobCapabilityProvider(lease.home,'coder','job.claim',job.jobId)}));
+console.log('FIXTURES',root);

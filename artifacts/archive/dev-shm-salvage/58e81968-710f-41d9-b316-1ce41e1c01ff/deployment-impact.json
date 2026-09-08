@@ -1,0 +1,9 @@
+{
+  "deploySyncNeeded": true,
+  "restartNeeded": false,
+  "basis": [
+    "lib/review-enforcement.js 与 lib/sentinel-provenance.js：host 静态导入图仅经 lib/index.js 使用 validateWorkspaceTriple（行为零变化）；probe/runner/packager 为 CLI 按次加载",
+    "repo↔deploy parity 实测 3 处漂移（review-enforcement.js hash-diff、sentinel-provenance.js missing、probe.cjs hash-diff）→ C2-1 同步范围"
+  ],
+  "manualOverride": null
+}

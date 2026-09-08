@@ -1,0 +1,60 @@
+{
+  "packageType": "review-evidence-package",
+  "generatedAt": "2026-08-30T03:22:35.380Z",
+  "generatedBy": "coding-side (encoder)",
+  "generationCommand": "node scripts/generate-evidence-package.mjs --files [\"lib/review-enforcement.js\",\"scripts/review-enforcement-probe.cjs\",\"CHANGELOG.md\"] --tests [\"tests/sentinel-layout-manifest.test.mjs\"] --regression 42/42 --scope O-3 manifest+responsibility convergence (TEMP-guidance-optimization-v3.2.1 §5): SHADOW_LAYOUT_MANIFEST single layout source (double-frozen, path-safety validated on derived sides), three-way derivation (lib/real-sentinel/tests), stable canonical-JSON digest in payload, compat fields (cleanSemantics/treeIntegrity), I1-I4 invariants into payload, E1-E5 exported out of guardChain --pending O-4a/O-4b/O-5 待执行；C2-1..C2-4 部署同步另授权；重启裁定归用户 --risks canonical JSON 省略 undefined 值键（JSON 语义）——digest 口径已由独立实现对拍固定 --concurrency 5=ok,ok,ok,ok,ok --out /tmp/o3-pkg-intermediate.json",
+  "scope": "O-3 manifest+responsibility convergence (TEMP-guidance-optimization-v3.2.1 §5): SHADOW_LAYOUT_MANIFEST single layout source (double-frozen, path-safety validated on derived sides), three-way derivation (lib/real-sentinel/tests), stable canonical-JSON digest in payload, compat fields (cleanSemantics/treeIntegrity), I1-I4 invariants into payload, E1-E5 exported out of guardChain",
+  "sections": [],
+  "conclusion": "提交独立验收",
+  "deploymentOrRestartNeeded": false,
+  "residualRisks": [
+    "canonical JSON 省略 undefined 值键（JSON 语义）——digest 口径已由独立实现对拍固定"
+  ],
+  "pendingItems": [
+    "O-4a/O-4b/O-5 待执行；C2-1..C2-4 部署同步另授权；重启裁定归用户"
+  ],
+  "fullRegression": {
+    "passed": 42,
+    "total": 42
+  },
+  "concurrencyStress": {
+    "runs": 5,
+    "results": [
+      "ok",
+      "ok",
+      "ok",
+      "ok",
+      "ok"
+    ]
+  },
+  "modifiedFiles": [
+    {
+      "file": "lib/review-enforcement.js",
+      "byteLength": 32047,
+      "sha256": "f5723be64cc627695e8de38d4e4481275b23d25d2bf82fe7607394706a81e289"
+    },
+    {
+      "file": "scripts/review-enforcement-probe.cjs",
+      "byteLength": 33518,
+      "sha256": "5fb6c29a7fb617c4c552d6e0947249f121b9664bba1e169db79de49806356c6f"
+    },
+    {
+      "file": "CHANGELOG.md",
+      "byteLength": 213269,
+      "sha256": "823cd31352ac3ef41e523e1075ee02e0843d09cd90c8190cc5a7b46cc48f077d"
+    }
+  ],
+  "newTestModules": [
+    {
+      "file": "tests/sentinel-layout-manifest.test.mjs",
+      "byteLength": 11298,
+      "sha256": "6777e7896bc94858237eb4fe2ae8a11918e7d3d08c33131e94c5fe046793ec49"
+    }
+  ],
+  "packageScope": "incremental",
+  "basePackage": {
+    "sha256": "09feb530b9a0d83d896edd5c48a9a805c0f4c253f3ede4f2b57b874786170c9c",
+    "path": "artifacts/packages/review-evidence-package-0002-09feb530.json",
+    "note": "O-1+O-2 批包"
+  }
+}

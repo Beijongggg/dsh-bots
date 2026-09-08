@@ -1,0 +1,2720 @@
+{
+  "packageType": "review-evidence-package-v2",
+  "schemaVersion": "evidence-package/2",
+  "packageScope": "incremental",
+  "basePackage": {
+    "sha256": "293c6783b6c42b0ec55c8f0474efbe2129bed03c4a71a98514cfd74bb9ac3790",
+    "path": "/home/beijong/project/dsh-bots/artifacts/packages/review-evidence-package-0005-293c6783.json"
+  },
+  "generatedAt": "2026-08-30T08:08:37.469Z",
+  "generatedBy": "evidence-packager v2 (coding-side)",
+  "conclusion": "提交独立验收",
+  "executionEvidence": {
+    "fullRegression": {
+      "passed": 45,
+      "total": 45,
+      "source": "tests/run.mjs"
+    },
+    "concurrencyStress": {
+      "runs": 1,
+      "results": [
+        "ok"
+      ],
+      "source": "tests/review-concurrency.test.mjs"
+    },
+    "deploymentImpact": {
+      "deploySyncNeeded": true,
+      "restartNeeded": false,
+      "basis": [
+        "derive: deploySyncNeeded = (driftCount=8 > 0)",
+        "derive: restartNeeded = drift 包含 host 静态入口 lib/index.js（实为 false）",
+        "derive: 事实唯一来源 = raw.payload.parity（checked=8，identical=0，hashDiff=2，missingInDeploy=6）"
+      ],
+      "manualOverride": null,
+      "driftCount": 8,
+      "checked": 8,
+      "identical": 0,
+      "hashDiff": 2,
+      "missingInDeploy": 6,
+      "files": [
+        "lib/review-enforcement.js",
+        "lib/sentinel-provenance.js",
+        "lib/sentinel-safety.js",
+        "lib/sentinel-runner.js",
+        "lib/evidence-packager.js",
+        "scripts/review-enforcement-probe.cjs",
+        "scripts/evidence-runner.mjs",
+        "scripts/evidence-packager.mjs"
+      ],
+      "diffs": [
+        {
+          "file": "lib/review-enforcement.js",
+          "kind": "hash-diff",
+          "repoSha256": "5ee383294c33373bb9851c3415c61040d2e37f075f0717a168070790babfab91",
+          "deploySha256": "511393295b8eaba250e603cbcb80c7592e28733ae1f42bbdcf399e6ddc4ca5a9"
+        },
+        {
+          "file": "lib/sentinel-provenance.js",
+          "kind": "missing-in-deploy"
+        },
+        {
+          "file": "lib/sentinel-safety.js",
+          "kind": "missing-in-deploy"
+        },
+        {
+          "file": "lib/sentinel-runner.js",
+          "kind": "missing-in-deploy"
+        },
+        {
+          "file": "lib/evidence-packager.js",
+          "kind": "missing-in-deploy"
+        },
+        {
+          "file": "scripts/review-enforcement-probe.cjs",
+          "kind": "hash-diff",
+          "repoSha256": "70a02afce5187e365406034cba5558d896110301bfc0e7bd0c57b38889f0b589",
+          "deploySha256": "bc60359d32c61e02690026439999c226f1f46454c192e2087057948174bb27c1"
+        },
+        {
+          "file": "scripts/evidence-runner.mjs",
+          "kind": "missing-in-deploy"
+        },
+        {
+          "file": "scripts/evidence-packager.mjs",
+          "kind": "missing-in-deploy"
+        }
+      ],
+      "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+      "deployExists": true
+    },
+    "probe": {
+      "mode": "shadow",
+      "shadowRoot": "/dev/shm/dsh-enforcement-shadow-QpOFQh",
+      "clean": true,
+      "cleanSemantics": "legacy probe-residue check only",
+      "treeIntegrity": {
+        "value": null,
+        "source": "assertShadowClean only（shadow 模式无全树快照/树差异/布局完整性复核，不虚增强断言）"
+      },
+      "scenePolicy": "auto-clean",
+      "results": [
+        {
+          "botId": "coder-probe",
+          "pid": 84257,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-QpOFQh/project",
+          "action": "write:bots.json",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-QpOFQh/dsh-home/bots/bots.json）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T08:07:52.553Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 84257,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-QpOFQh/project",
+          "action": "write:inbox/",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-QpOFQh/dsh-home/bots/inbox）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T08:07:52.554Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 84257,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-QpOFQh/project",
+          "action": "write:outbox/",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-QpOFQh/dsh-home/bots/outbox）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T08:07:52.554Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 84257,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-QpOFQh/project",
+          "action": "write:started/",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-QpOFQh/dsh-home/bots/started）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T08:07:52.554Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 84257,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-QpOFQh/project",
+          "action": "write:profiles/",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-QpOFQh/dsh-home/profiles）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T08:07:52.555Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 84257,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-QpOFQh/project",
+          "action": "write:deploy-copy",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-QpOFQh/deploy-copy）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T08:07:52.555Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 84257,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-QpOFQh/project",
+          "action": "write:system-config",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-QpOFQh/system-config）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T08:07:52.555Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 84257,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-QpOFQh/project",
+          "action": "write:other-bot-workspaces",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-QpOFQh/other-bot-workspaces）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T08:07:52.555Z"
+        }
+      ],
+      "observedAt": "2026-08-30T08:07:52.555Z",
+      "note": "shadow 环境写入通常畅通——ALLOWED 表示「未受阻」的真实观测；矩阵格子在 P6-3 实测前保持 pending，不得据此改写为「已实现默认拒绝」"
+    },
+    "treeDiff": {
+      "addedUnexpected": []
+    },
+    "realSurfaceCheck": {
+      "surfaces": [
+        {
+          "label": "真实 DSH_HOME",
+          "verified": true,
+          "modified": [],
+          "removed": [],
+          "added": [],
+          "addedIrregular": [],
+          "irregular": [
+            {
+              "path": ".rollback/pre-split-20260818-195524/dsh-team/node_modules/@deepseek-ai/cordis",
+              "kind": "symlink"
+            },
+            {
+              "path": ".rollback/pre-split-20260818-195524/dsh-team/node_modules/@deepseek-ai/dsh-attachment",
+              "kind": "symlink"
+            },
+            {
+              "path": ".rollback/pre-split-20260818-195524/dsh-team/node_modules/@deepseek-ai/dsh-brand",
+              "kind": "symlink"
+            },
+            {
+              "path": ".rollback/pre-split-20260818-195524/dsh-team/node_modules/@deepseek-ai/dsh-commands",
+              "kind": "symlink"
+            },
+            {
+              "path": ".rollback/pre-split-20260818-195524/dsh-team/node_modules/@deepseek-ai/dsh-invariants",
+              "kind": "symlink"
+            },
+            {
+              "path": ".rollback/pre-split-20260818-195524/dsh-team/node_modules/@deepseek-ai/dsh-llm",
+              "kind": "symlink"
+            },
+            {
+              "path": ".rollback/pre-split-20260818-195524/dsh-team/node_modules/@deepseek-ai/dsh-timeout",
+              "kind": "symlink"
+            },
+            {
+              "path": ".rollback/pre-split-20260818-195524/dsh-team/node_modules/@deepseek-ai/schemastery",
+              "kind": "symlink"
+            },
+            {
+              "path": "browser-profiles/work/SingletonCookie",
+              "kind": "symlink"
+            },
+            {
+              "path": "browser-profiles/work/SingletonLock",
+              "kind": "symlink"
+            },
+            {
+              "path": "browser-profiles/work/SingletonSocket",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-browser/node_modules/@deepseek-ai/cordis",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-browser/node_modules/@deepseek-ai/dsh-attachment",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-browser/node_modules/@deepseek-ai/dsh-brand",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-browser/node_modules/@deepseek-ai/dsh-commands",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-browser/node_modules/@deepseek-ai/dsh-invariants",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-browser/node_modules/@deepseek-ai/dsh-llm",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-browser/node_modules/@deepseek-ai/dsh-timeout",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-browser/node_modules/@deepseek-ai/schemastery",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-team/node_modules/@deepseek-ai/cordis",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-team/node_modules/@deepseek-ai/dsh-attachment",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-team/node_modules/@deepseek-ai/dsh-brand",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-team/node_modules/@deepseek-ai/dsh-commands",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-team/node_modules/@deepseek-ai/dsh-invariants",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-team/node_modules/@deepseek-ai/dsh-llm",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-team/node_modules/@deepseek-ai/dsh-timeout",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-team/node_modules/@deepseek-ai/schemastery",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-vision/node_modules/@deepseek-ai/cordis",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-vision/node_modules/@deepseek-ai/dsh-llm",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-vision/node_modules/@deepseek-ai/dsh-settings",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-vision/node_modules/@deepseek-ai/dsh-timeout",
+              "kind": "symlink"
+            },
+            {
+              "path": "plugins/dsh-vision/node_modules/@deepseek-ai/schemastery",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@anthropic-ai/sdk",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws/lambda-invoke-store",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-crypto/sha256-browser",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-crypto/sha256-js",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-crypto/supports-web-crypto",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-crypto/util",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-sdk/client-bedrock-runtime",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-sdk/core",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-sdk/credential-provider-env",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-sdk/credential-provider-http",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-sdk/credential-provider-ini",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-sdk/credential-provider-login",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-sdk/credential-provider-node",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-sdk/credential-provider-process",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-sdk/credential-provider-sso",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-sdk/credential-provider-web-identity",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-sdk/eventstream-handler-node",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-sdk/middleware-eventstream",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-sdk/middleware-websocket",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-sdk/nested-clients",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-sdk/signature-v4-multi-region",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-sdk/token-providers",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-sdk/types",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-sdk/util-locate-window",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@aws-sdk/xml-builder",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@babel/code-frame",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@babel/helper-validator-identifier",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@babel/runtime",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/cordis",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/cordis-plugin-group",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/cordis-plugin-hmr",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/cordis-plugin-include",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/cordis-plugin-loader",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/cordis-plugin-timer",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/cosmokit",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-agent",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-agent-default-model",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-agent-instructions",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-agent-loop",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-agent-presets",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-agent-tool-presentation",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-anonymous-user-id",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-api-gateway",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-api-remotes",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-app-boot",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-atomic-write",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-attachment",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-attachment-local",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-authorization",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-base",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-bash-local",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-bash-sandbox",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-brand",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-connection",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-hmr",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-locale",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-modules",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-runtime",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-schema-form",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-agent-preset",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-attachment",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-brand-official",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-commands",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-conversation",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-cordis",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-deliverables",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-directory-picker-browse",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-directory-picker-native",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-goal",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-input-trigger",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-jobs",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-layout",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-message-feedback",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-model-selection",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-permission-presets",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-plan",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-primitives",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-reference",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-renderer",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-settings",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-settings-general",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-settings-models",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-settings-plugin-inventory",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-settings-plugins",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-sidebar",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-skill",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-slots",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-subagent",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-theme",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-tool",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-trajectory",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-user-questions",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-workflow-run",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-ui-workspace",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-web",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-client-web-react",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-cmdline",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-code-runtime",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-code-runtime-worker-thread",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-command-compact",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-command-feedback",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-command-goal",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-commands",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-compaction",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-compaction-basic",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-compaction-tool-result-pruner",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-cordis-client-runner",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-cordis-host-runner",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-credentials",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-credentials-local",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-file-reference",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-file-reference-local",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-fs",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-fs-local",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-fs-observation-policy",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-fs-sandbox",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-goal",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-goal-round-driver",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-headless",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-home-paths",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-host-apiproxy",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-host-directory-picker",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-host-directory-picker-auto",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-host-directory-picker-browse",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-host-directory-picker-native",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-host-frontend-static",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-host-plugin-inventory",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-host-webserver",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-invariants",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-jobs",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-jobs-local",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-launch-environment",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-llm",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-llm-deepseek",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-llm-pi-ai",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-llm-retry",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-mcp-client",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-message-feedback",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-native-command",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-output-retention",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-permission-presets",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-persona",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-plan-mode",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-pwsh-local",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-pwsh-sandbox",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-repeat-tool-reminder",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-sandbox",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-sandbox-local",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-sandbox-policy",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-sandbox-windows-acl",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-schedule",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-scope",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-session",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-session-checkpoint-policy",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-session-log-export",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-session-persistence",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-session-persistence-jsonl",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-session-projection",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-session-projection-cache",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-session-query",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-session-query-sqlite",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-session-reference",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-session-stats",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-session-telemetry",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-session-telemetry-otel",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-session-title",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-session-title-first-prompt-llm",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-session-title-llm",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-settings",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-settings-file",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-shell",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-shell-env",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-skill",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-skill-badge",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-skill-filesystem",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-spill",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-spill-local",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-spill-policy",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-storage",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-storage-domain",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-storage-json",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-subagent",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-subagent-fork-in-process",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-subagent-in-process-driver",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-subagent-spawn-in-process",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-subprocess",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-subprocess-local",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-system-prompt",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-terminal",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-terminal-bash",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-time-context",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-timeout",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tmux-context",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-token-meter",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tool-ask-user",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tool-bash",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tool-bash-persistent",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tool-call-timeout-policy",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tool-cordis",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tool-fs",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tool-fs-search",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tool-goal",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tool-jobs",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tool-pwsh",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tool-pwsh-persistent",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tool-ralph",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tool-skill",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tool-str-replace-editor",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tool-subagent",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tool-subagent-control",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tool-subagent-report",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tool-todo",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tool-web",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tool-workflow",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-tools",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-typert-loader",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-typert-protocol",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-typert-registry",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-user-approval",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-user-questions",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-web",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-web-app",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-web-frontend",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-web-search-deepseek",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-workflow",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-workflow-worker-thread",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/dsh-workspace",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/node-addon-landlock-run",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@deepseek-ai/schemastery",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@earendil-works/pi-ai",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@google/genai",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@hono/node-server",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@img/colour",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@joplin/turndown-plugin-gfm",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@mistralai/mistralai",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@mixmark-io/domino",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@modelcontextprotocol/sdk",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@opentelemetry/api",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@opentelemetry/api-logs",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@opentelemetry/core",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@opentelemetry/exporter-logs-otlp-http",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@opentelemetry/otlp-exporter-base",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@opentelemetry/otlp-transformer",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@opentelemetry/resources",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@opentelemetry/sdk-logs",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@opentelemetry/sdk-metrics",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@opentelemetry/sdk-trace",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@opentelemetry/semantic-conventions",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@protobufjs/aspromise",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@protobufjs/base64",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@protobufjs/codegen",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@protobufjs/eventemitter",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@protobufjs/fetch",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@protobufjs/float",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@protobufjs/path",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@protobufjs/pool",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@protobufjs/utf8",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@shikijs/core",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@shikijs/engine-javascript",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@shikijs/engine-oniguruma",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@shikijs/langs",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@shikijs/primitive",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@shikijs/themes",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@shikijs/types",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@shikijs/vscode-textmate",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@smithy/core",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@smithy/credential-provider-imds",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@smithy/fetch-http-handler",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@smithy/is-array-buffer",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@smithy/node-http-handler",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@smithy/signature-v4",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@smithy/types",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@smithy/util-buffer-from",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@smithy/util-utf8",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@standard-schema/spec",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@tanstack/react-virtual",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@tanstack/virtual-core",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@types/debug",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@types/hast",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@types/katex",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@types/mdast",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@types/ms",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@types/node",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@types/retry",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@types/unist",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@ungap/structured-clone",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/@vscode/ripgrep",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/accepts",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/agent-base",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/ajv",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/ajv-formats",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/anser",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/argparse",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/base64-js",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/bignumber.js",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/body-parser",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/bowser",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/buffer-equal-constant-time",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/bundle-name",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/bytes",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/call-bind-apply-helpers",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/call-bound",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/ccount",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/character-entities",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/character-entities-html4",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/character-entities-legacy",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/chokidar",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/clsx",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/comma-separated-tokens",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/commander",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/content-disposition",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/content-type",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/cookie",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/cookie-signature",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/cors",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/cross-spawn",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/data-uri-to-buffer",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/debug",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/decode-named-character-reference",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/default-browser",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/default-browser-id",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/define-lazy-prop",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/depd",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/dequal",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/detect-libc",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/devlop",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/diff",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/dsh-bots",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/dunder-proto",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/ecdsa-sig-formatter",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/ee-first",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/encodeurl",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/es-define-property",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/es-errors",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/es-object-atoms",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/escape-html",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/escape-string-regexp",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/etag",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/eventsource",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/eventsource-parser",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/express",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/express-rate-limit",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/extend",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/fast-deep-equal",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/fast-uri",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/fetch-blob",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/fflate",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/finalhandler",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/formdata-polyfill",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/forwarded",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/fresh",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/function-bind",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/gaxios",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/gcp-metadata",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/get-intrinsic",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/get-proto",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/google-auth-library",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/google-logging-utils",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/gopd",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/has-symbols",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/hasown",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/hast-util-to-html",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/hast-util-whitespace",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/hono",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/html-void-elements",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/http-errors",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/http-proxy-agent",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/https-proxy-agent",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/iconv-lite",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/immer",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/inherits",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/ip-address",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/ipaddr.js",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/is-docker",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/is-in-ssh",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/is-inside-container",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/is-promise",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/is-wsl",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/isexe",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/jose",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/js-tokens",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/js-yaml",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/json-bigint",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/json-schema-to-ts",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/json-schema-traverse",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/json-schema-typed",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/jwa",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/jws",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/katex",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/koffi",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/long",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/longest-streak",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/loose-envify",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/markdown-table",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/math-intrinsics",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/mdast-util-find-and-replace",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/mdast-util-from-markdown",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/mdast-util-gfm",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/mdast-util-gfm-autolink-literal",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/mdast-util-gfm-footnote",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/mdast-util-gfm-strikethrough",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/mdast-util-gfm-table",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/mdast-util-gfm-task-list-item",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/mdast-util-math",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/mdast-util-phrasing",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/mdast-util-to-hast",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/mdast-util-to-markdown",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/mdast-util-to-string",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/media-typer",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/merge-descriptors",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-core-commonmark",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-extension-gfm",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-extension-gfm-autolink-literal",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-extension-gfm-footnote",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-extension-gfm-strikethrough",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-extension-gfm-table",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-extension-gfm-tagfilter",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-extension-gfm-task-list-item",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-extension-math",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-factory-destination",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-factory-label",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-factory-space",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-factory-title",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-factory-whitespace",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-util-character",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-util-chunked",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-util-classify-character",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-util-combine-extensions",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-util-decode-numeric-character-reference",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-util-decode-string",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-util-encode",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-util-html-tag-name",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-util-normalize-identifier",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-util-resolve-all",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-util-sanitize-uri",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-util-subtokenize",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-util-symbol",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/micromark-util-types",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/mime-db",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/mime-types",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/ms",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/negotiator",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/node-addon-api",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/node-addon-native-custom-loader",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/node-addon-require-builtin",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/node-domexception",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/node-fetch",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/node-pty",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/object-assign",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/object-inspect",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/on-finished",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/once",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/oniguruma-parser",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/oniguruma-to-es",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/open",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/openai",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/p-retry",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/parseurl",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/partial-json",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/path-key",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/path-to-regexp",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/picocolors",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/picomatch",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/pkce-challenge",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/powershell-utils",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/property-information",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/protobufjs",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/proxy-addr",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/qs",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/range-parser",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/raw-body",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/react",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/react-dom",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/readdirp",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/regex",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/regex-recursion",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/regex-utilities",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/require-from-string",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/retry",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/router",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/run-applescript",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/safe-buffer",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/safer-buffer",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/scheduler",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/semver",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/send",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/serve-static",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/setprototypeof",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/sharp",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/shebang-command",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/shebang-regex",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/shiki",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/side-channel",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/side-channel-list",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/side-channel-map",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/side-channel-weakmap",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/space-separated-tokens",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/statuses",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/stringify-entities",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/toidentifier",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/trim-lines",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/ts-algebra",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/tslib",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/turndown",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/type-is",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/typebox",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/undici-types",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/unist-util-is",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/unist-util-position",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/unist-util-remove-position",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/unist-util-stringify-position",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/unist-util-visit",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/unist-util-visit-parents",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/unpipe",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/use-sync-external-store",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/vary",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/vfile",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/vfile-message",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/web-streams-polyfill",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/which",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/wrappy",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/ws",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/wsl-utils",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/yaml",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/zod",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/zod-to-json-schema",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/zustand",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/node_modules/zwitch",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/web/node_modules/dsh-bots",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/web/node_modules/dsh-browser",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/web/node_modules/dsh-header-widgets",
+              "kind": "symlink"
+            },
+            {
+              "path": "profiles/web/node_modules/dsh-team",
+              "kind": "symlink"
+            }
+          ],
+          "scanFailures": [],
+          "clean": true
+        },
+        {
+          "label": "真实部署目录",
+          "verified": true,
+          "modified": [],
+          "removed": [],
+          "added": [],
+          "addedIrregular": [],
+          "irregular": [],
+          "scanFailures": [],
+          "clean": true
+        }
+      ],
+      "verified": true,
+      "clean": true,
+      "method": "运行前后逐文件 SHA-256 只读快照＋文档化易变路径豁免（PROTECTED_SNAPSHOT_EXCLUSIONS）",
+      "exclusions": [
+        "^bots\\/review\\/epoch\\.json$",
+        "^bots\\/review\\/capability\\/epoch\\.json$",
+        "^bots\\/review\\/capability\\/nonces\\/",
+        "^bots\\/review\\/capabilities\\/",
+        "\\.log$",
+        "^(sessions|session-backups|archived-sessions|attachments|browser-profiles|storages|agent-presets-backup)\\/",
+        "^web-.*\\.log\\."
+      ],
+      "preIncomplete": false
+    },
+    "provenance": {
+      "runId": "2aa72743-0d93-4931-bfb4-65852a3a2bf4",
+      "rawBinding": {
+        "path": "/home/beijong/project/dsh-bots/artifacts/runs/2aa72743-0d93-4931-bfb4-65852a3a2bf4/raw.json",
+        "sha256": "4dd3f1c22cd9638e6fcb0232c6d3118a868f1be9c79baeeef569387ea028bc05",
+        "byteLength": 84962
+      },
+      "sourceManifestSha256": "972b8dd6ec894813c6d28b3d5d2a6922dbc3baf401453fac4f118f0ebe884697",
+      "captureManifest": {
+        "path": "/home/beijong/project/dsh-bots/artifacts/runs/2aa72743-0d93-4931-bfb4-65852a3a2bf4/capture-manifest.json",
+        "sha256": "75779f64b0a0a78867cbddc7b2c8beb87ffa31302f878aa3e69270b38e317242",
+        "artifactWriteCompletedAt": "2026-08-30T08:07:52.612Z",
+        "capturedAt": "2026-08-30T08:07:52.612Z"
+      },
+      "sourceManifest": [
+        {
+          "path": "lib/evidence-packager.js",
+          "sha256": "0a0163a167aee3df4bc193a97f62edf18fe5bad0aff5f53652733c63ca5a6294",
+          "byteLength": 22689
+        },
+        {
+          "path": "lib/parity-manifest.js",
+          "sha256": "165aee6ed4542177ef8cc619bdf492c8b36e88283077df1db03d51d0c24e06e2",
+          "byteLength": 2518
+        },
+        {
+          "path": "lib/review-enforcement.js",
+          "sha256": "5ee383294c33373bb9851c3415c61040d2e37f075f0717a168070790babfab91",
+          "byteLength": 20570
+        },
+        {
+          "path": "lib/sentinel-provenance.js",
+          "sha256": "9d49bc5fd1093de5699f869ad9d18725b5dc7ef74833e49feef173a43e22d50e",
+          "byteLength": 22683
+        },
+        {
+          "path": "lib/sentinel-runner.js",
+          "sha256": "463c731941ed6161bb209079923745e41411a03ccddbbd5aed02a5a9e73a8cfc",
+          "byteLength": 22902
+        },
+        {
+          "path": "lib/sentinel-safety.js",
+          "sha256": "8d52fa3d674a0f0ee41131b3e7b74695b648407e51e61b40f59c2f68f0d9244a",
+          "byteLength": 11877
+        },
+        {
+          "path": "scripts/evidence-packager.mjs",
+          "sha256": "dc553420384806dd591aeef230cd805e2e096fa2ab93b1b19a95077a7b7dd13a",
+          "byteLength": 9101
+        },
+        {
+          "path": "scripts/evidence-runner.mjs",
+          "sha256": "84daf32a2e6438e003f84828ce4ba606da4142ec574d33f52859867e64fcc247",
+          "byteLength": 25561
+        },
+        {
+          "path": "scripts/review-enforcement-probe.cjs",
+          "sha256": "70a02afce5187e365406034cba5558d896110301bfc0e7bd0c57b38889f0b589",
+          "byteLength": 7494
+        }
+      ],
+      "evidenceRunnerHash": "84daf32a2e6438e003f84828ce4ba606da4142ec574d33f52859867e64fcc247",
+      "probeCliHash": "70a02afce5187e365406034cba5558d896110301bfc0e7bd0c57b38889f0b589",
+      "probeRuntimeClosure": {
+        "entry": "scripts/review-enforcement-probe.cjs",
+        "files": [
+          "lib/review-enforcement.js",
+          "lib/sentinel-runner.js",
+          "lib/sentinel-safety.js",
+          "scripts/review-enforcement-probe.cjs"
+        ],
+        "sha256": "03657c8aaa6f3afabf2fe378be95ee8e8d9c50d13940af03bbb9dea51b0f9c6f"
+      },
+      "registry": {
+        "status": "completed",
+        "dir": "/home/beijong/project/dsh-bots/artifacts/run-registry"
+      }
+    }
+  },
+  "human": {
+    "authorizationBasis": "用户 2026-08-30 授权「用户方授权，我授权你后续的行为，全部执行」按 O-6 v1.0 需求基线实施 O-6.1～O-6.13",
+    "pendingItems": [
+      "C2-1..C2-4 部署同步未授权未执行；部署状态：2 hash-diff + 6 missing = 8 处漂移，identical=0",
+      "四 bot 重启由用户单独裁定；P9 不得启动；R-3 NOT READY/BLOCKED",
+      "0006 sourceManifest 9 文件冻结：再改须新 runId 重采集重打包（O-6.13）"
+    ],
+    "humanReviewNotes": "O-6 收口批交付待双席复核；archiveBinding 绑定第 0 项抢救性归档（d6c532d7…，8 文件逐项核验）；deploymentImpact 由 raw.parity 机械派生，人工作品旁路已取消",
+    "scope": "O-6 证据收口批（runner 输出合同/registry 责任/污染核验/三方绑定/执行闭包/deploymentImpact 派生/正式 provenance/0006/parity 单源）"
+  },
+  "archiveBinding": {
+    "archiveManifestPath": "/home/beijong/project/dsh-bots/artifacts/archive/dev-shm-salvage/archive-manifest.json",
+    "archiveManifestSha256": "d6c532d7f113eb1a61a67a18284721f0d9cf6bbabfa0470e0760e9a91915d692",
+    "archiveManifestByteLength": 7769,
+    "runs": [
+      {
+        "runId": "2ba5d10c-b08b-4c5e-8291-8159205dd142",
+        "archiveManifestSha256": "d6c532d7f113eb1a61a67a18284721f0d9cf6bbabfa0470e0760e9a91915d692",
+        "files": [
+          {
+            "archivePath": "/home/beijong/project/dsh-bots/artifacts/archive/dev-shm-salvage/2ba5d10c-b08b-4c5e-8291-8159205dd142/capture-manifest.json",
+            "sha256": "01924b6c4c199e796065459cd0834c61e4d0ed3d14065ec050a11903218290cc",
+            "byteLength": 382,
+            "sourcePath": "/dev/shm/o5-runs/2ba5d10c-b08b-4c5e-8291-8159205dd142/capture-manifest.json",
+            "sourceInode": 119904,
+            "sourceMtime": "2026-08-30T04:07:47.219Z",
+            "archivedAt": "2026-08-30T05:15:55.359Z"
+          },
+          {
+            "archivePath": "/home/beijong/project/dsh-bots/artifacts/archive/dev-shm-salvage/2ba5d10c-b08b-4c5e-8291-8159205dd142/deployment-impact.json",
+            "sha256": "04c5374ad3fc0380d380737d8a669ca468c44da27ede828d93ee9403de19d15f",
+            "byteLength": 488,
+            "sourcePath": "/dev/shm/o5-runs/2ba5d10c-b08b-4c5e-8291-8159205dd142/deployment-impact.json",
+            "sourceInode": 119905,
+            "sourceMtime": "2026-08-30T04:07:47.353Z",
+            "archivedAt": "2026-08-30T05:15:55.359Z"
+          },
+          {
+            "archivePath": "/home/beijong/project/dsh-bots/artifacts/archive/dev-shm-salvage/2ba5d10c-b08b-4c5e-8291-8159205dd142/raw.json",
+            "sha256": "aed6487151c77b25ceae7666ef7c79c73f63fad269de81d654c39a41c4f09cb4",
+            "byteLength": 6896,
+            "sourcePath": "/dev/shm/o5-runs/2ba5d10c-b08b-4c5e-8291-8159205dd142/raw.json",
+            "sourceInode": 119903,
+            "sourceMtime": "2026-08-30T04:07:47.219Z",
+            "archivedAt": "2026-08-30T05:15:55.359Z"
+          }
+        ]
+      },
+      {
+        "runId": "58e81968-710f-41d9-b316-1ce41e1c01ff",
+        "archiveManifestSha256": "d6c532d7f113eb1a61a67a18284721f0d9cf6bbabfa0470e0760e9a91915d692",
+        "files": [
+          {
+            "archivePath": "/home/beijong/project/dsh-bots/artifacts/archive/dev-shm-salvage/58e81968-710f-41d9-b316-1ce41e1c01ff/capture-manifest.json",
+            "sha256": "8dfa3da0fec567c236958a1f45761765002b030ee4ca885919a1fbf97ab3da0f",
+            "byteLength": 384,
+            "sourcePath": "/dev/shm/o4b-runs/58e81968-710f-41d9-b316-1ce41e1c01ff/capture-manifest.json",
+            "sourceInode": 94863,
+            "sourceMtime": "2026-08-30T03:44:34.912Z",
+            "archivedAt": "2026-08-30T05:15:55.359Z"
+          },
+          {
+            "archivePath": "/home/beijong/project/dsh-bots/artifacts/archive/dev-shm-salvage/58e81968-710f-41d9-b316-1ce41e1c01ff/deployment-impact.json",
+            "sha256": "b393db381d02b1cf9fba673e41eaae3079ffee31af850bc09ec1678377e2d7cd",
+            "byteLength": 463,
+            "sourcePath": "/dev/shm/o4b-runs/58e81968-710f-41d9-b316-1ce41e1c01ff/deployment-impact.json",
+            "sourceInode": 94864,
+            "sourceMtime": "2026-08-30T03:44:34.984Z",
+            "archivedAt": "2026-08-30T05:15:55.359Z"
+          },
+          {
+            "archivePath": "/home/beijong/project/dsh-bots/artifacts/archive/dev-shm-salvage/58e81968-710f-41d9-b316-1ce41e1c01ff/raw.json",
+            "sha256": "8b35dbb6418d2d41be9d1e0d3a8fcf82fdf83630e3fa524f0093fcf0ae91dcac",
+            "byteLength": 6724,
+            "sourcePath": "/dev/shm/o4b-runs/58e81968-710f-41d9-b316-1ce41e1c01ff/raw.json",
+            "sourceInode": 94862,
+            "sourceMtime": "2026-08-30T03:44:34.912Z",
+            "archivedAt": "2026-08-30T05:15:55.359Z"
+          }
+        ]
+      },
+      {
+        "runId": "6dfd1fe9-43d3-43f5-898a-6d8d81997a7a",
+        "archiveManifestSha256": "d6c532d7f113eb1a61a67a18284721f0d9cf6bbabfa0470e0760e9a91915d692",
+        "files": [
+          {
+            "archivePath": "/home/beijong/project/dsh-bots/artifacts/archive/dev-shm-salvage/6dfd1fe9-43d3-43f5-898a-6d8d81997a7a/capture-manifest.json",
+            "sha256": "2279a3b8d16985846704220a70ff2a480725619e0ef68bd5a450236b900c81c7",
+            "byteLength": 383,
+            "sourcePath": "/dev/shm/o4b-runs/6dfd1fe9-43d3-43f5-898a-6d8d81997a7a/capture-manifest.json",
+            "sourceInode": 71339,
+            "sourceMtime": "2026-08-30T03:38:33.712Z",
+            "archivedAt": "2026-08-30T05:15:55.359Z"
+          },
+          {
+            "archivePath": "/home/beijong/project/dsh-bots/artifacts/archive/dev-shm-salvage/6dfd1fe9-43d3-43f5-898a-6d8d81997a7a/raw.json",
+            "sha256": "e540c0f6251160c057467e32ca8405a4a60f00c0a4c740c71970a980031d051a",
+            "byteLength": 6724,
+            "sourcePath": "/dev/shm/o4b-runs/6dfd1fe9-43d3-43f5-898a-6d8d81997a7a/raw.json",
+            "sourceInode": 71338,
+            "sourceMtime": "2026-08-30T03:38:33.712Z",
+            "archivedAt": "2026-08-30T05:15:55.359Z"
+          }
+        ]
+      }
+    ]
+  },
+  "modifiedFiles": [
+    {
+      "file": "lib/sentinel-provenance.js",
+      "byteLength": 22683,
+      "sha256": "9d49bc5fd1093de5699f869ad9d18725b5dc7ef74833e49feef173a43e22d50e"
+    },
+    {
+      "file": "lib/evidence-packager.js",
+      "byteLength": 22689,
+      "sha256": "0a0163a167aee3df4bc193a97f62edf18fe5bad0aff5f53652733c63ca5a6294"
+    },
+    {
+      "file": "lib/parity-manifest.js",
+      "byteLength": 2518,
+      "sha256": "165aee6ed4542177ef8cc619bdf492c8b36e88283077df1db03d51d0c24e06e2"
+    },
+    {
+      "file": "scripts/evidence-runner.mjs",
+      "byteLength": 25561,
+      "sha256": "84daf32a2e6438e003f84828ce4ba606da4142ec574d33f52859867e64fcc247"
+    },
+    {
+      "file": "scripts/evidence-packager.mjs",
+      "byteLength": 9101,
+      "sha256": "dc553420384806dd591aeef230cd805e2e096fa2ab93b1b19a95077a7b7dd13a"
+    },
+    {
+      "file": "scripts/c2-preparation.mjs",
+      "byteLength": 4885,
+      "sha256": "57ec37b678545d7069eee998da4c66bcb6105435712f132dce269ddbfffb0306"
+    },
+    {
+      "file": "artifacts/c2-sync-preparation.json",
+      "byteLength": 8746,
+      "sha256": "ae4994168303a85ae612c6677293eb136bb4ad3766c4226b25b6c9c1a9534500"
+    },
+    {
+      "file": "CHANGELOG.md",
+      "byteLength": 223635,
+      "sha256": "381187ff1806d352b8ed0c957ddbbd89d20de9fa98f3526f98c616ee4a3825c0"
+    }
+  ],
+  "newTestModules": [
+    {
+      "file": "tests/evidence-runner-contract.test.mjs",
+      "byteLength": 11725,
+      "sha256": "25caaa41353b2cbfe29634276ca03a573650c76b28d9e01e90cc8c624baed53c"
+    }
+  ],
+  "runId": "2aa72743-0d93-4931-bfb4-65852a3a2bf4"
+}

@@ -1,0 +1,419 @@
+/**
+ * 回归：团队调研知识底座（v1 MVP）—— 独立模块 lib/knowledge.js 全链路。
+ * 真实 tmp 目录驱动，不 mock 生产逻辑。模块设计：纯函数核心（路径规划/
+ * 索引读/ID 生成/登记/检索）与 index.js 的工具注册层分离（同 stats.js 先例）。
+ *
+ * 语义不变量（PROPOSAL-knowledge-base.md）：
+ *   - knowledge/ 目录 + REPORT_TEMPLATE.md 安装时创建，幂等且**不覆盖**用户模板；
+ *   - 索引 index.jsonl 一行一条；损坏行跳过；ID = R-<年>-<三位序号>（跨年重置）；
+ *   - registerReport：title/body/summary 必填；id/botId/date 自动填充；
+ *     supersedes → 旧条目标 status=updated + supersededBy（保留旧版痕迹）；
+ *     reused → 旧条目 reusedBy 追加（去重）；未知 supersedes 报错、未知 reused 忽略；
+ *   - searchIndex：标题/标签/摘要/核心结论子串命中（大小写不敏感），status 过滤，
+ *     空 query 全列、按登记倒序截 10；不做全文检索。
+ */
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
+import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
+
+const { ensureKnowledgeBase, readIndex, nextReportId, registerReport, searchIndex,
+  knowledgeDir, indexFile, reportsDirFor, templateFileFor, acquireIndexLock } = await import("../lib/knowledge.js");
+const { internals } = await import("../lib/index.js");
+const { registerKnowledgeTools } = internals;
+
+const results = [];
+const test = (name, fn) => results.push([name, fn]);
+
+// ---------- 夹具 ----------
+const homes = [];
+function mkHome() {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-kb-"));
+  homes.push(home);
+  return home;
+}
+const NOW = new Date("2026-08-24T06:00:00.000Z");
+const input = (overrides = {}) => ({
+  title: "调研标题", body: "# 报告正文\n...",
+  summary: "三句摘要", tags: ["标签A", "标签B"],
+  conclusions: ["结论1", "结论2"], sources: ["来源1"],
+  appliesTo: "后续同类调研", task: "T-2026-001/用户委派", ...overrides
+});
+
+// ---------- 安装 ----------
+test("ensureKnowledgeBase：目录+模板创建，幂等且不覆盖用户模板", () => {
+  const home = mkHome();
+  assert.equal(fs.existsSync(knowledgeDir(home)), false);
+  ensureKnowledgeBase(home);
+  assert.ok(fs.existsSync(path.dirname(indexFile(home))), "index.jsonl 所在目录就位");
+  assert.ok(fs.existsSync(templateFileFor(home)), "模板创建");
+  const template = fs.readFileSync(templateFileFor(home), "utf8");
+  assert.ok(template.includes("## 摘要"), "默认模板含摘要节");
+
+  // 用户自定义模板 → 再 ensure 不得覆盖
+  fs.writeFileSync(templateFileFor(home), "# 我的模板\n");
+  ensureKnowledgeBase(home);
+  assert.equal(fs.readFileSync(templateFileFor(home), "utf8"), "# 我的模板\n", "模板不覆盖");
+});
+
+// ---------- ID 生成 ----------
+test("nextReportId：空库 R-<年>-001；已有递增；跨年重置", () => {
+  const home = mkHome();
+  assert.equal(nextReportId(home, NOW), "R-2026-001");
+  ensureKnowledgeBase(home);
+  fs.appendFileSync(indexFile(home), JSON.stringify({ id: "R-2026-001" }) + "\n");
+  fs.appendFileSync(indexFile(home), JSON.stringify({ id: "R-2026-002" }) + "\n");
+  assert.equal(nextReportId(home, NOW), "R-2026-003");
+  assert.equal(nextReportId(home, new Date("2027-03-01T00:00:00.000Z")), "R-2027-001",
+    "跨年重新编号");
+});
+
+// ---------- 登记 ----------
+test("registerReport 新建：索引行+报告文件+自动字段", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  const r = registerReport({ dshHome: home, botId: "bot-mt0x6r0y", input: input(), now: NOW });
+  assert.equal(r.ok, true);
+  assert.equal(r.id, "R-2026-001");
+  assert.ok(fs.existsSync(path.join(reportsDirFor(home), "R-2026-001.md")), "报告文件落盘");
+  const entries = readIndex(home);
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0].id, "R-2026-001");
+  assert.equal(entries[0].botId, "bot-mt0x6r0y", "产出者自动填充");
+  assert.equal(entries[0].date, "2026-08-24T06:00:00.000Z", "交付日期自动填充");
+  assert.equal(entries[0].status, "valid", "默认状态");
+  assert.deepEqual(entries[0].tags, ["标签A", "标签B"]);
+});
+
+test("registerReport 校验：缺必填 → ok:false 且不动索引/报告", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  for (const bad of [
+    input({ title: "" }),
+    input({ body: "" }),
+    input({ summary: "" }),
+    input({ title: undefined, summary: undefined })
+  ]) {
+    const r = registerReport({ dshHome: home, botId: "b", input: bad, now: NOW });
+    assert.equal(r.ok, false, JSON.stringify(bad));
+  }
+  assert.equal(readIndex(home).length, 0, "校验失败不动索引");
+});
+
+test("registerReport supersedes：旧条目标 updated + supersededBy（保留痕迹）", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  registerReport({ dshHome: home, botId: "b", input: input(), now: NOW });
+  const r = registerReport({ dshHome: home, botId: "b",
+    input: input({ title: "新版本", supersedes: "R-2026-001" }), now: NOW });
+  assert.equal(r.ok, true);
+  assert.equal(r.id, "R-2026-002");
+  const entries = readIndex(home);
+  const oldEntry = entries.find((e) => e.id === "R-2026-001");
+  assert.equal(oldEntry.status, "updated", "旧条目状态翻转");
+  assert.equal(oldEntry.supersededBy, "R-2026-002", "旧条目保留新版指针");
+  assert.equal(entries.find((e) => e.id === "R-2026-002").status, "valid");
+});
+
+test("registerReport：supersedes 指向不存在的 id → ok:false（防悬空指针）", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  const r = registerReport({ dshHome: home, botId: "b",
+    input: input({ supersedes: "R-2020-999" }), now: NOW });
+  assert.equal(r.ok, false);
+  assert.equal(readIndex(home).length, 0);
+});
+
+test("registerReport reused：旧条目 reusedBy 追加且去重；未知 id 忽略", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  registerReport({ dshHome: home, botId: "b", input: input(), now: NOW });
+  const r = registerReport({ dshHome: home, botId: "c",
+    input: input({ title: "复用报告", reused: ["R-2026-001", "R-2026-001", "R-2020-999"] }),
+    now: NOW });
+  assert.equal(r.ok, true);
+  const entries = readIndex(home);
+  assert.deepEqual(entries.find((e) => e.id === "R-2026-001").reusedBy, ["R-2026-002"],
+    "reusedBy 追加且去重（未知 id 静默忽略）");
+});
+
+test("registerReport 双填兼容：同一旧 id 同时 supersedes + reused → updated+supersededBy+reusedBy 三标记齐备（O-2 明文化）", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  registerReport({ dshHome: home, botId: "b", input: input(), now: NOW }); // R-2026-001
+  const r = registerReport({ dshHome: home, botId: "c",
+    input: input({ title: "取代且沿用", supersedes: "R-2026-001", reused: ["R-2026-001"] }),
+    now: NOW });
+  assert.equal(r.ok, true);
+  assert.equal(r.id, "R-2026-002");
+  const oldEntry = readIndex(home).find((e) => e.id === "R-2026-001");
+  assert.equal(oldEntry.status, "updated", "取代 → 旧条目标 updated");
+  assert.equal(oldEntry.supersededBy, "R-2026-002", "取代 → supersededBy 指针");
+  assert.deepEqual(oldEntry.reusedBy, ["R-2026-002"], "沿用 → reusedBy（与 supersedes 并存，互不排斥）");
+});
+
+test("registerReport 存储失败（目录不可写）→ ok:false，不吞错", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  fs.chmodSync(knowledgeDir(home), 0o555);
+  try {
+    const r = registerReport({ dshHome: home, botId: "b", input: input(), now: NOW });
+    assert.equal(r.ok, false, "目录只读应报错");
+  } finally {
+    fs.chmodSync(knowledgeDir(home), 0o755);
+  }
+});
+
+// ---------- 检索 ----------
+test("searchIndex：标题/标签/摘要/结论子串命中，大小写不敏感", () => {
+  const entries = [
+    { id: "R-2026-001", title: "视觉模型对比", tags: ["vision"], summary: "对比了 A 和 B", conclusions: ["C 最优"], status: "valid", date: "2026-08-24T06:00:00.000Z" },
+    { id: "R-2026-002", title: "调研数据格式", tags: ["data"], summary: "CSV 最佳", conclusions: ["见正文"], status: "valid", date: "2026-08-24T07:00:00.000Z" }
+  ];
+  assert.equal(searchIndex(entries, "视觉").length, 1);
+  assert.equal(searchIndex(entries, "VISION").length, 1, "标签命中不区分大小写");
+  assert.equal(searchIndex(entries, "CSV").length, 1, "摘要命中");
+  assert.equal(searchIndex(entries, "最优").length, 1, "核心结论命中");
+  assert.equal(searchIndex(entries, "r-2026-002").length, 1, "id 可寻址命中（大小写不敏感）");
+  assert.equal(searchIndex(entries, "不存在").length, 0);
+});
+
+test("searchIndex：status 过滤；空 query 全列、登记倒序截 10", () => {
+  const entries = [];
+  for (let i = 1; i <= 12; i++) {
+    entries.push({ id: `R-2026-${String(i).padStart(3, "0")}`, title: `报告${i}`, tags: [], summary: "s", conclusions: [], status: i === 2 ? "updated" : "valid", date: `2026-08-2${i}` });
+  }
+  assert.equal(searchIndex(entries, "", null).length, 10, "空 query 截 10 条");
+  assert.equal(searchIndex(entries, "", null)[0].id, "R-2026-012", "倒序（最近登记在前）");
+  const onlyUpdated = searchIndex(entries, "", "updated");
+  assert.equal(onlyUpdated.length, 1);
+  assert.equal(onlyUpdated[0].id, "R-2026-002");
+});
+
+// ---------- 读 ----------
+test("readIndex：跳过损坏行，文件缺失 → []", () => {
+  const home = mkHome();
+  assert.deepEqual(readIndex(home), [], "文件缺失");
+  ensureKnowledgeBase(home);
+  fs.appendFileSync(indexFile(home), "{bad json}\n" +
+    JSON.stringify({ id: "R-2026-001", title: "好行" }) + "\n" +
+    JSON.stringify(["not", "object"]) + "\n");
+  const entries = readIndex(home);
+  assert.equal(entries.length, 1, "仅干净行进索引");
+  assert.equal(entries[0].id, "R-2026-001");
+});
+
+// ---------- 并发互斥（K-1 修复） ----------
+test("acquireIndexLock：唯一获取；持锁时自旋超时；释放后可再获取", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  const lock = acquireIndexLock(home);
+  assert.throws(() => acquireIndexLock(home, { spinMs: 150, tickMs: 10 }), /锁超时/,
+    "持锁时第二获取者应超时");
+  lock.release();
+  const again = acquireIndexLock(home, { spinMs: 500, tickMs: 10 });
+  again.release();
+  assert.equal(fs.existsSync(path.join(knowledgeDir(home), ".lock")), false, "释放后锁目录清理");
+});
+
+test("registerReport：陈旧锁（持有者死亡未释放）自动接管，登记不阻塞", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  // 伪造死锁：手建 .lock 且 mtime 设为 10s 前（> staleMs 3000）
+  const lockDir = path.join(knowledgeDir(home), ".lock");
+  fs.mkdirSync(lockDir);
+  const past = new Date(Date.now() - 10_000);
+  fs.utimesSync(lockDir, past, past);
+  const r = registerReport({ dshHome: home, botId: "b", input: input(), now: NOW });
+  assert.equal(r.ok, true, "陈旧锁应被接管而非报错");
+  assert.equal(r.id, "R-2026-001");
+  assert.equal(readIndex(home).length, 1, "登记成功");
+  assert.equal(fs.existsSync(lockDir), false, "接管后锁目录被清理");
+});
+
+test("registerReport：索引损坏/非对象行重写后原样保留（K-2 不吞修复线索）", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  const corrupt = "{bad json, not parseable";
+  const arrLine = JSON.stringify(["not", "an", "object"]);
+  const goodLine = JSON.stringify({ id: "R-2026-099", title: "前置好行" });
+  fs.appendFileSync(indexFile(home), `${goodLine}\n${corrupt}\n${arrLine}\n`);
+  const r = registerReport({ dshHome: home, botId: "b", input: input(), now: NOW });
+  assert.equal(r.ok, true);
+  assert.equal(r.id, "R-2026-100", "损坏/非对象行不计入序号");
+  const raw = fs.readFileSync(indexFile(home), "utf8");
+  assert.ok(raw.includes(corrupt), "损坏行原样保留");
+  assert.ok(raw.includes(arrLine), "非对象行原样保留");
+  assert.deepEqual(readIndex(home).map((e) => e.id), ["R-2026-099", "R-2026-100"],
+    "读侧仍只回干净行");
+});
+
+test("acquireIndexLock：owner.json 不可读时 release 不删锁（F-E：防误删他人接管的新锁）", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  const lock = acquireIndexLock(home);
+  const lockDir = path.join(knowledgeDir(home), ".lock");
+  try {
+    fs.rmSync(path.join(lockDir, "owner.json")); // 归属不可证明（缺失与不可读同路径）
+    lock.release();
+    assert.ok(fs.existsSync(lockDir), "无法证明归属时不得删除锁目录（泄漏由 3s 陈旧接管自愈）");
+  } finally {
+    fs.rmSync(lockDir, { recursive: true, force: true });
+  }
+});
+
+test("knowledge_search 工具：命中超过 10 条 → truncated=true 且恰返 10（F-C +1 哨兵）", async () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  for (let i = 1; i <= 12; i++) {
+    registerReport({ dshHome: home, botId: "b", input: input({ title: `系列报告${i}` }), now: NOW });
+  }
+  const registered = [];
+  const tools = { register: (t) => { registered.push(t); return () => {}; } };
+  const ctx = { get: (n) => (n === "tools" ? tools : undefined), logger: { info() {}, warn() {}, debug() {} } };
+  registerKnowledgeTools(ctx, { dshHome: home }, "b");
+  const search = registered.find((t) => t.name === "knowledge_search");
+
+  const many = await search.execute({ query: "系列报告" });
+  assert.equal(many.results.length, 10, "命中 12 → 恰返 10");
+  assert.equal(many.truncated, true, "截断标志");
+  assert.equal(many.total, 10, "total 语义不变＝返回条数");
+
+  const few = await search.execute({ query: "系列报告1" }); // 命中 1/10/11/12 共 4 条
+  assert.equal(few.results.length, 4);
+  assert.equal(few.truncated, false, "未截断不带标志");
+});
+
+test("registerReport 并发：4 子进程真并行登记，索引零丢失/零撞号", async () => {
+  // 真并发（spawn + Promise.all；不用 spawnSync——串行会掩盖竞态）。
+  // 300 条底座拉长临界区（与审查者复现窗口一致）；完整断言：
+  // 全部 ok、ID 全局唯一、每个返回的 ID 都落索引、总数 = 底座 + 登记数。
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  const SEED = 300, PROCS = 4, N = 25;
+  const seed = [];
+  for (let i = 1; i <= SEED; i++) {
+    seed.push(JSON.stringify({ id: `R-2026-${String(i).padStart(3, "0")}`, title: `底座${i}`, tags: [], summary: "s", conclusions: [], status: "valid", date: NOW.toISOString() }));
+  }
+  fs.appendFileSync(indexFile(home), seed.join("\n") + "\n");
+
+  const KB_MODULE = fileURLToPath(new URL("../lib/knowledge.js", import.meta.url));
+  const script = `
+import { pathToFileURL } from "node:url";
+const { registerReport } = await import(pathToFileURL(process.env.KB_MODULE).href);
+const home = process.env.KB_HOME;
+const botId = process.env.KB_BOT;
+const now = new Date(process.env.KB_NOW);
+const n = Number(process.env.KB_N);
+const out = [];
+for (let i = 0; i < n; i++) {
+  const r = registerReport({ dshHome: home, botId, now, input: {
+    title: '并发-' + botId + '-' + i, body: '正文-' + i, summary: '摘要-' + i
+  }});
+  out.push({ ok: r.ok, id: r.id, error: r.error });
+}
+process.stdout.write(JSON.stringify(out));
+`;
+  const runChild = (botId) => new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, ["--input-type=module", "-e", script], {
+      env: { ...process.env, KB_MODULE, KB_HOME: home, KB_NOW: NOW.toISOString(), KB_N: String(N) }
+    });
+    let stdout = "", stderr = "";
+    child.stdout.on("data", (d) => { stdout += d; });
+    child.stderr.on("data", (d) => { stderr += d; });
+    child.on("error", reject);
+    child.on("close", (code) => {
+      if (code !== 0) return reject(new Error(`子进程 ${botId} 退出码 ${code}: ${stderr}`));
+      try { resolve(JSON.parse(stdout)); }
+      catch { reject(new Error(`子进程 ${botId} 输出解析失败：${stdout.slice(0, 200)}`)); }
+    });
+  });
+
+  const perBot = await Promise.all(["bot-a", "bot-b", "bot-c", "bot-d"].map(runChild));
+  const all = perBot.flat();
+  assert.equal(all.length, PROCS * N, "每个进程都完成 N 次登记");
+  const failed = all.filter((x) => !x.ok);
+  assert.equal(failed.length, 0, `并发登记应全部 ok（失败样例 ${JSON.stringify(failed.slice(0, 3))}）`);
+  const ids = all.map((x) => x.id);
+  assert.equal(new Set(ids).size, ids.length, "ID 不得重复（撞号）");
+  const finalEntries = readIndex(home);
+  const finalIds = new Set(finalEntries.map((e) => e.id));
+  for (const id of ids) {
+    assert.ok(finalIds.has(id), `登记返回 ${id} 但索引无此条（丢失）`);
+  }
+  assert.equal(finalEntries.length, SEED + ids.length, "索引总数 = 底座 + 全部成功登记（无丢失）");
+});
+
+// ---------- 工具集成 ----------
+test("registerKnowledgeTools：注册两个工具，execute 端到端（登记→检索回读）", async () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  const registered = [];
+  const tools = { register: (tool) => { registered.push(tool); return () => {}; } };
+  const ctx = { get: (name) => (name === "tools" ? tools : undefined), logger: { info() {}, warn() {} } };
+  const api = { dshHome: home };
+  registerKnowledgeTools(ctx, api, "bot-mt0x6r0y");
+  assert.deepEqual(registered.map((t) => t.name).sort(), ["knowledge_register", "knowledge_search"],
+    "两个工具注册");
+
+  const search = registered.find((t) => t.name === "knowledge_search");
+  const register = registered.find((t) => t.name === "knowledge_register");
+
+  // 校验失败路径（工具层防御）
+  const badRes = await register.execute({});
+  assert.equal(badRes.status, "rejected");
+
+  // 正常登记 + 检索回读
+  const res = await register.execute(input({ title: "工具侧报告" }));
+  assert.equal(res.status, "created");
+  assert.equal(res.id, "R-2026-001");
+  const found = await search.execute({ query: "工具侧" });
+  assert.equal(found.status, undefined, "search 结果无 status 字段（输出 schema 形状）");
+  assert.equal(found.total, 1, "total 计数");
+  assert.equal(found.results.length, 1);
+  assert.equal(found.results[0].id, "R-2026-001");
+  const all = await search.execute({ query: "" });
+  assert.equal(all.results.length, 1, "空 query 全列");
+});
+
+test("F-R4-1：knowledge_register 描述动态嵌入 REPORT_TEMPLATE.md；模板缺失降级（零静态内联）", () => {
+  const lgr = { debug() {}, info() {}, warn() {} };
+  // 有模板：描述含现读模板结构节 + 基础句保留
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  const reg = [];
+  const ctx = { get: (n) => (n === "tools" ? { register: (t) => { reg.push(t); return () => {}; } } : undefined), logger: lgr };
+  registerKnowledgeTools(ctx, { dshHome: home }, "b");
+  const register = reg.find((t) => t.name === "knowledge_register");
+  assert.ok(register.description.includes("报告模板结构（REPORT_TEMPLATE.md 现读"), "标注动态来源（非静态内联）");
+  assert.ok(register.description.includes("## 摘要"), "描述含现读模板结构节");
+  assert.ok(register.description.includes("supersedes 与 reused 可对同一旧 id 同时填"), "基础句保留");
+
+  // 无模板：降级为纯基础描述，不带模板节，不阻塞注册
+  const home2 = mkHome();
+  const reg2 = [];
+  const ctx2 = { get: (n) => (n === "tools" ? { register: (t) => { reg2.push(t); return () => {}; } } : undefined), logger: lgr };
+  registerKnowledgeTools(ctx2, { dshHome: home2 }, "b");
+  const register2 = reg2.find((t) => t.name === "knowledge_register");
+  assert.ok(!register2.description.includes("报告模板结构（REPORT_TEMPLATE.md"), "无模板 → 无模板节");
+  assert.ok(register2.description.includes("把一份调研报告登记进团队共享知识库"), "基础句仍在，注册不阻塞");
+});
+
+// ---------- 运行 ----------
+let failed = 0;
+try {
+  for (const [name, fn] of results) {
+    try {
+      await fn();
+      console.log("✓", name);
+    } catch (error) {
+      failed += 1;
+      console.error("✗", name, "—", error.message);
+    }
+  }
+} finally {
+  for (const dir of homes) fs.rmSync(dir, { recursive: true, force: true });
+}
+process.exit(failed > 0 ? 1 : 0);

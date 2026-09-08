@@ -1,0 +1,9 @@
+{
+  "deploySyncNeeded": true,
+  "restartNeeded": false,
+  "basis": [
+    "probe/runner/packager 均为 CLI 按次加载（新进程可见）；host 静态导入图仅经 lib/index.js 使用 validateWorkspaceTriple（O-5 后 review-enforcement 再导出面零变化，行为零变化）",
+    "repo↔deploy parity 漂移扩大至 5 处（review-enforcement.js/sentinel-provenance.js/sentinel-safety.js/sentinel-runner.js/probe.cjs）→ C2-1 同步范围"
+  ],
+  "manualOverride": null
+}

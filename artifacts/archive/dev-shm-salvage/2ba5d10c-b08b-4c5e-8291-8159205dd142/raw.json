@@ -1,0 +1,170 @@
+{
+  "schemaVersion": "p6-5-probe-raw/1",
+  "runId": "2ba5d10c-b08b-4c5e-8291-8159205dd142",
+  "probe": {
+    "sourceManifest": [
+      {
+        "path": "lib/review-enforcement.js",
+        "sha256": "5ee383294c33373bb9851c3415c61040d2e37f075f0717a168070790babfab91",
+        "byteLength": 20570
+      },
+      {
+        "path": "lib/sentinel-provenance.js",
+        "sha256": "16cf77af4c49d9fb7bb8a6cebd4b8146fdc9ef6b1abb9c1f392ad22cd6f739fb",
+        "byteLength": 17379
+      },
+      {
+        "path": "lib/sentinel-safety.js",
+        "sha256": "8d52fa3d674a0f0ee41131b3e7b74695b648407e51e61b40f59c2f68f0d9244a",
+        "byteLength": 11877
+      },
+      {
+        "path": "scripts/evidence-runner.mjs",
+        "sha256": "566d7aef110bcf2dbcebe714136cbfd02ae7ea82ab4477056ce7084ff1364a88",
+        "byteLength": 9666
+      }
+    ],
+    "sourceManifestSha256": "c644e7fc6dcfa789a0dc36df167fae036b5e5716c27d49d765ab5e1aa9cc96c1",
+    "probeScriptHash": "566d7aef110bcf2dbcebe714136cbfd02ae7ea82ab4477056ce7084ff1364a88",
+    "libSha256": "5ee383294c33373bb9851c3415c61040d2e37f075f0717a168070790babfab91",
+    "layoutManifestSha256": null
+  },
+  "argv": [
+    "--out-root",
+    "/dev/shm/o5-runs"
+  ],
+  "nodeVersion": "v22.23.2",
+  "timing": {
+    "runStartedAt": "2026-08-30T04:07:03.066Z",
+    "probeObservedAt": "2026-08-30T04:07:47.185Z",
+    "payloadGeneratedAt": "2026-08-30T04:07:47.219Z",
+    "artifactWriteStartedAt": "2026-08-30T04:07:47.221Z"
+  },
+  "payload": {
+    "runner": "scripts/evidence-runner.mjs",
+    "fullRegression": {
+      "passed": 44,
+      "total": 44,
+      "source": "tests/run.mjs"
+    },
+    "concurrencyStress": {
+      "runs": 1,
+      "results": [
+        "ok"
+      ],
+      "source": "tests/review-concurrency.test.mjs"
+    },
+    "probe": {
+      "mode": "shadow",
+      "shadowRoot": "/dev/shm/dsh-enforcement-shadow-vM2atK",
+      "clean": true,
+      "cleanSemantics": "legacy probe-residue check only",
+      "treeIntegrity": {
+        "value": null,
+        "source": "assertShadowClean only（shadow 模式无全树快照/树差异/布局完整性复核，不虚增强断言）"
+      },
+      "scenePolicy": "auto-clean",
+      "results": [
+        {
+          "botId": "coder-probe",
+          "pid": 33046,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-vM2atK/project",
+          "action": "write:bots.json",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-vM2atK/dsh-home/bots/bots.json）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T04:07:47.212Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 33046,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-vM2atK/project",
+          "action": "write:inbox/",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-vM2atK/dsh-home/bots/inbox）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T04:07:47.213Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 33046,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-vM2atK/project",
+          "action": "write:outbox/",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-vM2atK/dsh-home/bots/outbox）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T04:07:47.213Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 33046,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-vM2atK/project",
+          "action": "write:started/",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-vM2atK/dsh-home/bots/started）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T04:07:47.213Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 33046,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-vM2atK/project",
+          "action": "write:profiles/",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-vM2atK/dsh-home/profiles）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T04:07:47.214Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 33046,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-vM2atK/project",
+          "action": "write:deploy-copy",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-vM2atK/deploy-copy）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T04:07:47.214Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 33046,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-vM2atK/project",
+          "action": "write:system-config",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-vM2atK/system-config）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T04:07:47.214Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 33046,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-vM2atK/project",
+          "action": "write:other-bot-workspaces",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-vM2atK/other-bot-workspaces）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T04:07:47.214Z"
+        }
+      ],
+      "observedAt": "2026-08-30T04:07:47.214Z",
+      "note": "shadow 环境写入通常畅通——ALLOWED 表示「未受阻」的真实观测；矩阵格子在 P6-3 实测前保持 pending，不得据此改写为「已实现默认拒绝」"
+    },
+    "parity": {
+      "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+      "deployExists": true,
+      "checked": 3,
+      "identical": 0,
+      "diffs": [
+        {
+          "file": "lib/review-enforcement.js",
+          "kind": "hash-diff",
+          "repoSha256": "5ee383294c33373bb9851c3415c61040d2e37f075f0717a168070790babfab91",
+          "deploySha256": "511393295b8eaba250e603cbcb80c7592e28733ae1f42bbdcf399e6ddc4ca5a9"
+        },
+        {
+          "file": "lib/sentinel-provenance.js",
+          "kind": "missing-in-deploy"
+        },
+        {
+          "file": "scripts/review-enforcement-probe.cjs",
+          "kind": "hash-diff",
+          "repoSha256": "70a02afce5187e365406034cba5558d896110301bfc0e7bd0c57b38889f0b589",
+          "deploySha256": "bc60359d32c61e02690026439999c226f1f46454c192e2087057948174bb27c1"
+        }
+      ]
+    },
+    "layoutManifestDigest": "e32dbb49ea66c06f4bd4fa0f73f76e177070fa81311610de4ab09dc96ee3f274"
+  }
+}

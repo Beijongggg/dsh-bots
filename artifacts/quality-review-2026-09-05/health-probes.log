@@ -1,0 +1,23 @@
+{
+  "validZstd": {
+    "nativeDecodedBytes": 8,
+    "healthResult": {
+      "records": [],
+      "issues": [
+        {
+          "status": "FAIL",
+          "msg": "帧解析失败 @偏移 0: 块数据越界 @偏移 0"
+        },
+        {
+          "status": "WARN",
+          "msg": "疑似进行中：仅 0 条记录且文件 5 分钟内刚写入"
+        }
+      ],
+      "frameCount": 1
+    }
+  },
+  "customWorkspace": {
+    "expected": "/tmp/quality-health-NHMgUB/sessions/--tmp-project-custom--/session-1",
+    "observed": null
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "batch": "B1-deploy",
+  "date": "2026-09-05",
+  "files": {
+    "synced": [
+      "lib/index.js",
+      "lib/client.js",
+      "lib/api-security.js(新)"
+    ],
+    "postHash": "3/3",
+    "deployNodeCheck": "3/3"
+  },
+  "backup": "artifacts/archive/deploy-pre-b1/",
+  "restartChain": {
+    "priorState": "offline(宿主 09-05 09:14 重启后未拉起，零停机需求)",
+    "host": {
+      "pid": 30636,
+      "http": 200
+    },
+    "botsAutoFollowed": {
+      "pids": [
+        30707,
+        30733,
+        30759,
+        30796
+      ],
+      "manualStarts": 0,
+      "stagger": "~1.5s"
+    }
+  },
+  "registrations": "五字段 5/5（host+lead+bot-mt0x6r0y+reviewer-lead+reviewer-second）",
+  "b1LiveProbes": {
+    "1-csrf-bootstrap": "GET /api/bots/_csrf → 200 token 43 字符",
+    "2-gate-no-token": "POST start(不存在 id) → 403 code=csrf-token-required（门先于 404）",
+    "3-gate-with-token": "POST start(不存在 id) 持令牌 → 404（过门到达处理器，零副作用）",
+    "4-get-ungated": "GET /api/bots → 200",
+    "5-principal-unlocked": "decision 无令牌→403 门；持令牌空载荷→400 taskId/artifactId 非法（principal 解封实证；audit 留 user-decision-rejected 探针行）"
+  },
+  "parity": {
+    "lib": "IDENTICAL",
+    "scripts": "IDENTICAL",
+    "package.json": "IDENTICAL"
+  },
+  "reviewReadFace": "GET /api/bots/review/results → 200",
+  "freezeFace": "sourceManifest 9/9 哈希一致（B1 零触碰，无需 0009）",
+  "authorization": "用户 2026-09-05「继续」＝B1 部署批点名（链：备份→同步→宿主拉起→自启动→门控实测）"
+}

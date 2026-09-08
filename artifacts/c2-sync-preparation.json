@@ -1,0 +1,230 @@
+{
+  "packageType": "c2-sync-preparation",
+  "status": "prepared-not-executed（合同 §2/§11：C2 每批单独授权；本文件仅为预备数据，不含任何执行）",
+  "schemaNote": "O-6.10：文件清单派生自 lib/parity-manifest.js 单源；loadMethod 三分类（host 静态／CLI 按次／文档证据材料）",
+  "generatedAt": "2026-09-04T01:38:09.726Z",
+  "generatedBy": "coding-side (encoder)",
+  "coversBatches": "O-1..O-6（C2-1..C2-4 因全程未同步而合并为一份清单预备）",
+  "restartNeeded": false,
+  "restartBasis": [
+    "probe/runner/packager 为 CLI 按次加载，同步后新进程可见",
+    "lib/index.js（host 静态入口）O 批次零修改、当前 hash 与 deploy 侧一致（无重启诱因）；如未来该文件漂移，restartRequiredIfSynced=true 由清单机械标注",
+    "四 bot 实例重启由用户单独裁定（合同 §9）"
+  ],
+  "paritySummary": {
+    "manifest": [
+      "lib/review-enforcement.js",
+      "lib/sentinel-provenance.js",
+      "lib/sentinel-safety.js",
+      "lib/sentinel-runner.js",
+      "lib/evidence-packager.js",
+      "scripts/review-enforcement-probe.cjs",
+      "scripts/evidence-runner.mjs",
+      "scripts/evidence-packager.mjs"
+    ],
+    "checked": 8,
+    "drift": 0,
+    "hashDiff": 0,
+    "missingInDeploy": 0,
+    "identical": 8
+  },
+  "files": [
+    {
+      "file": "lib/review-enforcement.js",
+      "category": "runtime（parity 单源清单成员）",
+      "repoSha256": "5ee383294c33373bb9851c3415c61040d2e37f075f0717a168070790babfab91",
+      "repoByteLength": 20570,
+      "loadMethod": "CLI 按次加载（新进程可见；host 当前调用路径不使用）",
+      "restartRequiredIfSynced": false,
+      "deployPreSync": {
+        "exists": true,
+        "sha256": "5ee383294c33373bb9851c3415c61040d2e37f075f0717a168070790babfab91",
+        "byteLength": 20570
+      },
+      "deployPostSync": null,
+      "deploySideNodeCheck": null
+    },
+    {
+      "file": "lib/sentinel-provenance.js",
+      "category": "runtime（parity 单源清单成员）",
+      "repoSha256": "8c3c3d2726b9fb03d4524498d591472028e3497f60520990cfac7676d6aa1ad5",
+      "repoByteLength": 22857,
+      "loadMethod": "CLI 按次加载（新进程可见；host 当前调用路径不使用）",
+      "restartRequiredIfSynced": false,
+      "deployPreSync": {
+        "exists": true,
+        "sha256": "8c3c3d2726b9fb03d4524498d591472028e3497f60520990cfac7676d6aa1ad5",
+        "byteLength": 22857
+      },
+      "deployPostSync": null,
+      "deploySideNodeCheck": null
+    },
+    {
+      "file": "lib/sentinel-safety.js",
+      "category": "runtime（parity 单源清单成员）",
+      "repoSha256": "8d52fa3d674a0f0ee41131b3e7b74695b648407e51e61b40f59c2f68f0d9244a",
+      "repoByteLength": 11877,
+      "loadMethod": "CLI 按次加载（新进程可见；host 当前调用路径不使用）",
+      "restartRequiredIfSynced": false,
+      "deployPreSync": {
+        "exists": true,
+        "sha256": "8d52fa3d674a0f0ee41131b3e7b74695b648407e51e61b40f59c2f68f0d9244a",
+        "byteLength": 11877
+      },
+      "deployPostSync": null,
+      "deploySideNodeCheck": null
+    },
+    {
+      "file": "lib/sentinel-runner.js",
+      "category": "runtime（parity 单源清单成员）",
+      "repoSha256": "463c731941ed6161bb209079923745e41411a03ccddbbd5aed02a5a9e73a8cfc",
+      "repoByteLength": 22902,
+      "loadMethod": "CLI 按次加载（新进程可见；host 当前调用路径不使用）",
+      "restartRequiredIfSynced": false,
+      "deployPreSync": {
+        "exists": true,
+        "sha256": "463c731941ed6161bb209079923745e41411a03ccddbbd5aed02a5a9e73a8cfc",
+        "byteLength": 22902
+      },
+      "deployPostSync": null,
+      "deploySideNodeCheck": null
+    },
+    {
+      "file": "lib/evidence-packager.js",
+      "category": "runtime（parity 单源清单成员）",
+      "repoSha256": "0a0163a167aee3df4bc193a97f62edf18fe5bad0aff5f53652733c63ca5a6294",
+      "repoByteLength": 22689,
+      "loadMethod": "CLI 按次加载（新进程可见；host 当前调用路径不使用）",
+      "restartRequiredIfSynced": false,
+      "deployPreSync": {
+        "exists": true,
+        "sha256": "0a0163a167aee3df4bc193a97f62edf18fe5bad0aff5f53652733c63ca5a6294",
+        "byteLength": 22689
+      },
+      "deployPostSync": null,
+      "deploySideNodeCheck": null
+    },
+    {
+      "file": "scripts/review-enforcement-probe.cjs",
+      "category": "runtime（parity 单源清单成员）",
+      "repoSha256": "70a02afce5187e365406034cba5558d896110301bfc0e7bd0c57b38889f0b589",
+      "repoByteLength": 7494,
+      "loadMethod": "CLI 按次加载（新进程可见；host 当前调用路径不使用）",
+      "restartRequiredIfSynced": false,
+      "deployPreSync": {
+        "exists": true,
+        "sha256": "70a02afce5187e365406034cba5558d896110301bfc0e7bd0c57b38889f0b589",
+        "byteLength": 7494
+      },
+      "deployPostSync": null,
+      "deploySideNodeCheck": null
+    },
+    {
+      "file": "scripts/evidence-runner.mjs",
+      "category": "runtime（parity 单源清单成员）",
+      "repoSha256": "31257147063e11a6d6abc99c36bd0ef57ca92edd708be248937622253caf0092",
+      "repoByteLength": 25949,
+      "loadMethod": "CLI 按次加载（新进程可见；host 当前调用路径不使用）",
+      "restartRequiredIfSynced": false,
+      "deployPreSync": {
+        "exists": true,
+        "sha256": "31257147063e11a6d6abc99c36bd0ef57ca92edd708be248937622253caf0092",
+        "byteLength": 25949
+      },
+      "deployPostSync": null,
+      "deploySideNodeCheck": null
+    },
+    {
+      "file": "scripts/evidence-packager.mjs",
+      "category": "runtime（parity 单源清单成员）",
+      "repoSha256": "cfdfc97f6b2a8596258d2103d2a2f3cfa43c1256025e84e5cb7384fc983f4c75",
+      "repoByteLength": 9656,
+      "loadMethod": "CLI 按次加载（新进程可见；host 当前调用路径不使用）",
+      "restartRequiredIfSynced": false,
+      "deployPreSync": {
+        "exists": true,
+        "sha256": "cfdfc97f6b2a8596258d2103d2a2f3cfa43c1256025e84e5cb7384fc983f4c75",
+        "byteLength": 9656
+      },
+      "deployPostSync": null,
+      "deploySideNodeCheck": null
+    },
+    {
+      "file": "lib/index.js",
+      "category": "runtime（host 静态入口）",
+      "repoSha256": "9e04404136fef3e4ca3c85605e0e9a044c4553ae61e3fe3cb2853d6cff1a2d9f",
+      "repoByteLength": 203133,
+      "loadMethod": "host 静态加载（lib/index.js 静态导入图；同步≠内存态更新，重启须用户裁定）",
+      "restartRequiredIfSynced": true,
+      "deployPreSync": {
+        "exists": true,
+        "sha256": "9e04404136fef3e4ca3c85605e0e9a044c4553ae61e3fe3cb2853d6cff1a2d9f",
+        "byteLength": 203133
+      },
+      "deployPostSync": null,
+      "deploySideNodeCheck": null
+    },
+    {
+      "file": "docs/CLOSURE-p6-5-qualified-scope.md",
+      "category": "evidence-material（非 runtime）",
+      "repoSha256": "76881a1acfa67ac373516c10ed340fcce0cef77a09917149255534bb58a20361",
+      "repoByteLength": 2916,
+      "loadMethod": "文档/证据材料（不属于 runtime load graph；无加载语义）",
+      "restartRequiredIfSynced": false,
+      "deployPreSync": {
+        "exists": false
+      },
+      "deployPostSync": null,
+      "deploySideNodeCheck": null
+    },
+    {
+      "file": "docs/TEMP-guidance-optimization-v3.2.1.md",
+      "category": "evidence-material（非 runtime）",
+      "repoSha256": "fba63f5fecfb42ff0c8523a026a021503630820f82af3a6e0010b1c1851f699a",
+      "repoByteLength": 14237,
+      "loadMethod": "文档/证据材料（不属于 runtime load graph；无加载语义）",
+      "restartRequiredIfSynced": false,
+      "deployPreSync": {
+        "exists": false
+      },
+      "deployPostSync": null,
+      "deploySideNodeCheck": null
+    },
+    {
+      "file": "CHANGELOG.md",
+      "category": "evidence-material（非 runtime）",
+      "repoSha256": "8fb2a083acfc9b2712b681da1696d2893e175aa561441aecf9ad86ef9f441b6b",
+      "repoByteLength": 231354,
+      "loadMethod": "文档/证据材料（不属于 runtime load graph；无加载语义）",
+      "restartRequiredIfSynced": false,
+      "deployPreSync": {
+        "exists": true,
+        "sha256": "916c0720e85c7fadac9b91601fc4923fa5b33d1c336936f1c215061e1103f8b9",
+        "byteLength": 180582
+      },
+      "deployPostSync": null,
+      "deploySideNodeCheck": null
+    },
+    {
+      "file": "package.json",
+      "category": "evidence-material（非 runtime）",
+      "repoSha256": "1451f7c250b93e06c0ef6566082726a7b89ae18e252ff0da5c370810441ca212",
+      "repoByteLength": 445,
+      "loadMethod": "文档/证据材料（不属于 runtime load graph；无加载语义）",
+      "restartRequiredIfSynced": false,
+      "deployPreSync": {
+        "exists": true,
+        "sha256": "1451f7c250b93e06c0ef6566082726a7b89ae18e252ff0da5c370810441ca212",
+        "byteLength": 445
+      },
+      "deployPostSync": null,
+      "deploySideNodeCheck": null
+    }
+  ],
+  "postSyncChecklist": [
+    "deploy 侧逐文件 sha256 复核（deployPostSync 字段回填）",
+    "deploy 侧 node --check（cjs/mjs 各自语法口径）",
+    "真实面前后无非预期差异：~/.dsh 目录树 hash 快照前后比对（排除活进程 epoch/ledger/lease 正常写入，豁免清单见 evidence-runner PROTECTED_SNAPSHOT_EXCLUSIONS）",
+    "5 进程 PID/启动时间不变断言"
+  ]
+}

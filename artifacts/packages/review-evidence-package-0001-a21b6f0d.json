@@ -1,0 +1,47 @@
+{
+  "packageType": "review-evidence-package",
+  "generatedAt": "2026-08-30T01:09:25.447Z",
+  "generatedBy": "coding-side (encoder)",
+  "generationCommand": "node scripts/generate-evidence-package.mjs --files [\"CHANGELOG.md\",\"PLAN-expanded-engineering.md\"] --tests [] --regression 40/40 --concurrency 5=ok,ok,ok,ok,ok --deployment-needed false --scope Phase wrap-up final completion (D-prime-R8-03, per second-seat receipt; lead seat; pure ledger): PLAN section-1 line 'new procedure unregistered (P7-5 gated)' updated to 'registered per P7-5 evidence chain (R-2026-009), four-file parity restored, P7-5 closed'; same-block line-by-line review: coder-instance-never-created verified current-true against bots.json (no coder id) and retained; 35/35 is R-3-era self-test fact (current full 40/40 in evidence packages); method correction recorded: residual checks now token-level full-table (gated/unregistered/undeployed/awaiting-dual-seat/not-executed/awaiting-acceptance) over the whole current region, not just previously-flagged literal phrases; token sweep of lines 1-58: all remaining hits are current-true R-3 statements or inside explicitly-marked historical blocks; section-1 current block zero hits; technical closure unchanged --sections [\"S-WRAP4 收尾终补（D′-R8-03）：第一节现行块第三处残留归一（新规程已登记 R-2026-009/P7-5 关闭）；词元级全表扫描（挂门/未登记/未部署/待双席复核/均未执行/等待独立验收）——现行区 6 处命中全部判定为 R-3 当前真或显式历史标记内，第一节现行块零命中；方法更正入 CHANGELOG（前轮零残留结论系过窄字面检索）；收尾包重出冻结\"] --risks [\"留档限定（不随关闭消失）：8 格 ALLOWED＝未受阻观测；用户态 TOCTOU 残余（无 openat2）；--out 排他合同重跑须先清旧输出\",\"挂账：四源重建、F-S15 处置（用户决策）；部署平价结构化字段（改进项）；四 bot 实例是否重启待用户裁定（宿主机重启后未运行）\"] --pending [\"下一阶段待用户触发：四源重建、F-S15 处置、P9（仅点名启动）、bot 实例重启裁定\",\"R-3 NOT READY / BLOCKED 维持\"]",
+  "scope": "Phase wrap-up final completion (D-prime-R8-03, per second-seat receipt; lead seat; pure ledger): PLAN section-1 line 'new procedure unregistered (P7-5 gated)' updated to 'registered per P7-5 evidence chain (R-2026-009), four-file parity restored, P7-5 closed'; same-block line-by-line review: coder-instance-never-created verified current-true against bots.json (no coder id) and retained; 35/35 is R-3-era self-test fact (current full 40/40 in evidence packages); method correction recorded: residual checks now token-level full-table (gated/unregistered/undeployed/awaiting-dual-seat/not-executed/awaiting-acceptance) over the whole current region, not just previously-flagged literal phrases; token sweep of lines 1-58: all remaining hits are current-true R-3 statements or inside explicitly-marked historical blocks; section-1 current block zero hits; technical closure unchanged",
+  "sections": [
+    "S-WRAP4 收尾终补（D′-R8-03）：第一节现行块第三处残留归一（新规程已登记 R-2026-009/P7-5 关闭）；词元级全表扫描（挂门/未登记/未部署/待双席复核/均未执行/等待独立验收）——现行区 6 处命中全部判定为 R-3 当前真或显式历史标记内，第一节现行块零命中；方法更正入 CHANGELOG（前轮零残留结论系过窄字面检索）；收尾包重出冻结"
+  ],
+  "conclusion": "提交独立验收",
+  "deploymentOrRestartNeeded": false,
+  "residualRisks": [
+    "留档限定（不随关闭消失）：8 格 ALLOWED＝未受阻观测；用户态 TOCTOU 残余（无 openat2）；--out 排他合同重跑须先清旧输出",
+    "挂账：四源重建、F-S15 处置（用户决策）；部署平价结构化字段（改进项）；四 bot 实例是否重启待用户裁定（宿主机重启后未运行）"
+  ],
+  "pendingItems": [
+    "下一阶段待用户触发：四源重建、F-S15 处置、P9（仅点名启动）、bot 实例重启裁定",
+    "R-3 NOT READY / BLOCKED 维持"
+  ],
+  "fullRegression": {
+    "passed": 40,
+    "total": 40
+  },
+  "concurrencyStress": {
+    "runs": 5,
+    "results": [
+      "ok",
+      "ok",
+      "ok",
+      "ok",
+      "ok"
+    ]
+  },
+  "modifiedFiles": [
+    {
+      "file": "CHANGELOG.md",
+      "byteLength": 208259,
+      "sha256": "3d877f39179ec084ea7a46f59a4981d4d9cf978d9e4fbc952cefb1ce7dd6f60a"
+    },
+    {
+      "file": "PLAN-expanded-engineering.md",
+      "byteLength": 86102,
+      "sha256": "e76980f204c65d6cfbe50e19ea30fd9054d3f44428dd36117e901bed7955d769"
+    }
+  ],
+  "newTestModules": []
+}

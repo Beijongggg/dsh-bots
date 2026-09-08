@@ -1,0 +1,10 @@
+{
+  "runId": "3d755e67-a5d9-4c39-a928-8c4c4549fb53",
+  "claimedAt": "2026-08-30T08:04:20.348Z",
+  "pid": 81847,
+  "argv": [
+    "--skip-tests"
+  ],
+  "sourceManifestSha256": "a7a40b03b10dddb554545c82104aaa9349edb88f973e8d2633abc556f18cff56",
+  "status": "claimed"
+}

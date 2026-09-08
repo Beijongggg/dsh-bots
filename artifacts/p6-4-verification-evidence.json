@@ -1,0 +1,146 @@
+{
+  "packageType": "p6-4-verification-evidence",
+  "observedAt": "2026-08-29T10:22:32.694Z",
+  "executionEnvironment": {
+    "pidNamespace": null,
+    "initPidNamespace": "unreadable",
+    "hostProcessVisibleBySample": true,
+    "hostProcessSample": [
+      {
+        "pid": 90645,
+        "visible": true
+      },
+      {
+        "pid": 90344,
+        "visible": true
+      },
+      {
+        "pid": 90625,
+        "visible": true
+      },
+      {
+        "pid": 90792,
+        "visible": true
+      },
+      {
+        "pid": 90811,
+        "visible": true
+      }
+    ],
+    "pid": 100944,
+    "nodeVersion": "v22.23.2"
+  },
+  "dshHome": "/home/beijong/.dsh",
+  "issueTestExecuted": false,
+  "processes": [
+    {
+      "botId": "bot-mt0x6r0y",
+      "pid": 90645,
+      "startedAt": "2026-08-29T07:41:01.698Z",
+      "hostInstanceId": "host-90645",
+      "alive": true,
+      "observedAt": "2026-08-29T10:22:32.694Z"
+    },
+    {
+      "botId": "host",
+      "pid": 90344,
+      "startedAt": "2026-08-29T07:37:36.279Z",
+      "hostInstanceId": "host-90344",
+      "alive": true,
+      "observedAt": "2026-08-29T10:22:32.694Z"
+    },
+    {
+      "botId": "lead",
+      "pid": 90625,
+      "startedAt": "2026-08-29T07:40:57.696Z",
+      "hostInstanceId": "host-90625",
+      "alive": true,
+      "observedAt": "2026-08-29T10:22:32.694Z"
+    },
+    {
+      "botId": "reviewer-lead",
+      "pid": 90792,
+      "startedAt": "2026-08-29T07:43:49.791Z",
+      "hostInstanceId": "host-90792",
+      "alive": true,
+      "observedAt": "2026-08-29T10:22:32.694Z"
+    },
+    {
+      "botId": "reviewer-second",
+      "pid": 90811,
+      "startedAt": "2026-08-29T07:43:55.794Z",
+      "hostInstanceId": "host-90811",
+      "alive": true,
+      "observedAt": "2026-08-29T10:22:32.694Z"
+    }
+  ],
+  "checks": [
+    {
+      "botId": "lead",
+      "check": "format",
+      "ok": true,
+      "detail": "五字段齐备 pid=90625"
+    },
+    {
+      "botId": "lead",
+      "check": "pid-alive",
+      "ok": true,
+      "detail": "pid=90625 存活"
+    },
+    {
+      "botId": "bot-mt0x6r0y",
+      "check": "format",
+      "ok": true,
+      "detail": "五字段齐备 pid=90645"
+    },
+    {
+      "botId": "bot-mt0x6r0y",
+      "check": "pid-alive",
+      "ok": true,
+      "detail": "pid=90645 存活"
+    },
+    {
+      "botId": "reviewer-lead",
+      "check": "format",
+      "ok": true,
+      "detail": "五字段齐备 pid=90792"
+    },
+    {
+      "botId": "reviewer-lead",
+      "check": "pid-alive",
+      "ok": true,
+      "detail": "pid=90792 存活"
+    },
+    {
+      "botId": "reviewer-lead",
+      "check": "identity-rotation",
+      "ok": true,
+      "detail": "slot 与最新行身份一致（提示：该 bot 可能未重启）"
+    },
+    {
+      "botId": "reviewer-second",
+      "check": "format",
+      "ok": true,
+      "detail": "五字段齐备 pid=90811"
+    },
+    {
+      "botId": "reviewer-second",
+      "check": "pid-alive",
+      "ok": true,
+      "detail": "pid=90811 存活"
+    },
+    {
+      "botId": "host",
+      "check": "format",
+      "ok": true,
+      "detail": "五字段齐备 pid=90344"
+    },
+    {
+      "botId": "host",
+      "check": "pid-alive",
+      "ok": true,
+      "detail": "pid=90344 存活"
+    }
+  ],
+  "conclusion": "PASS（只读面）"
+}

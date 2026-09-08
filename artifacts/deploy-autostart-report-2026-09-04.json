@@ -1,0 +1,27 @@
+{
+  "batch": "bot 自启动批部署＋重启链（兼功能实测）",
+  "authorizedBy": "用户「继续」（2026-09-04）",
+  "executedAt": "2026-09-04T14:09:53.835Z",
+  "deploySync": {
+    "files": [
+      "lib/index.js（改，备份 deploy-pre-autostart/）",
+      "lib/mail-plane.js（新）",
+      "lib/bot-autostart.js（新）"
+    ],
+    "postHash": "3/3",
+    "deployNodeCheck": "3/3"
+  },
+  "restart": {
+    "oldHost": 159906,
+    "newHost": 164506
+  },
+  "autoStartLiveTest": {
+    "manualStarts": 0,
+    "result": "四 bot 全部自动跟随（164532/164558/164584/164612，均新宿主子进程，pid 间隔与 1.5s 交错一致）"
+  },
+  "verification": {
+    "fiveField": "5/5",
+    "review API": "200",
+    "repo↔deploy": "全树一致"
+  }
+}

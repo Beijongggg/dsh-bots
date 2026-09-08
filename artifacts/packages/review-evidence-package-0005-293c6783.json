@@ -1,0 +1,218 @@
+{
+  "packageType": "review-evidence-package-v2",
+  "schemaVersion": "evidence-package/2",
+  "packageScope": "incremental",
+  "basePackage": {
+    "sha256": "4f496e6d1f2c1e77619538c474e46b116f34b6889266e3d1d31a6eb647094bde",
+    "path": "/home/beijong/project/dsh-bots/artifacts/packages/review-evidence-package-0004-4f496e6d.json"
+  },
+  "generatedAt": "2026-08-30T04:07:47.393Z",
+  "generatedBy": "evidence-packager v2 (coding-side)",
+  "conclusion": "提交独立验收",
+  "executionEvidence": {
+    "fullRegression": {
+      "passed": 44,
+      "total": 44,
+      "source": "tests/run.mjs"
+    },
+    "concurrencyStress": {
+      "runs": 1,
+      "results": [
+        "ok"
+      ],
+      "source": "tests/review-concurrency.test.mjs"
+    },
+    "deploymentImpact": {
+      "deploySyncNeeded": true,
+      "restartNeeded": false,
+      "basis": [
+        "probe/runner/packager 均为 CLI 按次加载（新进程可见）；host 静态导入图仅经 lib/index.js 使用 validateWorkspaceTriple（O-5 后 review-enforcement 再导出面零变化，行为零变化）",
+        "repo↔deploy parity 漂移扩大至 5 处（review-enforcement.js/sentinel-provenance.js/sentinel-safety.js/sentinel-runner.js/probe.cjs）→ C2-1 同步范围"
+      ],
+      "manualOverride": null
+    },
+    "probe": {
+      "mode": "shadow",
+      "shadowRoot": "/dev/shm/dsh-enforcement-shadow-vM2atK",
+      "clean": true,
+      "cleanSemantics": "legacy probe-residue check only",
+      "treeIntegrity": {
+        "value": null,
+        "source": "assertShadowClean only（shadow 模式无全树快照/树差异/布局完整性复核，不虚增强断言）"
+      },
+      "scenePolicy": "auto-clean",
+      "results": [
+        {
+          "botId": "coder-probe",
+          "pid": 33046,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-vM2atK/project",
+          "action": "write:bots.json",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-vM2atK/dsh-home/bots/bots.json）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T04:07:47.212Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 33046,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-vM2atK/project",
+          "action": "write:inbox/",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-vM2atK/dsh-home/bots/inbox）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T04:07:47.213Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 33046,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-vM2atK/project",
+          "action": "write:outbox/",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-vM2atK/dsh-home/bots/outbox）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T04:07:47.213Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 33046,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-vM2atK/project",
+          "action": "write:started/",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-vM2atK/dsh-home/bots/started）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T04:07:47.213Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 33046,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-vM2atK/project",
+          "action": "write:profiles/",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-vM2atK/dsh-home/profiles）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T04:07:47.214Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 33046,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-vM2atK/project",
+          "action": "write:deploy-copy",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-vM2atK/deploy-copy）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T04:07:47.214Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 33046,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-vM2atK/project",
+          "action": "write:system-config",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-vM2atK/system-config）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T04:07:47.214Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 33046,
+          "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-vM2atK/project",
+          "action": "write:other-bot-workspaces",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-vM2atK/other-bot-workspaces）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T04:07:47.214Z"
+        }
+      ],
+      "observedAt": "2026-08-30T04:07:47.214Z",
+      "note": "shadow 环境写入通常畅通——ALLOWED 表示「未受阻」的真实观测；矩阵格子在 P6-3 实测前保持 pending，不得据此改写为「已实现默认拒绝」"
+    },
+    "treeDiff": {
+      "addedUnexpected": [],
+      "note": "shadow probe 无树差异面（payload.mode=shadow）"
+    },
+    "provenance": {
+      "runId": "2ba5d10c-b08b-4c5e-8291-8159205dd142",
+      "rawBinding": {
+        "path": "/dev/shm/o5-runs/2ba5d10c-b08b-4c5e-8291-8159205dd142/raw.json",
+        "sha256": "aed6487151c77b25ceae7666ef7c79c73f63fad269de81d654c39a41c4f09cb4",
+        "byteLength": 6896
+      },
+      "sourceManifestSha256": "c644e7fc6dcfa789a0dc36df167fae036b5e5716c27d49d765ab5e1aa9cc96c1",
+      "captureManifest": {
+        "path": "/dev/shm/o5-runs/2ba5d10c-b08b-4c5e-8291-8159205dd142/capture-manifest.json",
+        "sha256": "01924b6c4c199e796065459cd0834c61e4d0ed3d14065ec050a11903218290cc",
+        "artifactWriteCompletedAt": "2026-08-30T04:07:47.221Z",
+        "capturedAt": "2026-08-30T04:07:47.221Z"
+      },
+      "sourceManifest": [
+        {
+          "path": "lib/review-enforcement.js",
+          "sha256": "5ee383294c33373bb9851c3415c61040d2e37f075f0717a168070790babfab91",
+          "byteLength": 20570
+        },
+        {
+          "path": "lib/sentinel-provenance.js",
+          "sha256": "16cf77af4c49d9fb7bb8a6cebd4b8146fdc9ef6b1abb9c1f392ad22cd6f739fb",
+          "byteLength": 17379
+        },
+        {
+          "path": "lib/sentinel-safety.js",
+          "sha256": "8d52fa3d674a0f0ee41131b3e7b74695b648407e51e61b40f59c2f68f0d9244a",
+          "byteLength": 11877
+        },
+        {
+          "path": "scripts/evidence-runner.mjs",
+          "sha256": "566d7aef110bcf2dbcebe714136cbfd02ae7ea82ab4477056ce7084ff1364a88",
+          "byteLength": 9666
+        }
+      ],
+      "registry": {
+        "status": "completed",
+        "dir": "/home/beijong/project/dsh-bots/artifacts/run-registry"
+      }
+    }
+  },
+  "human": {
+    "authorizationBasis": "用户 2026-08-30 指令「自行逐项进行」按 docs/TEMP-guidance-optimization-v3.2.1.md（SHA fba63f5f…699a 核验一致）固定顺序执行 O-5",
+    "pendingItems": [
+      "C2-1..C2-4 部署同步另授权；四 bot 重启裁定归用户；P9 不得启动"
+    ],
+    "humanReviewNotes": "O-5 行为不变验收（before/after payload 双模式对拍）已通过，待双席复核",
+    "scope": "O-5 可选架构分层（sentinel-safety/sentinel-runner/薄 CLI）"
+  },
+  "modifiedFiles": [
+    {
+      "file": "lib/review-enforcement.js",
+      "byteLength": 20570,
+      "sha256": "5ee383294c33373bb9851c3415c61040d2e37f075f0717a168070790babfab91"
+    },
+    {
+      "file": "lib/sentinel-safety.js",
+      "byteLength": 11877,
+      "sha256": "8d52fa3d674a0f0ee41131b3e7b74695b648407e51e61b40f59c2f68f0d9244a"
+    },
+    {
+      "file": "lib/sentinel-runner.js",
+      "byteLength": 22902,
+      "sha256": "463c731941ed6161bb209079923745e41411a03ccddbbd5aed02a5a9e73a8cfc"
+    },
+    {
+      "file": "scripts/review-enforcement-probe.cjs",
+      "byteLength": 7494,
+      "sha256": "70a02afce5187e365406034cba5558d896110301bfc0e7bd0c57b38889f0b589"
+    },
+    {
+      "file": "tests/sentinel-output-contract.test.mjs",
+      "byteLength": 20224,
+      "sha256": "5f21abcf2f175b6ea69e8294f125c05b0137864b0c70ef807ff4ee719d02c650"
+    },
+    {
+      "file": "tests/sentinel-layout-manifest.test.mjs",
+      "byteLength": 11542,
+      "sha256": "102ee8ea6c8dea7ab44bac0f38619d83cd5ab0bc5b563c26c4a88fb1278eaf88"
+    },
+    {
+      "file": "tests/sentinel-provenance.test.mjs",
+      "byteLength": 18436,
+      "sha256": "65e3747eff3ab0584f5e72fcaa9f95faf1923966e10921372355602a9446aed9"
+    },
+    {
+      "file": "CHANGELOG.md",
+      "byteLength": 218771,
+      "sha256": "3cc5bc5d34114b282c4aae729b796ce732e477162178c5701e8b12b23e53363c"
+    }
+  ],
+  "newTestModules": []
+}

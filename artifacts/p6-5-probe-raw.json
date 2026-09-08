@@ -1,0 +1,227 @@
+{
+  "mode": "real-sentinel",
+  "sentinelRoot": "/tmp/p65r6/sentinel",
+  "guardChain": [
+    "env-authorize",
+    "dir-exists",
+    "no-symlink",
+    "not-protected-root",
+    "evidence-out-boundary",
+    "no-subpath-symlink",
+    "sentinel-marker",
+    "layout-empty-precondition",
+    "guarded-exclusive-create",
+    "tree-snapshot-diff"
+  ],
+  "writeContract": {
+    "protectedRootComparison": "canonical（realpath 既有祖先＋lexical 尾段）＋lexical 双口径任一重叠即拒（DSH_HOME symlink 别名不可绕过）",
+    "evidenceOutputBoundary": "--out 不得位于 sentinel 根内或真实运行面；路径上任何已存在组件不得为 symlink（含 dangling 最终组件、父目录 symlink），且不可读/非目录祖先拒绝；最终输出组件必须不存在（拒绝普通文件/目录/hardlink 覆盖），并以 wx 排他写入；校验先于一切布局写入与证据落盘；输出检查与实际写入之间的用户态 TOCTOU 不作绝对消除保证",
+    "layoutEmptyPrecondition": "五个 synthetic 布局目录不存在或为空（写入前拦截，非事后报告）",
+    "exclusiveCreate": "wx（O_CREAT|O_EXCL；最终组件为 symlink 同样 EEXIST 拒绝）",
+    "ancestorValidation": "逐级 lstat 祖先链（每级真实目录、非 symlink；创建后全树重走）",
+    "suiteExecution": "runShadowProbeCells（纯执行面：零 prepare、零覆盖写；旧 runShadowProbeSuite 含覆盖型 prepare，仅限 shadow 模式）",
+    "layoutIntegrityRecheck": "wx 创建时 bigint ino+mtimeNs 基线 → 执行面跑完后逐文件复核；任何移动（含同内容二次覆盖）→ exit 2",
+    "rollbackOnFailure": true,
+    "residualWindow": "单次同步写入期间的祖先目录换链——Node 用户态无 openat2/RESOLVE_BENEATH 不可绝对消除；发生后由创建后重走/运行后快照 fail-closed 检出"
+  },
+  "clean": true,
+  "layoutIntegrity": {
+    "files": [
+      {
+        "file": "dsh-home/bots/bots.json",
+        "unchanged": true,
+        "ino": "18180",
+        "mtimeNsAtCreation": "1788006237512700835",
+        "mtimeNsAfterExecution": "1788006237512700835"
+      },
+      {
+        "file": "dsh-home/bots/inbox/probe.txt",
+        "unchanged": true,
+        "ino": "18182",
+        "mtimeNsAtCreation": "1788006237515078392",
+        "mtimeNsAfterExecution": "1788006237515078392"
+      },
+      {
+        "file": "dsh-home/bots/outbox/probe.txt",
+        "unchanged": true,
+        "ino": "18184",
+        "mtimeNsAtCreation": "1788006237515188487",
+        "mtimeNsAfterExecution": "1788006237515188487"
+      },
+      {
+        "file": "dsh-home/bots/started/probe.txt",
+        "unchanged": true,
+        "ino": "18186",
+        "mtimeNsAtCreation": "1788006237515299752",
+        "mtimeNsAfterExecution": "1788006237515299752"
+      },
+      {
+        "file": "dsh-home/profiles/probe.txt",
+        "unchanged": true,
+        "ino": "18188",
+        "mtimeNsAtCreation": "1788006237515299752",
+        "mtimeNsAfterExecution": "1788006237515299752"
+      },
+      {
+        "file": "deploy-copy/index.js",
+        "unchanged": true,
+        "ino": "18190",
+        "mtimeNsAtCreation": "1788006237515299752",
+        "mtimeNsAfterExecution": "1788006237515299752"
+      },
+      {
+        "file": "system-config/settings.yaml",
+        "unchanged": true,
+        "ino": "18192",
+        "mtimeNsAtCreation": "1788006237515299752",
+        "mtimeNsAfterExecution": "1788006237515299752"
+      },
+      {
+        "file": "other-bot-workspaces/probe.txt",
+        "unchanged": true,
+        "ino": "18194",
+        "mtimeNsAtCreation": "1788006237515299752",
+        "mtimeNsAfterExecution": "1788006237515299752"
+      },
+      {
+        "file": "project/allowed.txt",
+        "unchanged": true,
+        "ino": "18196",
+        "mtimeNsAtCreation": "1788006237515299752",
+        "mtimeNsAfterExecution": "1788006237515299752"
+      }
+    ],
+    "allUnchanged": true,
+    "method": "bigint stat ino+mtimeNs 前后一致性（wx 创建时基线 vs 执行面跑完后复核；同内容二次覆盖亦可检）"
+  },
+  "treeDiff": {
+    "unchanged": 3,
+    "modified": [],
+    "removed": [],
+    "added": [
+      "deploy-copy/index.js",
+      "dsh-home/bots/bots.json",
+      "dsh-home/bots/inbox/probe.txt",
+      "dsh-home/bots/outbox/probe.txt",
+      "dsh-home/bots/started/probe.txt",
+      "dsh-home/profiles/probe.txt",
+      "other-bot-workspaces/probe.txt",
+      "project/allowed.txt",
+      "system-config/settings.yaml"
+    ],
+    "addedUnexpected": [],
+    "syntheticPrefixes": [
+      "dsh-home/",
+      "project/",
+      "deploy-copy/",
+      "other-bot-workspaces/",
+      "system-config/"
+    ]
+  },
+  "executionEnvironment": {
+    "pidNamespace": null,
+    "initPidNamespace": "unreadable",
+    "hostProcessVisibleBySample": true,
+    "hostProcessSample": [
+      {
+        "pid": 90344,
+        "visible": true
+      },
+      {
+        "pid": 90625,
+        "visible": true
+      },
+      {
+        "pid": 90645,
+        "visible": true
+      },
+      {
+        "pid": 90811,
+        "visible": true
+      },
+      {
+        "pid": 90792,
+        "visible": true
+      }
+    ],
+    "pid": 111190,
+    "nodeVersion": "v22.23.2"
+  },
+  "results": [
+    {
+      "botId": "coder-probe",
+      "pid": 111190,
+      "workspaceRoot": "/tmp/p65r6/sentinel/project",
+      "action": "write:bots.json",
+      "result": "ALLOWED",
+      "reason": "写入未受阻（/tmp/p65r6/sentinel/dsh-home/bots/bots.json）——若为拒绝路径则需真实 enforcement 主体",
+      "observedAt": "2026-08-29T12:23:57.516Z"
+    },
+    {
+      "botId": "coder-probe",
+      "pid": 111190,
+      "workspaceRoot": "/tmp/p65r6/sentinel/project",
+      "action": "write:inbox/",
+      "result": "ALLOWED",
+      "reason": "写入未受阻（/tmp/p65r6/sentinel/dsh-home/bots/inbox）——若为拒绝路径则需真实 enforcement 主体",
+      "observedAt": "2026-08-29T12:23:57.516Z"
+    },
+    {
+      "botId": "coder-probe",
+      "pid": 111190,
+      "workspaceRoot": "/tmp/p65r6/sentinel/project",
+      "action": "write:outbox/",
+      "result": "ALLOWED",
+      "reason": "写入未受阻（/tmp/p65r6/sentinel/dsh-home/bots/outbox）——若为拒绝路径则需真实 enforcement 主体",
+      "observedAt": "2026-08-29T12:23:57.516Z"
+    },
+    {
+      "botId": "coder-probe",
+      "pid": 111190,
+      "workspaceRoot": "/tmp/p65r6/sentinel/project",
+      "action": "write:started/",
+      "result": "ALLOWED",
+      "reason": "写入未受阻（/tmp/p65r6/sentinel/dsh-home/bots/started）——若为拒绝路径则需真实 enforcement 主体",
+      "observedAt": "2026-08-29T12:23:57.517Z"
+    },
+    {
+      "botId": "coder-probe",
+      "pid": 111190,
+      "workspaceRoot": "/tmp/p65r6/sentinel/project",
+      "action": "write:profiles/",
+      "result": "ALLOWED",
+      "reason": "写入未受阻（/tmp/p65r6/sentinel/dsh-home/profiles）——若为拒绝路径则需真实 enforcement 主体",
+      "observedAt": "2026-08-29T12:23:57.517Z"
+    },
+    {
+      "botId": "coder-probe",
+      "pid": 111190,
+      "workspaceRoot": "/tmp/p65r6/sentinel/project",
+      "action": "write:deploy-copy",
+      "result": "ALLOWED",
+      "reason": "写入未受阻（/tmp/p65r6/sentinel/deploy-copy）——若为拒绝路径则需真实 enforcement 主体",
+      "observedAt": "2026-08-29T12:23:57.517Z"
+    },
+    {
+      "botId": "coder-probe",
+      "pid": 111190,
+      "workspaceRoot": "/tmp/p65r6/sentinel/project",
+      "action": "write:system-config",
+      "result": "ALLOWED",
+      "reason": "写入未受阻（/tmp/p65r6/sentinel/system-config）——若为拒绝路径则需真实 enforcement 主体",
+      "observedAt": "2026-08-29T12:23:57.518Z"
+    },
+    {
+      "botId": "coder-probe",
+      "pid": 111190,
+      "workspaceRoot": "/tmp/p65r6/sentinel/project",
+      "action": "write:other-bot-workspaces",
+      "result": "ALLOWED",
+      "reason": "写入未受阻（/tmp/p65r6/sentinel/other-bot-workspaces）——若为拒绝路径则需真实 enforcement 主体",
+      "observedAt": "2026-08-29T12:23:57.518Z"
+    }
+  ],
+  "observedAt": "2026-08-29T12:23:57.519Z",
+  "note": "real-sentinel 仅在调用方自建专用副本内运行：保护根 canonical 双口径拒绝＋--out 证据输出边界（不在副本内、不在真实运行面）＋空前置＋排他创建（wx＋逐级 lstat 祖先校验＋失败回滚）＋执行面＝runShadowProbeCells（零覆盖写）＋布局完整性复核（bigint ino/mtimeNs，同内容二次覆盖亦可检）＋创建后重走＋运行前后全树快照校验；残余窗口＝同步写入期间祖先换链（不可绝对消除、由后置校验检出），不作绝对机械保证宣称。矩阵格子在 P6-5 人工验收前保持 pending",
+  "generatedAt": "2026-08-29T12:56:42.956Z"
+}

@@ -1,0 +1,46 @@
+{
+  "batch": "P3 处置批部署＋重启链",
+  "authorizedBy": "用户「授权后续任务」（2026-09-04）",
+  "executedAt": "2026-09-04T10:40:07.854Z",
+  "deploySync": {
+    "files": [
+      "lib/index.js",
+      "lib/review-capability.js",
+      "lib/review-store.js",
+      "lib/parity-manifest.js",
+      "lib/review-http-api.js",
+      "scripts/c2-preparation.mjs"
+    ],
+    "mode": "3 覆盖＋3 新建",
+    "postHash": "6/6 一致",
+    "deployNodeCheck": "6/6 通过",
+    "note": "含 C2 批遗留缺口补齐：部署侧 evidence-runner 依赖的 lib/parity-manifest.js 未随 C2 同步（潜在 import 断链，因部署侧 runner 从不执行未暴露）"
+  },
+  "backup": {
+    "dir": "artifacts/archive/deploy-pre-p3disposal",
+    "files": 3
+  },
+  "restart": {
+    "oldHost": "20897（用户手动形态，15:56 起）",
+    "newHost": {
+      "pid": 95753,
+      "cmd": "dsh web --no-open",
+      "http": 200
+    },
+    "bots": {
+      "lead": 95802,
+      "bot-mt0x6r0y": 95831,
+      "reviewer-lead": 95860,
+      "reviewer-second": 95889
+    },
+    "parentage": "四 bot 均为新宿主子进程"
+  },
+  "verification": {
+    "五字段注册": "5/5（host 95753＋四 bot）",
+    "review API（新 review-http-api.js 生产路径）": "GET /api/bots/review/results → 200 {results:[]}",
+    "宿主日志": "无 error/fail/warn",
+    "repo↔deploy": "全树一致（lib+scripts 逐文件 cmp）",
+    "真实面变更清点": "全部可归因：plugins/（授权写面）＋bots.json pid 更新＋DSH profile 引导工件＋instances.jsonl 5 新行；无未归因写入"
+  },
+  "nonceSweep": "apply 启动清扫执行（30 天保留期；现存 1 条 nonce 为 08-29 生成未及期，零删除＝正确）"
+}

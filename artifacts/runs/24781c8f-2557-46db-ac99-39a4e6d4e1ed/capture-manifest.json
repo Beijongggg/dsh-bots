@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "p6-5-capture-manifest/1",
+  "raw": {
+    "path": "/home/beijong/project/dsh-bots/artifacts/runs/24781c8f-2557-46db-ac99-39a4e6d4e1ed/raw.json",
+    "sha256": "fefdbabfc667f4d16bdaaf57f7820bafa200d9f0ba2691e249839dfa64e85ff9",
+    "byteLength": 83831,
+    "mtime": 1788485952185.3962
+  },
+  "artifactWriteCompletedAt": "2026-09-04T01:39:12.193Z",
+  "capturedAt": "2026-09-04T01:39:12.193Z"
+}

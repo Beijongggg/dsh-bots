@@ -1,0 +1,327 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "dsh-bots 总体架构",
+    "locale": "zh-CN",
+    "output": "dsh-bots-architecture.html",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1360,
+      760
+    ],
+    "views": [
+      {
+        "id": "main-path",
+        "label": "主链路",
+        "focus": [
+          "user",
+          "host",
+          "integration",
+          "supervisor",
+          "bots"
+        ],
+        "note": "用户请求进入宿主，经集成层与监督面落到 bot 子进程。"
+      },
+      {
+        "id": "review-plane",
+        "label": "评审面",
+        "focus": [
+          "integration",
+          "review"
+        ],
+        "note": "评审只读/决策 API；证据链冻结面 9 文件随评审面维护。"
+      },
+      {
+        "id": "mail-plane",
+        "label": "邮件协作",
+        "focus": [
+          "user",
+          "integration",
+          "mail",
+          "bots"
+        ],
+        "note": "at-least-once 邮局面驱动会话回合与自动回信。"
+      },
+      {
+        "id": "boundary",
+        "label": "边界模块",
+        "focus": [
+          "guard",
+          "integration",
+          "supervisor",
+          "dshhome"
+        ],
+        "note": "B4 三票加 CSRF 守住进程、接口与文件三个边界。"
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "user",
+      "type": "external",
+      "label": "用户",
+      "sublabel": "浏览器",
+      "pos": [
+        60,
+        324
+      ],
+      "size": [
+        130,
+        64
+      ]
+    },
+    {
+      "id": "host",
+      "type": "backend",
+      "label": "dsh web 宿主",
+      "sublabel": "127.0.0.1:3080 · cordis",
+      "tag": "生产实例",
+      "pos": [
+        300,
+        320
+      ],
+      "size": [
+        170,
+        72
+      ]
+    },
+    {
+      "id": "guard",
+      "type": "security",
+      "label": "边界模块",
+      "sublabel": "spawn-env · fs-hygiene · pid-bind",
+      "tag": "CSRF 门 + B4 三票",
+      "pos": [
+        560,
+        96
+      ],
+      "size": [
+        220,
+        92
+      ]
+    },
+    {
+      "id": "integration",
+      "type": "backend",
+      "label": "宿主集成层 index.js",
+      "sublabel": "HTTP API / SSE / 子进程接线",
+      "tag": "19 区 · 只做接线",
+      "pos": [
+        560,
+        320
+      ],
+      "size": [
+        220,
+        72
+      ]
+    },
+    {
+      "id": "supervisor",
+      "type": "backend",
+      "label": "进程监督",
+      "sublabel": "bot-supervisor · bot-autostart",
+      "tag": "readiness 链 · 崩溃自愈",
+      "pos": [
+        560,
+        520
+      ],
+      "size": [
+        220,
+        72
+      ]
+    },
+    {
+      "id": "review",
+      "type": "backend",
+      "label": "评审面",
+      "sublabel": "review-* 17 模块",
+      "tag": "证据链冻结面 9 文件",
+      "pos": [
+        830,
+        86
+      ],
+      "size": [
+        210,
+        64
+      ]
+    },
+    {
+      "id": "dshhome",
+      "type": "database",
+      "label": "DSH_HOME 文件面",
+      "sublabel": "bots.json · profiles · workspaces",
+      "tag": "0600 / 0700 收紧",
+      "pos": [
+        1120,
+        320
+      ],
+      "size": [
+        205,
+        72
+      ]
+    },
+    {
+      "id": "mail",
+      "type": "backend",
+      "label": "邮局面 · 会话回合",
+      "sublabel": "mail-plane · seq-lock · session-driver",
+      "tag": "at-least-once · 双 adapter",
+      "pos": [
+        830,
+        490
+      ],
+      "size": [
+        230,
+        72
+      ]
+    },
+    {
+      "id": "bots",
+      "type": "external",
+      "label": "bot 子进程 ×4",
+      "sublabel": "dsh --profile <id> --port",
+      "tag": "lead · 研究员 · reviewer×2",
+      "pos": [
+        1120,
+        490
+      ],
+      "size": [
+        185,
+        92
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "dsh-bots 插件（lib/）",
+      "wraps": [
+        "guard",
+        "integration",
+        "supervisor",
+        "review",
+        "mail"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "真实运行面（出仓库动作须点名）",
+      "wraps": [
+        "dshhome",
+        "bots"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "user-host",
+      "from": "user",
+      "to": "host",
+      "label": "HTTPS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "host-integration",
+      "from": "host",
+      "to": "integration",
+      "label": "cordis apply",
+      "variant": "emphasis"
+    },
+    {
+      "id": "guard-integration",
+      "from": "guard",
+      "to": "integration",
+      "label": "CSRF 变更面门",
+      "variant": "security",
+      "labelAt": [
+        710,
+        205
+      ]
+    },
+    {
+      "id": "integration-review",
+      "from": "integration",
+      "to": "review",
+      "label": "评审 API",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "integration-dshhome",
+      "from": "integration",
+      "to": "dshhome",
+      "label": "注册表原子写",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "integration-mail",
+      "from": "integration",
+      "to": "mail",
+      "label": "watcher 接线",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "integration-supervisor",
+      "from": "integration",
+      "to": "supervisor",
+      "label": "start/stop",
+      "variant": "emphasis",
+      "labelAt": [
+        710,
+        440
+      ]
+    },
+    {
+      "id": "supervisor-bots",
+      "from": "supervisor",
+      "to": "bots",
+      "label": "spawn · 自愈",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "left"
+    },
+    {
+      "id": "mail-bots",
+      "from": "mail",
+      "to": "bots",
+      "label": "自动回信"
+    },
+    {
+      "id": "bots-dshhome",
+      "from": "bots",
+      "to": "dshhome",
+      "label": "profile 读写",
+      "fromSide": "top",
+      "toSide": "bottom"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "接入与主链路",
+      "items": [
+        "api-security CSRF 令牌门守住 /api/bots 变更面，GET/SSE 不变",
+        "SSE 单调 eventId ＋ 256 帧重放窗口（B5）"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "领域分层",
+      "items": [
+        "34 个 lib 模块，index.js 只做接线（冻结上限 4,300 行）",
+        "评审、邮件、回合协议各自单一归属"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "边界与运行面",
+      "items": [
+        "B4 三票：spawn env 白名单 · 权限收紧 · PID 代际绑定",
+        "生产 host :3080 ＋ 4 bot 自启动跟随，C2 对账后上线"
+      ]
+    }
+  ]
+}

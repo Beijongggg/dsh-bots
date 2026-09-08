@@ -1,0 +1,502 @@
+{
+  "packageType": "p6-5-real-sentinel-evidence",
+  "generatedAt": "2026-08-29T13:30:24.067Z",
+  "generatedBy": "主审席（用户授权「全部授权」——第八轮批次 M（证据元数据归一）＋批次 C（四文件部署同步与平价复验，已点名执行）；第七轮技术修补由用户转达交付，主审席该轮独立核验通过、非执行方）",
+  "slice": "P6-5 真实实例非破坏性 sentinel 验证（第七轮正例数据＋第八轮元数据归一：--out 逐组件 lstat／dangling／父目录 symlink／hardlink／wx 排他边界；轮次元数据/C 项措辞/授权注更正＋部署同步收口）",
+  "authorizationBasis": {
+    "userInstruction": "「全部授权」（2026-08-29，第八轮：批次 M 元数据归一＋批次 C 四文件部署同步，均已执行）；第七轮为用户转达的原地修补交付",
+    "specAmendment": "方案 A（双席归一确认 + 主审建议 + 用户授权）：非破坏性判定＝探针所致差异=0 ＋ 运行时自身漂移须穷举白名单逐项归因 ＋ 白名单外差异 fail closed",
+    "mechanicalGuard": "DSH_BOTS_PROBE_REAL_AUTHORIZED=1 + CLI --real-sentinel + 十重守卫链（env/dir/no-symlink/not-protected-root/evidence-out-boundary/no-subpath-symlink/marker/layout-empty-precondition/guarded-exclusive-create/tree-snapshot-diff；保护根 canonical＋lexical 双口径比较）"
+  },
+  "specCompliance": {
+    "probeCausedDiffs": 0,
+    "runtimeDriftWhitelist": [
+      {
+        "path": "bots/review/epoch.json",
+        "reason": "运行中 host（pid 90344）锁纪元刷新：53 字节恒定（before=1f966fc4ed9b… after=33d573ded425…）、mtime 落于验证窗口内——机制为既审代码（acquireStoreLock 持锁必刷 epoch）"
+      }
+    ],
+    "unexplainedDiffs": [],
+    "verdict": "方案 A 全部满足"
+  },
+  "window": {
+    "baselineBefore": "2026-08-29T12:23:57.469Z",
+    "probeObservedAt": "2026-08-29T12:23:57.519Z",
+    "baselineAfter": "2026-08-29T12:23:57.981Z"
+  },
+  "guardChain": [
+    "env-authorize",
+    "dir-exists",
+    "no-symlink",
+    "not-protected-root",
+    "evidence-out-boundary",
+    "no-subpath-symlink",
+    "sentinel-marker",
+    "layout-empty-precondition",
+    "guarded-exclusive-create",
+    "tree-snapshot-diff"
+  ],
+  "writeContract": {
+    "protectedRootComparison": "canonical（realpath 既有祖先＋lexical 尾段）＋lexical 双口径任一重叠即拒（DSH_HOME symlink 别名不可绕过）",
+    "evidenceOutputBoundary": "--out 不得位于 sentinel 根内或真实运行面；路径上任何已存在组件不得为 symlink（含 dangling 最终组件、父目录 symlink），且不可读/非目录祖先拒绝；最终输出组件必须不存在（拒绝普通文件/目录/hardlink 覆盖），并以 wx 排他写入；校验先于一切布局写入与证据落盘；输出检查与实际写入之间的用户态 TOCTOU 不作绝对消除保证",
+    "layoutEmptyPrecondition": "五个 synthetic 布局目录不存在或为空（写入前拦截，非事后报告）",
+    "exclusiveCreate": "wx（O_CREAT|O_EXCL；最终组件为 symlink 同样 EEXIST 拒绝）",
+    "ancestorValidation": "逐级 lstat 祖先链（每级真实目录、非 symlink；创建后全树重走）",
+    "suiteExecution": "runShadowProbeCells（纯执行面：零 prepare、零覆盖写；旧 runShadowProbeSuite 含覆盖型 prepare，仅限 shadow 模式）",
+    "layoutIntegrityRecheck": "wx 创建时 bigint ino+mtimeNs 基线 → 执行面跑完后逐文件复核；任何移动（含同内容二次覆盖）→ exit 2",
+    "rollbackOnFailure": true,
+    "residualWindow": "单次同步写入期间的祖先目录换链——Node 用户态无 openat2/RESOLVE_BENEATH 不可绝对消除；发生后由创建后重走/运行后快照 fail-closed 检出"
+  },
+  "guardTests": [
+    {
+      "case": "无环境变量",
+      "observed": "exit 2",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "目录不存在",
+      "observed": "exit 2",
+      "resultFileWritten": false
+    },
+    {
+      "case": "symlink 根（link→target）",
+      "observed": "exit 2；target 零写入（上批行为翻转实证维持）",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "缺 sentinel.marker.json 专用标记",
+      "observed": "exit 2",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "真实 DSH_HOME 作为根",
+      "observed": "exit 2（与部署目录/仓库根同款拒绝；第六轮起 canonical＋lexical 双口径）",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "保护根别名（第六轮阻断①）",
+      "observed": "DSH_HOME=symlink 别名指向 sentinel 子树父目录 → exit 2（canonical 识破别名）＋子树零新增＋无结果文件——修复前同场景 exit 0 且布局写入真实子树（副审＋主审双重复现）",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "--out 位于 sentinel 根内（第六轮阻断②）",
+      "observed": "exit 2（evidence-out-boundary 先于一切写入）＋根内零新增＋无结果文件——修复前 exit 0 且根内多出未记账 result-inside.json 而 payload 报 addedUnexpected=[]（快照后写入绕过 treeDiff）",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "--out 指向真实 DSH_HOME 子树",
+      "observed": "exit 2（真实运行面不可作为证据输出目的地）＋零写入",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "子路径 symlink：dsh-home/ → 外部目录",
+      "observed": "exit 2 + 外部目标零新增 + 无 result 文件 + 副本零写入（副审第三轮阻断项①修复实证）",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "子路径 symlink：project/ → 外部目录",
+      "observed": "同上",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "子路径 symlink：deploy-copy/ → 外部目录",
+      "observed": "同上",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "子路径 symlink：other-bot-workspaces/ → 外部目录",
+      "observed": "同上",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "子路径 symlink：system-config/ → 外部目录",
+      "observed": "同上",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "marker 自身为 symlink（内容合法）",
+      "observed": "exit 2——全树 lstat 预检先于 marker 读取",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "深层嵌套 symlink（dsh-home/inner/link）",
+      "observed": "exit 2——递归全树预检，不漏深层",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "布局预置：dsh-home/bots/bots.json",
+      "observed": "exit 2 + 内容逐字节不变（e04c5f36… 保持）+ 无 result 文件 + 布局未建——修复前同场景被 writeFileSync 覆盖为 {}（44136fa3…，副审第四轮复现项，写入前拦截非事后报告）",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "布局预置：project/allowed.txt",
+      "observed": "exit 2 + 内容不变 + 布局未建",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "布局预置：deploy-copy/index.js",
+      "observed": "exit 2 + 内容不变 + 布局未建",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "布局预置：system-config/settings.yaml",
+      "observed": "exit 2 + 内容不变 + 布局未建",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "布局预置：other-bot-workspaces/probe.txt",
+      "observed": "exit 2 + 内容不变 + 布局未建",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "布局深层杂散文件（dsh-home/stray/deep.txt）",
+      "observed": "exit 2 且内容不变（任何非空即拒）",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "布局路径为普通文件（dsh-home 是文件）",
+      "observed": "exit 2（非真实目录）",
+      "resultFileWritten": false,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "排他创建正例",
+      "observed": "exit 0；marker 与 real-copy 逐字节不变；九重守卫链与 writeContract 全录；执行面＝runShadowProbeCells（零覆盖写）；layoutIntegrity 九文件 allUnchanged=true（bigint ino/mtimeNs 前后一致——同内容二次覆盖亦可检）",
+      "resultFileWritten": true,
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "二次覆盖检测（lib 面）",
+      "observed": "预置布局＋哨兵内容 SENTINEL-KEEP → runShadowProbeCells 后内容保持且 bigint mtimeNs/ino 不动；对照旧 runShadowProbeSuite 会替换为 {}（文档化拆分理由，旧 API 仅限 shadow 模式）",
+      "resultFileWritten": false,
+      "permanentTest": "tests/review-enforcement-matrix.test.mjs"
+    },
+    {
+      "case": "--out 最终组件为 dangling symlink且目标位于真实 DSH_HOME",
+      "observed": "exit 2；目标未创建/未写入；无结果文件；布局零新增",
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "--out 父目录为 symlink",
+      "observed": "exit 2；外部 evidence 目录零写入；无结果文件；布局零新增",
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    },
+    {
+      "case": "--out 最终组件为 hardlink 且指向真实 DSH_HOME 文件",
+      "observed": "exit 2；受保护 inode 内容、ino、mtimeNs 均不变；布局零新增",
+      "permanentTest": "tests/p6-5-sentinel-guards.test.mjs"
+    }
+  ],
+  "guardTestsNote": "常驻二十七例（tests/p6-5-sentinel-guards.test.mjs 二十六例 + tests/review-enforcement-matrix.test.mjs lib 面拆分例）；新增 dangling 最终组件、父目录 symlink、hardlink-to-protected-inode 负例均为 spawn 真脚本全链，独立复跑通过。竞态注入仍不可在 Node 用户态绝对消除，见 writeContract.residualWindow。",
+  "positiveRun": {
+    "command": "DSH_BOTS_PROBE_REAL_AUTHORIZED=1 node scripts/review-enforcement-probe.cjs --real-sentinel /tmp/p65r6/sentinel（一次性副本，运行后删除） --out artifacts/p6-5-probe-raw.json",
+    "exitCode": 0,
+    "clean": true,
+    "treeSnapshotAssertion": {
+      "unchanged": 3,
+      "modified": [],
+      "removed": [],
+      "added": [
+        "deploy-copy/index.js",
+        "dsh-home/bots/bots.json",
+        "dsh-home/bots/inbox/probe.txt",
+        "dsh-home/bots/outbox/probe.txt",
+        "dsh-home/bots/started/probe.txt",
+        "dsh-home/profiles/probe.txt",
+        "other-bot-workspaces/probe.txt",
+        "project/allowed.txt",
+        "system-config/settings.yaml"
+      ],
+      "addedUnexpected": [],
+      "allowListPrefixes": [
+        "dsh-home/",
+        "project/",
+        "deploy-copy/",
+        "other-bot-workspaces/",
+        "system-config/"
+      ]
+    },
+    "matrixCells": 8,
+    "cellResultsRaw": [
+      {
+        "botId": "coder-probe",
+        "pid": 111190,
+        "workspaceRoot": "/tmp/p65r6/sentinel/project",
+        "action": "write:bots.json",
+        "result": "ALLOWED",
+        "reason": "写入未受阻（/tmp/p65r6/sentinel/dsh-home/bots/bots.json）——若为拒绝路径则需真实 enforcement 主体",
+        "observedAt": "2026-08-29T12:23:57.516Z"
+      },
+      {
+        "botId": "coder-probe",
+        "pid": 111190,
+        "workspaceRoot": "/tmp/p65r6/sentinel/project",
+        "action": "write:inbox/",
+        "result": "ALLOWED",
+        "reason": "写入未受阻（/tmp/p65r6/sentinel/dsh-home/bots/inbox）——若为拒绝路径则需真实 enforcement 主体",
+        "observedAt": "2026-08-29T12:23:57.516Z"
+      },
+      {
+        "botId": "coder-probe",
+        "pid": 111190,
+        "workspaceRoot": "/tmp/p65r6/sentinel/project",
+        "action": "write:outbox/",
+        "result": "ALLOWED",
+        "reason": "写入未受阻（/tmp/p65r6/sentinel/dsh-home/bots/outbox）——若为拒绝路径则需真实 enforcement 主体",
+        "observedAt": "2026-08-29T12:23:57.516Z"
+      },
+      {
+        "botId": "coder-probe",
+        "pid": 111190,
+        "workspaceRoot": "/tmp/p65r6/sentinel/project",
+        "action": "write:started/",
+        "result": "ALLOWED",
+        "reason": "写入未受阻（/tmp/p65r6/sentinel/dsh-home/bots/started）——若为拒绝路径则需真实 enforcement 主体",
+        "observedAt": "2026-08-29T12:23:57.517Z"
+      },
+      {
+        "botId": "coder-probe",
+        "pid": 111190,
+        "workspaceRoot": "/tmp/p65r6/sentinel/project",
+        "action": "write:profiles/",
+        "result": "ALLOWED",
+        "reason": "写入未受阻（/tmp/p65r6/sentinel/dsh-home/profiles）——若为拒绝路径则需真实 enforcement 主体",
+        "observedAt": "2026-08-29T12:23:57.517Z"
+      },
+      {
+        "botId": "coder-probe",
+        "pid": 111190,
+        "workspaceRoot": "/tmp/p65r6/sentinel/project",
+        "action": "write:deploy-copy",
+        "result": "ALLOWED",
+        "reason": "写入未受阻（/tmp/p65r6/sentinel/deploy-copy）——若为拒绝路径则需真实 enforcement 主体",
+        "observedAt": "2026-08-29T12:23:57.517Z"
+      },
+      {
+        "botId": "coder-probe",
+        "pid": 111190,
+        "workspaceRoot": "/tmp/p65r6/sentinel/project",
+        "action": "write:system-config",
+        "result": "ALLOWED",
+        "reason": "写入未受阻（/tmp/p65r6/sentinel/system-config）——若为拒绝路径则需真实 enforcement 主体",
+        "observedAt": "2026-08-29T12:23:57.518Z"
+      },
+      {
+        "botId": "coder-probe",
+        "pid": 111190,
+        "workspaceRoot": "/tmp/p65r6/sentinel/project",
+        "action": "write:other-bot-workspaces",
+        "result": "ALLOWED",
+        "reason": "写入未受阻（/tmp/p65r6/sentinel/other-bot-workspaces）——若为拒绝路径则需真实 enforcement 主体",
+        "observedAt": "2026-08-29T12:23:57.518Z"
+      }
+    ],
+    "threeStateDistribution": {
+      "ALLOWED": 8
+    },
+    "note": "8 格 ALLOWED＝「写入未受阻」的真实观测（副本环境无 sandbox 层）；矩阵格在双席人工验收前保持 pending，不得改写为「已实现默认拒绝」"
+  },
+  "nonDestruction": {
+    "executionEnvironment": {
+      "pidNamespace": null,
+      "initPidNamespace": "unreadable",
+      "hostProcessVisibleBySample": true,
+      "hostProcessSample": [
+        {
+          "pid": 90344,
+          "visible": true
+        },
+        {
+          "pid": 90625,
+          "visible": true
+        },
+        {
+          "pid": 90645,
+          "visible": true
+        },
+        {
+          "pid": 90811,
+          "visible": true
+        },
+        {
+          "pid": 90792,
+          "visible": true
+        }
+      ],
+      "pid": 111190,
+      "nodeVersion": "v22.23.2"
+    },
+    "processes": {
+      "before": [
+        {
+          "botId": "bot-mt0x6r0y",
+          "pid": 90645,
+          "startedAt": "2026-08-29T07:41:01.698Z",
+          "hostInstanceId": "host-90645",
+          "alive": true,
+          "observedAt": "2026-08-29T12:23:57.469Z"
+        },
+        {
+          "botId": "host",
+          "pid": 90344,
+          "startedAt": "2026-08-29T07:37:36.279Z",
+          "hostInstanceId": "host-90344",
+          "alive": true,
+          "observedAt": "2026-08-29T12:23:57.469Z"
+        },
+        {
+          "botId": "lead",
+          "pid": 90625,
+          "startedAt": "2026-08-29T07:40:57.696Z",
+          "hostInstanceId": "host-90625",
+          "alive": true,
+          "observedAt": "2026-08-29T12:23:57.469Z"
+        },
+        {
+          "botId": "reviewer-lead",
+          "pid": 90792,
+          "startedAt": "2026-08-29T07:43:49.791Z",
+          "hostInstanceId": "host-90792",
+          "alive": true,
+          "observedAt": "2026-08-29T12:23:57.469Z"
+        },
+        {
+          "botId": "reviewer-second",
+          "pid": 90811,
+          "startedAt": "2026-08-29T07:43:55.794Z",
+          "hostInstanceId": "host-90811",
+          "alive": true,
+          "observedAt": "2026-08-29T12:23:57.469Z"
+        }
+      ],
+      "after": [
+        {
+          "botId": "bot-mt0x6r0y",
+          "pid": 90645,
+          "startedAt": "2026-08-29T07:41:01.698Z",
+          "hostInstanceId": "host-90645",
+          "alive": true,
+          "observedAt": "2026-08-29T12:23:57.981Z"
+        },
+        {
+          "botId": "host",
+          "pid": 90344,
+          "startedAt": "2026-08-29T07:37:36.279Z",
+          "hostInstanceId": "host-90344",
+          "alive": true,
+          "observedAt": "2026-08-29T12:23:57.981Z"
+        },
+        {
+          "botId": "lead",
+          "pid": 90625,
+          "startedAt": "2026-08-29T07:40:57.696Z",
+          "hostInstanceId": "host-90625",
+          "alive": true,
+          "observedAt": "2026-08-29T12:23:57.981Z"
+        },
+        {
+          "botId": "reviewer-lead",
+          "pid": 90792,
+          "startedAt": "2026-08-29T07:43:49.791Z",
+          "hostInstanceId": "host-90792",
+          "alive": true,
+          "observedAt": "2026-08-29T12:23:57.981Z"
+        },
+        {
+          "botId": "reviewer-second",
+          "pid": 90811,
+          "startedAt": "2026-08-29T07:43:55.794Z",
+          "hostInstanceId": "host-90811",
+          "alive": true,
+          "observedAt": "2026-08-29T12:23:57.981Z"
+        }
+      ],
+      "identical": true
+    },
+    "realFiles": {
+      "scope": "~/.dsh 全树（排除 plugins/ 部署目录——部署平价另由 P7-5 口径承载）",
+      "hashedCount": 4665,
+      "beforeHashesRef": {
+        "file": "artifacts/p6-5-hashes-before.json",
+        "sha256": "1c9a7ea4de09f609026c32e3bb049f2f21f0b8812cb1269c982cf299bfb3c726"
+      },
+      "afterHashesRef": {
+        "file": "artifacts/p6-5-hashes-after.json",
+        "sha256": "fc1d550dc781c82f3ebf6cea8332905651f62eec15472489d71491e2dbbc6b65"
+      },
+      "allDiffs": [
+        {
+          "path": "bots/review/epoch.json",
+          "byteLengthBefore": 53,
+          "byteLengthAfter": 53,
+          "attribution": "running-host-epoch-refresh"
+        }
+      ],
+      "expectedRuntimeDiffs": [
+        "bots/review/epoch.json"
+      ],
+      "unexplainedDiffs": [],
+      "newFiles": [],
+      "removedFiles": []
+    },
+    "sentinelCopy": {
+      "realCopyFiles": [
+        "bots.json",
+        "started/instances.jsonl",
+        "sentinel.marker.json"
+      ],
+      "realCopyHashIdentical": true,
+      "finalEntryCount": 12,
+      "probeResidue": 0,
+      "treeDiffSummary": "原文件 3 项前后逐 hash 不变（且经正例测试逐字节比对）；新增 9 项全部位于 synthetic 允许目录、由守卫 ⑧ 排他创建契约建立（wx）；零修改零删除；副本内无 symlink/特殊条目（空前置要求布局目录不存在或为空——本副本为最小 3 文件副本）"
+    },
+    "p6_4CrossCheck": {
+      "file": "artifacts/p6-4-verification-evidence.json",
+      "conclusion": "PASS（只读面）",
+      "issueTestExecuted": false,
+      "aggregatorFixNote": "聚合器已改为取断言自身 ok（tests/p6-4-verify.test.mjs spawn 全链负例：0644 secret → exit 1 + FAIL；正例 0600 → exit 0 + PASS）；本证据为只读面（issueTestExecuted=false，不触该分支）",
+      "hostProcessVisibleBySample": true,
+      "processesAlive": "5/5"
+    },
+    "cleanup": {
+      "sentinelDirRemoved": true,
+      "realHomeProbeResidue": 0,
+      "repoProbeResidue": 0,
+      "tmpResidueFromThisRun": 0,
+      "tmpResidueNote": "/tmp 既有 dsh-spill-* 空目录（8 个）时间戳 15:37–15:40＝P7-5 部署重启窗口的运行时残留，早于本批操作（18:20+），非本轮产物、不处置"
+    }
+  },
+  "residualRisks": [
+    "截至第七轮：子路径 symlink、既有文件事后覆盖、执行面二次覆盖、保护根别名、--out 快照后写入、dangling --out symlink、hardlink 输出覆盖七处缺口均有翻转实证与常驻负例；输出检查与实际写入间用户态 TOCTOU 仍单独保留。",
+    "8 矩阵格 ALLOWED 为「未受阻」观测，矩阵格保持 pending 待双席人工验收",
+    "epoch.json 运行时漂移已入白名单归因（不停机条件下 host 持锁必刷）；如需绝对静态基线须停机窗口（方案 B）",
+    "（历史快照：截至第六轮的缺口统计，留痕不删）守卫修复前（3ca8990d/bcf546ae/41d58c38/b2a3ffbb/a3efc741 五代基线）缺口五处：子路径 symlink 写入逃逸（第三轮）、布局内既有文件先覆盖后报告（第四轮）、执行面确定性二次覆盖（第五轮）、保护根别名绕过与 --out 快照后写入（第六轮）——均已闭合并常驻负例化＋翻转实证——现态见首条「截至第七轮七处缺口均已闭合」",
+    "残余 TOCTOU 窗口＝单次同步写入期间的祖先目录换链（Node 用户态无 openat2/RESOLVE_BENEATH 不可绝对消除）；发生后由创建后重走/运行后快照 fail-closed 检出——不作绝对机械保证宣称（第四轮表述降级）",
+    "C 项已执行（第八轮「全部授权」点名）：四文件（scripts/review-enforcement-probe.cjs、scripts/p6-4-verify.mjs、scripts/generate-evidence-package.mjs、lib/review-enforcement.js）已同步至 ~/.dsh/plugins/dsh-bots/，逐文件 sha256/byteLength 平价复验 4/4 通过＋部署侧 node --check 全过；无需重启（运行中进程持有内存态模块，CLI 工具按次加载；runShadowProbeCells 为纯新增 API，runShadowProbeSuite 语义不变，向后兼容）",
+    "执行环境自我判定 hostProcessVisibleBySample=true（注册实例 PID 在 /proc 可见——副审 PID namespace 争议的实证区分）"
+  ],
+  "conclusion": "提交独立验收",
+  "operationalNotes": [
+    "证据重跑操作注意：--out 排他合同（第七轮）下，重生成 artifacts/p6-5-probe-raw.json 前须先删除旧文件（或指定全新不存在路径）——该语义属安全合同，不得回退为覆盖写（副审第七轮确认）"
+  ]
+}

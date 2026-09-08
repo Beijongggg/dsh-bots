@@ -1,0 +1,39 @@
+{
+  "batch": "B2-deploy",
+  "date": "2026-09-05",
+  "files": {
+    "synced": [
+      "lib/index.js(改)",
+      "lib/bot-supervisor.js(新)"
+    ],
+    "postHash": "2/2",
+    "deployNodeCheck": "2/2"
+  },
+  "backup": "artifacts/archive/deploy-pre-b2/",
+  "restartChain": {
+    "priorHost": 30636,
+    "stopsViaTokenizedApi": "4/4 (200, B1 运维口径实战)",
+    "newHost": {
+      "pid": 34312,
+      "http": 200
+    },
+    "botsAutoFollowed": [
+      34340,
+      34359,
+      34385,
+      34411
+    ]
+  },
+  "b2LiveProbes": {
+    "crash-recovery": "SIGKILL bot-mt0x6r0y(34359) → ~5s 自动重生 34499 online=true；instances.jsonl 新行留痕（03:10:54）",
+    "intended-stop-no-heal": "API stop reviewer-second → 8s（超首档退避 2s）仍 offline，不自愈",
+    "manual-revive": "API start（令牌化）→ 200 → 34608 online=true"
+  },
+  "parity": {
+    "lib": "IDENTICAL",
+    "scripts": "IDENTICAL",
+    "package.json": "IDENTICAL"
+  },
+  "freezeFace": "sourceManifest 9/9 零触碰",
+  "authorization": "用户 2026-09-05「继续」＝B2 部署批点名"
+}

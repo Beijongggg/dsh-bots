@@ -1,0 +1,622 @@
+
+=== api-security.test.mjs ===
+✓ isMutatingMethod：POST/PUT/PATCH/DELETE 为真，GET/HEAD/OPTIONS 为假
+✓ 签发：base64url 32 字节令牌＋expiresAt；rotate 窗口内复签同令牌
+✓ 校验矩阵：缺令牌→required；空串/undefined→required；伪造→invalid；有效→ok
+✓ 轮换：旧令牌进 previous，剩余有效期内受认；过期后仅 grace 窗受认，出窗即 expired
+✓ 空白会话：未签发时任意令牌 → invalid（无 current/previous 可匹配）
+✓ principalFor：有效令牌 → {ok, principal:{role:'user'}}，经 assertDecisionWriter 认可
+✓ principalFor：无效令牌 → ok:false，assertDecisionWriter fail closed
+✓ 门控：变更请求无令牌 → 403 code=csrf-token-required；伪造 → invalid；GET 不设门
+✓ 门控：有效令牌放行至处理器（坏载荷 400 证明已过门）；未接线 apiSecurity 沿用旧行为
+✓ _csrf 端点：GET 签发（token/expiresAt）；非 GET 405；未接线 404
+✓ decision 写面：有效令牌 → 过 principal 门（空载荷 400 非恒 403）；无令牌 → 门控 403
+✓ decision 写面：接线 apiSecurity 但 provider 缺席 → 仍 403 fail closed（P5-4 语义保持）
+
+=== bot-autostart.test.mjs ===
+✓ 选择过滤：enabled=false / autoStart=false / pid 在线 全部跳过；余按注册表序
+✓ 编排：顺序启动、alreadyRunning 分类、单个失败不中断、结果三元组
+✓ 编排：无待启动 bot 时零调用零日志噪声路径
+✓ 应急闸：DSH_BOTS_AUTOSTART=0 → 全局关闭且零启动调用（含环境恢复）
+
+=== bot-supervisor.test.mjs ===
+✓ nextBackoffMs：退避表逐级＋越界封顶
+✓ crashLooped：窗口剪枝＋阈值判定（now 为时钟函数）
+✓ restartAllowed：三层开关（enabled/autoRestart/应急闸）
+✓ listDescendants：递归快照（广度优先）；children 读不到 → 叶子
+✓ killDescendants：全体 SIGTERM → 短候 → SIGKILL（已死者跳过）
+✓ 意外退出 → 退避后自动重启；正常退出/有意退出不重启
+✓ generation fencing：旧代数的迟到退出事件被弃置
+✓ 崩溃自愈闭环：跨重启累计退出史，第 5 次意外退出熔断；手动 begin 清零重来
+✓ 挂起重启被 onStop 取消；触发时开关拦截（enabled=false）与应急闸生效
+✓ readiness 观测链：端口通 → ready；截止未通 → degraded；代数被取代 → 探针弃置
+
+BotSupervisor 测试全部通过
+
+=== discuss-mail.test.mjs ===
+✓ 讨论邮件（send_mail kind 通道/冒用防护/R1 续环/R2 机械上限/mail-response 回归/discussRound 落盘防御）
+
+=== events.test.mjs ===
+✓ SseHub：订阅→广播送达，退订后不再送达
+✓ SseHub：写失败的订阅者被移除，不阻塞其余广播
+✓ writeRegistry：任何注册表/状态变更都广播 bots 事件
+✓ events 端点：GET 接 SSE 协议，广播送达连接，close 退订
+✓ events 端点：非 GET 方法 → 405
+✓ events 端点：跨站请求 → 403（与 JSON API 一致）
+✓ id='events' 的 bot 详情不被 SSE 端点吞掉（路径无冲突）
+
+=== evidence-packager.test.mjs ===
+✓ 四禁①：打包前后输入零写入（raw/capture/registry 逐字节不变）
+✓ 四禁②：必填结构化字段缺失即失败（fullRegression／deploymentImpact／probe／treeDiff／provenance）
+✓ 四禁③：provenance 不完整即失败——registry 非 completed／runId 非 UUID／raw hash 非 64hex
+✓ 四禁④＋人工字段白名单：executionEvidence 带人工字段/historical conclusion 即失败；human 多余字段拒绝
+✓ deploymentImpact：manualOverride 必须含 value/reason/authorizedBy/timestamp；parity 派生字段齐备
+✓ basePackage 合同：完整 64hex＋可读取路径＋hash 账实一致；省略号/截断/缺文件拒绝
+✓ E4：包内摘要只能引用已存在产物——缺失/字节不符/hash 不符即失败
+✓ 版本化写出：wx 排他（同名重写失败＝旧包不得被覆盖）＋文件名内嵌 sha8
+✓ registry 端到端：claim 无终态 → packager 拒绝；终态追加后 → 可打包（真实 registry 目录）
+✓ v2 包内容：executionEvidence 与 human 分离；schema/scope/basePackage 字段就位
+✓ O-6.6 deriveDeploymentImpactFromParity：事实唯一来源 raw.parity，机械派生 deploySyncNeeded/restartNeeded（host 入口规则）
+✓ O-6.6 crossVerifyLegacyDeploymentImpact：一致通过；任一字段/文件集合漂移即拒绝
+✓ O-6.4 七项绑定核验：全等通过；七项任一断裂即 PackagerValidationError
+✓ O-6.9 buildArchiveBinding：逐文件 sha/byteLength 核验；篡改归档文件即失败
+
+=== evidence-runner-contract.test.mjs ===
+✓ O-6.1 evidence：approved root 内已存在根 → ok
+✓ O-6.1 负例①：--out-root 指向 DSH_HOME → OUTPUT_CONTRACT_VIOLATION
+✓ O-6.1 负例②：--out-root 指向部署目录 → 拒绝
+✓ O-6.1 负例③：--out-root 指向仓库代码区（lib/）→ 拒绝（approved root ≠ 仓库任意路径）
+✓ O-6.1 负例④：--out-root 路径含 symlink 组件 → 拒绝（逐组件 lstat；ephemeral 根合法时到达该层）
+✓ O-6.1 负例⑤：受保护路径的别名路径（symlink 别名指向 DSH_HOME）→ canonical 双口径拒绝
+✓ O-6.1 ephemeral：显式根在仓库外/保护区外且已存在 → ok；根＝DSH_HOME → 拒绝
+✓ O-6.1 approved 内缺失根 → PRECONDITION_FAILED（不自动创建）
+✓ O-6.1 packages 包区不得作为运行产物写面 → 拒绝（approved-root 归属规则先行拦截）
+✓ O-6.1 spawn：非法 --out-root → exit 2 结构化错误；registry 零新增 claim；不执行 probe
+✓ O-6.2 普通运行路径不自动建根：--out-root 指向不存在目录 → exit 2 且目录未创建
+✓ O-6.2 --init-registry：幂等（真实根已存在 → exit 0 零改动）；与其他参数混用 → exit 2
+✓ O-6.3 snapshotProtectedSurface：只读；豁免清单生效（epoch/nonces/leases/日志）
+✓ O-6.3 前后 diff：新增/修改/删除/新增 symlink 全部捕获
+✓ O-6.3 扫描失败 → ok=false（INCONCLUSIVE 依据），scanFailures 留痕
+✓ O-6.3 excluded 字段与实际生效的豁免清单一致（自定义豁免时不得误报默认清单）
+✓ O-6.3 真实面快照（真实 DSH_HOME）：只读核验可运行且零 scanFailures
+
+=== hygiene.test.mjs ===
+✓ 孤儿 docblock 检测（检测器自测三夹具 + 真实五文件零违规）
+
+=== jsonl.test.mjs ===
+✓ JSONL 容错解析 + 邮局语义（maxSeq/readAll/readOutbox/会话合并/since/kind）
+✓ F-S15 修复：seq 写锁（唯一获取/陈旧接管/保守释放＋4 子进程×25 条真并发 0 丢失 0 撞号）
+
+=== knowledge.test.mjs ===
+✓ ensureKnowledgeBase：目录+模板创建，幂等且不覆盖用户模板
+✓ nextReportId：空库 R-<年>-001；已有递增；跨年重置
+✓ registerReport 新建：索引行+报告文件+自动字段
+✓ registerReport 校验：缺必填 → ok:false 且不动索引/报告
+✓ registerReport supersedes：旧条目标 updated + supersededBy（保留痕迹）
+✓ registerReport：supersedes 指向不存在的 id → ok:false（防悬空指针）
+✓ registerReport reused：旧条目 reusedBy 追加且去重；未知 id 忽略
+✓ registerReport 双填兼容：同一旧 id 同时 supersedes + reused → updated+supersededBy+reusedBy 三标记齐备（O-2 明文化）
+✓ registerReport 存储失败（目录不可写）→ ok:false，不吞错
+✓ searchIndex：标题/标签/摘要/结论子串命中，大小写不敏感
+✓ searchIndex：status 过滤；空 query 全列、登记倒序截 10
+✓ readIndex：跳过损坏行，文件缺失 → []
+✓ acquireIndexLock：唯一获取；持锁时自旋超时；释放后可再获取
+✓ registerReport：陈旧锁（持有者死亡未释放）自动接管，登记不阻塞
+✓ registerReport：索引损坏/非对象行重写后原样保留（K-2 不吞修复线索）
+✓ acquireIndexLock：owner.json 不可读时 release 不删锁（F-E：防误删他人接管的新锁）
+✓ knowledge_search 工具：命中超过 10 条 → truncated=true 且恰返 10（F-C +1 哨兵）
+✓ registerReport 并发：4 子进程真并行登记，索引零丢失/零撞号
+✓ registerKnowledgeTools：注册两个工具，execute 端到端（登记→检索回读）
+✓ F-R4-1：knowledge_register 描述动态嵌入 REPORT_TEMPLATE.md；模板缺失降级（零静态内联）
+
+=== locale-runtime.test.mjs ===
+✓ 真实注册：apply 后 bind 查询 zh 命中 / 参数模板 / common 回退
+✓ 真实冲突检测：活跃期重复注册同名 ns 必抛（响亮失败非静默串词）
+✓ 真实语言切换：setLocale('en') 后同一闭包即时翻转 + revision 递增
+✓ 真实卸载注销：dispose 后 ns 消失，查询回退键自身；重挂无残留
+
+=== locale.test.mjs ===
+✓ localeDicts / LOCALE_NS 导出存在，命名空间为 bots
+✓ zh/en 键集完全一致
+✓ 字典规模 ≥ 80 键（覆盖全部 UI 文案）
+✓ 模板占位符 zh/en 一致（{name} 类参数化文本）
+✓ 样本快照（防措辞漂移，取自迁移前原文）
+✓ client.js 源码：tr/t 调用键全部有定义（含 common 允许集）
+✓ 模型切换时按目标模型归一化 reasoning effort
+✓ 无残留旧形态：tr(zh, en) 二元字符串 / 模块级 isZh 常量 / 旧二元 tr 签名
+
+=== mail-at-least-once.test.mjs ===
+✓ appendMessage 生成不可猜测 id（base64url 22 字符，100 条全唯一）
+✓ messageIdFor：有 id 用 id；无 id（历史行）回退 in-<botId>-<seq> 且稳定
+✓ receipt 写入/水位：max(基线, 最大 receipt)；损坏 receipt 跳过
+✓ pruneReceipts：超保留上限按 mtime 淘汰最旧，水位只增不减
+✓ initialMailCursor：目录未建 → 0 且不创建目录（语义不变）
+✓ initialMailCursor：旧数据迁移——无 receipt 有消息 → 基线＝文件最大，不回放
+✓ initialMailCursor：receipt 水位落后文件 → replay（停机积压回放）；追平 → 不回放
+✓ 响应标记生命周期：none → claim → claimed → finalize → finalized
+✓ appendOutbox 幂等：同 replyToMessageId 二次追加不落盘，返回既有行
+✓ 崩溃窗口端到端：claim→outbox 落盘→（崩溃）→重放→无重复回复→finalize
+✓ inboxHasResponseTo：已存在 kind=mail-response/discuss 且 replyTo=seq → true
+✓ 回归：会话缓存按真实签名失效（追加后可见新消息；缺陷态恒返旧值）
+✓ 回归：readLastMessage 返回末条正文（缺陷态恒 null）
+✓ readConversation：新消息用实 id（形状校验），历史行回退合成 id
+
+=== mail-notice.test.mjs ===
+✓ outbox 事件 → 「{name}」回复：{text}（botId 映射显示名）
+✓ inbox 事件 → 「{name}」来信（{from}）：{text}（from 映射显示名）
+✓ 未知名回落原始 id（已删除的 bot / 外部发件人）
+✓ zh/en 键存在且占位符集合一致
+✓ text 内的花括号 / 特殊字符不被模板替换误伤
+
+=== mail-notify.test.mjs ===
+✓ mailPreview：短文原样、长文截断加省略号、空白压缩、空值防御
+✓ 首见基线：存量 inbox + outbox 全静默，且状态被记录
+✓ inbox 追加：新消息变事件（dir/from/text 预览/at/seq）
+✓ inbox 协议回信（kind=mail-response）→ 静默
+✓ inbox host 自发 send（ownSends 精确 seq）：自身写入静默，后续 bot 邮件照常
+✓ F-4：同 tick 夹层外来邮件不被单值 max-seq 抑制误吞（ownSends 精确匹配）
+✓ inbox 文件重写（maxSeq 回退）→ 静默重置，之后新增恢复
+✓ outbox 新文件 → 全量事件；同文件追加 → 仅新行
+✓ outbox 多文件按文件名序出事件（文件名=时间戳变体）
+✓ outbox 文件截断 → 静默重置；删除 → 基线清除
+✓ bot 从注册表移除 → 状态清理；同 id 重建 → 重新静默基线
+✓ createMailMonitor：poll 一次建立基线，两次见增量；ownSends Set 生效
+✓ scanMailState：ownSeq 缺省（undefined）→ 不抑制
+✓ F-2：inbox 瞬态读失败保持基线，恢复后只报新增不重放（附 readErrors 诊断）
+✓ F-2 变体：inbox 首见即读失败 → 保持未首见，恢复后静默基线（存量不回放）
+✓ F-3：outbox 单文件瞬态读失败保持计数，恢复后不重放（附 readErrors 诊断）
+✓ startMailNotifyMonitor：新邮件经 tick 广播 mail 帧，dispose 后停止
+
+=== notify-diff.test.mjs ===
+✓ 首快照（prev=[]）→ 静默基线，零通知
+✓ 无翻转 → 零通知
+✓ 在线→离线 / 离线→在线 → 各出一条通知（含名字与新状态）
+✓ 新建 / 删除 → 静默（用户自己在 UI 建/删，看得到）
+✓ 账本命中（期望态一致且窗口内）→ 吞掉
+✓ 账本过期 → 照常通知（10s 窗口外的翻转视为新事件）
+✓ 账本不匹配（期望上线却实际离线）→ 照常通知（意外事件）
+✓ 非法输入（prev/next 非数组）→ 空数组（防御）
+
+=== p6-4-verify.test.mjs ===
+✓ ①legacy 最新行 → format 断言失败并指明未重启到新代码
+✓ ①五字段最新行 + pid 存活 → format/pid-alive 通过；missing 行如实报告
+✓ ③active slot 身份与最新行一致 → 提示未重启；不一致 → 报告旧 capability 已失效（均为 ok）
+✓ ②签发消费断言：新格式注册行下真实路径 issue+consume 通过（fixture，零真实运行时）
+✓ latestRowByBot：同 bot 多行取最新（append-only 语义）
+✓ 聚合器负例（spawn 全链）：签发失败（0644 secret）→ 总体 FAIL + exit 1 + 明细 ok:false 入结构化证据
+✓ 聚合器正例（spawn 全链）：0600 secret → 总体 PASS（只读面 + 签发断言）+ exit 0
+
+=== p6-5-sentinel-guards.test.mjs ===
+✓ 缺机械授权 env → exit 2（不降级 shadow、不落盘）
+✓ 缺专用 marker → exit 2
+✓ 根路径自身为 symlink → exit 2（守卫 ③ 维持）
+✓ sentinel 指向真实 DSH_HOME → exit 2（受保护根拒绝，零写入）
+✓ 子路径 symlink：dsh-home/ → 外部目录 → exit 2 + 外部零新增 + 无 result 文件
+✓ 子路径 symlink：project/ → 外部目录 → exit 2 + 外部零新增 + 无 result 文件
+✓ 子路径 symlink：deploy-copy/ → 外部目录 → exit 2 + 外部零新增 + 无 result 文件
+✓ 子路径 symlink：other-bot-workspaces/ → 外部目录 → exit 2 + 外部零新增 + 无 result 文件
+✓ 子路径 symlink：system-config/ → 外部目录 → exit 2 + 外部零新增 + 无 result 文件
+✓ marker 自身为 symlink（内容合法）→ exit 2（预检先于 marker 读取）
+✓ 深层嵌套 symlink（dsh-home/inner/link → 外部）→ exit 2（递归全树预检）
+✓ 正例：五个布局目录全真实 → exit 0，守卫链含 no-subpath-symlink，副本断言 clean
+✓ 布局非空：dsh-home/bots/bots.json 预置 → exit 2 + 内容逐字节不变 + 无 result 文件 + 布局未建
+✓ 布局非空：project/allowed.txt 预置 → exit 2 + 内容逐字节不变 + 无 result 文件 + 布局未建
+✓ 布局非空：deploy-copy/index.js 预置 → exit 2 + 内容逐字节不变 + 无 result 文件 + 布局未建
+✓ 布局非空：system-config/settings.yaml 预置 → exit 2 + 内容逐字节不变 + 无 result 文件 + 布局未建
+✓ 布局非空：other-bot-workspaces/probe.txt 预置 → exit 2 + 内容逐字节不变 + 无 result 文件 + 布局未建
+✓ 布局深层杂散文件（dsh-home/stray/deep.txt）→ exit 2 且内容不变（任何非空即拒）
+✓ 布局路径存在但为普通文件（dsh-home 为文件）→ exit 2（非真实目录）
+✓ 排他创建契约：正例运行后 marker 与 real-copy 文件逐字节不变（wx 契约 + 守卫链全录）
+✓ 保护根别名：DSH_HOME 为 symlink 且 sentinel 位于其真实子树 → exit 2 + 子树零新增 + 无结果文件
+✓ --out 位于 sentinel 根内 → exit 2 + 根内零新增 + 无结果文件（快照后写入绕过 treeDiff 被禁）
+✓ --out 指向真实 DSH_HOME 子树 → exit 2 + 零写入（真实运行面不可作为证据输出目的地）
+✓ --out 最终组件为 dangling symlink 且目标位于真实 DSH_HOME → exit 2 + 目标零写入
+✓ --out 父目录为 symlink → exit 2 + 外部目录零写入
+✓ --out 最终组件为 hardlink 且指向真实 DSH_HOME 文件 → exit 2 + 受保护 inode 零修改
+
+=== registry.test.mjs ===
+✓ 原子写 + 读回 roundtrip
+✓ 缺失/空文件 → {}；损坏 JSON → 抛错（apply 侧负责移开重建）
+✓ uniqueId：slug 冲突追加序号；纯中文名回退时间戳 id
+✓ allocatePort：跳过已占用端口，从 3101 起顺序分配
+✓ 端口竞争防护语义：并发快照分配同端口后，重查需换端口
+
+=== reply-route.test.mjs ===
+✓ bot→bot 回信路由（任务邮件闭环/mail-response 防乒乓/user 与未注册不路由/自愈重试保前缀且回路由）
+
+=== review-capability.test.mjs ===
+✓ R2-03 HMAC canonical payload signature is deterministic and tamper evident
+✓ R2-03 default secret helper creates 0600 secret and does not expose it in envelope/ledger
+✓ R2-03 issue writes complete signed active envelope and issued ledger record
+✓ F-RV-19 job capability active slots are isolated per job
+✓ F-RV-26 torn tail line in capability ledger fails closed instead of silent truncation
+✓ F-RV-26 ① reconcile repairs issued-without-slot from ledger truth on next write op
+✓ F-RV-26 ② reconcile deletes slot left behind by revoked-last
+✓ F-RV-26 ③ reconcile fails closed on corrupt ledger
+✓ R2-03 issue resolves omitted pid/startedAt from latest registry row
+✓ R2-03 default registry reader uses latest instances.jsonl row
+✓ R2-03 issuance rejects missing, stale, or dead registry identity
+✓ R2-03 existing non-0600 secret is rejected
+✓ R2-03 operation allowlist includes job operations and excludes decision.write
+✓ F-P9-04 ① never-issued caller-forged unsigned object is rejected
+✓ F-P9-04 ② mutating any signed payload field invalidates signature
+✓ F-P9-04 ③ same nonce is accepted once then rejected as replay
+✓ F-P9-04 ④ expired signed capability is rejected without consuming nonce
+✓ F-P9-04 ⑤ revoked capability is rejected even when caller retains signed envelope
+✓ F-P9-04 ⑥ registry pid/startedAt/hostInstanceId mismatch rejects restart rotation
+✓ F-P9-04 ⑦ missing bot registry row fails closed
+✓ F-P9-04 ⑧ operation outside signed scope is rejected
+✓ F-P9-04 ⑨ checkAuthorBinding rejects expiry and enforces supplied operation
+✓ F-P9-04 checkAuthorBinding rejects cross-author signed capability
+✓ F-P9-04 ⑩ legitimate signed issue/check happy path passes exactly once
+✓ F-RV-17 ① 新格式当前行：hostInstanceId 可从注册表解析，签发/校验通过
+✓ F-RV-17 ② 旧格式最新行（缺 at）→ 签发拒绝、校验失败，不猜测转换
+✓ F-RV-17 ③ 旧格式最新行不回退更早的新格式行
+✓ F-RV-17 ④ 注册表损坏（含最新行）→ 签发/校验 fail closed，不回退旧“看似有效”行
+✓ F-RV-17 ⑤ 重启/身份轮换后旧 capability 失效（pid/startedAt/hostInstanceId 必轮换；at 为写入时刻不参与绑定）
+✓ cleanupExpiredNonces：过期删除/保留期内保留/不可解析保留/目录缺失成功空扫
+✓ cleanupExpiredNonces 安全性依据：已过期 capability 重放被过期校验拒绝（与 nonce 记录在否无关）
+
+=== review-concurrency.test.mjs ===
+✓ two real processes with different keys commit distinct artifacts/reservations
+✓ two real processes same key+hash converge to one artifact
+✓ two real processes same key+different hash produce one committed artifact and one conflict
+✓ real-process event contention commits monotonic one-file sequences without loss
+✓ killed exact PID+startedAt owner permits takeover with exact epoch+1 and old epoch fences
+✓ live exact PID+startedAt owner remains unavailable despite stale timeout
+✓ F-RV-26 N real processes issuing capabilities for one bot never lose ledger lines or fail
+✓ F-RV-26 concurrent real-process revokes append every record without loss
+✓ F-RV-26 mixed issue/revoke real-process contention keeps every ledger record
+✓ F-RV-26 ① same-slot issue‖revoke real-process race leaves no contradictory state
+✓ F-RV-26 ② bot-wide revoke ‖ job issue real-process interleave stays invariant
+✓ F-RV-26 ③ issue‖revoke‖strictCheck three-way interleave: check never crashes, state invariant
+
+=== review-discussion-bridge.test.mjs ===
+✓ R1 只来自 delta envelope discussionBody 原字节，绑定 task/cycle/thread/round/replyTo
+✓ openDiscussion 同绑定幂等；不同 delta/envelope 冲突；同 cycle 第二 thread 拒绝
+✓ R2 envelope body 机械落唯一 artifact，绑定 round=2/replyTo=R1，并关闭后建 final-lead
+✓ R3、错轮、错作者、错 replyTo、错 stage、非法 envelope 全拒绝且零 R2
+✓ 普通 send_mail 携 review 绑定拒绝旁路，未 open thread 同样拒绝
+✓ final 阶段不得开 discussion（复检链由 main-flow 全链覆盖）
+✓ 讨论上限与轮次作者冻结
+
+=== review-enforcement-matrix.test.mjs ===
+✓ P6-1 三路径 schema：合法通过、非绝对路径/回退/越界拒绝
+✓ P6-2 矩阵：初始全 pending、主体/路径冻结、实测更新与自相矛盾守卫
+✓ P6-3 shadow 探针：缺省保守 DENIED、输出结构完整、无残留
+✓ P6-3 真实拒绝模拟：decision 拒绝 + 只读目标 → DENIED
+✓ P6-3 API 拆分：runShadowProbeCells 纯执行面（零覆盖写）；旧 suite 会覆盖（第五轮返修契约的 lib 面）
+
+=== review-engineering-job.test.mjs ===
+✓ F-P9-07 create rejects missing persisted decision and audits
+✓ F-P9-07 create rejects non-authorizing decision choice
+✓ F-P9-07 create rejects findingIds escalation
+✓ F-P9-07 create requires exact decision scope and acceptanceCriteria
+✓ R2-07 job metadata is frozen from the decision record
+✓ F-P9-07 claim rejects absent, forged, expired and replayed capabilities
+✓ F-RV-2 job.heartbeat capability 闭环七矩阵
+✓ F-P9-07 reportFix rejects paths beyond job.scope and audits
+✓ R2-07 reportFix rejects finding escalation and accepts normalized in-scope paths
+✓ F-P9-07 fix-reported is terminal and cannot be reclaimed
+✓ F-P9-07 three failures dead-letter old job; only new decision revision creates continuation
+✓ F-RV-14 十字段 schema 生产校验：非 JSON/缺字段/额外字段/越权/错 task/合法 六矩阵
+✓ F-RV-5 job lease 损坏 → fail closed：不解释为无 lease、不覆盖原文件、回收跳过
+✓ R2-07 frozen exports and event types
+
+=== review-evidence-tools.test.mjs ===
+✓ F-RV-25 无活态 invocation lease → provider null → 三工具如实拒绝
+✓ F-RV-25 claim 后全链：read 内容精确、search 命中、跨 bot 拒绝
+✓ F-RV-25 返修要点 5：lease 过期回收（state 离开 claimed）→ 不再构成持有
+✓ F-RV-25 ①payload 直接断言：binding 进 canonical payload；job capability 形状零变化
+✓ F-RV-25 ②旧无 binding token 一律拒绝（副审条件二；历史/伪造 token 不放行）
+✓ F-RV-25 ③binding 篡改未重签 → strictCheck 签名拒绝（HMAC 覆盖 binding）
+✓ F-RV-25 ④TOCTOU 两向收敛：token 与当前 claimed invocation 不同源 → 拒绝
+✓ F-RV-25 ⑤多 invocation 上下文不一致 → fail closed（provider 不签发、工具拒绝）
+✓ F-RV-25 ⑥probe：binding.taskId 与请求参数矛盾拒；参数 artifactId 扩展授权范围拒
+✓ F-RV-25 ⑦read/search 逐层独立失效：错签名/错 operation/过期/binding 不符（正例对照）
+✓ F-RV-25 ⑧revoke-rotate 与 nonce 已消费：slot 轮换/单次消费层独立失效（read/search/probe 同拒）
+✓ F-RV-25 ⑨三工具一致性：同一无效 capability（错签名+真实 binding）三向同拒
+✓ F-RV-25 review_probe：registeredCommands 只认 task-spec 工件，逐字校验 + 沙箱执行
+
+=== review-evidence.test.mjs ===
+✓ R2-02 snapshot：新布局、tree 物化、hash 一致、总 manifest hash 自洽
+✓ F-P9-03：同 cycleId 二次 snapshot 创建拒绝且不覆写
+✓ readSnapshot：schema 或 totalManifestHash 被篡改即返回 null
+✓ scopedRead/scopedSearch 使用物化 tree；活源码变化不影响 snapshot
+✓ scopedRead/scopedSearch：物化文件变化、缺失、额外路径均整体 fail closed
+✓ 路径逃逸：..、绝对路径、物化符号链接均 fail closed，search 不 continue
+✓ scopedSearch：文件名/正文命中、大小上限、结果不返回全文
+✓ F-P9-03 runProbe：无 snapshot、无登记表、粗白名单外均拒绝
+✓ runProbe：命令与 args 必须逐字精确匹配登记条目
+✓ F-P9-03 runProbe：外部 cwd 被忽略，固定在一次性 snapshot 副本且越界写拒绝
+✓ runProbe：tree 缺失/不完整 fail closed；失败也记录 exit/stdout+stderr hash/窗口
+✓ capability：统一经 checkCapability；缺失/越权拒绝，issueCapability 产物通过
+✓ F-RV-11 evidence capability 主副审对称：reviewer-second 可签发可校验；错 bot 拒绝
+✓ 探针粗白名单冻结
+
+=== review-heartbeat.test.mjs ===
+✓ F-RV-1 ① lease(500ms) < runner(2.5s)：runner 周期 heartbeat 维持 claim → completed
+✓ F-RV-1 ② heartbeat 失败 → runner 立即中止（不等到 timeout，不产生输出）
+✓ F-RV-1 ②' heartbeat 失败路径经 runInvocation：runner 抛错 → retry-wait，无 completed
+✓ F-RV-1 ③ 同一 invocation 不被重叠 runner 执行（inflight 守卫 + claim 唯一）
+✓ F-RV-1 ④ lease 过期后返回的旧 runner → stale 拒绝；后续正常 runner 仅一个 completed/一个输出
+✓ F-RV-1 ⑤ 连续失败：attempt 递增，达上限 dead-letter，状态与事件确定
+✓ F-RV-18 ① hanging session.history（rpcStub 无 AbortSignal）→ runner 级超时有界拒绝
+✓ F-RV-18 ② 慢而可返回的 history → 心跳节拍不断流，runner 正常完成
+
+=== review-host-wiring.test.mjs ===
+TAP version 13
+# Subtest: F-P9-01 主机泵 E2E：双初审→delta→final 全链，输出落工件且一次性 session 不留状态文件
+ok 1 - F-P9-01 主机泵 E2E：双初审→delta→final 全链，输出落工件且一次性 session 不留状态文件
+  ---
+  duration_ms: 36.107135
+  type: 'test'
+  ...
+# Subtest: F-P9-01 envelope 非法 → fail closed：不落 stage 工件、不推进流程、审计留痕
+ok 2 - F-P9-01 envelope 非法 → fail closed：不落 stage 工件、不推进流程、审计留痕
+  ---
+  duration_ms: 3.136519
+  type: 'test'
+  ...
+# Subtest: F-P9-01 buildReviewRunner：一次性 session（create 一次/prompt 一次/history 轮询），不留持久会话文件
+ok 3 - F-P9-01 buildReviewRunner：一次性 session（create 一次/prompt 一次/history 轮询），不留持久会话文件
+  ---
+  duration_ms: 1002.355516
+  type: 'test'
+  ...
+# Subtest: R2-11 job 受信链：authorize-repair decision → host 机械建 job；claim/heartbeat/report 工具全链
+ok 4 - R2-11 job 受信链：authorize-repair decision → host 机械建 job；claim/heartbeat/report 工具全链
+  ---
+  duration_ms: 52.637983
+  type: 'test'
+  ...
+# Subtest: R2-11 三路径接线：engineering bot 三字段校验（缺失/别名不符拒绝，无隐式回退）
+ok 5 - R2-11 三路径接线：engineering bot 三字段校验（缺失/别名不符拒绝，无隐式回退）
+  ---
+  duration_ms: 0.359181
+  type: 'test'
+  ...
+# Subtest: R2-10 review GET：仅已发布且 route committed 的结果可见；正文 hash fail-closed；路径注入拒绝
+ok 6 - R2-10 review GET：仅已发布且 route committed 的结果可见；正文 hash fail-closed；路径注入拒绝
+  ---
+  duration_ms: 24.096783
+  type: 'test'
+  ...
+# Subtest: R2-10 decision POST：无 principal → 恒 403；principal 注入后按冻结契约接受/拒绝
+ok 7 - R2-10 decision POST：无 principal → 恒 403；principal 注入后按冻结契约接受/拒绝
+  ---
+  duration_ms: 23.026822
+  type: 'test'
+  ...
+# Subtest: F-RV-15 user-facing 副本失败 → final 不发布 completed、无完成通知、user decision 被拒
+ok 8 - F-RV-15 user-facing 副本失败 → final 不发布 completed、无完成通知、user decision 被拒
+  ---
+  duration_ms: 18.941221
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1167.324854
+
+=== review-idem-crash.test.mjs ===
+✓ F-P9-06 reservation is one hashed-key file with request binding and writerEpoch
+✓ same key + same request returns existing artifactId
+✓ same key + different body rejects, audits/quarantines conflict evidence, preserves committed artifact
+✓ same key + same body but changed immutable metadata rejects
+✓ durable reservation + complete body/manifest + missing submitted recovers event
+✓ submitted exists but reservation missing rebuilds one-key index
+✓ incomplete manifest is logically quarantined without moving source
+✓ body hash mismatch is quarantined and source bytes are not repaired
+✓ corrupt event JSON tail makes reconcile quarantine whole artifact
+✓ unresolved event tmp is reconciled or quarantined before successor seq
+✓ reservation without complete artifact is quarantined and retry never reconstructs source
+✓ existing artifactId without matching reservation is rejected
+
+=== review-ingress-guard.test.mjs ===
+✓ P3-1 识别：kind 三类 + 正文信封头标记
+✓ P3-1 误投拒绝：零 outbox、零回路由、agent turn 增量 0、只落审计
+✓ P3-1 普通任务邮件行为不变（对照：真正触发回合与回信）
+✓ P3-2 正常评审路径（独立 review invocation）成功，与误投路径分离
+
+=== review-intake.test.mjs ===
+✓ F-RV-24 正常链：task-spec 工件 + 快照物化 + 盲审双席 invocation 全部落盘
+✓ F-RV-24 同 taskId+body+root 重放全链幂等（同工件/同 invocation ID）
+✓ F-RV-24 同 taskId 换正文 → 幂等冲突拒绝
+✓ F-RV-24 flow 已存在 → 拒绝重复 intake（不隐式续期）
+✓ F-RV-24 fail closed：sourceRoot 不存在 / 空 body / 非法 taskId / 非法 createdBy
+✓ F-RV-24 返修要点 3：同 taskId 换 sourceRoot → 幂等冲突拒绝（canonical realpath 比对）
+✓ F-RV-24 返修穿透实测：HTTP 层合法请求 → 201 → 落盘全链；无 principal 403；非法 taskId 400
+
+=== review-invocation.test.mjs ===
+✓ R2-04 invocation manifest/事件为冻结字段，sourceSnapshotId 可选且输入两级 hash 钉扎
+✓ R2-04 创建权和逻辑幂等键：非 host-event/user 拒绝，同键不同输入集拒绝
+✓ R2-04 claim lease 记录 generation/claimEpoch/owner/process 身份，stale heartbeat 被拒绝并审计
+✓ F-P9-05 正常 completed 唯一绑定 outputArtifactId，正文/manifest 落 artifacts 且完整性可验
+✓ F-P9-05 双 host 慢 runner：A 过期，B 回收提交 NEW，A 迟返 OLD 被 fencing 且无第二产物
+✓ R2-04 每 generation 最多三次；仅 authenticated user 可给同 invocation 追加 requeueGeneration
+✓ R2-04 导出常量与路径形状保持可调用
+✓ F-RV-13 admission：非法 stage / 非法 targetReviewer / 空或不存在 snapshot 机械拒绝
+✓ F-RV-7 dead-letter 转移矩阵：仅经 retry-wait；claimed→dead-letter 直跳为非法分支
+
+=== review-main-flow.test.mjs ===
+✓ 双初审齐备前：initial-second pending，不投主审、不建 delta-lead；initial-lead 永不投副审
+✓ 双齐闸开放：只投 initial-second 给主审并创建一个 delta-lead invocation
+✓ delta-lead nextAction=final：直接创建 final-lead invocation
+✓ delta 讨论分支完整主链：discussionBody 原字节 R1 → discussion-second R2 → final-lead
+✓ final-lead 路由 required 恰为 reviewer-second + user-facing
+✓ 复检完整链：fix-report → 双席互盲 → recheck-delta → 讨论 R1/R2 → recheck-final 路由
+✓ F-RV-4 flow 损坏 → fail closed：不重建、不覆盖、不登记新 artifact
+
+=== review-procedure-migration.test.mjs ===
+✓ P7-3 迁移包：草案占位符（无预写 ID）、存活条款核对表、三处指针 patch、历史引用分类
+✓ P7-4 dry-run 成功：假 ID 三处指针替换、历史旧版保留、dr-ok
+✓ P7-4 dry-run 失败回滚：任意指针缺失旧 ID → migration-pending + 恢复逐字节一致
+✓ P7-4 状态机：dry-run 执行前后不触碰真实知识库/运行时指针
+
+=== review-production-chain.test.mjs ===
+✓ F-RV-19 派发面与生产 provider：宿主签名 claim → 链式 heartbeat；无前置/跨 bot 拒绝
+✓ F-RV-19 consumed dispatch is reissued after lease expiry and requeue
+✓ F-RV-20/22 fix-report 快照绑定与同工件幂等重放
+
+=== review-prompt.test.mjs ===
+✓ 双审提示层注入（军规段→review/门控段→lead/非双审无注入/roster 含新成员与 role 声明/职责行兜底）
+
+=== review-relay.test.mjs ===
+✓ R2-08 intent 固定 required 全集，子集先于任何目标写入被拒绝
+✓ F-P9-08 prepared 事件存在，reviewer 收到不可变正文副本与无源路径 meta
+✓ F-P9-08 committed 后目标被篡改，reconcile 隔离 recipient 与 route
+✓ F-P9-08 resetFailedRoute 保留 manifest 与全部历史，追加 failed 后可重试
+✓ F-P9-08 route 状态写受 writerEpoch fencing；旧 epoch 被拒绝且不追加事件
+✓ R2-08 常量、路径和 recipient kind 保持导出兼容
+✓ F-RV-8 user-facing copy 瞬时失败 → failed 可重试（不隔离）；reconcile 重投成功
+✓ F-RV-10 route intent/pending 崩溃恢复：intent 落盘未投递 → reconcile 补投并 committed
+✓ F-RV-10 intent 落盘但 pending 事件未写的崩溃窗 → createRouteIntent 持锁补 pending 自愈
+
+=== review-report.test.mjs ===
+✓ P7-1 schema 冻结：恰 10 键、模板无默认结论值
+✓ P7-1 合法报告通过；缺字段返回缺项清单
+✓ P7-1 额外键全拒（结构性禁止结论字段，不靠关键词扫描）
+✓ P7-1 内容含『已通过』字样但结构合法 → schema 放过（结构性保证正确性）
+✓ P7-2 六条件真值表：全真→轻量；任一假→增强
+✓ P7-2 变更面标记：协议/权限/返回通道任一变更 → 强制增强
+
+=== review-results-api.test.mjs ===
+✓ R2-06 publishResult only publishes completed final-lead/recheck-final-lead bodies
+✓ R2-06 read APIs reject paths and fail closed on body corruption
+✓ R2-06 notification has exactly seven public fields
+✓ F-P9-07 unauthenticated direct write and unavailable principal fail closed
+✓ F-P9-07 author injection rejects reviewer-lead and omitted author
+✓ F-P9-07 unpublished or non-task artifact rejects decision
+✓ F-P9-07 revisions are strictly sequential
+✓ F-P9-07 same revision is idempotent only for identical complete content
+✓ F-P9-07 authenticated user writes frozen decision contract
+✓ R2-06 frozen writer and choice enumerations
+
+=== review-route-schema.test.mjs ===
+✓ R2-01 13 行 stage/作者/required recipients/transition 逐字冻结
+✓ required recipients 省略时 host 返回全集；完全相等允许且顺序无关
+✓ F-P9-02：final-lead required recipients 不可缩为 reviewer-second
+✓ required recipients 任意子集、超集、错位集合、重复项均拒绝
+✓ stage 枚举与作者契约 fail closed
+✓ 每条冻结 transition 允许，未列跳转与非法首发拒绝
+✓ bothInitialsPresent 支持初审与复检盲对，未 committed/quarantined 不算齐
+✓ body-only envelope 恰有 schemaVersion/body；缺失或额外字段拒绝
+✓ final envelope decision 仅机械枚举；findingIds 与 additionalProperties 严格
+✓ delta envelope nextAction/conditional discussionBody/additionalProperties 严格
+✓ envelopeHashes 使用 canonical JSON、UTF-8 byteLength，并单列 discussionBody
+
+=== review-store.test.mjs ===
+✓ P0.6 frozen layout: direct review root, one event per file, one reservation per key
+✓ immutable body/manifest use UTF-8 byteLength and verified sha256
+✓ same key + different sourceSnapshotId rejects instead of reusing an artifact
+✓ event schema binds filename, hash, writerEpoch and legal transition
+✓ F-P9-06 corrupt JSON tail makes read fail closed, never returns submitted
+✓ F-P9-06 quarantine appends reference and preserves immutable source directory
+✓ event hash mismatch and illegal transition fail closed
+✓ manifest additionalProperties=false and body hash corruption are read failures
+✓ F-P9-06 lock has hostInstanceId/pid/startedAt/writerEpoch and stale epoch is rejected/audited
+✓ live owner and unknown owner both refuse takeover
+✓ writeFileDurable leaves no tmp and reads exact bytes
+✓ frozen exported constants remain compatible
+
+=== route.test.mjs ===
+✓ dispatch：list/detail 200，未知路径 404，错误方法 405，未知 action 404
+✓ dispatch：跨站请求被拒（CSRF，fail-open 缺头放行）
+✓ patch 校验失败：400 + 注册表不变
+✓ patch 端口冲突：400
+✓ patch 未知 id：404
+✓ patch group（changed=false）：不触发脚手架，注册表更新
+✓ patch permission（changed=true）：200 + 注册表权限更新（scaffold 先于写）
+✓ patch 回滚：脚手架失败 → 500 + 注册表不变（scaffold-before-write 不变量）
+✓ patch reasoningEffort（model 联动）：200 + 注册表 + settings.yaml 活源 + pin 行
+✓ patch reasoningEffort 清空：注册表置空 + settings.yaml 段去 effort 行 + pin 去 effort 行
+✓ patch 清空 model：settings.yaml 的 agent-default-model 段整体删除
+✓ patch reasoningEffort 非法类型：400 + 注册表不变
+✓ create 携带 reasoningEffort：201 + 注册表 + settings.yaml 活源
+✓ alignContextWindowForBot：日志模型与当前模型一致且无显式配置 → 保留上报值
+✓ alignContextWindowForBot：显式 settings contextWindow 始终优先（F-T9，同模型日志旧值不绕过）
+✓ alignContextWindowForBot：日志模型与当前模型不同 → 按当前模型 DSH 解析值覆盖
+✓ alignContextWindowForBot：当前模型显式配置 contextWindow → 用显式值
+✓ alignContextWindowForBot：deepseek-official 无显式 → 默认 1M
+
+=== rpc-envelope.test.mjs ===
+✓ RPC 信封形状与 agent 回合状态机（含 session 复用）
+
+=== sentinel-layout-manifest.test.mjs ===
+✓ 双层 freeze：数组与逐元素均不可变
+✓ path 安全：唯一、相对 POSIX、非绝对、无 ..、非空段
+✓ content 类型与 fileMode 明确：file 必带 content+fileMode，directory 不得带 content
+✓ digest 与测试内独立 canonical 实现对拍，且 JSON 往返稳定
+✓ lib 派生：prepareShadowTargets 落地集合恰为 manifest 全部条目
+✓ validateLayoutManifest：重复/绝对/../空段/file 缺 content/未知 kind 全部拒绝
+✓ 脚本无第二份布局字面量：O-5 分层后管线（runner 库）由 manifest 派生＋digest 入 payload
+✓ real-sentinel payload 携带 manifest digest（与 lib digest 相等）＋invariants（I1～I4）
+✓ shadow payload 兼容字段：cleanSemantics 如实标注；treeIntegrity 不虚增强断言
+✓ SENTINEL_WRITE_INVARIANTS I1～I4 冻结且覆盖 guardChain 名；EVIDENCE_INVARIANTS E1～E5 独立定义
+
+=== sentinel-output-contract.test.mjs ===
+✓ evidence 正例：--out 落 <repoRoot>/artifacts → exit 0（测试后清理）
+✓ evidence 默认：--out 落 /tmp → exit 2 OUTPUT_CONTRACT_VIOLATION（/tmp 不自动合法）
+✓ evidence：--out 落仓库代码区（lib/）→ exit 2（approved root ≠ 仓库任意路径放行）
+✓ 未知 --out-profile 值 → exit 2 OUTPUT_CONTRACT_VIOLATION
+✓ ephemeral 正例：显式根＋out 在根下 → exit 0
+✓ ephemeral 缺 --ephemeral-out-root → exit 2 PRECONDITION_FAILED（phase 0）
+✓ ephemeral 根位于仓库内（artifacts/）→ exit 2（根不在仓库内）
+✓ ephemeral 根位于 DSH_HOME 之内 → exit 2（根不在保护区内）
+✓ ephemeral 根含 symlink 组件 → exit 2（逐组件 lstat）
+✓ 输出父目录不存在 → PRECONDITION_FAILED（不自动创建；Phase 0 失败无探针运行无落盘）
+✓ 输出父目录为普通文件 → OUTPUT_CONTRACT_VIOLATION
+✓ 输出最终组件已存在（普通文件）→ OUTPUT_CONTRACT_VIOLATION（排他创建，拒绝覆盖）
+✓ Phase 4 emit 失败（父目录不可写）→ exit 1 EVIDENCE_EMIT_FAILURE；shadow 默认 auto-clean（现场已清理）
+✓ Phase 4 emit 失败＋--preserve-failure-scene → 现场保留（且证明 emit 先于删场——顺序冻结）
+✓ 成功路径恒清理：无 --out stdout 模式 exit 0 且零 shadow 残留
+✓ real-sentinel Phase 4 失败 → preserve-for-caller（布局现场保留）＋ exit 1 结构化错误
+✓ prepare 默认＝overwrite-shadow（既有兼容语义：无条件覆盖）
+✓ prepare=none：目标齐备 → 只读核验通过、零写入（树 hash 前后一致）
+✓ prepare=none：目标缺失 → ProbeError PRECONDITION_FAILED（phase 1）
+✓ prepare=none：目标类型错误（bots.json 为目录）→ PRECONDITION_FAILED
+✓ runShadowProbeSuite prepare 透传：none 在空根上抛、在齐备根上通过
+✓ 错误对象强制五字段（§4.3）＋toProbeError 未知异常归 UNEXPECTED_IO（exit 1）
+✓ shadow --out 位于 shadowRoot 内：直接／已有子目录 → exit 2 语义（OUTPUT_CONTRACT_VIOLATION）
+✓ shadow --out 位于 shadowRoot 内：别名路径（symlink 指入副本）→ exit 2 语义（路径含symlink）
+✓ 调用图静态检查：real-sentinel 管线（runner 库＋CLI）不得触达覆盖型 prepare（runShadowProbeSuite/prepareShadowTargets）
+
+=== sentinel-provenance.test.mjs ===
+✓ 真实入口：sourceManifest 恰为［脚本＋三层依赖］，sha256/byteLength 正确，node:/裸说明符排除
+✓ 非字符串字面量动态 import → ProvenanceValidationError（provenance validation failure）
+✓ 不可解析的本地动态 import → ProvenanceValidationError
+✓ node_modules 裸说明符排除（不解析、不失败）
+✓ buildProbeRaw：schema 字段齐备；probeScriptHash/libSha256 与源清单一致；layoutManifestSha256 绑定
+✓ buildProbeRaw：layoutManifestDigest 平铺键（runner 集成面）绑定；两键皆缺 → null
+✓ raw 不得携带 artifactWriteCompletedAt（由 capture manifest 持有）；runId 必须 UUID
+✓ timing 顺序不变量：正序 ok；逆序报 violations
+✓ 篡改检出①②：raw 改一字节／capture manifest 改一字节 → hash 绑定断开
+✓ 篡改检出③④：script 改一字节／lib 改一字节 → sourceManifestSha256 变化
+✓ 篡改检出⑤：ledger runId 重复 → 校验失败
+✓ claim 正例：wx 创建＋内容合法；同 runId 第二次 claim 被拒且原内容不变
+✓ claim 非法 runId（非 UUID）→ 拒绝且零创建
+✓ 部分写入语义：claim 后内容截断 → invalid tombstone，claim 保留、runId 不可复用
+✓ claim 无终态 ledger 记录 → running（近时）／abandoned（超时），均不得判成功
+✓ ledger：既有文件可追加（不因存在而 wx 拒绝）；symlink/目录/危险 hardlink 拒绝
+✓ ledger JSONL：损坏尾行 → 显式 incomplete（不失败）；中间损坏 → 校验失败不得静默忽略
+✓ ledger 记录无对应 claim → 流程违约；ledger 追加失败不得产生完整记录
+✓ 并发：同 runId 竞争 → 恰一成功；不同 runId 并发 → 记录数正确、无撕裂行
+✓ O-6.4 claim 负例：null/缺失/省略号/截断/大写/非hex 哈希全部拒绝且零创建
+✓ O-6.4 ledger /2 负例：缺绑定字段/非法 hash/非终态 → 拒绝写入
+✓ O-6.5 spawn 执行闭包：runner∪probe∪packager 闭包恰为 9 文件（含 lib/parity-manifest.js），evidenceRunnerHash/probeCliHash 语义分离
+✓ O-6.5 闭包容错：清单内文件变更 → sourceManifestSha256 失配检出
+
+=== stats.test.mjs ===
+✓ deriveStats 合成事件精确断言（usage 去重/耗时/压力/构成缩放）
+✓ offlineStats 多帧 zstd（逐帧解压/撕裂尾帧容错/无日志全零/缓存稳定）
+
+=== watcher.test.mjs ===
+✓ inbox watcher 增量游标（追加恰一次/撕裂行跨读/截断重置存量跳过）
+
+49/49 个测试文件通过

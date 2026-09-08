@@ -1,0 +1,455 @@
+{
+  "ok": true,
+  "generatedAt": "2026-09-05T06:11:32.018Z",
+  "node": "v22.23.2",
+  "originalFileCount": 184,
+  "modifiedOriginals": [
+    "CHANGELOG.md",
+    "README.md"
+  ],
+  "onlyExpectedOriginalChanges": true,
+  "frozenSourceManifest": [
+    {
+      "path": "lib/evidence-packager.js",
+      "ok": true
+    },
+    {
+      "path": "lib/parity-manifest.js",
+      "ok": true
+    },
+    {
+      "path": "lib/review-enforcement.js",
+      "ok": true
+    },
+    {
+      "path": "lib/sentinel-provenance.js",
+      "ok": true
+    },
+    {
+      "path": "lib/sentinel-runner.js",
+      "ok": true
+    },
+    {
+      "path": "lib/sentinel-safety.js",
+      "ok": true
+    },
+    {
+      "path": "scripts/evidence-packager.mjs",
+      "ok": true
+    },
+    {
+      "path": "scripts/evidence-runner.mjs",
+      "ok": true
+    },
+    {
+      "path": "scripts/review-enforcement-probe.cjs",
+      "ok": true
+    }
+  ],
+  "syntax": [
+    {
+      "path": "lib/api-security.js",
+      "ok": true
+    },
+    {
+      "path": "lib/bot-autostart.js",
+      "ok": true
+    },
+    {
+      "path": "lib/bot-supervisor.js",
+      "ok": true
+    },
+    {
+      "path": "lib/client.js",
+      "ok": true
+    },
+    {
+      "path": "lib/evidence-packager.js",
+      "ok": true
+    },
+    {
+      "path": "lib/index.js",
+      "ok": true
+    },
+    {
+      "path": "lib/knowledge.js",
+      "ok": true
+    },
+    {
+      "path": "lib/mail-plane.js",
+      "ok": true
+    },
+    {
+      "path": "lib/mail-seq-lock.js",
+      "ok": true
+    },
+    {
+      "path": "lib/parity-manifest.js",
+      "ok": true
+    },
+    {
+      "path": "lib/review-capability.js",
+      "ok": true
+    },
+    {
+      "path": "lib/review-discussion.js",
+      "ok": true
+    },
+    {
+      "path": "lib/review-enforcement.js",
+      "ok": true
+    },
+    {
+      "path": "lib/review-envelopes.js",
+      "ok": true
+    },
+    {
+      "path": "lib/review-evidence.js",
+      "ok": true
+    },
+    {
+      "path": "lib/review-flow.js",
+      "ok": true
+    },
+    {
+      "path": "lib/review-http-api.js",
+      "ok": true
+    },
+    {
+      "path": "lib/review-intake.js",
+      "ok": true
+    },
+    {
+      "path": "lib/review-jobs.js",
+      "ok": true
+    },
+    {
+      "path": "lib/review-migration.js",
+      "ok": true
+    },
+    {
+      "path": "lib/review-orchestrator.js",
+      "ok": true
+    },
+    {
+      "path": "lib/review-protocol.js",
+      "ok": true
+    },
+    {
+      "path": "lib/review-relay.js",
+      "ok": true
+    },
+    {
+      "path": "lib/review-report.js",
+      "ok": true
+    },
+    {
+      "path": "lib/review-results.js",
+      "ok": true
+    },
+    {
+      "path": "lib/review-store.js",
+      "ok": true
+    },
+    {
+      "path": "lib/sentinel-provenance.js",
+      "ok": true
+    },
+    {
+      "path": "lib/sentinel-runner.js",
+      "ok": true
+    },
+    {
+      "path": "lib/sentinel-safety.js",
+      "ok": true
+    },
+    {
+      "path": "lib/shared.cjs",
+      "ok": true
+    },
+    {
+      "path": "lib/stats.js",
+      "ok": true
+    },
+    {
+      "path": "scripts/bot-health.cjs",
+      "ok": true
+    },
+    {
+      "path": "scripts/c2-preparation.mjs",
+      "ok": true
+    },
+    {
+      "path": "scripts/create-bot.cjs",
+      "ok": true
+    },
+    {
+      "path": "scripts/evidence-packager.mjs",
+      "ok": true
+    },
+    {
+      "path": "scripts/evidence-runner.mjs",
+      "ok": true
+    },
+    {
+      "path": "scripts/generate-evidence-package.mjs",
+      "ok": true
+    },
+    {
+      "path": "scripts/p6-4-verify.mjs",
+      "ok": true
+    },
+    {
+      "path": "scripts/review-enforcement-probe.cjs",
+      "ok": true
+    },
+    {
+      "path": "tests/api-security.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/bot-autostart.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/bot-supervisor.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/discuss-mail.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/events.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/evidence-packager.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/evidence-runner-contract.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/hygiene.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/jsonl.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/knowledge.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/locale-runtime.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/locale.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/mail-at-least-once.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/mail-notice.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/mail-notify.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/notify-diff.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/p6-4-verify.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/p6-5-sentinel-guards.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/registry.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/reply-route.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-capability.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-concurrency.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-discussion-bridge.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-enforcement-matrix.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-engineering-job.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-evidence-tools.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-evidence.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-heartbeat.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-host-wiring.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-idem-crash.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-ingress-guard.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-intake.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-invocation.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-main-flow.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-procedure-migration.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-production-chain.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-prompt.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-relay.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-report.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-results-api.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-route-schema.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/review-store.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/route.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/rpc-envelope.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/run.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/sentinel-layout-manifest.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/sentinel-output-contract.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/sentinel-provenance.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/stats.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "tests/watcher.test.mjs",
+      "ok": true
+    },
+    {
+      "path": "artifacts/quality-review-2026-09-05/health-probes.mjs",
+      "ok": true
+    },
+    {
+      "path": "artifacts/quality-review-2026-09-05/probes.mjs",
+      "ok": true
+    },
+    {
+      "path": "artifacts/quality-review-2026-09-05/run-isolated.mjs",
+      "ok": true
+    },
+    {
+      "path": "artifacts/quality-review-2026-09-05/spec-extra-probes.mjs",
+      "ok": true
+    },
+    {
+      "path": "artifacts/quality-review-2026-09-05/spec-probes.mjs",
+      "ok": true
+    },
+    {
+      "path": "artifacts/quality-review-2026-09-05/verify-assessment.mjs",
+      "ok": true
+    }
+  ],
+  "brokenLinks": [],
+  "artifactHashes": {
+    "health-probes.log": "8193db59bb6de8692fba11aac652973f386b8bb7f2bafa270771b509ad4d38ba",
+    "health-probes.mjs": "df7e79cbb2fd5e03593229b8ae3d0d8fae0860ee640c897a5bb8c53f8e357a21",
+    "inventory.json": "a9f5d60d163b2ffb37524500ddf02f0e78d9279fdea6e28f19a8301074a70ecb",
+    "probes.log": "9c11c901f1d6253142e60948778accd2dcb6ce1976ab9e37c5928e1d1d142543",
+    "probes.mjs": "d5cfd6e2f7df7a6cf40b57aa42063fc0517f07e185d8aef3b31a25e1f0c204fd",
+    "run-isolated.mjs": "5f13e42f259b81f7039917650ec4b538195496faffea327b2a19722d200a6942",
+    "spec-extra-probes.log": "5d462e19fb4919507426e8a60d90e62e3d84f017b0c3f8cba38e592ecc926614",
+    "spec-extra-probes.mjs": "2b34dd6e91584b8e13673ec2f05abc587b74c2c6666b126c1b10089466c82898",
+    "spec-probes.log": "3fb3f122d43ac377e3b6090965b4f5018f63d206a17249dee5ad753ab97a1d15",
+    "spec-probes.mjs": "015869baf4bf3a395ec3dadb6f33eb2d20dc0c9b241bbc0edd289f3b09e5c1c9",
+    "tests-complete.log": "e411b8fedae721cae44ed905e5f1ae6eece6227896f55672b264403b0a42f6f6",
+    "tests-final.log": "4fa586d0cd042588f083b5da2bd382a34a7fbed5b9600d31382ea72944352749",
+    "tests-isolated.log": "abc1ba9e73f27e967789462195fdf27d9003e4f953d33119ec566de8fe077a3b",
+    "tests.log": "24b927c5e30523da34a0d1aa1986c2e3e82b6d743ad6bbe2332be3ea21fc6a40",
+    "verification.json": "4a8d6b75895226855b8ae12c238053271cdef830992fa87decb39459455231cf",
+    "verify-assessment.mjs": "9664ce536602b810cdd7d70a5f5301763a0547fa23ff6d6ed7f98749c37cbde6"
+  },
+  "documentHashes": {
+    "CHANGELOG.md": "bdbe61b1dd62ce34a87aeb8c2a4f07329dc25b222bd3ceed2c1ee0d4488cf7a1",
+    "README.md": "0b400caf2e393f22c1d1749baf90a07c3bbb0f674296425d19143c8642f14db2",
+    "docs/CODE-QUALITY-ARCHITECTURE-REVIEW-2026-09-05.md": "0bd48125701cfcb2dbb8897815c1e62979a8a2c72000890339ee114f3f703859"
+  }
+}

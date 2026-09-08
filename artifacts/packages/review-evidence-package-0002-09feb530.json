@@ -1,0 +1,80 @@
+{
+  "packageType": "review-evidence-package",
+  "generatedAt": "2026-08-30T03:12:49.830Z",
+  "generatedBy": "coding-side (encoder)",
+  "generationCommand": "node scripts/generate-evidence-package.mjs --files [\"docs/CLOSURE-p6-5-qualified-scope.md\",\"docs/TEMP-guidance-optimization-v3.2.1.md\",\"artifacts/packages/review-evidence-package-0001-a21b6f0d.json\",\"lib/review-enforcement.js\",\"scripts/review-enforcement-probe.cjs\",\"tests/p6-5-sentinel-guards.test.mjs\",\"CHANGELOG.md\"] --tests [\"tests/sentinel-output-contract.test.mjs\"] --regression 41/41 --scope O-1+O-2 convergence contract batch (TEMP-guidance-optimization-v3.2.1 §3-§4): qualified P6-5 closure note + versioned package chain; output profiles (evidence/ephemeral), shared shadow/real-sentinel --out contract, structured ProbeError {code,phase,details,exitCode,scenePolicy}, Phase 0-4, scenePolicy (preserve-for-caller/auto-clean/preserve-failure-scene), frozen shadow order (emit before delete), prepare API (overwrite-shadow|none), static call-graph check; C2 sync/restart/formal provenance re-capture NOT executed (separately authorized) --pending O-3/O-4a/O-4b/O-5 按合同顺序待执行；C2-1..C2-4 部署同步另授权；重启裁定归用户 --pending basePackage 链：base=a21b6f0da0b82a4c2fc75ddc9fefccd9d4a684621305c998b3907fc97e297e7c（0001 归档） --risks ephemeral 根允许为 sentinel/shadow 副本之祖先（inside-or-equal 语义，逐 out 校验兜底）——与守卫测试历史语义一致，已在代码注释与测试中固定 --risks shadow Phase 2 失败路径 CLI 层未强制注入（lib decision 注入可测），CLI catch→结构化错误路径以 Phase 4 用例与源码结构覆盖 --concurrency 5=ok,ok,ok,ok,ok --out /tmp/o2-pkg-intermediate.json",
+  "scope": "O-1+O-2 convergence contract batch (TEMP-guidance-optimization-v3.2.1 §3-§4): qualified P6-5 closure note + versioned package chain; output profiles (evidence/ephemeral), shared shadow/real-sentinel --out contract, structured ProbeError {code,phase,details,exitCode,scenePolicy}, Phase 0-4, scenePolicy (preserve-for-caller/auto-clean/preserve-failure-scene), frozen shadow order (emit before delete), prepare API (overwrite-shadow|none), static call-graph check; C2 sync/restart/formal provenance re-capture NOT executed (separately authorized)",
+  "sections": [],
+  "conclusion": "提交独立验收",
+  "deploymentOrRestartNeeded": false,
+  "residualRisks": [
+    "shadow Phase 2 失败路径 CLI 层未强制注入（lib decision 注入可测），CLI catch→结构化错误路径以 Phase 4 用例与源码结构覆盖"
+  ],
+  "pendingItems": [
+    "basePackage 链：base=a21b6f0da0b82a4c2fc75ddc9fefccd9d4a684621305c998b3907fc97e297e7c（0001 归档）"
+  ],
+  "fullRegression": {
+    "passed": 41,
+    "total": 41
+  },
+  "concurrencyStress": {
+    "runs": 5,
+    "results": [
+      "ok",
+      "ok",
+      "ok",
+      "ok",
+      "ok"
+    ]
+  },
+  "modifiedFiles": [
+    {
+      "file": "docs/CLOSURE-p6-5-qualified-scope.md",
+      "byteLength": 2916,
+      "sha256": "76881a1acfa67ac373516c10ed340fcce0cef77a09917149255534bb58a20361"
+    },
+    {
+      "file": "docs/TEMP-guidance-optimization-v3.2.1.md",
+      "byteLength": 14237,
+      "sha256": "fba63f5fecfb42ff0c8523a026a021503630820f82af3a6e0010b1c1851f699a"
+    },
+    {
+      "file": "artifacts/packages/review-evidence-package-0001-a21b6f0d.json",
+      "byteLength": 4767,
+      "sha256": "a21b6f0da0b82a4c2fc75ddc9fefccd9d4a684621305c998b3907fc97e297e7c"
+    },
+    {
+      "file": "lib/review-enforcement.js",
+      "byteLength": 26761,
+      "sha256": "00411ec6a1e7ca893f74bbb09e98430587d8a329dba8194132d11297a52f6ad0"
+    },
+    {
+      "file": "scripts/review-enforcement-probe.cjs",
+      "byteLength": 32210,
+      "sha256": "c067812f94f1ddbafbab43967b1ee388f159b9921774fb76a48ac98222d1d8d8"
+    },
+    {
+      "file": "tests/p6-5-sentinel-guards.test.mjs",
+      "byteLength": 21480,
+      "sha256": "152f023d4a82273af924538d8a70b386347980c469489c012b8019bb1ce48f42"
+    },
+    {
+      "file": "CHANGELOG.md",
+      "byteLength": 211398,
+      "sha256": "97769328f4e76268980bac2ff4ba82704d7b1bebf62b7a2c1aea84e31e647c31"
+    }
+  ],
+  "newTestModules": [
+    {
+      "file": "tests/sentinel-output-contract.test.mjs",
+      "byteLength": 19680,
+      "sha256": "a4113a2b92816ceec21c25ecb5675ce03e116cddadb3895f6340d56e853b2b66"
+    }
+  ],
+  "packageScope": "incremental",
+  "basePackage": {
+    "sha256": "a21b6f0da0b82a4c2fc75ddc9fefccd9d4a684621305c998b3907fc97e297e7c",
+    "path": "artifacts/packages/review-evidence-package-0001-a21b6f0d.json",
+    "note": "合同冻结基线（0001 归档，逐字节一致）"
+  }
+}

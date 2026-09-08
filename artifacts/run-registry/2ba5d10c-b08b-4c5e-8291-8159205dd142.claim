@@ -1,0 +1,11 @@
+{
+  "runId": "2ba5d10c-b08b-4c5e-8291-8159205dd142",
+  "claimedAt": "2026-08-30T04:07:03.066Z",
+  "pid": 30847,
+  "argv": [
+    "--out-root",
+    "/dev/shm/o5-runs"
+  ],
+  "sourceManifestSha256": "c644e7fc6dcfa789a0dc36df167fae036b5e5716c27d49d765ab5e1aa9cc96c1",
+  "status": "claimed"
+}

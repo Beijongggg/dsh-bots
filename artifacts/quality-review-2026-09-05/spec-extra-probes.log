@@ -1,0 +1,3 @@
+SECOND_REPAIR_CYCLE {"firstFinalArtifact":"A-mtnz8ydz-9-4ef49ad8","step":"recheck-final-done","repairCycle":1,"retainedFirstFix":true}
+EXPIRED_JOB_LEASE {"active":false,"state":{"ok":true,"status":"claimed","lastSeq":2,"events":[{"seq":1,"type":"created","at":"2026-09-05T06:03:44.311Z","repairCycle":1,"generation":0},{"seq":2,"type":"claimed","at":"2026-09-05T06:03:44.314Z","claimOwner":"coder","hostInstanceId":"host-2","attempt":1,"maxAttempts":3,"generation":0,"nonce":"e27897a3790427a4bf880c2655c0e13c6492"}]},"claimCapability":null}
+FIXTURES /tmp/dsh-spec-extra-audit-cJ6HLz

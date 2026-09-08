@@ -1,0 +1,11 @@
+{
+  "runId": "6dfd1fe9-43d3-43f5-898a-6d8d81997a7a",
+  "claimedAt": "2026-08-30T03:37:50.279Z",
+  "pid": 21600,
+  "argv": [
+    "--out-root",
+    "/dev/shm/o4b-runs"
+  ],
+  "sourceManifestSha256": "9a41d675dad92042c969a03eeb4dee539e31bac5c1df99278a842cb1de3dab87",
+  "status": "claimed"
+}

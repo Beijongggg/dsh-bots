@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "p6-5-probe-raw/1",
+  "runId": "93bf9d48-1c73-4c98-b604-29c39ecdcf52",
+  "probe": {
+    "sourceManifest": [
+      {
+        "path": "lib/review-enforcement.js",
+        "sha256": "f5723be64cc627695e8de38d4e4481275b23d25d2bf82fe7607394706a81e289",
+        "byteLength": 32047
+      },
+      {
+        "path": "lib/sentinel-provenance.js",
+        "sha256": "16cf77af4c49d9fb7bb8a6cebd4b8146fdc9ef6b1abb9c1f392ad22cd6f739fb",
+        "byteLength": 17379
+      },
+      {
+        "path": "scripts/evidence-runner.mjs",
+        "sha256": "566d7aef110bcf2dbcebe714136cbfd02ae7ea82ab4477056ce7084ff1364a88",
+        "byteLength": 9666
+      }
+    ],
+    "sourceManifestSha256": "9a41d675dad92042c969a03eeb4dee539e31bac5c1df99278a842cb1de3dab87",
+    "probeScriptHash": "566d7aef110bcf2dbcebe714136cbfd02ae7ea82ab4477056ce7084ff1364a88",
+    "libSha256": "f5723be64cc627695e8de38d4e4481275b23d25d2bf82fe7607394706a81e289",
+    "layoutManifestSha256": null
+  },
+  "argv": [],
+  "nodeVersion": "v22.23.2",
+  "timing": {
+    "runStartedAt": "2026-08-30T03:37:06.814Z",
+    "probeObservedAt": "2026-08-30T03:37:50.196Z",
+    "payloadGeneratedAt": "2026-08-30T03:37:50.244Z",
+    "artifactWriteStartedAt": "2026-08-30T03:37:50.247Z"
+  },
+  "payload": {
+    "runner": "scripts/evidence-runner.mjs",
+    "fullRegression": {
+      "passed": 43,
+      "total": 43,
+      "source": "tests/run.mjs"
+    },
+    "concurrencyStress": {
+      "runs": 1,
+      "results": [
+        "ok"
+      ],
+      "source": "tests/review-concurrency.test.mjs"
+    },
+    "probe": {
+      "mode": "shadow",
+      "shadowRoot": "/tmp/dsh-enforcement-shadow-ahRHPy",
+      "clean": true,
+      "cleanSemantics": "legacy probe-residue check only",
+      "treeIntegrity": {
+        "value": null,
+        "source": "assertShadowClean only（shadow 模式无全树快照/树差异/布局完整性复核，不虚增强断言）"
+      },
+      "scenePolicy": "auto-clean",
+      "results": [
+        {
+          "botId": "coder-probe",
+          "pid": 21591,
+          "workspaceRoot": "/tmp/dsh-enforcement-shadow-ahRHPy/project",
+          "action": "write:bots.json",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/tmp/dsh-enforcement-shadow-ahRHPy/dsh-home/bots/bots.json）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T03:37:50.219Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 21591,
+          "workspaceRoot": "/tmp/dsh-enforcement-shadow-ahRHPy/project",
+          "action": "write:inbox/",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/tmp/dsh-enforcement-shadow-ahRHPy/dsh-home/bots/inbox）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T03:37:50.220Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 21591,
+          "workspaceRoot": "/tmp/dsh-enforcement-shadow-ahRHPy/project",
+          "action": "write:outbox/",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/tmp/dsh-enforcement-shadow-ahRHPy/dsh-home/bots/outbox）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T03:37:50.220Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 21591,
+          "workspaceRoot": "/tmp/dsh-enforcement-shadow-ahRHPy/project",
+          "action": "write:started/",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/tmp/dsh-enforcement-shadow-ahRHPy/dsh-home/bots/started）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T03:37:50.220Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 21591,
+          "workspaceRoot": "/tmp/dsh-enforcement-shadow-ahRHPy/project",
+          "action": "write:profiles/",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/tmp/dsh-enforcement-shadow-ahRHPy/dsh-home/profiles）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T03:37:50.220Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 21591,
+          "workspaceRoot": "/tmp/dsh-enforcement-shadow-ahRHPy/project",
+          "action": "write:deploy-copy",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/tmp/dsh-enforcement-shadow-ahRHPy/deploy-copy）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T03:37:50.220Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 21591,
+          "workspaceRoot": "/tmp/dsh-enforcement-shadow-ahRHPy/project",
+          "action": "write:system-config",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/tmp/dsh-enforcement-shadow-ahRHPy/system-config）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T03:37:50.220Z"
+        },
+        {
+          "botId": "coder-probe",
+          "pid": 21591,
+          "workspaceRoot": "/tmp/dsh-enforcement-shadow-ahRHPy/project",
+          "action": "write:other-bot-workspaces",
+          "result": "ALLOWED",
+          "reason": "写入未受阻（/tmp/dsh-enforcement-shadow-ahRHPy/other-bot-workspaces）——若为拒绝路径则需真实 enforcement 主体",
+          "observedAt": "2026-08-30T03:37:50.221Z"
+        }
+      ],
+      "observedAt": "2026-08-30T03:37:50.221Z",
+      "note": "shadow 环境写入通常畅通——ALLOWED 表示「未受阻」的真实观测；矩阵格子在 P6-3 实测前保持 pending，不得据此改写为「已实现默认拒绝」"
+    },
+    "parity": {
+      "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+      "deployExists": true,
+      "checked": 3,
+      "identical": 0,
+      "diffs": [
+        {
+          "file": "lib/review-enforcement.js",
+          "kind": "hash-diff",
+          "repoSha256": "f5723be64cc627695e8de38d4e4481275b23d25d2bf82fe7607394706a81e289",
+          "deploySha256": "511393295b8eaba250e603cbcb80c7592e28733ae1f42bbdcf399e6ddc4ca5a9"
+        },
+        {
+          "file": "lib/sentinel-provenance.js",
+          "kind": "missing-in-deploy"
+        },
+        {
+          "file": "scripts/review-enforcement-probe.cjs",
+          "kind": "hash-diff",
+          "repoSha256": "5fb6c29a7fb617c4c552d6e0947249f121b9664bba1e169db79de49806356c6f",
+          "deploySha256": "bc60359d32c61e02690026439999c226f1f46454c192e2087057948174bb27c1"
+        }
+      ]
+    },
+    "layoutManifestDigest": "e32dbb49ea66c06f4bd4fa0f73f76e177070fa81311610de4ab09dc96ee3f274"
+  }
+}

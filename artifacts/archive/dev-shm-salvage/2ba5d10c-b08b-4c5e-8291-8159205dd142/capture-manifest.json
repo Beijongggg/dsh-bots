@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "p6-5-capture-manifest/1",
+  "raw": {
+    "path": "/dev/shm/o5-runs/2ba5d10c-b08b-4c5e-8291-8159205dd142/raw.json",
+    "sha256": "aed6487151c77b25ceae7666ef7c79c73f63fad269de81d654c39a41c4f09cb4",
+    "byteLength": 6896,
+    "mtime": 1788062867219.002
+  },
+  "artifactWriteCompletedAt": "2026-08-30T04:07:47.221Z",
+  "capturedAt": "2026-08-30T04:07:47.221Z"
+}

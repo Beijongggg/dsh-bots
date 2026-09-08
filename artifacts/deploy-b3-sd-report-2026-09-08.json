@@ -1,0 +1,70 @@
+{
+  "batch": "B3-SD-deploy-closure",
+  "date": "2026-09-08",
+  "files": {
+    "synced": [
+      "lib/index.js(改)",
+      "lib/mail-plane.js(改)",
+      "lib/client.js(改)",
+      "lib/session-driver.js(新)",
+      "lib/review-job-tools.js(新)",
+      "lib/spawn-env.js(新)",
+      "lib/fs-hygiene.js(新)",
+      "lib/pid-bind.js(新)"
+    ],
+    "postHash": "8/8（2026-09-08 同步批 repo↔deploy sha256 IDENTICAL）",
+    "deployNodeCheck": "8/8（同步批）"
+  },
+  "backup": "artifacts/archive/deploy-pre-b3-sd-20260908/",
+  "preGates": {
+    "regression": "54/54（node tests/run.mjs，2026-09-08 重启前当次重跑）",
+    "freezeFace": "sourceManifest 9/9 sha 一致（0008 包逐文件复验，重启前当次重跑）"
+  },
+  "restartChain": {
+    "priorState": "offline（09-07 08:11 后 host 未再拉起；本机 09-08 08:09 重启，进程零残留）",
+    "envExtra": "DSH_BOTS_ENV_EXTRA 未设＝无需：宿主 shell 无代理变量（steam-proxy 仅包裹 gh CLI），LLM 端点直连可达（nikoapi.xyz/api.deepseek.com 未鉴权探测均 401＝TLS 通）",
+    "host": {
+      "pid": 11739,
+      "http": 200,
+      "cmd": "node /usr/bin/dsh web --host 127.0.0.1 --port 3080 --no-open（沿 restart-split.sh 惯例，stdout>>web-split-server.log）"
+    },
+    "botsAutoFollowed": {
+      "pids": [
+        11765,
+        11791,
+        11819,
+        11845
+      ],
+      "manualStarts": 0,
+      "stagger": "~1.5s（instances.jsonl 124 行逐条时序）"
+    }
+  },
+  "postRestartChecks": {
+    "csrfBootstrap": "GET /api/bots/_csrf → 200 token 43 字符（B1 面在新进程可用）",
+    "autostartFollow": "4/4 bot 自启动跟随（F-S15，零手动 start）",
+    "supervisor": "零意外退出＝零自愈事件（instances.jsonl 全程 124 行不增，符合「不向真实面注入故障」边界；supervisor 随入口加载，B2 生产实证仍在案）",
+    "b4LiveEvidence": "注册表 bots.json 644→0600；profiles/lead 755→0700；bot-workspaces/bot-mt0x6r0y 首触收紧 0700；4 bot pidStartTicks 全部落（417835/417988/418141/418295）",
+    "logFacility": "web profile host info 级日志不落盘——本批向 stdout（web-split-server.log）仅追加启动横幅一行（字节记账：批前 4294 B/mtime 08-26 12:51 → 批后 4325 B，增量恰 31 B＝横幅行；档案内 EADDRINUSE 崩溃栈系批前旧痕）；证据口径沿 b1/b2＝API＋文件面"
+  },
+  "b3LiveSmoke": {
+    "route": "POST /api/bots/lead/send（x-dsh-bots-token 携带，from=user）→ seq15 delivered（01:25:04Z）",
+    "leadRound": "lead 复用持久会话 session-a992f19d（08-26 落盘，跨重启续上下文——session-driver 持久政策 adapter）→ send_mail → 研究员 inbox seq1 m9uMTsQb7LIMgihKro5pAQ（01:25:37Z）",
+    "targetConsume": "receipt m9uMTsQb….json {seq:1, outcome:processed, 01:25:45.730Z} 落盘；responses/ 幂等标记恰 1 条 finalized",
+    "targetRoundViaSessionDriver": "新会话 session-6e96376b 建会话即落盘（.dsh-bot-session.json 09:25）＋session 转录目录新建——回合走 session-driver 协议路径",
+    "replyDelivery": "outbox/…/2026-09-08T01-25-45-728Z.jsonl 回信落盘 → routeReplyToSender 自动回信 kind=mail-response replyTo=1 → lead inbox seq17（恰一次）；另有研究员显式 send_mail 一封（lead seq16，独立 agent 动作，非自动回信重复）",
+    "noDuplicate": "B3 幂等机械验证：同一触发消息恰 1 个 responses 标记、恰 1 封 replyTo=1 自动回信；ping-pong 守卫生效（seq16 触发 lead 回信→target seq2 mail-response replyTo=16 后链路有界收敛，mail-response 类不再回路由）",
+    "ledgerWatermark": "lead：启动写基线 seq14（旧数据迁移不回放）＋receipt 15/16/17；研究员：receipt seq1＋baseline 缺省（空箱启动，无迁移面）"
+  },
+  "instances": "119→124 行，逐条归因：1 host（本批授权重启）＋4 自启动跟随＝预期；`dsh web` 手动 host 自注册行＝用户常规操作（本批未出现）；零 supervisor 自愈行",
+  "parity": {
+    "lib": "IDENTICAL（同步批对账）",
+    "freezeFace": "9/9 零触碰（无需 0009）"
+  },
+  "closure": [
+    "CHANGELOG 顶部条目",
+    "PLAN §十一 B3/B4/B5/结构债 四行部署待点名注记收口",
+    "工单 01-deploy-and-smoke 勾选＋Comment＋Status resolved",
+    "spec Status 已消化＋Comment"
+  ],
+  "authorization": "用户 2026-09-08 AskUserQuestion 勾选「重启链＋live smoke，整批收口」（选项逐项列出整批收口／仅重启链／暂不执行）"
+}
