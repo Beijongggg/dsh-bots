@@ -6,6 +6,10 @@
  * factory；官方 apply 以桩服务调起（真实 LocaleRuntime 实例 + 真实 common 字典
  * 注册），本插件 apply 以真实 locale 服务 + 桩 effect/slots/layout 调起。
  * 存在性守卫：官方包未安装时跳过（不耦合测试套件到宿主安装状态）。
+ * 桩随宿主版本并存：defineStore 的提供方在宿主 2026-09-10 更新中由
+ * @deepseek-ai/dsh-client-runtime/client 迁至 @deepseek-ai/dsh-client-store
+ * （调用形状不变，见官方 client.js createLanguageRowStore），两个 id 都桩，
+ * 旧安装/回滚仍可跑，其余未知 id 保持响亮失败。
  */
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
@@ -25,7 +29,7 @@ if (!officialPath) {
 
 globalThis.window = {};
 
-// --- 1. 官方 bundle：捕获 factory，桩 4 个 require，调起真实 apply ---
+// --- 1. 官方 bundle：捕获 factory，桩所需 require，调起真实 apply ---
 let officialCap = null;
 globalThis.window.__ModuleLoader__ = { load: (opts) => { officialCap = opts; } };
 await import(pathToFileURL(officialPath).href);
@@ -33,6 +37,9 @@ const official = officialCap.factory((id) => {
   if (id === "react/jsx-runtime") return {};
   if (id === "react") return {};
   if (id === "@deepseek-ai/dsh-client-ui-primitives") return {};
+  // defineStore 提供方按宿主版本二选一（新：dsh-client-store；旧：runtime/client），
+  // 调用形状同为 ({init, actions}) => 存储句柄。
+  if (id === "@deepseek-ai/dsh-client-store") return { defineStore: (o) => o };
   if (id === "@deepseek-ai/dsh-client-runtime/client") return { defineStore: (o) => o };
   throw new Error("unexpected official require: " + id);
 });

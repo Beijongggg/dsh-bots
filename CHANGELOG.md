@@ -7,6 +7,31 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（回归修复批——locale-runtime 测试桩适配宿主提供方迁移，2026-09-10
+  用户「修复」指令＝授权）：
+  - **范围**：`tests/locale-runtime.test.mjs` 单文件（loader 桩层＋文件头注释），
+    产品代码零改动。
+  - **缺陷**：宿主安装件更新后，官方 `@deepseek-ai/dsh-client-locale`
+    （0.1.5-rc.1；`lib/client.js` mtime 2026-09-10 18:49:10）factory 改从
+    `require("@deepseek-ai/dsh-client-store")` 取 `defineStore`（原提供方
+    `@deepseek-ai/dsh-client-runtime/client`）→ 测试桩白名单未含新 id，官方
+    bundle 实例化即抛 `unexpected official require` 并使整个文件中断：回归
+    55/56。
+  - **修复**：桩同时接受两个提供方 id（同形 `({init, actions}) => 存储句柄`），
+    未知 id 保持响亮失败；文件头补宿主版本兼容注释与观测时点，防后续被当
+    死代码清理。
+  - **归因边界（重要）**：**产品运行面未受影响**——`@deepseek-ai/dsh-client-store`
+    是浏览器 boot 图的**种子模块**：证据＝`dsh-web-frontend/dist/assets/
+    index-DuF6ti6g.js` 种子表 `"@deepseek-ai/dsh-client-store":H9`（与
+    `react/jsx-runtime`／`@deepseek-ai/cordis`／`@deepseek-ai/dsh-client-ui-slots`
+    并列），且多份官方 client bundle（model-selection／message-feedback／
+    workflow-run）以同 id 取值；断的只是 Node 侧测试桩。
+  - **验证**：单文件 4/4 断言 ✅；全量 `TMPDIR=/dev/shm npm run preflight`
+    → **①回归 56/56 ✅、②冻结面（0008 包）9/9 ✅、③status-lint 0 违例
+    （扫 34 个 md）✅、preflight: PASS**。
+  - **授权依据**：用户 2026-09-10「修复」（承接同日前一批 03 号票批前门
+    ①回归红与 11 号票 `## Comments` 现场证据条目）。
+
 - ✅ 本轮（org-v2 wayfinder 逐票工作批——03 号票「岗位集与分工结构」决议，
   2026-09-10 用户 /wayfinder 调用＋两轮 grilling 逐项裁定＝授权）：
   - **票务**：`.scratch/org-v2/issues/03-role-set.md` claimed→resolved
