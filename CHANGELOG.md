@@ -7,6 +7,52 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 wayfinder 逐票工作批——05 号票「协作协议与任务生命周期」决议，
+  2026-09-11 用户 /wayfinder 调用＋round 1/2 逐项裁定「按推荐方向」＝授权）：
+  - **票务**：`.scratch/org-v2/issues/05-protocol-lifecycle.md` claimed→resolved
+    （`## Comments`＝前置事实＋研究依据回读；`## Answer`＝13 项裁定与归位表）；
+    **新票 13**「v2 规格验收标准」（`Blocked by: 05, 08`）由雾区毕业；map
+    Decisions-so-far 回写 05 一行、雾区收两条（自动派单引擎形态→Q4 已决；
+    规格验收标准→毕业成票）＋其余四条更新阻塞面；**下游接线**：06（台账命令面
+    最小权限＋复核只读面）、07（台账/复核工具化＋简报装载）、09（waiting-user
+    挂起＋通知事件面）、10（关闭归档与知识晋升）、11（台账命令面入依赖清单）、
+    12（台账与 mail 分工＋不得削 at-least-once＋幂等＋TK- 前缀）；`CONTEXT.md`
+    新增「任务台账」「四要素简报」「值守例程」词条＋「复核点」补边界事件位置。
+    **frontier 由「05＋06＋08」扩为「06＋08＋09＋10」，首号＝06**（09/10 解 05
+    阻塞转可执行；07 待 06、11 待 08、12 待 06~07、13 待 08）。
+  - **裁定（round 1 七问）**：Q1 任务＝**一等台账对象**（host 侧 append-only、
+    单一写者、状态为事件投影；taskId＝provenance 根；mail 退为投递通道）｜Q2
+    来源三分（用户目标/外部事件/常态触发）＋**同一对象分 duty|project**、确定性
+    规则表优先、triage 四值 `routine-direct|project|clarify|reject`、立项归
+    project-lead｜Q3 **显式最小 FSM**（只留有义务的节点）、LLM 只发命令不改状态｜
+    Q4 归属＝台账持有 owner+lease，**显式接单**、逾期自动回收、可 decline 须归因、
+    一实例一任务机械拒绝（T/N 数值属用户域）｜Q5 **复核点＝边界事件**（不可逆写入
+    前／对外可见前／跨实例关键移交前；不在结算处另设）＋必审清单枚举＋加审权归
+    project-lead｜Q6 结算归 project-lead/值班统筹、关闭三前置、**不可重开**、取消
+    权用户｜Q7 异常四类统一走台账、**不静默丢失**、waiting-user 不占租约不烧 token。
+  - **裁定（round 2 七问）**：Q8 四要素简报字段表＋五不变量（acceptance 必须可
+    执行、裸主观＝判据缺口；派出即冻结、amend 追加）｜Q9 状态主干十态＋四旁路、
+    转移＝append-only 事件、`TK-` 前缀避开评审面 `T-`/`J-`｜Q9b 台账＝host 单写者、
+    mail 退投递层、重启从台账重建、投递层须 at-least-once＋幂等｜Q10 通知＝台账事件
+    投影（到用户/派单方/承接岗三面）｜Q11 例程声明式登记＋routineId+window 幂等｜
+    Q12 复核点机械落点（清单载体、空闲＝无租约、确定性选帽、gaps 回填挡 delivered）｜
+    Q13 雾区毕业建票 13。
+  - **事实底稿（只读调查，2026-09-11）**：现行普通协作面**无任务对象**（完整路由表
+    `lib/index.js:83-105`；`appendMessage` 字段集 `lib/mail-plane.js:79-105` 无
+    to/role/assignee/status/deadline；唯一机器可读产出标记＝responses 的
+    `replied|error-replied`）；投递层已有 durable receipt／逐消息响应标记／回复
+    幂等／`.seq.lock`（`mail-plane.js:222-365`），但 **backlog>100 静默截断**
+    （`index.js:2504-2517`）与**回合失败不重试**（`index.js:2011-2044`）为已证缺口；
+    评审面工作项 id 与 job 状态机在册（`review-intake.js:20-26`、
+    `review-jobs.js:91-101`）但与普通面不连通。
+  - **归位（引用不重审）**：04 已定评审形式与权利，本票只定位置与顺序（04 Q8 边界）；
+    复核/证据/权限/工具原语的归位沿用 04 Q7 表。
+  - **验证**：`TMPDIR=/dev/shm npm run preflight` → ①回归 **56/56 ✅**、②冻结面
+    （0008 包）**9/9 ✅**、③status-lint **0 违例（扫 35 个 md）✅**、preflight: PASS。
+  - **研究依赖标注**：四要素/D1–D10 与 MAST 可预防性出自 01/02 号**暂定稿**（网络
+    受限）→ 按 04 口径标**待补充轮复核**；MAST 全表式为报告外来源（论文 v3 附录 A），
+    仅作映射参考，不入事实断言。
+
 - ✅ 本轮（org-v2 wayfinder 逐票工作批——04 号票「评审的存在形式」决议，2026-09-10
   用户 /wayfinder 调用＋round 1 八问逐项裁定＝授权）：
   - **票务**：`.scratch/org-v2/issues/04-review-form.md` claimed→resolved
