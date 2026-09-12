@@ -7,6 +7,38 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 wayfinder 逐票工作批——07 号票「岗位工具配置（MCP/skill）」
+  决议，2026-09-12 用户 /wayfinder 调用＋round 1 八问/round 2 两问均裁定
+  「无异议」＝按推荐授权）：
+  - **票务**：`.scratch/org-v2/issues/07-tooling.md` claimed→resolved
+    （`## Comments`＝前置事实六条只读代码调查；`## Answer`＝10 节裁定＋
+    归位表）；map Decisions-so-far 回写 07 一行、雾区两清除（bot 侧执行
+    承载、岗位卡↔提示层同步——均由本票裁定收口）、bootstrap 条目收窄为
+    可与 12 合流；**下游接线**：12（mail 存废与旧直写删除时点）、13（工具
+    面验收候选）、10（knowledge 晋升/失效仍归彼）。**frontier 由「07＋08＋
+    09＋10」收为「08＋09＋10」，首号＝08**（11 待 08、13 待 08；12 的
+    前置 03–07 已全 resolved）。
+  - **裁定（round 1 八问）**：Q1 装载架构＝**复用 cordis tools 服务**按
+    岗位卡派生注册（否决 MCP／自建 bot 侧装载面；规格只锁「组织命令经
+    认证 host 通道」）｜Q2 **一 op 一工具**、工具名即 op 名（06 op-set
+    一一映射；复核帽注册集本身不含写工具）｜Q3 岗位卡＝**唯一源**、提示段
+    为派生物（cordis systemPrompt 渲染）＋构建期哈希漂移校验 fail、lib 内
+    硬编码提示段消灭｜Q4 简报＝**claim 响应携带**（＋amend 事件投影推送、
+    capability 信封同响应），不进 systemPrompt｜Q5 mail **收口 host 中继**
+    （send_mail→认证命令 mail.send、bot 直写 inbox/outbox 取消、host 唯一
+    writer；零权威线不动；存废/删除时点归 12）｜Q6 knowledge register
+    **命令化**（knowledge.register 全员 op）、search 与磁盘直读照旧｜Q7
+    runProbe 判据改接**台账 acceptance 预登记**（模型不自报保留；白名单
+    机制 fail closed 入规格、命令清单实现轨道可扩）｜Q8 失效语义＝**无
+    文件直写降级**（通道不可用→回执＋重试＋escalate；鉴权拒→台账事件；
+    语义失败→进流程；阈值用户域）。
+  - **裁定（round 2 两问）**：Q9 **v2 词表无 skill**（规程性知识＝岗位卡＋
+    knowledge 两形态，不设运行时 skill 装载）｜Q10 戴帽/借用不变量＝
+    **实例可用工具集＝home 岗位 op ∪ 当次签发 capability 的 op**（帽卸/
+    租约回收即失效、与 06 吊销同拍；动态注册 vs 门控属实现轨道，门控路线
+    须双层排除写 op）。
+  - **验证**：本票只产决策不产代码（终点＝规格）；依据＝只读代码调查＋
+    上游票 03–06 裁定，不依赖网络。上游 06 号票落档先行单独提交（77d73bd）。
 - ✅ 本轮（org-v2 wayfinder 逐票工作批——06 号票「权限模型」决议，2026-09-12
   用户 /wayfinder 调用＋round 1 八问/round 2 两问均裁定「无异议」＝按推荐授权）：
   - **票务**：`.scratch/org-v2/issues/06-permissions.md` claimed→resolved
