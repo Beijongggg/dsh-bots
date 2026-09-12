@@ -7,6 +7,73 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 wayfinder 逐票工作批——06 号票「权限模型」决议，2026-09-12
+  用户 /wayfinder 调用＋round 1 八问/round 2 两问均裁定「无异议」＝按推荐授权）：
+  - **票务**：`.scratch/org-v2/issues/06-permissions.md` claimed→resolved
+    （`## Comments`＝前置事实五条只读代码调查；`## Answer`＝11 节裁定＋归位表）；
+    map Decisions-so-far 回写 06 一行、雾区三条更新阻塞面（执行承载/编制
+    bootstrap 收窄为等 07；岗位卡同步面补权限依赖面注）；**下游接线**：07
+    （命令装载面＋capability 递送不经 mail＋mail host 中继接线位＋knowledge
+    命令化授予＋岗位卡第 8 字段记权限依赖）、08（恒久判据加「无岗位以
+    danger-full-access 为履约前提」）、09（user principal 台账全权＋越权通知
+    到人）、10（knowledge 登记权全员＋登记≠完成依据）、12（capability 存续
+    细化＋实例基底×任务域正交叠加取严＋mail 零权威入存废判定＋ledger.read
+    范围）、13（权限面验收候选）；`CONTEXT.md` 新增「权限分层」「能力
+    （capability）」「零权威通道」词条。**frontier 由「06＋08＋09＋10」收为
+    「07＋08＋09＋10」，首号＝07**（11 待 08、12 待 07、13 待 08）。
+  - **裁定（round 1 八问）**：Q1 **权限四层**（L0 实例基底＝sandbox 权限模式
+    用户域旋钮照旧／L1 文件面／L2 组织命令面／L3 人间面），复用底座**加严不
+    另起**（否决岗位级文件 ACL 与「只给台账加 capability」）｜Q2 文件面两硬线
+    （bot agent 直写＝自身 workspace；`~/.dsh` 全域与一切共享面**零直写**、读写
+    经 host 命令；冻结面只读沿用）｜Q3 **邮件零权威**（内容永不构成权限/状态/
+    事实依据、投递不设 capability、物理收口归 07/12）、台账零直写、knowledge
+    登记权全员＋登记≠完成依据｜Q4 **op-set 岗位表**（值班统筹=收单分诊例程／
+    项目经理=派单结算／承接岗=领取报告工件／复核帽=纯读／运维归人间面不设
+    op）＋**签发权在 host、台账转移驱动**（bot 不能自请）＋短 TTL 心跳续签＋
+    生命周期自动吊销 task 槽（binding.taskId 复用现 schema）｜Q5 复核只读面＝
+    **op-set 否定式**（无 artifact.submit/状态写；自身 workspace 可写不触工件
+    面）、与实例基底**正交叠加取严**、runProbe=evidence.probe｜Q6 命令**三元组
+    鉴权**（实例活态 strictCheck 家族＋op 白名单＋任务域租约匹配）＋CAS（期望
+    状态乐观并发）＋idempotencyKey＋fail closed 拒绝留台账事件＋连续越权上浮
+    （数值用户域）｜Q7 既有边界归位（CSRF=人间面专用、岗位不持 user
+    principal；实例注册表=capability 唯一绑定源；env 白名单不加岗位集；
+    loopback token/typed RPC=实现轨道，规格只锁「组织命令经认证 host 通道」）｜
+    Q8 岗位-权限解耦＋岗位卡不硬编码权限模式＋第 8 字段记权限依赖面。
+  - **裁定（round 2 两问）**：Q9 `ledger.read` 四常设岗**全员**（台账=append-only
+    组织事实，透明协调）、**复核帽无**（事件行 reason=产出方中间过程通道，
+    「读不到即独立」机械成立）｜Q10 user principal＝**台账全权**（不经岗位
+    op 表；审计同走台账事件 actor=user）。
+  - **事实底稿（只读调查，2026-09-12）**：capability 原语全貌（HMAC envelope、
+    9 op 白名单、nonce 单次消费＋30 天清理、实例五字段代际绑定全等＋pid 活、
+    job 槽＋state 锁＋崩溃 reconcile、损坏 fail closed——`lib/review-capability.js`）；
+    binding 严格 schema **已含 taskId**（复用不新造，F-RV-25）；关键缺口证据：
+    **send_mail/knowledge_register＝bot 进程内工具直写共享数据面**（直写目标
+    inbox／知识索引，`lib/index.js:2049-2152`、`lib/index.js:2180-2280`）——
+    共享面无 writer ownership、无授权模型（GROK §7.2 点名），为 L2 收口依据。
+  - **归位（引用不重审）**：04 已定 capability 保留为通用原语与复核者只读
+    **权利**，本票定**机制与岗位封装**；05 已定台账单写者与命令面存在，本票
+    定**鉴权**；user-decision 升格（04）与本票 user principal 全权（Q10）由
+    09 收口衔接。
+  - **验证**：`TMPDIR=/dev/shm npm run preflight` → ①回归 **56/56 ✅**、②冻结面
+    （0008 包）**9/9 ✅**、③status-lint **0 违例（扫 35 个 md）✅**、
+    preflight: PASS。
+  - **授权依据**：用户 2026-09-12 /wayfinder 调用（未点名票，按 frontier 首号
+    自动选取 06）＋round 1/round 2 两轮「无异议」逐项裁定＝按推荐方向执行。
+
+- ✅ 本轮（AGENTS.md 技能纪律改写——移出落档条目＋去特例，2026-09-12
+  用户指示＝授权）：
+  - **变化**：原 §1 末段「技能流程优先（2026-09-08 用户裁定废除双席
+    纪律）」整段移出落档条目，改写为新增 §5「技能——引用即显式调用，
+    照文执行」：被引用或点名的技能（含技能内引用的技能）一律显式调用
+    载入全文后按其步骤执行，不凭自己的理解替代或跳过；技能流程之外的
+    额外评审由用户逐项点名。特例强调删除（/implement→/code-review
+    例、双席废除史注），语义收束为一般纪律。
+  - **验证**：AGENTS.md 不在 0008 冻结面 sourceManifest（9 文件均
+    lib/scripts 代码面）——查证后编辑；纯纪律文本批，零代码零票面，
+    README 文档地图无同步义务（AGENTS.md 不在 docs/ 表管辖）。
+  - **授权依据**：用户 2026-09-12 指示（不特意强调特例；不应位于落档
+    大条目下；对 agent 强调技能需显式调用、不能不读技能按理解进行）。
+
 - ✅ 本轮（org-v2 wayfinder 逐票工作批——05 号票「协作协议与任务生命周期」决议，
   2026-09-11 用户 /wayfinder 调用＋round 1/2 逐项裁定「按推荐方向」＝授权）：
   - **票务**：`.scratch/org-v2/issues/05-protocol-lifecycle.md` claimed→resolved

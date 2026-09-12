@@ -2,6 +2,7 @@
 
 Type: grilling
 Blocked by: 03, 06
+Status: claimed (2026-09-12)
 
 ## Question
 
@@ -25,3 +26,17 @@ skill（现 skill 机制在 host/会话侧，bot 侧没有）、工具清单与�
   走 `amend` 事件；本票原有的「岗位卡↔提示层同步机制」须与简报装载面一并定。
 - **runProbe**：保为所有岗位"可执行检查"的共同底座（04 Q7）；acceptance 判据
   必须可执行（05 §8②），工具面须支持判据的直接执行与结果回填。
+
+## 来自 06 号票的输入（2026-09-12 裁定）
+
+- **命令装载面**：台账/knowledge 命令对 bot 只有命令工具（05）且**必须经认证
+  的 host 通道**（06 §7④语义线）；capability 信封递送＝认证命令通道（如
+  `task.claim` 成功响应携带），**不经 mail**（06 §11）。
+- **工具清单与权限的耦合边**（本票 Question 原点名）：op-set 岗位表（06 §4）
+  为工具裁剪依据——岗位工具面只暴露其 op 集对应的命令；复核帽工具面＝只读
+  op 集（无提交/状态写）＋`evidence.probe`（runProbe 装载即此 op）。
+- **mail 物理收口为 host 中继**（writer ownership，GROK §7.2）的接线位归本票
+  ——06 只锁零权威语义线（不设 capability 门槛、内容不构成依据）。
+- **knowledge 命令化**时 `knowledge.register` 类 op 授予＝全员（06 §3）。
+- **岗位卡第 8 字段**须记载本岗权限依赖面（所需 sandbox 模式，06 §8）——与
+  提示装载面一并定。
