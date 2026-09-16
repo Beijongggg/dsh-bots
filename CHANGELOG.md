@@ -7,6 +7,51 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 wayfinder 逐票工作批——12 号票「v2 重建的迁移与并存策略」决议，
+  2026-09-16 用户 /wayfinder 调用＋round 1 六问＋round 2 三问全裁「按推荐」＝按推荐授权）：
+  - **票务**：`.scratch/org-v2/issues/12-migration-coexistence.md` claimed→resolved
+    （`## Comments` 载 round 1 八问＋round 2 三问＋F1–F8 事实表；`## Answer`＝十节
+    裁定）；map Decisions-so-far 回写 12 一行、**雾区「最小起步编制与 bootstrap」
+    毕业消解**（Out of scope 的「8 文件部署批」行同步改为「已收口」）；13 号票补
+    「来自 12 号票的输入」；12 无下游阻塞票，**frontier 收为「13」，首号＝13**。
+  - **裁定（九问）**：Q1 **一批式切换、不设双轨**（前置段＝组织层件＋11 号票四项
+    ＋迁移工作清单／点名段＝部署同步→重启链各一次点名／切换段＝单窗口内撤旧四席→
+    建双席→探针→最小闭环 smoke；切换点判据三条并行全绿：preflight 四道门／就绪
+    探针／用户点名）｜Q2 **旧四席 id 不用**——新建语义 id（锚点 `duty-coordinator`、
+    `implementer` 等），`createLeadBot` 改为建 v2 锚点、`lib/index.js:1064` 删除保护
+    改「bootstrap 锚点席位不可删」、空表重建（`3358-3362`）改锚点、v1 注入与硬编码
+    （`2386-2416`／`3080`／`3121`）随形态删｜Q3 **双席起步**（就绪＝门绿＋探针＋
+    最小闭环 smoke，验收实验按需扩编不抬升起步），雾条由此消解｜Q4 mail **保数据
+    不保形态**（保 at-least-once／幂等回复／nextSeq 锁；废 `kind` 与 `replyTo⟺kind`
+    ——在产反例：`reviewer-second` 一条 `mail-discuss` 无 replyTo；关联键改 taskId）
+    ｜Q5/Q5' 评审面 **16 个非冻结 `review-*` 模块删净**（7114 行＝`lib/` 39%）＋
+    capability HMAC/nonce/ledger 原语与 store 锁/原子写/audit/幂等键**拆出为组织层
+    共用件**＋**冻结面 9 文件零单独触碰**——`lib/review-enforcement.js` 的 enforcement
+    矩阵删除**并入 v2 实现批的证据包**（不单开 0009；其 `canonicalJsonString`／
+    `SHADOW_LAYOUT_MANIFEST` 仍被 sentinel 系使用）＋PLAN P0.3 表**加废止标注不删表**
+    ｜Q9 **证据包链与 preflight 门② 存续**（AGENTS.md §2 是长期纪律而非 v1 评审形态
+    附属；v2 实现批照旧出包、冻结面随每批增量包滚动）｜Q6 SSE 保形态、事件集改
+    `bots`/`mail`/`ledger`/`reload`（新增 `ledger` 承载台账投影＝人间收件箱数据源；
+    11 Q3「不新增台账事件类型」约束的是台账事件类型、不含 SSE 通道类型）＋知识库
+    `R-2026-*` 9 条原样保留、双审规程链**新登记一条显式废止 R-2026-009**（不改写
+    其正文）、008 与 001–005 保留｜Q7' 旧席数据 **归档后清运行面**——`profiles`
+    配置件（去 node_modules）＋`bot-workspaces`（每席仅 1 个 66B 会话指针）＋mail／
+    review 存量 → `artifacts/archive/org-v1-runtime-<date>/`（先例
+    `profiles-pre-resync`），需点名授权；回退面＝`deploy-pre-org-v2-<date>` 备份＋git
+    提交点、回滚权在用户不演练｜Q8 阶段 3/4 债以**单向边界指针**（规格→PLAN）挂接、
+    反向不引。
+  - **关键新事实（本批采集）**：四席进程**当前全部不在运行**（唯一存活＝宿主
+    `node /usr/bin/dsh web` pid 946；注册表 pid 965/1007/1028 已消失、939 已被 snapd
+    复用＝代际绑定用例），故撤销无停机窗口问题；`bot-workspaces` 记忆面为零（每席
+    1 个 66B `.dsh-bot-session.json`）；评审 store 数据面仅 12 文件（audit 1 行＋
+    过期 capability＋migration 5 件）；`scripts/preflight.mjs:38-57` 门②按最大序号包
+    逐文件核 sha256＋byteLength ⇒ 触碰冻结面必然红、必须配新包 run。
+  - **同步**：`CONTEXT.md` 新增词条「bootstrap 锚点席位」「重建切换批」（词条数
+    29→31）；`map.md` 雾区／Out of scope 同步；13 号票输入补充。
+  - **验证**：本票零代码改动（改动面仅 `.scratch/org-v2/`、`CONTEXT.md`、
+    `CHANGELOG.md`）；`TMPDIR=/dev/shm npm run preflight` ＝ ①回归 56/56 ✅
+    ②冻结面（0008 包）9/9 ✅ ③status-lint 0 违例（扫 35 md）✅（当次实跑输出）。
+
 - ✅ 本轮（org-v2 wayfinder 逐票工作批——11 号票「宿主/插件面更迭的隔离与升级」
   决议，2026-09-16 用户 /wayfinder 调用＋round 1 七问全裁「按推荐」＝按推荐授权）：
   - **票务**：`.scratch/org-v2/issues/11-host-surface-churn.md` claimed→resolved
