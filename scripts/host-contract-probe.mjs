@@ -21,17 +21,19 @@
  *
  * 登记表对账：非 C 类面必须在 lib/host-faces.js 登记；已登记且未标 pending 的
  * 探针必须在本脚本有实现（登记表↔门双向漂移守卫，缺失即 FAIL）。pending 面
- * （v2 台账两件，05 号票接线）单独列出、不计入三态。
+ * 单独列出、不计入三态——**当前 pending 已清零**（v2 台账两面随 05 号票接线，
+ * 探针 P-V2-LEDGER-FORMAT／P-LEDGER-COMMANDS 落地后即常驻三态）。
  *
  * 用法：node scripts/host-contract-probe.mjs [--face=dev|deploy] [--report <file>]
  * 退出码：0＝门通过；1＝FAIL（或部署面 SKIP）；2＝门自身错误。
  */
-import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { homedir } from "node:os";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { HOST_FACES } from "../lib/host-faces.js";
+import { createTaskLedger, eventsFile, validateEventRecord } from "../lib/org/task-ledger.js";
 
 const isMain =
   process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
@@ -355,6 +357,115 @@ export const HOST_CONTRACT_PROBES = [
         return { state: "FAIL", reason: "dsh-home-paths 不含 DSH_HOME 语义标记", coordinate: homePaths.slice(0, 3).join(" ; ") };
       }
       return { state: "PASS" };
+    }
+  },
+  {
+    id: "P-V2-LEDGER-FORMAT",
+    face: "HF-V2-LEDGER-FORMAT",
+    describe: "v2 台账落盘格式：events.jsonl 行级 append-only＋事件 schema/hash 链可复算＋投影可从盘重建",
+    run() {
+      const home = mkdtempSync(join(tmpdir(), "dsh-probe-ledger-"));
+      try {
+        const ledger = createTaskLedger({ dshHome: home });
+        const created = ledger.command({
+          op: "task.intake", taskId: "TK-probe0001", actor: { kind: "host", id: "web" },
+          idempotencyKey: "probe-intake", payload: { class: "duty", brief: { goal: "格式探针" } }
+        });
+        if (!created.ok) {
+          return { state: "FAIL", reason: `台账命令面写入失败（${created.code}）：${created.reason}`, coordinate: "lib/org/task-ledger.js" };
+        }
+        ledger.close();
+        const file = eventsFile(home);
+        if (!existsSync(file)) {
+          return { state: "FAIL", reason: "事件日志未落在登记坐标 bots/ledger/events.jsonl", coordinate: file };
+        }
+        const lines = readFileSync(file, "utf8").split("\n").filter((line) => line.trim() !== "");
+        if (lines.length !== 1) {
+          return { state: "FAIL", reason: `append-only 落盘不是一事件一行（实读 ${String(lines.length)} 行）`, coordinate: file };
+        }
+        let event;
+        try { event = JSON.parse(lines[0]); }
+        catch { return { state: "FAIL", reason: "事件行不是合法 JSON", coordinate: file }; }
+        const schema = validateEventRecord(event, 0);
+        if (!schema.ok) {
+          return { state: "FAIL", reason: `事件 schema/哈希链不符（${schema.reason}）`, coordinate: file };
+        }
+        // 投影可从盘重建（门面无内存态：新建门面读同一数据根＝重启语义；读侧校验 hash 链）
+        const view = createTaskLedger({ dshHome: home, lockSpinMs: 0 }).view();
+        if (view.tasks.length !== 1 || view.tasks[0].status !== "intake" || view.lastSeq !== 1) {
+          return { state: "FAIL", reason: "从落盘事件重建投影与写入结论不符", coordinate: file };
+        }
+        // 改动检出：链被改后读侧必须 fail closed（否则格式门形同虚设）
+        writeFileSync(file, `${JSON.stringify({ ...event, type: "triage" })}\n`);
+        let detected = false;
+        try { createTaskLedger({ dshHome: home, lockSpinMs: 0 }).view(); } catch { detected = true; }
+        if (!detected) {
+          return { state: "FAIL", reason: "事件链被改动后读侧未 fail closed（格式漂移不可检出）", coordinate: file };
+        }
+        return { state: "PASS", coordinate: "bots/ledger/events.jsonl" };
+      } finally {
+        rmSync(home, { recursive: true, force: true });
+      }
+    }
+  },
+  {
+    id: "P-LEDGER-COMMANDS",
+    face: "HF-LEDGER-COMMANDS",
+    describe: "v2 台账命令面：host 路由在位＋命令信封与拒绝形状（fail closed）＋bot 无台账直写通道",
+    run() {
+      const repoRoot = new URL("..", import.meta.url);
+      const indexPath = new URL("lib/index.js", repoRoot);
+      let index = "";
+      try { index = readFileSync(indexPath, "utf8"); }
+      catch { return { state: "FAIL", reason: "lib/index.js 不可读（宿主接线面缺失）", coordinate: String(indexPath) }; }
+      if (!index.includes('"_ledger"')) {
+        return { state: "FAIL", reason: "宿主未注册 /api/bots/_ledger 命令面路由", coordinate: String(indexPath) };
+      }
+      // bot 无台账文件直写通道：写路径只许在台账模块内出现
+      const libDir = fileURLToPath(new URL("lib/", repoRoot));
+      const offenders = [];
+      const scan = (dir) => {
+        for (const entry of readdirSync(dir, { withFileTypes: true })) {
+          const full = join(dir, entry.name);
+          if (entry.isDirectory()) { scan(full); continue; }
+          if (!entry.name.endsWith(".js")) continue;
+          const rel = full.slice(libDir.length);
+          if (rel === join("org", "task-ledger.js")) continue;
+          let text = "";
+          try { text = readFileSync(full, "utf8"); } catch { continue; }
+          if (text.includes("appendJsonlLine(") && text.includes("eventsFile(")) offenders.push(rel);
+        }
+      };
+      scan(libDir);
+      if (offenders.length > 0) {
+        return { state: "FAIL", reason: `台账事件日志出现第二写通道（bot 直写风险）：${offenders.join("、")}`, coordinate: "lib/**" };
+      }
+      // 命令信封与拒绝形状（fail closed：状态不变＋code/reason）
+      const home = mkdtempSync(join(tmpdir(), "dsh-probe-ledger-cmd-"));
+      try {
+        const ledger = createTaskLedger({ dshHome: home });
+        const created = ledger.command({
+          op: "task.intake", taskId: "TK-probe0002", actor: { kind: "host", id: "web" },
+          idempotencyKey: "probe-cmd-intake", payload: { class: "duty", brief: {} }
+        });
+        if (!created.ok || created.status !== "intake" || !Number.isInteger(created.seq)) {
+          return { state: "FAIL", reason: `命令面成功形状不符（{ok,taskId,status,seq}）：${JSON.stringify(created)}`, coordinate: "lib/org/ledger-host.js" };
+        }
+        const rejected = ledger.command({
+          op: "task.close", taskId: "TK-probe0002", actor: { kind: "host", id: "web" },
+          expectedStatus: "intake", expectedSeq: 1, idempotencyKey: "probe-cmd-close", payload: {}
+        });
+        if (rejected.ok !== false || typeof rejected.code !== "string" || typeof rejected.reason !== "string") {
+          return { state: "FAIL", reason: `拒绝形状不符（须 {ok:false,code,reason}）：${JSON.stringify(rejected)}`, coordinate: "lib/org/ledger-host.js" };
+        }
+        ledger.close();
+        if (ledger.task("TK-probe0002").status !== "intake") {
+          return { state: "FAIL", reason: "拒绝未 fail closed：状态被改写", coordinate: "lib/org/task-ledger.js" };
+        }
+        return { state: "PASS", coordinate: "POST /api/bots/_ledger/commands" };
+      } finally {
+        rmSync(home, { recursive: true, force: true });
+      }
     }
   },
   {

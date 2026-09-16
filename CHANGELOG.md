@@ -7,6 +7,69 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 实现批 **05 号票「任务台账面」**，2026-09-16 用户 `/implement`
+  调用＝授权；上承同日 `/to-tickets` 切票与规格冻结）：
+  - **范围**：任务升格为一等对象——host 侧 append-only 事件日志＋单一写者、**状态＝事件
+    投影**（重启可从事件重建未闭合队列）；主干十态＋四旁路且每态答「下一步谁负责、超时
+    怎么办」；合法转移由确定性层校验（CAS＋幂等键），LLM 岗位只提交判断输入；归属租约
+    与重派封顶；值守例程幂等；异常四类入账；`ledger` SSE 事件；并收掉 01 号票留给本票的
+    两条宿主契约面（pending 清零）。规格 §B＋附录 A `V-A2.1`–`V-A2.3`／`V-A2.5`／`V-A2.6`／
+    `V-A2.9`–`V-A2.12`。
+  - **变化**（新件 4＋改件 5）：
+    - 新 `lib/org/task-ledger.js`：状态集与责任表（`STATE_RESPONSIBILITY`）＋转移表
+      （**目标状态只由事件类型决定，调用方不得直写**，`unblock`/`resume` 的归位点在白名单内）＋
+      命令面（合法性／CAS／幂等键／角色与归属约束：管理类转移只许 host／user，承接类只许当前
+      归属者；拒绝 fail closed 并落 `command-rejected` 事件）＋事件 schema 与 hash 链（读侧
+      fail closed）＋投影与重启重建（`openQueue`）＋派单租约（`accept` 时限、`heartbeat` 续签、
+      `sweep` 回收、重派封顶 `escalated` 上浮用户）＋例程幂等（例程 id＋时间窗）＋异常四类
+      （`raiseException`）＋通知投影（`notificationsAfter`）＋LLM 判断输入（`judgement`，从不改状态）。
+    - 新 `lib/org/ledger-host.js`：值守轮询（租约回收＋异常汇入＋SSE `ledger` 广播——载荷＝台账投影）、
+      异常汇入（v1 两处静默丢失→常设处置任务＋`exception` 事件＋用户通知）、HTTP 面
+      （`GET /api/bots/_ledger[/tasks|/notifications?cursor=]`＋`POST /api/bots/_ledger/commands`；下划线前缀不与 bot id 冲突）。
+    - 新 `tests/task-ledger.test.mjs`（22 条）＋新 `tests/ledger-host.test.mjs`（8 条）：状态表与
+      责任表、主干转移、非法转移／CAS（期望状态＋序号两件必填）／幂等拒绝、**写入前校验**
+      （缺 actor／未定义负载键即拒，且台账保持可读）、分诊四值映射与未知取值拒绝、重启重建、
+      **单写者锁拒绝**（第二写者 fail closed）、关闭不可重开与 `supersedesTaskId`、一实例一进行中
+      任务、租约三条回收路径、重派封顶上浮、心跳续签、例程幂等、judgement 不改状态、amend 通知
+      承接方、异常四类、通知投影、篡改 fail closed；接线面：异常汇入与条目级幂等、只报本窗新增、
+      值守轮询与广播、**值守 disposer 释放写锁**、HTTP 面（含缺 actor 拒绝后台账仍可读、未接线
+      404／方法 405／非法命令体 400）、只读请求零写入、宿主与 bot 分支的 effect 归属。
+    - 改 `lib/mail-plane.js`：新增 `readReceipts`／`listMailAnomalies`（投递面异常读取，只报
+      本时间窗新增项，旧条目不重复告警）。
+    - 改 `lib/index.js`：**仅主 web 实例**构造台账并注册值守 effect（bot 实例不构造、无台账
+      写入面）；`_ledger` 路由接线；`internals` 补导三件。
+    - 改 `lib/host-faces.js`＋`scripts/host-contract-probe.mjs`＋`tests/host-contract-gate.test.mjs`：
+      **`HF-V2-LEDGER-FORMAT`／`HF-LEDGER-COMMANDS` 由 pending 转常驻**，探针
+      `P-V2-LEDGER-FORMAT`（落盘一事件一行＋schema/hash 复算＋投影重建＋改动检出）与
+      `P-LEDGER-COMMANDS`（路由在位＋命令信封与拒绝形状＋「无第二写通道」扫描）落地，
+      **宿主契约门 9 → 11 PASS、pending 清零**。
+  - **边界与留界**（逐条已记于票面 Comments）：①命令面的身份三元组鉴权与 capability 签发归
+    **06**（本票只交付确定性层的合法性／CAS／幂等与「状态不由调用方直写」的形状；在此之前
+    actor 由请求声明，沿用本机部署假设 F-RV-28 口径）；②四要素简报字段校验归 **07**（本票
+    `brief` 原样存储）；③v1 两处静默丢失本票完成「**不再静默**」（投递面异常入账＋用户通知），
+    **bot 回合内重试的形态改造留 11**（mail 形态改造票）；④`V-A1.4` 类全量不变量与 op-set 归 06；
+    ⑤`V-A2.4`／`V-A2.7`／`V-A2.8` 分属 07／11；⑥**本批零部署动作**（受 `AGENTS.md` §2 逐项
+    点名约束），v2 部署清单须在切换批（16 号票）重对账——本批新增组织层两件，部署面文件数已变。
+  - **评审**：`/code-review` 双轴并行（Standards／Spec），发现并**全部就地修复**：①**P0**——
+    命令面缺 `actor` 时会把不合规事件写进事实源，读侧随即永久判损坏（HTTP 面可达）；修为
+    **写前 schema 校验**（`writeEvent` 校验失败即拒写）＋`judgement`/`raiseException` 收敛为
+    命令面薄包装（校验与写只在一处）＋命令体形状校验。②amend 通知收件人解析错误（通知了
+    改动发起人而非承接方）——改为任务在手者。③CAS 序号由可选改**必填**（规格 §D 期望状态与
+    序号两件），拒绝事件补记期望状态/序号。④事件 schema/hash 校验**改用共用件
+    `createEventSourcing`**（02 号票纪律：同一原语不得两处各留一份），只保留台账域附加校验。
+    ⑤负载未定义键由「静默丢弃」改**拒绝**（fail closed）。⑥值守轮询体由 `lib/index.js` 移入
+    `lib/org/ledger-host.js`（接线层只留 `ctx.effect`），并补 `index.js` 头部行数现值。⑦删去与
+    读路径重复且无生产调用方的 `readLedgerView`（探针改用门面 `view()`）。⑧幂等前置三条路径
+    去重为单一助手；`readMaxReceiptSeq` 复用 `readReceipts`。⑨回合失败前缀
+    `BOT_ERROR_PREFIX` 由生产者（`lib/index.js`）与检测方（`lib/mail-plane.js`）共用同一常量
+    （字面量各写一份时改词会静默失效检测）。⑩分诊四值（直办／立项／澄清／拒收）落地并校验。
+    评审留界（已记票面）：五张事件类型表分别维护（新增事件类型需动五处）＝「确定性层表驱动」的
+    显式代价，接受。
+  - **验证**：`TMPDIR=/dev/shm npm run preflight` ＝ ①回归 **62/62** ✅（较上批 +2 文件）
+    ②冻结面（0008 包）**9/9** ✅ ③status-lint **0 违例**（扫 58 个 md）✅
+    ④宿主契约 **11 PASS / 0 FAIL / 0 SKIP**（pending 清零）✅ ＝ `preflight: PASS`（当次实跑输出）。
+  - **未落档面**：无。
+
 - ✅ 本轮（org-v2 实现批 **04 号票「岗位卡契约面」**，2026-09-16 用户 `/implement`
   调用＝授权；上承同日 `/to-tickets` 切票与规格冻结）：
   - **范围**：把岗位从散落的提示词与硬编码升格为**唯一源的契约件**——五类角色类别

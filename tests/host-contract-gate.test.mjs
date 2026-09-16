@@ -61,10 +61,15 @@ test("登记表↔门一致性：非 C 非 pending 面的探针都有实现，�
   assert.ok(problems.some((p) => p.probeId === "P-CONFIG-IDS" && p.state === "FAIL"));
 });
 
-test("pending 面单列（v2 台账两件），不参与三态", () => {
-  const pending = pendingFaces();
-  assert.deepEqual(pending.map((f) => f.id).sort(), ["HF-LEDGER-COMMANDS", "HF-V2-LEDGER-FORMAT"]);
-  for (const face of pending) assert.match(face.pending, /05 号票/);
+test("pending 面清零：v2 台账两面随 05 号票接线，转入三态常驻", () => {
+  assert.deepEqual(pendingFaces(), [], "登记表内不得再有 pending 面（05 号票已接线）");
+  for (const id of ["HF-V2-LEDGER-FORMAT", "HF-LEDGER-COMMANDS"]) {
+    const face = hostFaceById(id);
+    assert.ok(face, `${id} 仍在登记表内`);
+    assert.equal(face.pending, undefined, `${id} 的 pending 标记须撤除`);
+    assert.ok(face.adapterModule.includes("org/"), `${id} 适配层坐标须落到组织层件`);
+    assert.equal(HOST_CONTRACT_PROBES.filter((p) => p.face === id).length, 1, `${id} 须恰有一条探针`);
+  }
 });
 
 test("V-A6.3：三态汇总——FAIL 红门；部署面 SKIP 视同 FAIL；dev 面 SKIP 不阻断", () => {
