@@ -7,6 +7,43 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 wayfinder 16 号票「研究报告定稿与暂定标注升降级」决议（补充
+  调研轮收口票），2026-09-16 用户 /wayfinder 调用＋round 1 七问整批「按推荐」
+  ＝按推荐授权）：
+  - **票务**：`.scratch/org-v2/issues/16-report-finalization.md` claimed→
+    resolved（Comments 载前置事实与七问、Answer＝七节裁定）；map
+    Decisions-so-far 回写 16 行、雾区注释更新终态。**15/15 全闭、frontier
+    收空，本图交棒 `/to-spec`**（规格→/to-tickets→/implement）；不预留第二
+    轮补充调研。
+  - **裁定（七问整批按推荐）**：Q1 定稿形态＝**四件分立＋原报告头部定稿注记**
+    ——两份原报告正文保持 09-08 采集原貌不改写、与 supplement 共同构成终稿
+    （两轮采集 provenance 不同不混编），被推翻/收窄段（MetaGPT 配档句与
+    $2.0→$0.2、ChatDev 每软件成本、矩阵节、MAST「可预防」、信念分叉）由
+    注记点名并指向 supplement 对应节；Q2 14/15 号票 16 项升降级方向照单
+    全收；Q3 矩阵前提终态＝**设计推理**（复核轮已尽一手检索、直接文献不
+    存在——OrgAgent §3.1 限定 flat vs hierarchical；03 号票证据段＋
+    `CONTEXT.md` 值守线／项目线词条尾句改写，撤「待补充轮复核」）；Q4
+    MAST 终态＝撤标＋收窄就地改写（04 号票触发权依据改挂 v3 一手：FC3
+    23.5%、显式 verifier 总失败更少、干预 +15.6%；05 号票「可预防」**收窄
+    到 FC1/FC3**——协议类对策对 FC2 不充分〔Insight 2〕、FC2 机制改引
+    "collapse of theory of mind"、「框架不如单 agent」标注为转引＋边界）；
+    Q5 13 号票「挂标＋单列计数」机制撤销、分类落地（MAST 条目转正常条目、
+    矩阵条目改挂「设计推理（无直接文献）」＋保留单列计数），13 号票三处
+    改写（「来自 05 的输入」研究依赖行／Answer §2(ii)／证据与限制）；
+    Q6 仍不可达六项**全结案不留观察项**（github/raw 直连、platform 文档页、
+    web.archive.org、platform.openai.com、WebSearch 缺失、MAST Figure 1
+    图形本体——每项已被兜底通道或弃用决定消化）；Q7 不预留第二轮补充调研。
+  - **改动面**：16 号票；`CONTEXT.md`（词条尾句，词条数不变 33）；03/04/05/13
+    号票标注段；两份原报告（`research/org-patterns.md`、
+    `enduring-principles.md`）头部定稿注记；`map.md`；本条目。**不改**：
+    01/02 号票与两报告正文（09-08 历史采集记录，「多数可预防」原生表述由
+    定稿注记点名收窄）、11 号票（:266 已明确不标＝无实际标注）、map 历史
+    梗概行、13 号票 Comments 区 grilling 过程记录。
+  - **验证**：本票零代码改动（改动面＝`.scratch/org-v2/`＋`CONTEXT.md`＋
+    `CHANGELOG.md`）；`TMPDIR=/dev/shm npm run preflight` ＝ ①回归 **56/56** ✅
+    ②冻结面（0008 包）**9/9** ✅ ③status-lint **0 违例**（扫 40 md）✅
+    （当次实跑输出）。
+
 - ✅ 本轮（org-v2 wayfinder 补充调研轮——14/15 号票「研究报告盲区一手补全」（map 雾条
   「补充调研轮」于此毕业），2026-09-16 用户 /wayfinder 调用＋网络可用声明
   「网络代理已经提供，测试。可用则启动补全」＝授权）：
