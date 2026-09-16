@@ -7,6 +7,68 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 wayfinder 补充调研轮——14/15 号票「研究报告盲区一手补全」（map 雾条
+  「补充调研轮」于此毕业），2026-09-16 用户 /wayfinder 调用＋网络可用声明
+  「网络代理已经提供，测试。可用则启动补全」＝授权）：
+  - **票务**：雾条经用户声明毕业为三票——`14-supplement-org-patterns`／
+    `15-supplement-enduring-principles`（Type: research，子代理 call the Skill tool
+    with "research" 执行，主会话逐条抽验后 claimed→resolved）＋
+    `16-report-finalization`（Type: grilling，`Blocked by: 14, 15`，未认领
+    ＝**本图唯一 frontier**，交下一会话）。`map.md` 回写 14/15 两行、Notes 补
+    2026-09-16 网络可用声明、雾区置空并记「无新雾（本轮发现全部落在 16 裁定域内）」。
+  - **补全方向**：14——盲区 1 矩阵节**维持降级**（相邻子论点局部升级）／2 MetaGPT
+    **下调**／3 上下文工程、5 OpenAI PDF、6 langgraph-swarm、7 GPTSwarm+MacNet
+    **升级**／8 ChatDev 双结论；15——盲区 1 提示词基线、3 Swarm、4 memory tool、
+    5 Letta、7 时效面**升级**／2 MAST **维持＋一处下调**／6 记忆附录**维持
+    （原怀疑成立、正面结案）**／8 hidden predicate **维持弃用**。
+    **两票均不改正文**：报告合并定稿与撤「待补充轮复核」标注全归 16。
+  - **压在既有裁定上的三条（须 16 收口）**：①**OrgAgent 不研究矩阵**（v1 §3.1
+    限定句 "we focus on two common forms … **flat organization and a hierarchical
+    organization**"；「matrix」全文仅 1 次、在 §2 文献罗列句）⇒ 03 号票「值守线／
+    项目线共享同一批实例」**仍属 `[推理]`**，与之绑定的 `CONTEXT.md` 词条标注仍在原位；
+    ②**MetaGPT 的按岗配档句与「每软件 $2.0→$0.2」无一手支撑**（v7 全文 `GPT-3.5` 只在
+    backend 对比与 HumanEval 实验，唯一美元数字＝附录 Table 9 Avg. `$1.12`）⇒ 该两事实
+    应删、「按岗配档」改挂 Anthropic＋OpenAI 指南 PDF **p8**；③**MAST 一增一减**——
+    占比拿到且是正文文字（FM-1.3 **15.7%** 为最大项、无一项超 16%；**图号更正＝占比图是
+    Figure 1**，v3 的 Figure 2 是方法学流程）＋§5.3 "challenges in **organizational
+    design and agent coordination**" 句直供 04/05；但 MAST 明说**协议类对策不足解决
+    FC2**（05 号票「多数可由协议预防」须收窄到 FC1/FC3），且「信念分叉」**不属 MAST**
+    （v3 `belief`/`diverg` 命中 **0/0**，该词归 Cognition）、「框架系统不如单 agent」
+    在 MAST 里是**转引**（Agentless／AI Agents That Matter）非其自证。
+  - **关键新事实（本轮一手采集）**：Anthropic《Claude 4 best practices》**已改名**
+    《Prompting best practices》（308）且**「empowerment vs control」查无此表述**
+    （platform 全站 34.6 MB 语料／code.claude.com／2026 版博客 `empower` 命中
+    **0／0／0**；官方最接近句是相反方向的「别过度约束角色」）⇒ 该说法不引入规格；
+    **D3 反获更强一手依据**（Fable 5 "Refactor existing prompts and skills … often
+    too prescriptive"／Opus 5 "remove these instructions rather than rewriting
+    them"／"dial back any **aggressive language**"／"Prefer general instructions
+    over prescriptive steps"）；**真正被宣告退役的是 prefill 与 `budget_tokens`**，
+    XML 标签与多示例只是**降级保留**、否定式指令口径＝「讲清为什么」；
+    **mem0 记忆架构＝跨厂商记忆混淆**（Anthropic 多 agent 文全文仅 2 处 `memory`、
+    无附录无 mem0）⇒ 10 号票三层记忆不得写成 Anthropic 做法；时效面＝A2A 规范
+    **1.0.0**（前 0.3.0）、MCP registry **in preview**（治理 LF Projects, LLC）、
+    `agents.md` 归 Agentic AI Foundation；langgraph 现站已无 swarm/supervisor 二词
+    （改 Subagents/Handoffs/Skills/Router）而 67% 与 40–50% 数字仍在＝反向强化
+    「API 速朽、原则恒存」。**环境**：`platform.claude.com` 文档页**仍区域封锁**
+    （307→`app-unavailable-in-region`），兜底通道 `platform.claude.com/llms-full.txt`
+    **不受封锁**（本轮 platform 侧引文全由此出）；`github.com`／
+    `raw.githubusercontent.com` 直连超时（改走 `api.github.com` contents API）；
+    `web.archive.org` 超时、`platform.openai.com` 403；会话工具面**无 WebSearch**
+    （Bing 为过滤版、不遵守引号短语）⇒ 时效面取不到带日期的 changelog 条目。
+  - **同步**：`map.md`（Notes／Decisions-so-far／雾区）；两份补充研究报告落
+    `.scratch/org-v2/research/org-patterns-supplement.md`（338 行）与
+    `enduring-principles-supplement.md`（588 行）＝上游 throwaway branch 约定的本地化。
+    `.scratch/` 非文档地图成员（README §2），无地图同步项；`CONTEXT.md` **本票不动**
+    （词条标注的撤留属 16 裁定域）。
+  - **验证**：本票零代码改动（改动面＝`.scratch/org-v2/`＋`CHANGELOG.md`）；
+    `TMPDIR=/dev/shm npm run preflight` ＝ ①回归 **56/56** ✅ ②冻结面（0008 包）
+    **9/9** ✅ ③status-lint **0 违例**（扫 40 md＝含新票三份＋补充报告两份）✅
+    （当次实跑输出）。主会话抽验实跑：OrgAgent HTML §3.1 限定句／MetaGPT 全文唯一美元
+    数字 `$1.12`／MAST 12 项百分比＋`belief`·`diverg` 0/0＋Figure 1 图号／platform
+    `empower` 0 命中＋`llms-full.txt` 行号锚点（137023／137509／137797／138310）
+    ——**先验证再断言**。更正一条自记事实：本批初查 `platform.claude.com` 记「可达」
+    系 `curl -L` 吞掉 307 所致（实为区域封锁页），已在 15 号票 Comments 诚实记账。
+
 - ✅ 本轮（org-v2 wayfinder 逐票工作批——13 号票「v2 规格验收标准」决议（本图末票），
   2026-09-16 用户 /wayfinder 调用＋round 1 八问「无异议」＋round 2 三问「按推荐」＝按推荐授权）：
   - **票务**：`.scratch/org-v2/issues/13-spec-acceptance.md` claimed→resolved

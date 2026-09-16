@@ -33,6 +33,14 @@ Charted: 2026-09-08（建图会话三轮 grilling 定稿 destination，Q1~Q9 裁
     research 产物＝**暂定稿非终稿**（研究报告含盲区清单）；grilling 票
     可暂基于暂定结论推进，但研究性裁定须标注「待补充轮复核」。待用户
     声明网络可用后开补充调研轮，再行定稿。
+  - **网络可用声明（2026-09-16 用户）**：补充调研轮开跑（14/15 号票执行，
+    结论升降级与撤标注归 16 号票）。当轮实测可达＝arxiv.org（abs 与 HTML
+    全文）／anthropic.com／platform.claude.com／code.claude.com／
+    cdn.openai.com（PDF）／docs.letta.com／modelcontextprotocol.io／
+    api.github.com；**`github.com` 与 `raw.githubusercontent.com` 直连超时**，
+    GitHub 托管件改走 api.github.com contents API（`Accept:
+    application/vnd.github.raw`）；`WebFetch` 对个别 arXiv abs 页抽取返回空
+    文本，退路＝`curl` 抓 HTML 后本地提取。
   - **宿主面更迭声明（2026-09-10 用户补述）**：DSH 仍处持续更新——插件兼容
     面会被更新代换，且「前端与 DSH 原生统一」的期望会不断受宿主 UI 变更
     冲击。设计义务：组织规格（岗位/协议/工具/权限）不得依赖会被宿主更新
@@ -188,12 +196,48 @@ Charted: 2026-09-08（建图会话三轮 grilling 定稿 destination，Q1~Q9 裁
   编排，证据进增量包、摘要进 CHANGELOG、通过记录进台账；依赖暂定结论的条目挂
   `待补充轮复核` 标注并单列计数。**本票为全图末票：13 张全闭、frontier 收空，交棒
   `/to-spec`**
+- [补充调研：组织模式报告盲区 1–8](issues/14-supplement-org-patterns.md): 网络声明后
+  的补全轮（子代理 research 执行＋主会话抽验）。方向：盲区 1 矩阵节**维持降级**／2
+  MetaGPT **下调**／3 上下文工程 5 OpenAI PDF 6 langgraph-swarm 7 GPTSwarm+MacNet
+  **升级**／8 ChatDev 双结论。三条压下游者——**OrgAgent 不研究矩阵**（§3.1 限定
+  "we focus on two common forms … **flat organization and a hierarchical
+  organization**"；「matrix」全文仅 1 次在 §2 文献罗列句）⇒ **03 号票「值守线／
+  项目线共享同一批实例」仍属 `[推理]`**，可局部升级的只是「同一池不同时段配成不同
+  单线结构」；**MAST 占比是正文文字**（FM-1.3 15.7% 为最大项、无一项超 16%；三类
+  合计 44.2/32.35/23.5% 属 `[推理]` 计算）且**图号更正＝占比图是 Figure 1**（v3 的
+  Figure 2 是方法学流程）＋§5.3 "challenges in **organizational design and agent
+  coordination**" 句直供 04/05；**MetaGPT 的按岗配档句与 $2.0→$0.2 无一手支撑**（v7
+  全文唯一美元数字＝Avg. `$1.12`）⇒ 该两事实应删、按岗配档改挂 Anthropic＋OpenAI
+  PDF p8。版本漂移：MAST v3、MetaGPT v7、ChatDev v5 等—全文
+  research/org-patterns-supplement.md
+- [补充调研：恒久原则报告盲区 1–8](issues/15-supplement-enduring-principles.md): 方向：
+  盲区 1 提示词基线 3 Swarm 4 memory tool 5 Letta 7 时效面 **升级**／2 MAST **维持
+  ＋一处下调**／6 记忆附录 **维持（原怀疑成立、正面结案）**／8 hidden predicate
+  **维持弃用**。三处头部——**「empowerment vs control」查无此表述**（platform 全站
+  34.6 MB 语料 `empower` 命中 0、code.claude.com 0、2026 博客 0；官方最接近句是相反
+  方向的「别过度约束角色」）⇒ 不引入规格；**对象文档已改名**《Prompting best
+  practices》（`claude-4-best-practices` 308）；**D3 拿到更强一手依据**（"Refactor
+  existing prompts and skills … often too prescriptive"／"remove these instructions
+  rather than rewriting them"／"dial back any aggressive language"），**真退役的是
+  prefill 与 `budget_tokens`**，XML 标签与多示例只是降级保留（否定式指令口径＝讲清
+  为什么）。**「信念分叉」不属 MAST**（v3 `belief`/`diverg` 命中 0/0；FC2 机制是
+  theory-of-mind collapse，该词归 Cognition）、「框架不如单 agent」是**转引**
+  （Agentless／AI Agents That Matter）非 MAST 自证，且 MAST 明说**协议类对策不足
+  解决 FC2**（05 号票「多数可由协议预防」须收窄到 FC1/FC3）；**mem0 记忆架构＝跨厂商
+  混淆**（Anthropic 多 agent 文全文只 2 处 `memory`、无附录无 mem0）⇒ 10 号票三层
+  记忆不得写成 Anthropic 做法；时效面新事实＝A2A **1.0.0**、MCP registry **in
+  preview**（治理 LF Projects, LLC）、agents.md 归 Agentic AI Foundation—全文
+  research/enduring-principles-supplement.md
 
 ## Not yet specified
 
-- 补充调研轮（网络可用后：按各报告盲区清单重查一手来源、暂定结论升降
-  级、撤「待补充轮复核」标注）——等用户声明网络可用＋本轮 research
-  盲区清单落地。
+<!-- 空——2026-09-16 网络可用声明后，原「补充调研轮」雾条毕业为 14/15/16 三票：
+     14/15（research）已闭，**frontier＝16「研究报告定稿与暂定标注升降级」**（唯一
+     未闭票，由 14/15 解除阻塞）。13 号票决议时记的「全图末票／frontier 收空」指当时
+     13 张全闭；该注记所悬置的补充调研轮即本轮，故本图在雾区毕业后再开三票，不属图
+     的重绘。本轮无新雾（补充调研未暴露新的未指定面——其发现全部落在 16 的裁定域内）。 -->
+
+（空）
 
 ## Out of scope
 
