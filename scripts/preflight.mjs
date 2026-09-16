@@ -1,13 +1,19 @@
 /**
- * 批前门一键 preflight（retro C1＋C5，工单 .scratch/batch-preflight/issues/04）。
+ * 批前门一键 preflight（retro C1＋C5，工单 .scratch/batch-preflight/issues/04；
+ * org-v2 01 号票加第 ④ 道门）。
  *
- * 三道子门，单一 pass/fail，输出格式固定（可直接引用进 CHANGELOG 条目）：
- *   ① 全量回归（TMPDIR=/dev/shm 下 spawn tests/run.mjs，解析 N/N）
+ * 四道子门，单一 pass/fail，输出格式固定（可直接引用进 CHANGELOG 条目）：
+ *   ① 全量回归（TMPDIR=/dev/shm 下 spawn tests/run.mjs，解析 N/N；测试文件
+ *      可打印「⤼ SKIP: 原因」行声明跳过——汇总行分列计数，不与真 PASS 同形）
  *   ② 冻结面 sha 复验（动态取 artifacts/packages/ 最新序号包的
  *      executionEvidence.provenance.sourceManifest，逐文件 sha256＋byteLength；
  *      包文件只读，零写入）
  *   ③ .scratch Status 词表 lint（五排程词＋resolved；claimed 仅限有
  *      Type: 行的 wayfinder 票；两个历史异词件显式豁免不回改）
+ *   ④ 宿主契约门（独立探针脚本，挂在冻结面门之后、不并入测试套件——探针
+ *      三态 PASS/FAIL/SKIP，SKIP 分列计数可见；本门以 dev 面运行：SKIP 不
+ *      阻断但可见，部署面由 scripts/host-contract-probe.mjs --face=deploy 把
+ *      SKIP 视同 FAIL）
  */
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -132,8 +138,10 @@ if (isMain) {
     process.stderr.write(t.stderr ?? "");
     const m = (t.stdout ?? "").match(/(\d+)\/(\d+) 个测试文件通过/);
     const ratio = m ? `${m[1]}/${m[2]}` : "?/?";
+    // 假绿修法：跳过文件分列进 ① 汇总行（与真 PASS 不同形；真宿主面归 ④ 门）
+    const skipLine = (t.stdout ?? "").match(/个测试文件通过（(\d+) SKIP：([^）]+)）/);
     if (t.status === 0 && m && m[1] === m[2]) {
-      lines.push(`preflight ①回归: ${ratio} ✅`);
+      lines.push(`preflight ①回归: ${ratio} ✅${skipLine ? `（含 ${skipLine[1]} SKIP：${skipLine[2]}）` : ""}`);
     } else {
       lines.push(`preflight ①回归: ${ratio} ❌`);
       pass = false;
@@ -163,6 +171,22 @@ if (isMain) {
   } else {
     lines.push(`preflight ③status-lint: ${lint.violations.length} 违例 ❌`);
     for (const v of lint.violations) lines.push(`  - ${v}`);
+    pass = false;
+  }
+
+  // ④ 宿主契约门（独立探针脚本；dev 面运行，SKIP 可见不阻断）
+  const probe = spawnSync(process.execPath, [join(repoRoot, "scripts", "host-contract-probe.mjs")], {
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024
+  });
+  process.stdout.write(probe.stdout ?? "");
+  process.stderr.write(probe.stderr ?? "");
+  const gate4 = (probe.stdout ?? "").match(/宿主契约门: (\d+) PASS \/ (\d+) FAIL \/ (\d+) SKIP/);
+  if (probe.status === 0 && gate4) {
+    const skipNote = Number(gate4[3]) > 0 ? `（含 ${gate4[3]} SKIP——与 PASS 分列可见；部署面将视同 FAIL）` : "";
+    lines.push(`preflight ④宿主契约: ${gate4[1]} PASS / ${gate4[2]} FAIL / ${gate4[3]} SKIP ${skipNote ? skipNote + " " : ""}✅`);
+  } else {
+    lines.push(`preflight ④宿主契约: ${gate4 ? `${gate4[1]} PASS / ${gate4[2]} FAIL / ${gate4[3]} SKIP` : "探针未产出汇总行"} ❌`);
     pass = false;
   }
 

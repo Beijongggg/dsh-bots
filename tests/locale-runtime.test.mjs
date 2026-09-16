@@ -23,7 +23,9 @@ const CANDIDATES = [
 ];
 const officialPath = CANDIDATES.find((p) => existsSync(p));
 if (!officialPath) {
-  console.log("⤼ 官方 @deepseek-ai/dsh-client-locale 不在本机（存在性守卫），跳过真实运行时验证");
+  // 跳过协议（org-v2 01 号票假绿修法）：标记行使 run.mjs 在汇总行分列计数
+  // （SKIP 与真 PASS 不同形）；真实宿主面的存在性由 ④ 宿主契约门三态探针把守。
+  console.log(`⤼ SKIP: 官方 @deepseek-ai/dsh-client-locale 不在本机（候选：${CANDIDATES.join(" ; ")}）`);
   process.exit(0);
 }
 
