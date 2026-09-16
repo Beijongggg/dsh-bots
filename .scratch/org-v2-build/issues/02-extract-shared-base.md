@@ -10,11 +10,11 @@ audit／事件溯源／幂等键（原住评审 store 模块）。评审面改�
 
 **Blocked by:** None（可立即开始）
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] capability 原语（签名／nonce／单次消费／capability 账）成为独立组织层共用件
-- [ ] store 底座（锁／原子写／audit／事件溯源／幂等键）成为独立组织层共用件
-- [ ] 既有评审面改为消费新模块，外部行为与语义不变
-- [ ] 无重复实现残留（同一原语不在两处各留一份）
-- [ ] 未触碰冻结面（0008 包 sourceManifest 的 9 个文件），preflight 门② 保持绿
-- [ ] 全量回归 PASS
+- [x] capability 原语（签名／nonce／单次消费／capability 账）成为独立组织层共用件（`lib/org/capability-base.js`）
+- [x] store 底座（锁／原子写／audit／事件溯源／幂等键）成为独立组织层共用件（`lib/org/store-base.js`）
+- [x] 既有评审面改为消费新模块，外部行为与语义不变（门面转发，全量回归绿）
+- [x] 无重复实现残留（code-review 后三处收口：appendLedgerRecord→appendJsonlLine 转发、fsyncDirectory/pidAlive/safeBotId 单实现；`lib/review-results.js` 私有 appendJsonl 为评审面模块内部副本，随 03 号票退役消灭，不属共用件重复）
+- [x] 未触碰冻结面（0008 包 sourceManifest 的 9 个文件），preflight 门② 保持绿（9/9 全程）
+- [x] 全量回归 PASS（62/62）

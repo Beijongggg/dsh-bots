@@ -7,6 +7,55 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 实现批 **01 号票「宿主适配面与宿主契约门」＋02 号票「通用基座
+  拆出」**（与并行会话的 04/05 号票同批），2026-09-16 用户 `/implement` 调用＝
+  授权；上承同日 `/to-tickets` 切票与规格冻结；本条目为两票实施的补录落档，
+  含 `/code-review` 两轴评审结论与修复）：
+  - **02 号票（ba54853）**：capability 原语与 store 底座拆入组织层共用件——新增
+    `lib/org/store-base.js`（参数化锁域自旋写锁＋epoch fencing／durable 原子写＋
+    O_APPEND 行级追加／audit fail-closed／事件溯源 `createEventSourcing` 类型表
+    参数化／one-file-per-key 幂等索引）与 `lib/org/capability-base.js`（HMAC
+    canonical 签名验签／nonce 生成与 wx 单次消费／capability 账追加与损坏
+    fail-closed／secret 0600／实例身份注册表五字段代际绑定，冻结语义照用）；
+    `lib/review-store.js`／`lib/review-capability.js` 改为门面转发（导出面与外部
+    行为不变）；新增两共用件契约测试（自定义事件表验证通用性，为 05 台账预演）。
+    语义零变化；评审域标签 `review-host-`→`store-host-` 仅出现在锁 takeover
+    audit 留痕（无测试/消费断言依赖，CHANGELOG 记录在案）。
+  - **01 号票（2140848）**：`lib/host-faces.js` 13 面登记表（A7/B4/C2，字段集冻结、
+    C 类显式排除理由、整层拒载仅限 `HF-PLUGIN-IDENTITY`、机械校验）；`lib/host-services.js`
+    A 类适配层（服务名与 baseUrl 身份判定单一坐标，`lib/index.js` 三处改走）；
+    `lib/client.js` `HOST_SLOTS` 单一坐标＋已知越界 1 处改造（弃读宿主私有 DOM
+    `data-sidebar-collapsed`，改槽位 `ownerProps.collapsed` 首挂收敛，幂等标志位）；
+    `scripts/host-contract-probe.mjs` 宿主契约探针（preflight 第 4 道门，独立脚本
+    不并入套件；9 探针三态、SKIP 分列计数可见、`--face=deploy` 时 SKIP 视同
+    FAIL、宿主版本仅诊断、登记表↔门双向一致性）；`tests/run.mjs` 跳过协议（假绿
+    修法：`⤼ SKIP:` 标记行分列计数，SKIP 不再与真 PASS 同形；退出码语义不变）。
+    实查处置：宿主 0.1.5-rc.1 已无 `dsh-client-runtime` 包且 boot 图对未知 inject
+    静默跳过——`package.json` inject 清单剪掉死边（行为不变）；`ui-primitives`
+    经 Vite shell 种子表解析（探针按此断言）。v2 台账两面（`HF-V2-LEDGER-FORMAT`／
+    `HF-LEDGER-COMMANDS`）登记为 pending，已由 05 号票（3cd8a77）接线转常驻
+    （门④ 现 11 探针）。
+  - **验证**：`TMPDIR=/dev/shm npm test` **62/62** ✅；preflight 四道门 ①回归
+    62/62 ②冻结面（0008 包）9/9 ③status-lint 0 违例 ④宿主契约 **11 PASS / 0
+    FAIL / 0 SKIP** ＝ `preflight: PASS`（当次实跑输出；冻结面全程零触碰）。
+  - **/code-review 两轴评审结论与处置**（固定点 326f4d8...HEAD，含并行会话
+    04/05 票）：Standards 轴——(硬违反，已修复) 01/02 票实施未落 CHANGELOG
+    （本条目即补录）；(已修复) 共用件三处残存重复：`appendLedgerRecord` 改
+    `appendJsonlLine` 转发、`fsyncDirectory`／`pidAlive` 单实现导出共用、
+    `safeBotId`＝`safeObjectId` 域别名；(judgement call，留观) `foldEvents`
+    评审域兼容字段已加注、门面文案与 store-base 差异化复写（漂移风险低）、
+    门④「无第二写通道」为词法扫描（raw fs 写入检不出，弱探测留界）。Spec 轴——
+    (留界) 规格字面「`lib` 内硬编码提示段全部消灭」含 v1 双审两段，票面已声明
+    归 03/13 号票；「运行面与部署面 SKIP 视同 FAIL」由显式 deploy 面把守、运行面
+    自动探测留界（切换批点名段以 `--face=deploy` 执行）；05 票 `V-A2.11` 勾选
+    超出实际（「不再静默」已完成、「回合失败不重试」留 11 号票）——留并行会话
+    复核；02 票 `review-results.js` 私有 `appendJsonl` 为评审面内部副本、随 03
+    号票退役，不属共用件重复。抽查通过项：capability 白名单/单次消费/短 TTL/
+    代际绑定原样；整层拒载唯一面机械把守；台账 bot 零直写、LLM 不写状态。
+  - **授权依据**：2026-09-16 用户 `/implement` 调用（含 `/implement` 技能内引用
+    的 `/tdd`、`/code-review`）；上承同日 `/to-tickets`（17 张实现票）与规格冻结。
+  - **未落档面**：无（本条目补录 01/02 两票；04/05 落档见其各自条目）。
+
 - ✅ 本轮（org-v2 实现批 **05 号票「任务台账面」**，2026-09-16 用户 `/implement`
   调用＝授权；上承同日 `/to-tickets` 切票与规格冻结）：
   - **范围**：任务升格为一等对象——host 侧 append-only 事件日志＋单一写者、**状态＝事件
