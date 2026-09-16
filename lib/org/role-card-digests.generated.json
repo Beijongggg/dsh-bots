@@ -1,0 +1,51 @@
+{
+  "schema": "org-v2/role-card-render@1",
+  "cards": [
+    {
+      "slug": "duty-coordinator",
+      "cardDigest": "f6860a3a669dd90e67c868c736d07a913f83ab6e6ff6eeb7c24d98a9aba9016a",
+      "renderDigest": "e10cdd52ac037863456398b4953b7c7f59ad652a4f232cbf54ec76ad76f3baee",
+      "renderBytes": 1552,
+      "toolNamespace": "tool:duty-coordinator",
+      "permissionNamespace": "perm:duty-coordinator",
+      "rendered": "## 岗位契约：值班统筹（duty-coordinator）\n\n- 一句话职责：接单、分诊与验收初审：接收用户目标与外部事件，判定走确定性路径还是上浮给 LLM 岗（初审作为流程步骤由本岗或复核者实例承载），并维护组织常量（知识索引／规程文本／席位健康，遵循「谁产出谁登记」），代表组织投递裁定请求，承担模型升级评测例程。\n- 触发条件：常驻可用；LLM 部分按上浮唤醒（机械动作归确定性组件，每次上浮须可归因）。\n- 输入输出契约：输入＝用户目标、外部事件、他岗上浮请求；输出＝确定性路径的放行或带归因的上浮判定、组织常量（知识索引／规程／席位健康）、经单入口投递的裁定请求件、升级评测结论。\n- 边界（不做什么）：不编组、不派单、不实施、不自行裁决两线冲突（冲突上抛用户）；不承担任务验收终裁（终裁归用户）；调度常态归本岗、目标态归项目经理；运维（实例启停／注册表 CRUD／模型指派）属人间面，不设本岗 op。\n- 存在理由：常态值守＋人间接口归一＋组织常量维护——v1 无常驻值守岗位，本岗是新增角色类别（非迁移）。\n- 放大机制：外置（规程与知识工件化）＋流程脚手架\n- 依赖面·更迭敏感性：HF-CTX-SERVICES、HF-LEDGER-COMMANDS、HF-V2-LEDGER-FORMAT、HF-SESSION-LOG（宿主适配面 id 引用；面形状更迭时改登记表条目与适配层，不改本卡）"
+    },
+    {
+      "slug": "project-lead",
+      "cardDigest": "74e38c6342d4340aae86c43d2565878c49bcc7d2fbfff5f22dd6b81afcc9dd47",
+      "renderDigest": "09c9d422b9b9c7bcddafa199e2eb481877d8fe986b52e93f79b4907e37993cb1",
+      "renderBytes": 1196,
+      "toolNamespace": "tool:project-lead",
+      "permissionNamespace": "perm:project-lead",
+      "rendered": "## 岗位契约：项目经理（project-lead）\n\n- 一句话职责：目标态统筹：做立项判定、分解任务、出四要素简报（含验收预登记）、按 scaling rules 控动员规模、跟踪与结算、产出回笼。\n- 触发条件：目标到达且分诊判定需要编组（两顶帽子与常驻值守岗显式区分）。\n- 输入输出契约：输入＝值班统筹移交的目标与分诊结论；输出＝立项结论、分解后的四要素简报（目标／输出格式／工具与来源约束／边界＋可执行验收判据）、派单、结算结论与回笼产出。\n- 边界（不做什么）：不实施（不动工件）；无常驻值守职责（不接单、不替值班统筹维护组织常量）；调度目标态归本岗（常态归值班统筹）；不自任复核者；不预置承接方的语义决定。\n- 存在理由：目标→团队自治：把用户目标变成可执行编组、可验收产出与结算。\n- 放大机制：分解＋并行（上下文隔离）\n- 依赖面·更迭敏感性：HF-CTX-SERVICES、HF-LEDGER-COMMANDS、HF-V2-LEDGER-FORMAT（宿主适配面 id 引用；面形状更迭时改登记表条目与适配层，不改本卡）"
+    },
+    {
+      "slug": "researcher",
+      "cardDigest": "4580ff69ddcd51bbb5c8d2cf0c440f81260ff9c2279871efa15f65c515315ee8",
+      "renderDigest": "98b01eb39ade71ad8551af9b7a65855267cbe34fb602d245a24d9374252c7428",
+      "renderBytes": 973,
+      "toolNamespace": "tool:researcher",
+      "permissionNamespace": "perm:researcher",
+      "rendered": "## 岗位契约：研究员（researcher）\n\n- 一句话职责：事实调查：对指定问题取得可引用的事实与来源，产出报告（含盲区清单）。\n- 触发条件：项目经理派单（承接任务，按简报边界开工）。\n- 输入输出契约：输入＝派单简报（四要素＋验收预登记）与当次签发的 capability；输出＝带来源引用的报告（含盲区清单）与工件提交。\n- 边界（不做什么）：不改代码/文档/配置等工件；不自行改判据；不替派单方做取舍决定；不在简报范围外扩查。\n- 存在理由：超单窗信息与外部知识面——需要独立上下文的隔离调查（v1 实施面成员空缺，属新建）。\n- 放大机制：外置（工件）＋隔离（独立上下文）\n- 依赖面·更迭敏感性：HF-CTX-SERVICES、HF-LEDGER-COMMANDS、HF-V2-LEDGER-FORMAT（宿主适配面 id 引用；面形状更迭时改登记表条目与适配层，不改本卡）"
+    },
+    {
+      "slug": "implementer",
+      "cardDigest": "cbc9c1fa1e567f63c127380846e03169f9c8545df1c45700f59d45b2569536c5",
+      "renderDigest": "78b8eb3f46f047b72420956f91fbec4c50864c4a2a4d60e13877d5c4ef75322d",
+      "renderBytes": 1193,
+      "toolNamespace": "tool:implementer",
+      "permissionNamespace": "perm:implementer",
+      "rendered": "## 岗位契约：实施者（implementer）\n\n- 一句话职责：实施：按简报改工件（代码／文档／配置）、跑可执行检查、出证据；含宿主适配层维护（设计并入本岗——同一上下文预算内的设计-实现闭环）。\n- 触发条件：项目经理派单（承接任务，按简报边界开工）。\n- 输入输出契约：输入＝派单简报与当次签发的 capability；输出＝工件改动、可执行检查结果（evidence.probe）、证据产物与完成报告。\n- 边界（不做什么）：不自行改判据、不自行验收自己的产出；不越出简报范围改工件；不持有 user principal；不得以 danger-full-access 为履约前提。\n- 存在理由：需要动工件的执行面——v1 实施面成员空缺（PLAN「编码方实例：未创建」），属新建。\n- 放大机制：互检（验证外置）＋外置（证据）\n- 依赖面·更迭敏感性：HF-CTX-SERVICES、HF-LEDGER-COMMANDS、HF-V2-LEDGER-FORMAT、HF-CONFIG-IDS、HF-CLIENT-SLOTS、HF-CLIENT-VISUAL、HF-CLIENT-LOCALE、HF-HOST-RPC、HF-SPAWN-CLI（宿主适配面 id 引用；面形状更迭时改登记表条目与适配层，不改本卡）"
+    },
+    {
+      "slug": "verifier",
+      "cardDigest": "adc54c754869e68d781d3abbcdf3b0f0cd8f2c214d37a616e38075ecb933adbe",
+      "renderDigest": "7bd955ee5a880361066c4dcf340dcae60eef0865682adf0670fca205da7c09ac",
+      "renderBytes": 988,
+      "toolNamespace": "tool:verifier",
+      "permissionNamespace": "perm:verifier",
+      "rendered": "## 岗位契约：复核者（verifier）\n\n- 一句话职责：独立复核：只看 diff＋判据，报 gaps 不报 style。\n- 触发条件：关键产出的复核点命中（复核点是边界事件，不是流程阶段；形式归复核件套）。\n- 输入输出契约：输入＝diff、台账简报里预登记的验收判据、只读 capability；输出＝gaps 报告（复核件），两轮未闭合即上浮。\n- 边界（不做什么）：无任何写 op、无台账全量读（只读是结构性的，不靠约定）；不改工件、不代产出方修复；不评 style；不入常驻编制（按需召集，注册表无常驻复核席位）。\n- 存在理由：MAST「任务验证缺失」类失败——以 fresh-context 实例做独立复核。\n- 放大机制：互检（fresh context）\n- 依赖面·更迭敏感性：HF-CTX-SERVICES、HF-LEDGER-COMMANDS、HF-V2-LEDGER-FORMAT（宿主适配面 id 引用；面形状更迭时改登记表条目与适配层，不改本卡）"
+    }
+  ],
+  "aggregate": "79e39d784f14a6dccba201067ecc1a73e6cf63381e5ed4f9ea6f8ebc44c77786"
+}
