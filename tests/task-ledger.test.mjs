@@ -477,7 +477,7 @@ test("值守例程幂等键＝例程 id＋时间窗：同窗重复触发不产�
   }
 });
 
-test("LLM 岗位只提交判断输入：judgement 不改状态，管理类转移不得由岗位调用", () => {
+test("LLM 岗位只提交判断输入：judgement 不改状态；管理类转移的角色类粗门放行 post（细分白名单归 06 号票鉴权器）", () => {
   const home = mkHome();
   try {
     const clock = clockAt();
@@ -490,15 +490,15 @@ test("LLM 岗位只提交判断输入：judgement 不改状态，管理类转移
     assert.equal(judged.ok, true);
     assert.equal(ledger.task("TK-00000040").status, "intake", "判断输入不得直接写状态");
     assert.equal(ledger.events({ taskId: "TK-00000040" }).filter((e) => e.type === "judgement").length, 1);
-    // 管理类转移（分诊/关闭）只许 host／user
-    const denied = ledger.command({
+    // 管理类转移（06 号票起）：确定性层只守角色类粗门——post 放行；岗位细分
+    // 白名单（谁可以 triage）在鉴权器，负例见 tests/org-ledger-authz.test.mjs
+    const posted = ledger.command({
       op: "task.triage", taskId: "TK-00000040", actor: POST("duty-coordinator"),
       ...cas(ledger, "TK-00000040"), idempotencyKey: "t40-triage", payload: { decision: "立项" }
     });
-    assert.equal(denied.ok, false);
-    assert.equal(denied.code, "actor-not-allowed");
-    // 承接类转移只许当前归属者
-    ledger.command({ op: "task.triage", taskId: "TK-00000040", actor: HOST, ...cas(ledger, "TK-00000040"), idempotencyKey: "t40-triage2", payload: { decision: "立项" } });
+    assert.equal(posted.ok, true, posted.reason);
+    assert.equal(ledger.task("TK-00000040").status, "triaged");
+    // 承接类转移只许当前归属者（ownerOnly 语义不变）
     ledger.command({ op: "task.plan", taskId: "TK-00000040", actor: HOST, ...cas(ledger, "TK-00000040"), idempotencyKey: "t40-plan", payload: {} });
     ledger.command({ op: "task.assign", taskId: "TK-00000040", actor: HOST, ...cas(ledger, "TK-00000040"), idempotencyKey: "t40-assign", payload: { assignee: "researcher" } });
     const notOwner = ledger.command({

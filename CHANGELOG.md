@@ -7,6 +7,53 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 **06 号票：权限四层、op-set 与工具面**——2026-09-18 用户裁定
+  wayfinder 裸调转入实现批领本票；/implement＋/tdd 红绿五片＋HTTP/接线一片）：
+  - **范围**：规格 §D/§E 全部落库，验收 `V-A3.1`–`V-A3.10`、`V-A4.1`、`V-A4.9`
+    ＋动态工具面不变量；冻结面零触碰。
+  - **变化**（7 文件改＋7 新）：
+    - 新 `lib/org/op-set.js`：op-set 岗位表**唯一源**——§D 域词→台账命令词映射
+      （create→plan／claim→accept／brief.amend→amend／escalate→wait-user|fail）＋
+      §B 责任表推导扩展（lead 持 close/cancel/unblock/resume/requeue、统筹持
+      task.exception，注记在案）；READ/WRITE 封闭分类；TASK_SCOPED_OPS；
+      RESERVED_OPS（07/08/12 票保留集，复核帽可执行面现为空）；validateOpSet
+      （可执行表＋保留集双向机械检查）与 reconcileIssuedVsOpSet（`V-A3.3` 对账）；
+      availableOps 动态不变量；deriveToolFace/registerPostTools（一 op 一工具、
+      工具名即 op 名，复核帽注册集天然无写工具＝`V-A4.9`）。
+    - 新 `lib/org/capability-issue.js`：capability 签发/验签面——host 签发
+      task/role 两类（越表/保留/空集 fail closed＝对账签发侧）、单次消费 nonce、
+      短 TTL（默认 15min，注入缝）、代际绑定＋活态槽比对、任务域绑定＋**投影
+      吊销**（owner 丢失/离开在办态即 capability-revoked，无吊销窗口）、签发
+      审计链 `issued.jsonl`；读面验签不消费 nonce（读重放无害，裁定在案）。
+    - 新 `lib/org/permissions.js`：三元组鉴权器（信封活态／op∈home∪当次签发／
+      任务域含租约持有；user＝CSRF 通道认证的台账全权、host＝进程内）；**链式
+      能力 dispatcher**（每个成功 post 命令返回件携带下一张，assign 签发首张、
+      离开在办态不签死信——单次消费下不断链）；读面 gate；L1 `isBotWritablePath`
+      策略唯一源（共享面零直写，`V-A3.1`）。
+    - `lib/org/task-ledger.js`：命令面装 authorize 钩子（权限拒绝沿 reject() 落账
+      回执＝`V-A3.6`）＋capability 透传＋管理类 op 放行 kind=post（细分白名单
+      移交鉴权器）；结构性拒绝四类维持不落账（05 遗留「归 06」事项，本票处置
+      留档：无可信幂等锚点、落账成写放大面）。
+    - `lib/org/ledger-host.js`：HTTP 通道策略——拒收 `actor.kind=host`（403
+      host-channel-forbidden，进程内身份不得从通道冒名）；命令经 dispatchCommand
+      出手（签发联动接线点）。
+    - `lib/index.js`：主 web 实例全接线（鉴权器＋签发面＋dispatcher，postForBot
+      读注册表 `post` 字段）。
+    - 测试 4 新 45 条（org-op-set 13／org-capability-issue 12／org-ledger-authz 13
+      含链式 start→report 接力／org-permissions 7）＋task-ledger/ledger-host 断言
+      随契约改写（05 的「post 拒管理类」断言按 §D 放宽）。
+  - **验证**：`TMPDIR=/dev/shm npm test` **43/43** ✅；preflight ①回归 43/43
+    ③status-lint 0 违例 ④宿主契约 **11 PASS / 0 FAIL / 0 SKIP**（P-V2-LEDGER-
+    FORMAT／P-LEDGER-COMMANDS 随本票改动复验 PASS）✅；②冻结面 1/9 ❌＝**15 号票
+    并行会话在制**（其改 sentinel 两冻结件并删 review-enforcement 面，票面明示
+    以新 runId 重采包复绿）——本票触碰文件与 0008 sourceManifest 九文件零交集。
+    /code-review 两轴复审处置完毕：链式续签缺口修复（原设计 start 后断链）、
+    虚设断言删除、validateOpSet 补保留集、结构性拒绝处置显式化、OP_SET 扩展补
+    §B 推导注记；留界三项（role-cap 分发通道归 07/13、工具与读面 gate 实例侧
+    接线归 07、活体演练归 16/17）记于票面 Comments。
+  - **授权依据**：用户裁定（wayfinder 裸调 AskUserQuestion 答复「转实现批领
+    06 票」）＋票面 13 条验收全勾、Status→resolved。
+
 - ✅ 本轮（org-v2 `/code-review` 复审后续**就地改善**——两轴复审 Standards 轴 5 条
   judgement call smell 全部收口，2026-09-18 用户 `/code-review`（固定点
   `e2f1e58...HEAD`＝03/18 号票＋两文档提交）评审后「就地改善」指令＝授权）：

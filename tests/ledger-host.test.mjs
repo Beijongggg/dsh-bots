@@ -207,7 +207,7 @@ test("HTTP 面：读投影／通知投影／命令面；未接线 404、非 GET 
     assert.deepEqual(empty.body.tasks, []);
 
     const create = await call(api, "POST", "/api/bots/_ledger/commands", {
-      op: "task.intake", taskId: "TK-00000060", actor: { kind: "host", id: "web" },
+      op: "task.intake", taskId: "TK-00000060", actor: { kind: "user", id: "user" },
       idempotencyKey: "h1", payload: { class: "project", brief: { goal: "g" } }
     });
     assert.equal(create.status, 200);
@@ -215,9 +215,10 @@ test("HTTP 面：读投影／通知投影／命令面；未接线 404、非 GET 
     assert.equal(create.body.status, "intake");
     assert.equal(frames.filter((f) => f.type === "ledger").length, 1, "命令写入后广播投影");
 
-    // 非法转移：fail closed（409）但拒绝也进台账（可核）
+    // 非法转移：fail closed（409）但拒绝也进台账（可核）；user 通道可达命令面
+    // （06 号票起 host kind 在 HTTP 被 403，见上一条回归）
     const rejected = await call(api, "POST", "/api/bots/_ledger/commands", {
-      op: "task.close", taskId: "TK-00000060", actor: { kind: "host", id: "web" },
+      op: "task.close", taskId: "TK-00000060", actor: { kind: "user", id: "user" },
       expectedStatus: "intake", expectedSeq: 1, idempotencyKey: "h2", payload: {}
     });
     assert.equal(rejected.status, 409);
@@ -298,15 +299,22 @@ test("接线：宿主实例注册台账值守，bot 实例不构造台账（无�
   }
 });
 
-test("HTTP 命令面拒绝缺 actor 的命令且台账保持可读（写入前校验，防事实源被写坏）", async () => {
+test("HTTP 命令面拒绝缺 actor 的命令且台账保持可读（写入前校验，防事实源被写坏）；host 冒名被通道策略拒（06 号票）", async () => {
   const home = mkHome();
   try {
     const { ledger, host } = mkHost(home);
     const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
     await call(api, "POST", "/api/bots/_ledger/commands", {
-      op: "task.intake", taskId: "TK-00000080", actor: { kind: "host", id: "web" },
+      op: "task.intake", taskId: "TK-00000080", actor: { kind: "user", id: "user" },
       idempotencyKey: "k1", payload: { class: "project", brief: {} }
     });
+    // 通道策略（06 号票）：HTTP 上不得声明 kind=host（进程内身份）
+    const hostImpersonation = await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "task.triage", taskId: "TK-00000080", actor: { kind: "host", id: "web" },
+      idempotencyKey: "k0", expectedStatus: "intake", expectedSeq: 1, payload: { decision: "立项" }
+    });
+    assert.equal(hostImpersonation.status, 403);
+    assert.equal(hostImpersonation.body.code, "host-channel-forbidden");
     const noActor = await call(api, "POST", "/api/bots/_ledger/commands", {
       op: "task.judge", taskId: "TK-00000080", idempotencyKey: "k2", payload: { intent: "x" }
     });
@@ -319,6 +327,30 @@ test("HTTP 命令面拒绝缺 actor 的命令且台账保持可读（写入前�
     const badBody = await call(api, "POST", "/api/bots/_ledger/commands", "not-an-object");
     assert.equal(badBody.status, 400);
     assert.equal(badBody.body.code, "invalid-command-body");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("HTTP 命令面经 dispatchCommand 出手并透传 capability 信封（06 号票签发联动通道）", async () => {
+  const home = mkHome();
+  try {
+    const { ledger, host } = mkHost(home);
+    const seen = [];
+    host.dispatchCommand = async (input) => {
+      seen.push(input);
+      return { ok: true, taskId: input.taskId, status: "intake", seq: 1, via: "dispatcher" };
+    };
+    const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
+    const envelope = { payload: { v: 1, botId: "bot-a" }, sig: "ab".repeat(32) };
+    const result = await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "task.intake", taskId: "TK-00000083", actor: { kind: "user", id: "user" },
+      capability: envelope, idempotencyKey: "k1", payload: { class: "project" }
+    });
+    assert.equal(result.status, 200);
+    assert.equal(result.body.via, "dispatcher", "接线了 dispatcher 就不得直落裸命令面");
+    assert.deepEqual(seen[0].capability, envelope, "信封必须原样透传给鉴权面");
+    assert.equal(ledger.events().length, 0, "dispatcher 接管时裸命令面未被调用");
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
