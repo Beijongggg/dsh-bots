@@ -42,6 +42,16 @@ import { deriveStats, readSessionEventsFromFile } from "../lib/stats.js";
 const requireCjs = createRequire(import.meta.url);
 const { buildPatchYaml } = requireCjs("../lib/shared.cjs");
 
+// 台账写探针的简报夹具（07 号票契约：简报入事实源必校验——探针夹具用合法件）
+const PROBE_BRIEF = Object.freeze({
+  goal: "格式探针",
+  deliverables: [{ format: "ledger-events", location: "bots/ledger/events.jsonl" }],
+  sources: [{ tool: "ledger.read", ref: "bots/ledger/events.jsonl" }],
+  boundaries: "只读探针，不改真实运行面",
+  acceptance: [{ probe: "fs.contains", args: { location: "bots/ledger/events.jsonl", text: "intake" } }],
+  reviewPoints: []
+});
+
 const isMain =
   process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 
@@ -805,7 +815,7 @@ export const HOST_CONTRACT_PROBES = [
         const ledger = createTaskLedger({ dshHome: home });
         const created = ledger.command({
           op: "task.intake", taskId: "TK-probe0001", actor: { kind: "host", id: "web" },
-          idempotencyKey: "probe-intake", payload: { class: "duty", brief: { goal: "格式探针" } }
+          idempotencyKey: "probe-intake", payload: { class: "duty", brief: PROBE_BRIEF }
         });
         if (!created.ok) {
           return { state: "FAIL", reason: `台账命令面写入失败（${created.code}）：${created.reason}`, coordinate: "lib/org/task-ledger.js" };
@@ -882,7 +892,7 @@ export const HOST_CONTRACT_PROBES = [
         const ledger = createTaskLedger({ dshHome: home });
         const created = ledger.command({
           op: "task.intake", taskId: "TK-probe0002", actor: { kind: "host", id: "web" },
-          idempotencyKey: "probe-cmd-intake", payload: { class: "duty", brief: {} }
+          idempotencyKey: "probe-cmd-intake", payload: { class: "duty", brief: PROBE_BRIEF }
         });
         if (!created.ok || created.status !== "intake" || !Number.isInteger(created.seq)) {
           return { state: "FAIL", reason: `命令面成功形状不符（{ok,taskId,status,seq}）：${JSON.stringify(created)}`, coordinate: "lib/org/ledger-host.js" };

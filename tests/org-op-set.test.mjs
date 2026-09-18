@@ -14,8 +14,10 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import {
+  EXECUTE_OPS,
   LEDGER_COMMAND_OPS,
   OP_SET,
   READ_OPS,
@@ -43,25 +45,51 @@ test("ledger.read 四常设岗有、复核帽无（V-A3.3）", () => {
   assert.ok(!OP_SET.verifier.includes("ledger.read"), "复核帽不得持 ledger.read");
 });
 
-test("表内 op 全部真实存在：台账命令面 op ∪ ledger.read；保留集单列不混入（V-A3.3 对账前提）", () => {
-  const known = new Set([...Object.keys(OPS), "ledger.read"]);
-  const reservedFlat = Object.values(RESERVED_OPS).flat();
+test("表内 op 全部真实存在：台账命令面 op ∪ ledger.read ∪ 执行面；保留集**按岗位**单列不混入", () => {
+  const known = new Set([...Object.keys(OPS), "ledger.read", ...EXECUTE_OPS]);
   for (const [slug, ops] of Object.entries(OP_SET)) {
     for (const op of ops) {
       assert.ok(known.has(op), `${slug} 的 op ${op} 不在命令面词表（不得登记不可执行的 op）`);
-      assert.ok(!reservedFlat.includes(op), `${slug} 的 op ${op} 属保留集，不得混入可执行表`);
+      const ownReserved = RESERVED_OPS[slug] ?? [];
+      assert.ok(!ownReserved.includes(op), `${slug} 的 op ${op} 属本岗保留集，不得混入可执行表`);
     }
   }
-  for (const op of reservedFlat) {
-    assert.ok(!known.has(op), `保留 op ${op} 已在命令面存在——应升入 OP_SET 并落其归属票的工具面`);
+  // 保留集语义＝按岗位暂缓升表：本岗保留的 op 不得同时在本岗可执行表
+  for (const [slug, ops] of Object.entries(RESERVED_OPS)) {
+    for (const op of ops) {
+      assert.ok(!OP_SET[slug].includes(op), `${slug} 的保留 op ${op} 不得同时在本岗可执行表`);
+    }
   }
 });
 
-test("写分类是封闭枚举：读集＋写集＝命令面全词表∪ledger.read 且不交（机械检查的完备性前提）", () => {
+test("分类是封闭枚举：读集∪写集＝命令面全词表∪ledger.read，执行面单列，三类两两不交（机械检查的完备性前提）", () => {
   const classified = new Set([...READ_OPS, ...WRITE_OPS]);
   assert.deepEqual([...classified].sort(), [...LEDGER_COMMAND_OPS, "ledger.read"].sort());
   for (const op of READ_OPS) assert.ok(!WRITE_OPS.includes(op), `${op} 不得同时属读写两类`);
   for (const op of WRITE_OPS) assert.ok(!READ_OPS.includes(op), `${op} 不得同时属读写两类`);
+  // 执行面（非台账命令工具）：不在读写两类内（不落台账事件），但须在册
+  const universe = new Set([...LEDGER_COMMAND_OPS, ...READ_OPS, ...EXECUTE_OPS]);
+  for (const op of EXECUTE_OPS) {
+    assert.ok(!READ_OPS.includes(op) && !WRITE_OPS.includes(op), `执行面 op ${op} 不得混入读写两类`);
+    assert.ok(universe.has(op), `执行面 op ${op} 须在封闭词表内`);
+  }
+});
+
+test("evidence.probe 升表（07 号票）：承接岗可执行、复核帽仍在保留集（其执行面随 08 升表）", () => {
+  for (const slug of ["researcher", "implementer"]) {
+    assert.ok(OP_SET[slug].includes("evidence.probe"), `${slug} 须持 evidence.probe`);
+    assert.ok(!RESERVED_OPS[slug].includes("evidence.probe"), `${slug} 保留集不得再留已升表 op`);
+  }
+  assert.ok(RESERVED_OPS.verifier.includes("evidence.probe"), "复核帽的 evidence.probe 仍在保留集（归 08 号票）");
+  assert.equal(OP_SET.verifier.includes("evidence.probe"), false, "复核帽可执行表仍不含 evidence.probe");
+});
+
+test("task.decline 升表（07 号票带理由拒收）：承接岗可执行且属任务域执行集", () => {
+  assert.ok(TASK_SCOPED_OPS.includes("task.decline"), "decline 须绑定任务能力（任务域 op）");
+  for (const slug of ["researcher", "implementer"]) {
+    assert.ok(OP_SET[slug].includes("task.decline"), `${slug} 须持 task.decline`);
+  }
+  assert.ok(!OP_SET["project-lead"].includes("task.decline"), "派单方无拒收 op（拒收是被派方的动作）");
 });
 
 test("复核帽不含任何写 op——可执行集与保留集双向机械检查（V-A3.4）", () => {
@@ -74,9 +102,10 @@ test("复核帽不含任何写 op——可执行集与保留集双向机械检�
   }
 });
 
-test("任务域 op 集（须绑定 taskId 的能力）是写 op 的子集，且与承接岗执行面一致", () => {
+test("任务域 op 集（须绑定 taskId 的能力）：台账命令类属写集、执行面类属执行集，与承接岗执行面一致", () => {
   for (const op of TASK_SCOPED_OPS) {
-    assert.ok(WRITE_OPS.includes(op), `任务域 op ${op} 须分类为写 op（须绑定任务能力）`);
+    assert.ok(WRITE_OPS.includes(op) || EXECUTE_OPS.includes(op),
+      `任务域 op ${op} 须分类为写 op 或执行面 op（须绑定任务能力）`);
   }
   for (const slug of ["researcher", "implementer"]) {
     for (const op of OP_SET[slug]) {
@@ -101,6 +130,26 @@ test("工具面派生：一 op 一工具、工具名即 op 名、与 op-set 表�
 test("复核帽注册集不含写工具（不是「注册了但拒绝」）（V-A4.9）", () => {
   const face = deriveToolFace("verifier");
   for (const tool of face) assert.ok(!WRITE_OPS.includes(tool.op), `复核帽注册集含写工具：${tool.op}`);
+});
+
+test("执行面工具派生（07 号票）：evidence.probe 工具 kind＝probe-execute，与台账命令工具区分", () => {
+  const face = deriveToolFace("implementer");
+  const probeTool = face.find((tool) => tool.op === "evidence.probe");
+  assert.equal(probeTool.kind, "probe-execute");
+  assert.ok(probeTool.description.includes("白名单"), "执行面工具描述须点明白名单纪律");
+  const ledgerTool = face.find((tool) => tool.op === "task.accept");
+  assert.equal(ledgerTool.kind, "ledger-command");
+});
+
+test("简报不进系统提示段（V-A4.3 后半）：提示段组装面无简报引用；命令通道不触提示服务", () => {
+  const source = readFileSync(new URL("../lib/index.js", import.meta.url), "utf8");
+  const start = source.indexOf("function registerTeamPromptSection");
+  const end = source.indexOf("\nfunction ", start);
+  assert.ok(start > 0 && end > start, "提示段注册函数可定位");
+  const body = source.slice(start, end);
+  assert.equal(/\bbrief\b/.test(body), false, "提示段组装不得引用任务简报（任务动态对象进提示段会串台）");
+  const channel = readFileSync(new URL("../lib/org/post-channel.js", import.meta.url), "utf8");
+  assert.ok(!channel.includes("systemPrompt"), "bot→host 命令通道不得触提示服务（简报只经接单响应携带）");
 });
 
 test("动态工具面不变量：可用集＝home op 集 ∪ 当次签发 op 集（V-A1.4 借用不变量）", () => {

@@ -24,6 +24,7 @@ import { createCapabilityIssuer } from "../lib/org/capability-issue.js";
 import { createLedgerAuthorizer, createLedgerCommandDispatcher, authorizeLedgerRead } from "../lib/org/permissions.js";
 import { instanceRegistryFile } from "../lib/org/capability-base.js";
 import { writeFileSync, mkdirSync } from "node:fs";
+import { VALID_BRIEF } from "./helpers/brief-fixture.mjs";
 
 const HOMES = [];
 process.on("exit", () => {
@@ -64,7 +65,7 @@ function mkRig(clock, { posts = {} } = {}) {
 
 /** 开一张派给给定 bot 的任务（intake→triage→plan→assign，host 驱动）。 */
 function assignedTask(ledger, taskId, botId) {
-  ledger.command({ op: "task.intake", taskId, actor: HOST, idempotencyKey: `i:${taskId}`, payload: { class: "project" } });
+  ledger.command({ op: "task.intake", taskId, actor: HOST, idempotencyKey: `i:${taskId}`, payload: { class: "project", brief: { ...VALID_BRIEF } } });
   ledger.command({ op: "task.triage", taskId, actor: HOST, idempotencyKey: `t:${taskId}`, expectedStatus: "intake", expectedSeq: 1, payload: { decision: "立项" } });
   ledger.command({ op: "task.plan", taskId, actor: HOST, idempotencyKey: `p:${taskId}`, expectedStatus: "triaged", expectedSeq: 2, payload: {} });
   ledger.command({
@@ -203,7 +204,7 @@ test("happy path：统筹角色能力发 triage；承接任务能力接单——
   const { gated, issuer } = mkRig(clock, { posts: { "bot-c": "duty-coordinator", "bot-a": "implementer" } });
   writeInstanceRow(gated.dshHome, "bot-c");
   writeInstanceRow(gated.dshHome, "bot-a");
-  gated.command({ op: "task.intake", taskId: "TK-00000008", actor: HOST, idempotencyKey: "h1", payload: { class: "project" } });
+  gated.command({ op: "task.intake", taskId: "TK-00000008", actor: HOST, idempotencyKey: "h1", payload: { class: "project", brief: { ...VALID_BRIEF } } });
 
   const coordCap = issuer.issueRoleCapability({ botId: "bot-c", post: "duty-coordinator" });
   assert.equal(coordCap.ok, true);
@@ -236,7 +237,7 @@ test("签发联动：dispatch 的 assign 命令返回件携带被派方任务能
   const clock = clockAt();
   const { gated, issuer, dispatcher, home } = mkRig(clock, { posts: { "bot-a": "implementer" } });
   writeInstanceRow(home, "bot-a");
-  gated.command({ op: "task.intake", taskId: "TK-00000010", actor: HOST, idempotencyKey: "d1", payload: { class: "project" } });
+  gated.command({ op: "task.intake", taskId: "TK-00000010", actor: HOST, idempotencyKey: "d1", payload: { class: "project", brief: { ...VALID_BRIEF } } });
   gated.command({ op: "task.triage", taskId: "TK-00000010", actor: HOST, idempotencyKey: "d2", expectedStatus: "intake", expectedSeq: 1, payload: { decision: "立项" } });
   gated.command({ op: "task.plan", taskId: "TK-00000010", actor: HOST, idempotencyKey: "d3", expectedStatus: "triaged", expectedSeq: 2, payload: {} });
   const dispatched = dispatcher({
@@ -267,7 +268,7 @@ test("链式能力：start→report 用返回件接力——每个成功命令�
   const clock = clockAt();
   const { gated, issuer, dispatcher, home } = mkRig(clock, { posts: { "bot-a": "implementer" } });
   writeInstanceRow(home, "bot-a");
-  gated.command({ op: "task.intake", taskId: "TK-00000013", actor: HOST, idempotencyKey: "c1", payload: { class: "project" } });
+  gated.command({ op: "task.intake", taskId: "TK-00000013", actor: HOST, idempotencyKey: "c1", payload: { class: "project", brief: { ...VALID_BRIEF } } });
   gated.command({ op: "task.triage", taskId: "TK-00000013", actor: HOST, idempotencyKey: "c2", expectedStatus: "intake", expectedSeq: 1, payload: { decision: "立项" } });
   gated.command({ op: "task.plan", taskId: "TK-00000013", actor: HOST, idempotencyKey: "c3", expectedStatus: "triaged", expectedSeq: 2, payload: {} });
   const assigned = dispatcher({

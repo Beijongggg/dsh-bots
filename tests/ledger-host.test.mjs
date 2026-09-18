@@ -25,6 +25,7 @@ import { createTaskLedger, eventsFile, ledgerDir } from "../lib/org/task-ledger.
 
 const ledgerDirExists = (home) => existsSync(ledgerDir(home));
 import { receiptsDirFor } from "../lib/mail-plane.js";
+import { VALID_BRIEF } from "./helpers/brief-fixture.mjs";
 
 const { handleApi, createLedgerHost: createHostViaInternals, createTaskLedger: createLedgerViaInternals } = internals;
 
@@ -62,7 +63,7 @@ const NOW = Date.parse(AT);
 function openTaskViaLedger(ledger, taskId) {
   return ledger.command({
     op: "task.intake", taskId, actor: { kind: "host", id: "web" },
-    idempotencyKey: `${taskId}-intake`, payload: { class: "project", brief: {} }
+    idempotencyKey: `${taskId}-intake`, payload: { class: "project", brief: { ...VALID_BRIEF } }
   });
 }
 
@@ -141,7 +142,7 @@ test("值守轮询：实例死亡回收租约并广播台账投影，无变化�
     const frames = [];
     const { ledger, host } = mkHost(home, { alive: false, broadcast: (type, data) => frames.push({ type, data }) });
     // 一张在手任务（承接者已死）
-    ledger.command({ op: "task.intake", taskId: "TK-00000050", actor: { kind: "host", id: "web" }, idempotencyKey: "a", payload: { class: "project", brief: {} } });
+    ledger.command({ op: "task.intake", taskId: "TK-00000050", actor: { kind: "host", id: "web" }, idempotencyKey: "a", payload: { class: "project", brief: { ...VALID_BRIEF } } });
     ledger.command({ op: "task.triage", taskId: "TK-00000050", actor: { kind: "host", id: "web" }, ...cas(ledger, "TK-00000050"), idempotencyKey: "b", payload: { decision: "立项" } });
     ledger.command({ op: "task.plan", taskId: "TK-00000050", actor: { kind: "host", id: "web" }, ...cas(ledger, "TK-00000050"), idempotencyKey: "c", payload: {} });
     ledger.command({ op: "task.assign", taskId: "TK-00000050", actor: { kind: "host", id: "web" }, ...cas(ledger, "TK-00000050"), idempotencyKey: "d", payload: { assignee: "researcher", dispatcher: "project-lead" } });
@@ -208,7 +209,7 @@ test("HTTP 面：读投影／通知投影／命令面；未接线 404、非 GET 
 
     const create = await call(api, "POST", "/api/bots/_ledger/commands", {
       op: "task.intake", taskId: "TK-00000060", actor: { kind: "user", id: "user" },
-      idempotencyKey: "h1", payload: { class: "project", brief: { goal: "g" } }
+      idempotencyKey: "h1", payload: { class: "project", brief: { ...VALID_BRIEF } }
     });
     assert.equal(create.status, 200);
     assert.equal(create.body.ok, true);
@@ -306,7 +307,7 @@ test("HTTP 命令面拒绝缺 actor 的命令且台账保持可读（写入前�
     const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
     await call(api, "POST", "/api/bots/_ledger/commands", {
       op: "task.intake", taskId: "TK-00000080", actor: { kind: "user", id: "user" },
-      idempotencyKey: "k1", payload: { class: "project", brief: {} }
+      idempotencyKey: "k1", payload: { class: "project", brief: { ...VALID_BRIEF } }
     });
     // 通道策略（06 号票）：HTTP 上不得声明 kind=host（进程内身份）
     const hostImpersonation = await call(api, "POST", "/api/bots/_ledger/commands", {

@@ -7,6 +7,57 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 实现批 **07 号票「四要素简报与派单租约」**，2026-09-18
+  用户 `/implement` 调用＝授权；领票时工作树净、01–06＋15 已入库无并行在制品，
+  票面 Comments 在案）：
+  - **范围**：四要素简报契约成形并派出即冻结＋派单租约全链（接单／带理由拒收／
+    逾期释放均落台账事件）＋接单响应携带简报与能力信封＋探针白名单与判据预登记
+    接线（`V-A2.4`／`V-A4.3`／`V-A4.6`）＋05 号票留界 #2/#6/#7/#8/#9 与 06 号票
+    留界实例侧接线的本票份额。
+  - **变化**：
+    - `lib/org/brief.js`（新）：四要素简报校验器——四非空＋顶层键封闭＋交付物
+      `{format,location}`／来源 `{tool,ref}` 条目键封闭（「给坐标不给转述、不预置
+      产出方语义决定」的结构形态，方法论 #16/#17）；判据冻结期按执行侧同口径
+      校验（白名单名＋argKeys 逐字一致）；不可执行＝`criteria-gap` 缺口分类。
+    - `lib/org/probe.js`（新）：探针白名单封闭枚举（fs.contains／node.tests／
+      ledger.no-anomalies）＋canonical 逐字一致口径＋fail closed 执行体；
+      node.tests 经隔离子进程。`V-A4.6` 的「白名单存在且 fail closed」由此成立。
+    - `lib/org/dispatch-config.js`（新）：值守例程声明式登记表（两类投递面异常
+      处置例程模板在册，ledger-host 异常汇入改从登记表出简报）＋收单规则表纯
+      匹配器（条目随 11 号票收单流增补，票面留界在案）。
+    - `lib/org/post-channel.js`（新）：bot→host 组织命令通道——台账命令 POST
+      （CSRF 会话＋链式能力持有侧）、ledger.read 公开读投影、evidence.probe 执行
+      面（判据真源＝台账投影、本地持有件逐字比对后才执行、模型只交
+      `{taskId,index}`——「模型不得自报判据」机械化）。
+    - `lib/org/task-ledger.js`：intake/plan/amend 简报校验（在场即须合法、amend
+      须完整合法件）＋**派出即冻结**（assign 前置 brief-missing）＋accept 成功
+      结论携带冻结简报（`V-A4.3` 接单即得契约）＋新 `task.decline`（assigned→
+      planned 归队、通知派单方；理由按 §B「可带」＝可选给出须非空）＋新
+      `task.return`（triaged→intake 退回分诊）＋sweep 队列滞留三条确定性处置
+      （intake→上浮／triaged→退回分诊／planned→上浮，`stallMs` 用户域缝——05
+      STATE_RESPONSIBILITY 执行面补齐）＋assign 默认记录 dispatcher。
+    - `lib/org/op-set.js`：`task.decline`/`evidence.probe` 升入承接岗可执行表；
+      新 EXECUTE_OPS 执行面分类（非台账命令不落事件）；保留集检查改按岗位；
+      复核帽可执行集与保留集不变（其 evidence.probe 仍留 08 号票）。
+    - `lib/index.js`：bot 分支 registerOrgTools（按 home 岗位派生注册岗位工具
+      面，dispatch＝post-channel）＋spawn 透传 `DSH_BOTS_HOST_URL`（运维缝；
+      未设则通道休眠并告警）。**简报零进入系统提示段**（提示段组装面无简报
+      引用，扫描测试把守）。
+    - `scripts/host-contract-probe.mjs`：两台账探针夹具随简报契约换合法件
+      （探针行为断言面不变）。
+  - **测试**：4 新模块 34 条（org-brief 8／org-probe 7／org-dispatch-config 6／
+    org-post-channel 6）＋task-ledger +7（30）＋org-op-set +4（17）；夹具归一
+    `tests/helpers/brief-fixture.mjs`；既有台账/宿主/鉴权/签发四模块夹具随契约
+    改写（旧「原样存储」简报形状退役）。
+  - **验证结果**：`TMPDIR=/dev/shm npm test` **47/47**；preflight 四门绿（①47/47
+    ②0009 包 7/7 ③0 违例 ④11 PASS/0 FAIL/0 SKIP）。/code-review 双轴复审
+    （Standards 9／Spec 6）全部处置：判据 argKeys 冻结期校验、decline 理由改
+    可选、fs.contains 绝对路径判定、队列滞留超时补做（return 事件＋sweep）等
+    修复入批；读面 gate 归 08、收单规则表条目归 11、artifact.* 归 08 三项留界
+    凭据落票面 Comments。
+  - **授权依据**：2026-09-18 用户 `/implement` 调用（/implement 技能流程内
+    /tdd、/code-review 引用按 AGENTS §5 显式调用执行）。
+
 - ✅ 本轮（org-v2 实现批 **15 号票「退役冻结评审残余与证据包再生」**，2026-09-18
   用户 `/implement` 调用＝授权；06 号票由并行会话在制，本票按文件面不相交原则
   错开领取——票面 Comments 在案）：

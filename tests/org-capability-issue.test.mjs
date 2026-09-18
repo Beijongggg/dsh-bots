@@ -21,6 +21,7 @@ import { join } from "node:path";
 import { createCapabilityIssuer, capabilityDir } from "../lib/org/capability-issue.js";
 import { createTaskLedger } from "../lib/org/task-ledger.js";
 import { instanceRegistryFile } from "../lib/org/capability-base.js";
+import { VALID_BRIEF } from "./helpers/brief-fixture.mjs";
 
 function mkHome() {
   return mkdtempSync(join(tmpdir(), "dsh-cap-issue-"));
@@ -67,7 +68,7 @@ function assignedTask(home, clock, { botId = "bot-a" } = {}) {
   const taskId = `TK-${Math.random().toString(16).slice(2, 12)}`;
   ledger.command({
     op: "task.intake", taskId, actor: { kind: "host", id: "web" },
-    idempotencyKey: `intake:${taskId}`, payload: { class: "project" }
+    idempotencyKey: `intake:${taskId}`, payload: { class: "project", brief: { ...VALID_BRIEF } }
   });
   ledger.command({
     op: "task.triage", taskId, actor: { kind: "host", id: "web" },
