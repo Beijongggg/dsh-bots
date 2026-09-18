@@ -86,6 +86,10 @@
     四道门 ①回归 62/62 ②冻结面（0008 包）9/9 ③status-lint 0 违例（扫 59 个 md）④宿主
     契约 **11 PASS / 0 FAIL / 0 SKIP** ＝ `preflight: PASS`（当次实跑输出；冻结面全程
     零触碰）。
+  - **授权依据**：2026-09-18 用户 `/code-review` 调用（固定点 326f4d8）＋同日用户裁定
+    「任务量较小原地修复，若较大发布为修复批 issue」。
+  - **未落档面**：无（01/05 票面注记＋18 号票＋本条目齐）。
+
 - ✅ 本轮（org-v2 **03 号票「退役评审业务面」**，2026-09-18 用户 `/implement` 调用＝
   授权，票面 `.scratch/org-v2-build/issues/03-retire-review-surface.md`；Blocked by
   02 已 resolved；规格出处 spec §I 迁移清单第 3 项、§C 形态废弃）：
