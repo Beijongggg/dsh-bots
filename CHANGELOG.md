@@ -7,6 +7,32 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 `/code-review` 复审后续**就地改善**——两轴复审 Standards 轴 5 条
+  judgement call smell 全部收口，2026-09-18 用户 `/code-review`（固定点
+  `e2f1e58...HEAD`＝03/18 号票＋两文档提交）评审后「就地改善」指令＝授权）：
+  - **范围**：行为保持型重构——探针 describe/断言/SKIP 形状不动，Spec 轴上轮零发现。
+  - **变化**（3 文件）：
+    - `scripts/host-contract-probe.mjs`：「装载→null 检→typeof 检→FAIL」级联收敛
+      为 `requireHostExport()`（4 处）；候选文件解析收敛为 `resolveCandidates()`
+      （5 处）；「本机未安装宿主」SKIP 前奏收敛为 `noHostSkip()`（8 处，坐标仍按
+      发现面区分）；装载捕获抽 `importViaModuleLoader()`；P-CLIENT-LOCALE 迁
+      `withDomStubs`/捕获通用件但**保留**其严格 require shim（未知依赖即抛）与
+      最小 apply ctx——整体迁记录型通用件会放宽断言，不做；六 id 往返必含集命名
+      `OUR_PATCH_MUST_RETAIN`（与 `CONFIG_IDS_CRITICAL` 刻意不同集，差异注记在案）。
+    - `tests/host-contract-gate.test.mjs`：root3 迷你装载器 fixture 改复用
+      `MINI_PATCH_LOADER` 常量（原逐字重内联）；官方组合 patch fixture 改
+      `criticalIdsYaml()` 自 `CONFIG_IDS_CRITICAL` 派生（八 id 字面 3 处→1 处
+      独立断言看守漂移）。
+    - `CONTEXT.md`：session driver 词条修正失效 adapter 指针——buildReviewRunner
+      已随 03 号票退役，在盘 adapter 仅剩 runNativeAgentTurn。
+  - **验证**：`TMPDIR=/dev/shm npm test` **39/39** ✅（host-contract-gate 21 条含
+    在内）；preflight 四道门 ①回归 39/39 ②冻结面（0008 包）9/9 ③status-lint
+    0 违例 ④宿主契约 **11 PASS / 0 FAIL / 0 SKIP**（真实执行重构后全部探针，
+    含迁通用件的 P-CLIENT-LOCALE）＝ `preflight: PASS`（冻结面全程零触碰）。
+  - **授权依据**：2026-09-18 用户 `/code-review` 调用（固定点 `e2f1e58`）＋同日
+    「就地改善」指令。
+  - **未落档面**：无（本条目＋18/03 号票 Comments 注记齐）。
+
 - ✅ 本轮（**AGENTS.md §5 技能纪律强化：`/技能名` 形式即调用声明、出现即必须显式
   调用**，2026-09-18 用户指令「在agent.md里强调一下，当出现声明技能调用时
   （强调/xxx的这种形式）必须显式调用」＝授权；AGENTS.md 修订须用户明示——本条

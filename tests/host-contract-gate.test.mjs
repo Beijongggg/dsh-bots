@@ -279,6 +279,7 @@ test("18号票 P-CONFIG-IDS：适配层 patch 构造与探针关键 id 清单无
       assert.ok(allowed.has(id), `patch id「${id}」（${permission}）既非探针关键 id 也非已声明可选的只读禁用 id——适配层与探针漂移`);
     }
   }
+  // 独立字面看守：八个核心 id 任一从 CONFIG_IDS_CRITICAL 消失即红（fixture 派生自该清单，此处是其漂移锚）
   for (const id of ["agent-default-model", "system-prompt", "sandbox-policy", "approval", "settings", "llm-pi-ai", "tool-bash", "tool-pwsh"]) {
     assert.ok(CONFIG_IDS_CRITICAL.includes(id), `关键 id 清单缺「${id}」`);
   }
@@ -302,12 +303,15 @@ export function loadOverlayPatches(bin, file) {
 }
 `;
 
+/** 官方组合 patch fixture 按探针关键 id 清单生成（下方独立字面断言看守该清单的漂移）。 */
+const criticalIdsYaml = () => CONFIG_IDS_CRITICAL.map((id) => `- id: ${id}\n`).join("");
+
 test("18号票 P-CONFIG-IDS 行为化：我方 patch 经官方装载器往返＋官方全集对照＋命名空间常量（合成 fixture）", async () => {
   const root = mkdtempSync(join(tmpdir(), "dsh-gate-config-"));
   try {
     writeHostIndexFixture(root, "dsh-app-boot", MINI_PATCH_LOADER);
     mkdirSync(join(root, "dsh-base"), { recursive: true });
-    writeFileSync(join(root, "dsh-base", "cordis.patch.yml"), ["agent-default-model", "system-prompt", "sandbox-policy", "approval", "settings", "llm-pi-ai", "tool-bash", "tool-pwsh"].map((id) => `- id: ${id}\n  name: 'x'\n`).join(""));
+    writeFileSync(join(root, "dsh-base", "cordis.patch.yml"), criticalIdsYaml());
     mkdirSync(join(root, "dsh-web-app"), { recursive: true });
     writeFileSync(join(root, "dsh-web-app", "cordis.patch.yml"), "- id: tools\n- id: session\n");
     writeHostIndexFixture(root, "dsh-agent-default-model", `export const AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE = "agent-default-model";\n`);
@@ -328,24 +332,9 @@ test("18号票 P-CONFIG-IDS 行为化：我方 patch 经官方装载器往返＋
     // 官方命名空间常量漂移 → FAIL（往返与全集两关须先过，才测得到常量关）
     const root3 = mkdtempSync(join(tmpdir(), "dsh-gate-config-ns-"));
     try {
-      writeHostIndexFixture(root3, "dsh-app-boot", `
-import { readFileSync } from "node:fs";
-export function loadOverlayPatches(bin, file) {
-	const text = readFileSync(file, "utf8");
-	const entries = [];
-	let insert = null;
-	for (const line of text.split("\\n")) {
-		const top = /^- id: (\\S+)\\s*$/.exec(line);
-		if (top) { insert = null; entries.push({ id: top[1] }); continue; }
-		if (/^- insert:\\s*$/.test(line)) { insert = { insert: [] }; entries.push(insert); continue; }
-		const nested = /^ {2,}- id: (\\S+)\\s*$/.exec(line);
-		if (nested && insert) { insert.insert.push({ id: nested[1] }); continue; }
-	}
-	return entries;
-}
-`);
+      writeHostIndexFixture(root3, "dsh-app-boot", MINI_PATCH_LOADER);
       mkdirSync(join(root3, "dsh-base"), { recursive: true });
-      writeFileSync(join(root3, "dsh-base", "cordis.patch.yml"), ["agent-default-model", "system-prompt", "sandbox-policy", "approval", "settings", "llm-pi-ai", "tool-bash", "tool-pwsh"].map((id) => `- id: ${id}\n`).join(""));
+      writeFileSync(join(root3, "dsh-base", "cordis.patch.yml"), criticalIdsYaml());
       mkdirSync(join(root3, "dsh-web-app"), { recursive: true });
       writeFileSync(join(root3, "dsh-web-app", "cordis.patch.yml"), "- id: tools\n");
       writeHostIndexFixture(root3, "dsh-agent-default-model", `export const AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE = "renamed-model";\n`);

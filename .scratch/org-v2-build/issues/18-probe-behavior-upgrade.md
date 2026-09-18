@@ -82,3 +82,13 @@ PASS/FAIL/SKIP 负例、登记表双落点降级声明、适配层↔探针 id �
 - [ ] 8. 异常无残留：以上操作全程控制台无宿主插件报错
 
 **核验人：** ＿＿＿＿＿＿（署名）　**日期：** ＿＿＿＿-＿＿-＿＿　**环境/宿主版本：** ＿＿＿＿
+
+## Comments
+
+### 就地改善（2026-09-18 `/code-review` 复审后续，用户「就地改善」＝授权）
+
+Standards 轴 5 条 judgement call 全部原地收口，行为保持（describe/断言/SKIP 形状不动；四道门＋真实探针 11 PASS 复验）：
+
+- `scripts/host-contract-probe.mjs`：「装载→null 检→typeof 检→FAIL」级联收敛为 `requireHostExport()`（4 处）；候选解析收敛 `resolveCandidates()`（5 处）；SKIP 前奏收敛 `noHostSkip()`（8 处，坐标仍按发现面区分）；装载捕获抽 `importViaModuleLoader()` 供 `runClientBundle` 与 P-CLIENT-LOCALE 共用；P-CLIENT-LOCALE 迁 `withDomStubs`/捕获通用件但**保留**其严格 require shim（未知依赖即抛＝形状断言）与最小 apply ctx——不迁记录型通用件以免放宽断言；六 id 往返必含集命名 `OUR_PATCH_MUST_RETAIN`（与 `CONFIG_IDS_CRITICAL` 刻意不同集，注记在案）。
+- `tests/host-contract-gate.test.mjs`：root3 迷你装载器改复用 `MINI_PATCH_LOADER`（原逐字重内联）；官方组合 patch fixture 改 `criticalIdsYaml()` 派生（八 id 字面 3 处→1 处独立断言看守）。
+- 验证：`TMPDIR=/dev/shm npm test` 39/39；preflight ①39/39 ②9/9 ③0 违例 ④11 PASS / 0 FAIL / 0 SKIP。

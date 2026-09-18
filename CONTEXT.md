@@ -16,8 +16,9 @@ DSH 会话回合**协议的单一归属模块**（`lib/session-driver.js`）：c
 selectModel → prompt → 轮询 history → 提取 assistant 文本。interface 为
 `createSessionDriver({rpc, sleep, now}) → runPrompt(opts) → {text, sessionId}`；
 监督策略（连续超时计数／deadline＋heartbeat 三重约束）由调用方以 rpc adapter
-形式注入，session 政策（持久落盘 vs 一次性）留调用方。两个在盘 adapter：
-runNativeAgentTurn（普通回合）、buildReviewRunner（评审回合）。
+形式注入，session 政策（持久落盘 vs 一次性）留调用方。在盘 adapter＝
+runNativeAgentTurn（普通回合）；评审回合 adapter（buildReviewRunner）已随 v1
+评审业务面退役（org-v2 03 号票）。
 
 ## turn baseline
 

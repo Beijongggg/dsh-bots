@@ -42,3 +42,4 @@
   `kind:"mail-discuss"` 行的识别（防升级窗口重复回信）；写侧已无产出。
 - 证据包命名（`review-evidence-package-*`，冻结证据链约定）与 `tests/review-enforcement-matrix.test.mjs`
   （测冻结件）不在退役范围，保持原样。
+- **评审后续（2026-09-18 `/code-review` 复审＋用户「就地改善」）**：`CONTEXT.md` session driver 词条的「两个在盘 adapter」行随本票删除失真——已修正为「在盘 adapter＝runNativeAgentTurn；评审回合 adapter（buildReviewRunner）已随 v1 评审业务面退役」。纯词条保真，无行为面。
