@@ -1,29 +1,34 @@
 /**
  * O-2 输出合同回归（docs/TEMP-guidance-optimization-v3.2.1.md §4）——
  * tests/sentinel-output-contract.test.mjs。
+ * org-v2 15 号票：v1 探针薄 CLI 已随形态退役，
+ * 本文件改打**库接缝**（lib/sentinel-runner.js executeShadow/executeRealSentinel
+ * ＋lib/sentinel-safety.js emitEvidence/validateOutputDestination）——合同语义
+ * 全部位于库内，进程内断言等价于原 spawn 断言（ProbeError.exitCode 即原退出码）。
  * 覆盖：
  *   - §4.1 输出 profile：evidence（默认，仅 <repoRoot>/artifacts）／ephemeral
- *     （显式根：保护区外、仓库外、逐组件 lstat）；/tmp 不自动合法；无 --out 走
- *     stdout（零目录零文件）；
+ *     （显式根：保护区外、仓库外、逐组件 lstat）；/tmp 不自动合法；无 --out
+ *     走注入 emit（CLI 时代为 stdout——CLI 已退役）；
  *   - §4.2 shadow 完整输出合同：父目录不自动创建（缺失→PRECONDITION_FAILED；
  *     symlink/普通文件/不可读→OUTPUT_CONTRACT_VIOLATION）、最终组件排他（wx）、
- *     保护区拒绝；shadow --out 位于 shadowRoot 内三种情形均 exit 2（lib 级）；
+ *     保护区拒绝；shadow --out 位于 shadowRoot 内三种情形（lib 级）；
  *   - §4.3 错误对象 {code,phase,details,exitCode,scenePolicy} 与 Phase 0～4；
- *   - §4.4 scenePolicy：shadow 默认 auto-clean、显式 --preserve-failure-scene
+ *   - §4.4 scenePolicy：shadow 默认 auto-clean、显式 preserve-failure-scene
  *     保留失败现场（Phase 4 失败现场存在即证明 emit 先于删场——顺序冻结）；
  *     real-sentinel 恒 preserve-for-caller；
  *   - §4.5 prepare API（overwrite-shadow 默认兼容 / none 只读核验）＋调用图
  *     静态检查（real-sentinel 分支不得触达覆盖型 prepare）。
  */
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { executeShadow, executeRealSentinel } from "../lib/sentinel-runner.js";
+import { emitEvidence } from "../lib/sentinel-safety.js";
+
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const probe = path.join(repoRoot, "scripts", "review-enforcement-probe.cjs");
 
 const results = [];
 const test = (name, fn) => results.push([name, fn]);
@@ -34,24 +39,53 @@ function mkTmp() {
   return dir;
 }
 
-function parseErrorObject(res) {
-  const lines = (res.stderr ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
-  for (let i = lines.length - 1; i >= 0; i -= 1) {
-    if (lines[i].startsWith("{")) {
-      try { return JSON.parse(lines[i]); } catch { /* 向前继续 */ }
-    }
+/** CLI 形状参数（--out/--out-profile/--ephemeral-out-root/--preserve-failure-scene）
+ *  → executeShadow 进程内调用；返回 {status,payload?,error?,stderr} 兼容原断言面。 */
+function runShadow(args) {
+  const opts = { out: null, profile: "evidence", ephemeralRoot: null, preserveFailureScene: false };
+  for (let i = 0; i < args.length; i += 1) {
+    if (args[i] === "--out") opts.out = args[i + 1];
+    else if (args[i] === "--out-profile") opts.profile = args[i + 1];
+    else if (args[i] === "--ephemeral-out-root") opts.ephemeralRoot = args[i + 1];
+    else if (args[i] === "--preserve-failure-scene") opts.preserveFailureScene = true;
   }
-  return null;
+  const scenePolicy = opts.preserveFailureScene ? "preserve-failure-scene" : "auto-clean";
+  try {
+    const { payload } = executeShadow({
+      outArgs: { out: opts.out, profile: opts.profile, repoRoot, ephemeralRoot: opts.ephemeralRoot, scenePolicy },
+      preserveFailureScene: opts.preserveFailureScene,
+      emit: (payload2, outAbs) => emitEvidence(payload2, outAbs, { scenePolicy })
+    });
+    return { status: 0, payload, stderr: "", stdout: JSON.stringify(payload) };
+  } catch (error) {
+    const pe = error?.probeError ?? {
+      code: "UNEXPECTED_IO", phase: "?", details: { message: error instanceof Error ? error.message : String(error) },
+      exitCode: 1, scenePolicy
+    };
+    return { status: pe.exitCode, error: pe, stderr: JSON.stringify(pe), stdout: "" };
+  }
 }
 
-function runShadow(args, { env = {} } = {}) {
-  return spawnSync(process.execPath, [probe, "--shadow", ...args], {
-    encoding: "utf8", env: { ...process.env, ...env }
-  });
+function parseErrorObject(res) {
+  return res.error ?? null;
 }
 
 function shadowResidue() {
   return fs.readdirSync(os.tmpdir()).filter((n) => n.startsWith("dsh-enforcement-shadow-"));
+}
+
+/** 进程内 env 覆写（real-sentinel 授权门读 process.env）。 */
+function withEnv(mods, fn) {
+  const saved = {};
+  for (const [k, v] of Object.entries(mods)) {
+    saved[k] = process.env[k];
+    if (v === undefined) delete process.env[k]; else process.env[k] = v;
+  }
+  try { return fn(); } finally {
+    for (const [k, v] of Object.entries(saved)) {
+      if (v === undefined) delete process.env[k]; else process.env[k] = v;
+    }
+  }
 }
 
 // ---------------- §4.1 输出 profile ----------------
@@ -198,10 +232,9 @@ test("Phase 4 emit 失败＋--preserve-failure-scene → 现场保留（且证�
   const sub = path.join(root, "ro");
   fs.mkdirSync(sub);
   fs.chmodSync(sub, 0o555);
-  const marker = `p65-o2-keep-${process.pid}`;
   try {
-    const res = spawnSync(process.execPath, [probe, "--shadow", "--out-profile", "ephemeral",
-      "--ephemeral-out-root", root, "--out", path.join(sub, "r.json"), "--preserve-failure-scene"], { encoding: "utf8" });
+    const res = runShadow(["--out-profile", "ephemeral", "--ephemeral-out-root", root,
+      "--out", path.join(sub, "r.json"), "--preserve-failure-scene"]);
     assert.equal(res.status, 1);
     const e = parseErrorObject(res);
     assert.equal(e.scenePolicy, "preserve-failure-scene");
@@ -210,9 +243,6 @@ test("Phase 4 emit 失败＋--preserve-failure-scene → 现场保留（且证�
     assert.match(path.basename(e.details.sceneRoot), /dsh-enforcement-shadow-/);
   } finally {
     fs.chmodSync(sub, 0o755);
-    for (const name of fs.readdirSync(os.tmpdir())) {
-      if (name.startsWith("dsh-enforcement-shadow-") && name.includes(marker)) fs.rmSync(path.join(os.tmpdir(), name), { recursive: true, force: true });
-    }
   }
 });
 
@@ -239,27 +269,36 @@ test("real-sentinel Phase 4 失败 → preserve-for-caller（布局现场保留�
   const ro = path.join(outRoot, "ro");
   fs.mkdirSync(ro);
   fs.chmodSync(ro, 0o555);
+  let caught = null;
   try {
-    const res = spawnSync(process.execPath, [probe, "--real-sentinel", root, "--out-profile", "ephemeral",
-      "--ephemeral-out-root", outRoot, "--out", path.join(ro, "r.json")],
-      { encoding: "utf8", env: { ...process.env, DSH_BOTS_PROBE_REAL_AUTHORIZED: "1" } });
-    assert.equal(res.status, 1, `stderr=${res.stderr}`);
-    const e = parseErrorObject(res);
-    assert.equal(e.code, "EVIDENCE_EMIT_FAILURE");
-    assert.equal(e.phase, "4");
-    assert.equal(e.scenePolicy, "preserve-for-caller");
-    // preserve-for-caller：守卫排他创建的布局现场必须保留，交调用方处置
-    assert.equal(fs.existsSync(path.join(root, "dsh-home", "bots", "bots.json")), true, "布局现场必须保留");
-    assert.equal(fs.existsSync(path.join(root, "project", "allowed.txt")), true, "布局现场必须保留");
+    withEnv({ DSH_BOTS_PROBE_REAL_AUTHORIZED: "1" }, () => {
+      try {
+        executeRealSentinel({
+          sentinelDir: root,
+          outArgs: { out: path.join(ro, "r.json"), profile: "ephemeral", repoRoot, ephemeralRoot: outRoot, scenePolicy: "preserve-for-caller" },
+          emit: (payload, outAbs) => emitEvidence(payload, outAbs, { scenePolicy: "preserve-for-caller" })
+        });
+      } catch (error) { caught = error; }
+    });
   } finally {
     fs.chmodSync(ro, 0o755);
   }
+  assert.ok(caught, "Phase 4 失败必须抛结构化错误");
+  const e = caught.probeError;
+  assert.equal(e.code, "EVIDENCE_EMIT_FAILURE");
+  assert.equal(e.phase, "4");
+  assert.equal(e.exitCode, 1);
+  assert.equal(e.scenePolicy, "preserve-for-caller");
+  // preserve-for-caller：守卫排他创建的布局现场必须保留，交调用方处置
+  assert.equal(fs.existsSync(path.join(root, "dsh-home", "bots", "bots.json")), true, "布局现场必须保留");
+  assert.equal(fs.existsSync(path.join(root, "project", "allowed.txt")), true, "布局现场必须保留");
 });
 
 // ---------------- §4.5 prepare API（lib 级） ----------------
 
-const { ProbeError, toProbeError, prepareShadowTargets, runShadowProbeSuite, validateOutputDestination, PROBE_ERROR_EXIT_CODES } =
-  await import("../lib/review-enforcement.js");
+const { prepareShadowTargets, runShadowProbeSuite } = await import("../lib/sentinel-shadow.js");
+const { ProbeError, toProbeError, validateOutputDestination, PROBE_ERROR_EXIT_CODES } =
+  await import("../lib/sentinel-safety.js");
 
 test("prepare 默认＝overwrite-shadow（既有兼容语义：无条件覆盖）", () => {
   const root = mkTmp();
@@ -367,15 +406,14 @@ test("shadow --out 位于 shadowRoot 内：别名路径（symlink 指入副本�
 
 // ---------------- §4.5 调用图静态检查（双重保证之静态侧） ----------------
 
-test("调用图静态检查：real-sentinel 管线（runner 库＋CLI）不得触达覆盖型 prepare（runShadowProbeSuite/prepareShadowTargets）", () => {
-  // O-5 分层后：real-sentinel 管线位于 lib/sentinel-runner.js executeRealSentinel，
-  // CLI 仅 parse→dispatch→emit→exit。两处源码均纳入静态扫描。
+test("调用图静态检查：real-sentinel 管线（runner 库）不得触达覆盖型 prepare（runShadowProbeSuite/prepareShadowTargets）", () => {
+  // O-5 分层：real-sentinel 管线位于 lib/sentinel-runner.js executeRealSentinel
+  // （v1 薄 CLI 已随 15 号票退役，静态扫描只对 runner 库）。
   const stripComments = (source) => source
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .split("\n")
     .map((line) => (line.trimStart().startsWith("//") ? "" : line))
     .join("\n");
-  // ① runner 库：executeRealSentinel 函数体内不得出现覆盖型 prepare
   const runnerSource = stripComments(fs.readFileSync(path.join(repoRoot, "lib", "sentinel-runner.js"), "utf8"));
   const fnStart = runnerSource.indexOf("export function executeRealSentinel");
   const fnEnd = runnerSource.indexOf("export function executeShadow");
@@ -387,11 +425,6 @@ test("调用图静态检查：real-sentinel 管线（runner 库＋CLI）不得�
     "real-sentinel 管线不得调用 runShadowProbeSuite（只接受 runShadowProbeCells）");
   assert.equal(/runShadowProbeCells\s*\(/.test(sentinelFn), true,
     "real-sentinel 执行面必须为 runShadowProbeCells");
-  // ② CLI 脚本：两分支结构保留，薄 CLI 不直接触达 suite（经 executeShadow 承载）
-  const source = stripComments(fs.readFileSync(probe, "utf8"));
-  assert.equal(source.includes("executeRealSentinel"), true, "脚本 dispatch real-sentinel 管线");
-  assert.equal(source.includes("executeShadow"), true, "脚本 dispatch shadow 管线");
-  assert.equal(/runShadowProbeSuite\s*\(/.test(source), false, "薄 CLI 不直接触达 suite（经 executeShadow 承载）");
 });
 
 // ---------------- 运行 ----------------

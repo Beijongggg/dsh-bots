@@ -89,14 +89,22 @@ test("四禁①：打包前后输入零写入（raw/capture/registry 逐字节�
   assert.equal(after, before, "packager 对输入零写入");
 });
 
-test("四禁②：必填结构化字段缺失即失败（fullRegression／deploymentImpact／probe／treeDiff／provenance）", () => {
-  for (const key of ["fullRegression", "deploymentImpact", "probe", "treeDiff", "provenance", "concurrencyStress"]) {
+test("四禁②：必填结构化字段缺失即失败（fullRegression／deploymentImpact／provenance）；退役段缺省合法、畸形仍拒", () => {
+  for (const key of ["fullRegression", "deploymentImpact", "provenance"]) {
     const evidence = baseEvidence();
     delete evidence[key];
     rejectsWith(() => validateExecutionEvidence(evidence), new RegExp(key));
   }
+  // /3 退役段：probe／concurrencyStress／treeDiff 缺省即合法（v1 探针 CLI、评审
+  // 并发压测模块与 probe payload.treeDiff 已随形态退役，15 号票）
+  const retiredAbsent = baseEvidence();
+  for (const key of ["probe", "concurrencyStress", "treeDiff"]) delete retiredAbsent[key];
+  assert.equal(validateExecutionEvidence(retiredAbsent), true);
+  // 但退役段若在，畸形数据仍不放行（/2 兼容读取不为退役段放行畸形）
   rejectsWith(() => validateExecutionEvidence(baseEvidence({ fullRegression: { passed: 43, total: "43" } })), /非负整数/);
   rejectsWith(() => validateExecutionEvidence(baseEvidence({ concurrencyStress: { runs: 2, results: ["ok"] } })), /results 数必须等于 runs/);
+  rejectsWith(() => validateExecutionEvidence(baseEvidence({ probe: { mode: "shadow" } })), /probe\.verdict 结构非法/);
+  rejectsWith(() => validateExecutionEvidence(baseEvidence({ treeDiff: { nope: true } })), /treeDiff 结构非法/);
 });
 
 test("四禁③：provenance 不完整即失败——registry 非 completed／runId 非 UUID／raw hash 非 64hex", () => {
@@ -221,7 +229,7 @@ test("v2 包内容：executionEvidence 与 human 分离；schema/scope/basePacka
     executionEvidence: baseEvidence(), human: baseHuman, modifiedFiles: [], newTestModules: [],
     basePackage: null, packageScope: "cumulative", repoRoot, generatedAt: "2026-08-30T00:00:00.000Z"
   });
-  assert.equal(pkg.schemaVersion, "evidence-package/2");
+  assert.equal(pkg.schemaVersion, "evidence-package/3");
   assert.equal(pkg.packageType, "review-evidence-package-v2");
   assert.equal(pkg.packageScope, "cumulative");
   assert.equal(pkg.basePackage, null);

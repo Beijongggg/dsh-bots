@@ -1,29 +1,31 @@
 /**
  * O-3 布局 manifest 单源回归（docs/TEMP-guidance-optimization-v3.2.1.md §5）——
  * tests/sentinel-layout-manifest.test.mjs。
+ * org-v2 15 号票：布局单源迁至 lib/sentinel-shadow.js（v1 薄 CLI 已退役，
+ * real-sentinel/shadow payload 断言改打 runner 库接缝）。
  * 覆盖：双层 freeze；path 安全（唯一/相对 POSIX/非绝对/无 .. /非空段）；
  * content 类型与 fileMode 明确；稳定 canonical JSON digest（与测试内独立实现
- * 对拍）；lib 派生（prepareShadowTargets 落地集合＝manifest）；real-sentinel
- * 脚本无第二份布局字面量（静态扫描）＋digest 入 payload；测试三方同源；
+ * 对拍）；lib 派生（prepareShadowTargets 落地集合＝manifest）；管线库无第二份
+ * 布局字面量（静态扫描）＋digest 入 payload；测试三方同源；
  * 派生侧校验器对坏 manifest fail-closed；兼容字段（cleanSemantics/treeIntegrity）
  * 与 I1～I4（guardChain 语义索引）、E1～E5（不进入 guardChain）。
  */
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { executeShadow, executeRealSentinel } from "../lib/sentinel-runner.js";
+
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const probe = path.join(repoRoot, "scripts", "review-enforcement-probe.cjs");
 
 const {
   SHADOW_LAYOUT_MANIFEST, validateLayoutManifest, canonicalJsonString,
   shadowLayoutManifestDigest, prepareShadowTargets, SENTINEL_WRITE_INVARIANTS,
   EVIDENCE_INVARIANTS
-} = await import("../lib/review-enforcement.js");
+} = await import("../lib/sentinel-shadow.js");
 
 const results = [];
 const test = (name, fn) => results.push([name, fn]);
@@ -144,29 +146,32 @@ test("validateLayoutManifest：重复/绝对/../空段/file 缺 content/未知 k
 
 test("脚本无第二份布局字面量：O-5 分层后管线（runner 库）由 manifest 派生＋digest 入 payload", () => {
   const runnerSource = fs.readFileSync(path.join(repoRoot, "lib", "sentinel-runner.js"), "utf8");
-  const cliSource = fs.readFileSync(probe, "utf8");
   assert.equal(runnerSource.includes('"dsh-home/bots/bots.json"'), false, "runner 不得重新声明布局文件字面量");
   assert.equal(runnerSource.includes("SHADOW_LAYOUT_MANIFEST"), true, "runner 必须从 manifest 派生");
   assert.equal(runnerSource.includes("shadowLayoutManifestDigest()"), true, "payload 必须携带 manifest digest");
-  assert.equal(cliSource.includes("validateLayoutManifest"), true, "CLI 保留布局唯一来源校验（派生侧）");
-  assert.equal(cliSource.includes('"dsh-home/bots/bots.json"'), false, "CLI 不得重新声明布局文件字面量");
 });
 
 test("real-sentinel payload 携带 manifest digest（与 lib digest 相等）＋invariants（I1～I4）", () => {
   const base = mkTmp();
   const root = path.join(base, "sentinel");
-  const ev = path.join(base, "ev");
   fs.mkdirSync(root, { recursive: true });
-  fs.mkdirSync(ev, { recursive: true });
   fs.writeFileSync(path.join(root, "sentinel.marker.json"), JSON.stringify({ purpose: "p6-5-sentinel" }));
   for (const dir of ["dsh-home", "project", "deploy-copy", "other-bot-workspaces", "system-config"]) {
     fs.mkdirSync(path.join(root, dir));
   }
-  const res = spawnSync(process.execPath, [probe, "--real-sentinel", root, "--out-profile", "ephemeral",
-    "--ephemeral-out-root", ev, "--out", path.join(ev, "r.json")],
-    { encoding: "utf8", env: { ...process.env, DSH_BOTS_PROBE_REAL_AUTHORIZED: "1" } });
-  assert.equal(res.status, 0, `stderr=${res.stderr}`);
-  const payload = JSON.parse(fs.readFileSync(path.join(ev, "r.json"), "utf8"));
+  const savedAuth = process.env.DSH_BOTS_PROBE_REAL_AUTHORIZED;
+  process.env.DSH_BOTS_PROBE_REAL_AUTHORIZED = "1";
+  let payload;
+  try {
+    ({ payload } = executeRealSentinel({
+      sentinelDir: root,
+      outArgs: { profile: "evidence", repoRoot, scenePolicy: "preserve-for-caller" },
+      emit: () => {}
+    }));
+  } finally {
+    if (savedAuth === undefined) delete process.env.DSH_BOTS_PROBE_REAL_AUTHORIZED;
+    else process.env.DSH_BOTS_PROBE_REAL_AUTHORIZED = savedAuth;
+  }
   assert.equal(payload.layoutManifest.digest, shadowLayoutManifestDigest());
   assert.equal(payload.layoutManifest.entries, SHADOW_LAYOUT_MANIFEST.length);
   assert.deepEqual(payload.invariants, SENTINEL_WRITE_INVARIANTS);
@@ -177,9 +182,10 @@ test("real-sentinel payload 携带 manifest digest（与 lib digest 相等）＋
 });
 
 test("shadow payload 兼容字段：cleanSemantics 如实标注；treeIntegrity 不虚增强断言", () => {
-  const res = spawnSync(process.execPath, [probe, "--shadow"], { encoding: "utf8" });
-  assert.equal(res.status, 0, `stderr=${res.stderr}`);
-  const payload = JSON.parse(res.stdout);
+  const { payload } = executeShadow({
+    outArgs: { profile: "evidence", repoRoot, scenePolicy: "auto-clean" },
+    emit: () => {}
+  });
   assert.equal(payload.clean, true);
   assert.equal(payload.cleanSemantics, "legacy probe-residue check only");
   assert.equal(payload.treeIntegrity.source.includes("snapshotTree"), false, "shadow 无全树快照，source 不得冒充");

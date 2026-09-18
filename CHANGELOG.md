@@ -7,6 +7,49 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 实现批 **15 号票「退役冻结评审残余与证据包再生」**，2026-09-18
+  用户 `/implement` 调用＝授权；06 号票由并行会话在制，本票按文件面不相交原则
+  错开领取——票面 Comments 在案）：
+  - **范围**：两件冻结面退役（`lib/review-enforcement.js` enforcement 矩阵＋
+    `scripts/review-enforcement-probe.cjs` 探针薄 CLI）＋sentinel 在用原语迁 sentinel
+    侧＋证据链修复与 schema 诚实版本化（raw `p6-5-probe-raw/3`、包
+    `evidence-package/3`）＋PLAN P0.3 废止标注＋新 runId 再生 **0009** 增量包、
+    preflight 门②复绿。
+  - **变化**：
+    - `lib/sentinel-shadow.js`（新）：自 enforcement 模块**原样迁移** sentinel 系在用
+      面——O-3 布局单源（`SHADOW_LAYOUT_MANIFEST`＋`validateLayoutManifest`）、
+      canonical JSON 口径（`canonicalJsonString`/`shadowLayoutManifestDigest`）、§5
+      不变量（I1–I4/E1–E5）、shadow 执行件（`shadowLayout`/`prepareShadowTargets`/
+      `probeDenyPath`/`shadowTargetsOf`/`runShadowProbeCells`/`runShadowProbeSuite`/
+      `assertShadowClean`/`saveProbeResults`）——语义零变化；
+      `lib/sentinel-runner.js`/`lib/sentinel-provenance.js` 导入重指向。
+    - 退役三件：上两件＋`tests/review-enforcement-matrix.test.mjs`；
+      `lib/parity-manifest.js` 摘两条退役路径、换入 sentinel-shadow；
+      `tests/review-enforcement-retired.test.mjs`（新）＝退役完整性扫描（活面零
+      review-enforcement 引用，TEMP-guidance/archive 冻结史不在扫描面）。
+    - 证据链修复（必要连锁，票面裁定在案）：runner Phase 3 引用的并发压测测试已随
+      03 号票删除（链路自 03 起即断）、Phase 4 spawn 的正是本票退役的探针 CLI，且
+      `buildProbeRaw` 硬绑定探针 CLI 在执行闭包内——raw /3 去探针 CLI 绑定字段
+      （probeCliHash/probeRuntimeClosure/probeScriptHash）、包 /3 必填面收窄为
+      fullRegression/deploymentImpact/provenance，probe/concurrencyStress/treeDiff
+      三退役段缺省合法、若在仍验形状（/2 旧 raw 兼容读取；七项绑定核验不动）；
+      runner 阶段链＝全量回归→parity→真实面快照；packager CLI 映射条件化。
+      旧包只读保留、不覆盖。
+    - sentinel 三测试（output-contract／p6-5-guards／layout-manifest）改打**库接缝**
+      （进程内 `executeShadow`/`executeRealSentinel`，`ProbeError.exitCode` 即原退出
+      码，断言面保持）；provenance/packager 契约测试随 /3 更新；runner-contract 增
+      /3 阶段链静态断言（复审 Spec 轴发现补齐）。
+    - PLAN P0.3 表节首加废止标注（正文不动，历史可追溯件，规格 §I）。
+  - **验证**：`TMPDIR=/dev/shm npm test` **43/43** ✅；preflight 四道门 ①回归 43/43
+    ②冻结面（0009 包）7/7 ③status-lint 0 违例 ④宿主契约 11 PASS/0 FAIL/0 SKIP ＝
+    `preflight: PASS`（冻结面按新序号包滚动，旧 0008 包零触碰）；`/code-review`
+    两轴复审完成（Standards：1 硬项＝落档、即本条目；4 judgement call 采纳改名
+    `runRealSentinel`；Spec：2 采纳＝接缝④补断言＋treeDiff 并入 /3 退役段，1 观察
+    项记票面）。
+  - **授权依据**：2026-09-18 用户 `/implement` 调用；票面接缝预约定与连锁裁定
+    （schema /2→/3）在案。
+  - **未落档面**：无。
+
 - ✅ 本轮（org-v2 **06 号票：权限四层、op-set 与工具面**——2026-09-18 用户裁定
   wayfinder 裸调转入实现批领本票；/implement＋/tdd 红绿五片＋HTTP/接线一片）：
   - **范围**：规格 §D/§E 全部落库，验收 `V-A3.1`–`V-A3.10`、`V-A4.1`、`V-A4.9`

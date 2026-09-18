@@ -104,13 +104,13 @@ if (opts["--deployment-impact-legacy"]) {
   legacyDeploymentImpactAttachment = { ...legacy, nonAuthoritative: true, crossVerifiedAgainst: "raw.payload.parity" };
 }
 
-// ---- executionEvidence（结构化面） ----
+// ---- executionEvidence（结构化面；包 schema evidence-package/3） ----
+// /3：probe verdict／concurrencyStress／treeDiff 三段已随 v1 评审形态退役
+// （15 号票）——raw 不再携带时缺省；probeCliHash/probeRuntimeClosure 同步退役
+// （/2 旧 raw 兼容读取时若在则照录）。
 const executionEvidence = {
   fullRegression: raw.payload.fullRegression,
-  concurrencyStress: raw.payload.concurrencyStress,
   deploymentImpact,
-  probe: raw.payload.probe,
-  treeDiff: raw.payload.probe?.treeDiff ?? raw.payload.treeDiff ?? { addedUnexpected: [] },
   realSurfaceCheck: raw.payload.realSurfaceCheck ?? null,
   provenance: {
     runId: raw.runId,
@@ -119,11 +119,14 @@ const executionEvidence = {
     captureManifest: { path: capturePath, sha256: captureSha256, artifactWriteCompletedAt: capture.artifactWriteCompletedAt, capturedAt: capture.capturedAt },
     sourceManifest: raw.probe.sourceManifest,
     evidenceRunnerHash: raw.probe.evidenceRunnerHash,
-    probeCliHash: raw.probe.probeCliHash,
-    probeRuntimeClosure: raw.probe.probeRuntimeClosure,
     registry: { status: "completed", dir: registryDir }
   }
 };
+if (raw.payload.concurrencyStress !== undefined) executionEvidence.concurrencyStress = raw.payload.concurrencyStress;
+if (raw.payload.probe !== undefined) executionEvidence.probe = raw.payload.probe;
+if (raw.payload.treeDiff !== undefined) executionEvidence.treeDiff = raw.payload.treeDiff;
+if (raw.probe.probeCliHash !== undefined) executionEvidence.provenance.probeCliHash = raw.probe.probeCliHash;
+if (raw.probe.probeRuntimeClosure !== undefined) executionEvidence.provenance.probeRuntimeClosure = raw.probe.probeRuntimeClosure;
 
 const human = JSON.parse(readFileSync(resolve(opts["--human"]), "utf8"));
 

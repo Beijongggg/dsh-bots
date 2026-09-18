@@ -8,7 +8,10 @@
  *   - O-6.2 registry 责任边界：普通运行路径不自动建根（唯一建根路径
  *     --init-registry）；--init-registry 幂等且不得与其他参数混用；
  *   - O-6.3 真实运行面污染核验：snapshotProtectedSurface 只读；豁免清单生效；
- *     前后 diff 捕获新增/修改/删除/新增异常条目；扫描失败 INCONCLUSIVE。
+ *     前后 diff 捕获新增/修改/删除/新增异常条目；扫描失败 INCONCLUSIVE；
+ *   - /3 阶段链（org-v2 15 号票）：runner 无 v1 段（并发压测／probe CLI）调用、
+ *     payload 无退役段键、布局 digest 仍从 sentinel-shadow 绑定（静态侧——
+ *     不产生真实 registry claim）。
  */
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
@@ -216,6 +219,25 @@ test("O-6.3 真实面快照（真实 DSH_HOME）：只读核验可运行且零 s
   assert.equal(before.ok, true);
   const d = diffProtectedSnapshots(before, after);
   assert.equal(d.modified.length, 0, "连续两次只读快照不得有差异");
+});
+
+// ---------------- /3 阶段链（org-v2 15 号票；静态侧——不产生真实 claim） ----------------
+
+test("/3 阶段链：runner 无 v1 段（并发压测／probe CLI）调用；payload 无退役段键；布局 digest 仍从 sentinel-shadow 绑定", () => {
+  const source = fs.readFileSync(path.join(repoRoot, "scripts", "evidence-runner.mjs"), "utf8");
+  assert.equal(/review-concurrency/.test(source), false, "并发压测段已随其 v1 模块退役（03 号票），runner 不得再引用");
+  assert.equal(/probeCli/.test(source), false, "probe CLI 已退役（15 号票），runner 不得再绑定");
+  assert.equal(/spawnSync\([^\n]*probe/.test(source), false, "runner 不得 spawn 任何探针 CLI");
+  // payload 字面量不得再携带退役段键
+  const payloadStart = source.indexOf("const payload = {");
+  const payloadEnd = source.indexOf("};", payloadStart);
+  assert.ok(payloadStart > 0 && payloadEnd > payloadStart, "runner 必须有 payload 字面量");
+  const payloadBlock = source.slice(payloadStart, payloadEnd);
+  assert.equal(/(^|\n)\s*probe:/.test(payloadBlock), false, "payload 不得携带 probe 段（/3 退役）");
+  assert.equal(/(^|\n)\s*concurrencyStress:/.test(payloadBlock), false, "payload 不得携带 concurrencyStress 段（/3 退役）");
+  // 布局唯一来源绑定仍在（经 lib/sentinel-shadow.js）
+  assert.equal(source.includes("sentinel-shadow.js"), true, "布局 digest 须从 sentinel-shadow 导入绑定");
+  assert.equal(source.includes("shadowLayoutManifestDigest"), true, "布局 digest 绑定不得缺失");
 });
 
 // ---------------- 运行 ----------------

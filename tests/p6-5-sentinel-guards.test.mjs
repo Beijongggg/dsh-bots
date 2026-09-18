@@ -1,22 +1,25 @@
 /**
- * P6-5 real-sentinel 守卫壳回归（scripts/review-enforcement-probe.cjs --real-sentinel）：
- * spawn 真脚本全链验证 fail-closed——副审第三轮阻断项「子路径 symlink 逃逸」的
+ * P6-5 real-sentinel 守卫壳回归（lib/sentinel-runner.js executeRealSentinel）：
+ * org-v2 15 号票起改打**库接缝**（v1 探针薄 CLI 已随形态退役；守卫链语义全部
+ * 位于 runner 库，ProbeError.exitCode 即原退出码）。
+ * 进程内全链验证 fail-closed——副审第三轮阻断项「子路径 symlink 逃逸」的
  * 最低补修矩阵：五个 synthetic 布局目录逐一换成指向外部目标的 symlink，断言
  * ①exit 2 ②外部目标零新增文件 ③不落 result 文件（守卫在任何写入前拦截）。
  * 另含：缺授权 env / 缺 marker / 根 symlink / marker 自身 symlink / 深层嵌套
  * symlink / 指向真实 DSH_HOME 拒绝 / 全真实目录正例（守卫不过度拦截）。
- * 第七轮另含 --out dangling symlink、父目录 symlink、hardlink 三类脚本自写路径负例。
+ * 第七轮另含 --out dangling symlink、父目录 symlink、hardlink 三类自写路径负例。
  * 全部 fixture 在临时目录；正例的探针写入只落在副本内的 synthetic 前缀。
  */
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { executeRealSentinel } from "../lib/sentinel-runner.js";
+import { emitEvidence } from "../lib/sentinel-safety.js";
+
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const probe = path.join(repoRoot, "scripts", "review-enforcement-probe.cjs");
 const SYNTHETIC_DIRS = ["dsh-home", "project", "deploy-copy", "other-bot-workspaces", "system-config"];
 const MARKER = { purpose: "p6-5-sentinel" };
 
@@ -36,28 +39,39 @@ function buildSentinel(root, { withDirs = true } = {}) {
   if (withDirs) for (const name of SYNTHETIC_DIRS) fs.mkdirSync(path.join(root, name));
 }
 
-/** 运行探针；authorized=false 时不注入机械授权 env；dshHome 覆写 DSH_HOME。
- *  O-2 输出合同：--out 落 tmp 基目录（仓库/保护区之外）必须走 ephemeral profile。 */
-function runProbe(root, outFile, { authorized = true, dshHome = null } = {}) {
-  const env = { ...process.env };
-  if (authorized) env.DSH_BOTS_PROBE_REAL_AUTHORIZED = "1";
-  else delete env.DSH_BOTS_PROBE_REAL_AUTHORIZED;
-  if (dshHome !== null) env.DSH_HOME = dshHome;
-  return spawnSync(process.execPath, [
-    probe, "--real-sentinel", root, "--out", outFile,
-    "--out-profile", "ephemeral", "--ephemeral-out-root", path.dirname(outFile)
-  ], { env, encoding: "utf8" });
+/** 进程内运行 real-sentinel；authorized=false 时不注入机械授权 env；dshHome 覆写
+ *  DSH_HOME（finally 恢复）。O-2 输出合同：--out 落 tmp 基目录（仓库/保护区之外）
+ *  必须走 ephemeral profile。返回 {status,payload?,error?,stderr} 兼容原断言面。 */
+function runRealSentinel(root, outFile, { authorized = true, dshHome = null } = {}) {
+  const savedAuth = process.env.DSH_BOTS_PROBE_REAL_AUTHORIZED;
+  const savedHome = process.env.DSH_HOME;
+  if (authorized) process.env.DSH_BOTS_PROBE_REAL_AUTHORIZED = "1";
+  else delete process.env.DSH_BOTS_PROBE_REAL_AUTHORIZED;
+  if (dshHome !== null) process.env.DSH_HOME = dshHome;
+  try {
+    const { payload } = executeRealSentinel({
+      sentinelDir: root,
+      outArgs: { out: outFile, profile: "ephemeral", repoRoot, ephemeralRoot: path.dirname(outFile), scenePolicy: "preserve-for-caller" },
+      emit: (payload2, outAbs) => emitEvidence(payload2, outAbs, { scenePolicy: "preserve-for-caller" })
+    });
+    return { status: 0, payload, stderr: "" };
+  } catch (error) {
+    const pe = error?.probeError ?? {
+      code: "UNEXPECTED_IO", phase: "?", details: { message: error instanceof Error ? error.message : String(error) },
+      exitCode: 1, scenePolicy: "preserve-for-caller"
+    };
+    return { status: pe.exitCode, error: pe, stderr: `[sentinel] ${pe.code}（phase=${pe.phase}）\n${JSON.stringify(pe)}` };
+  } finally {
+    if (savedAuth === undefined) delete process.env.DSH_BOTS_PROBE_REAL_AUTHORIZED;
+    else process.env.DSH_BOTS_PROBE_REAL_AUTHORIZED = savedAuth;
+    if (savedHome === undefined) delete process.env.DSH_HOME;
+    else process.env.DSH_HOME = savedHome;
+  }
 }
 
-/** 解析 stderr 末尾的结构化错误对象（O-2 §4.3：{code,phase,details,exitCode,scenePolicy}）。 */
+/** 取结构化错误对象（O-2 §4.3：{code,phase,details,exitCode,scenePolicy}）。 */
 function parseProbeError(res) {
-  const lines = (res.stderr ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
-  for (let i = lines.length - 1; i >= 0; i -= 1) {
-    if (lines[i].startsWith("{")) {
-      try { return JSON.parse(lines[i]); } catch { /* 继续向前找 */ }
-    }
-  }
-  return null;
+  return res.error ?? null;
 }
 
 /** 断言负例三要件：exit 2、外部目标零新增、无 result 文件。 */
@@ -73,7 +87,7 @@ test("缺机械授权 env → exit 2（不降级 shadow、不落盘）", () => {
   const base = mkTmp();
   const root = path.join(base, "sentinel");
   buildSentinel(root);
-  const res = runProbe(root, path.join(base, "out.json"), { authorized: false });
+  const res = runRealSentinel(root, path.join(base, "out.json"), { authorized: false });
   assert.equal(res.status, 2);
   const e = parseProbeError(res);
   assert.ok(e, "stderr 必须含结构化错误对象（O-2 §4.3）");
@@ -90,7 +104,7 @@ test("缺专用 marker → exit 2", () => {
   const root = path.join(base, "sentinel");
   fs.mkdirSync(root, { recursive: true });
   for (const name of SYNTHETIC_DIRS) fs.mkdirSync(path.join(root, name));
-  const res = runProbe(root, path.join(base, "out.json"));
+  const res = runRealSentinel(root, path.join(base, "out.json"));
   assert.equal(res.status, 2);
   assert.match(res.stderr, /缺专用标记/);
 });
@@ -101,7 +115,7 @@ test("根路径自身为 symlink → exit 2（守卫 ③ 维持）", () => {
   buildSentinel(root);
   const link = path.join(base, "sentinel-link");
   fs.symlinkSync(root, link, "dir");
-  const res = runProbe(link, path.join(base, "out.json"));
+  const res = runRealSentinel(link, path.join(base, "out.json"));
   assert.equal(res.status, 2);
   assert.match(res.stderr, /根路径含 symlink/);
 });
@@ -109,7 +123,7 @@ test("根路径自身为 symlink → exit 2（守卫 ③ 维持）", () => {
 test("sentinel 指向真实 DSH_HOME → exit 2（受保护根拒绝，零写入）", () => {
   const base = mkTmp();
   const realHome = path.resolve(process.env.DSH_HOME ?? path.join(os.homedir(), ".dsh"));
-  const res = runProbe(realHome, path.join(base, "out.json"));
+  const res = runRealSentinel(realHome, path.join(base, "out.json"));
   assert.equal(res.status, 2);
   assert.match(res.stderr, /重叠/);
   assert.equal(fs.existsSync(path.join(base, "out.json")), false);
@@ -126,7 +140,7 @@ for (const name of SYNTHETIC_DIRS) {
     fs.writeFileSync(path.join(external, "canary.txt"), "bait\n");
     fs.rmSync(path.join(root, name), { recursive: true }); // 其余四个保持真实目录，仅一个替换为 symlink
     fs.symlinkSync(external, path.join(root, name), "dir");
-    const res = runProbe(root, path.join(base, "out.json"));
+    const res = runRealSentinel(root, path.join(base, "out.json"));
     assertRejected(res, path.join(base, "out.json"), external, /子路径含 symlink/);
     // 副本自身也未发生任何写入（守卫 ⑤ 在 prepareShadowTargets 之前拦截）
     assert.deepEqual(fs.readdirSync(root).sort(), [...SYNTHETIC_DIRS.filter((d) => d !== name), "sentinel.marker.json", name].sort());
@@ -141,7 +155,7 @@ test("marker 自身为 symlink（内容合法）→ exit 2（预检先于 marker
   const markerOutside = path.join(base, "marker-outside.json");
   fs.writeFileSync(markerOutside, JSON.stringify(MARKER));
   fs.symlinkSync(markerOutside, path.join(root, "sentinel.marker.json"), "file");
-  const res = runProbe(root, path.join(base, "out.json"));
+  const res = runRealSentinel(root, path.join(base, "out.json"));
   assert.equal(res.status, 2);
   assert.match(res.stderr, /子路径含 symlink/);
   assert.equal(fs.existsSync(markerOutside), true, "外部 marker 未被触碰");
@@ -156,7 +170,7 @@ test("深层嵌套 symlink（dsh-home/inner/link → 外部）→ exit 2（递�
   fs.mkdirSync(external);
   fs.writeFileSync(path.join(external, "canary.txt"), "bait\n");
   fs.symlinkSync(external, path.join(root, "dsh-home", "inner", "link"), "dir");
-  const res = runProbe(root, path.join(base, "out.json"));
+  const res = runRealSentinel(root, path.join(base, "out.json"));
   assertRejected(res, path.join(base, "out.json"), external, /子路径含 symlink/);
 });
 
@@ -165,7 +179,7 @@ test("正例：五个布局目录全真实 → exit 0，守卫链含 no-subpath-
   const root = path.join(base, "sentinel");
   buildSentinel(root);
   const outFile = path.join(base, "out.json");
-  const res = runProbe(root, outFile);
+  const res = runRealSentinel(root, outFile);
   assert.equal(res.status, 0, `正例必须通过（stderr=${res.stderr}）`);
   const payload = JSON.parse(fs.readFileSync(outFile, "utf8"));
   assert.equal(payload.mode, "real-sentinel");
@@ -202,7 +216,7 @@ for (const [, relPath, content] of LAYOUT_PRESEEDED) {
     fs.writeFileSync(target, content);
     const before = fs.readFileSync(target);
     const beforeHash = sha256hex(before);
-    const res = runProbe(root, path.join(base, "out.json"));
+    const res = runRealSentinel(root, path.join(base, "out.json"));
     assert.equal(res.status, 2, `期望 exit 2，实际 ${res.status}；stderr=${res.stderr}`);
     assert.match(res.stderr, /布局目录 .* 非空|布局路径 .* 非真实目录/);
     assert.equal(fs.existsSync(path.join(base, "out.json")), false, "空前置拦截必须先于任何结果落盘");
@@ -233,7 +247,7 @@ test("布局深层杂散文件（dsh-home/stray/deep.txt）→ exit 2 且内容�
   const target = path.join(root, "dsh-home", "stray", "deep.txt");
   fs.mkdirSync(path.dirname(target), { recursive: true });
   fs.writeFileSync(target, "stray");
-  const res = runProbe(root, path.join(base, "out.json"));
+  const res = runRealSentinel(root, path.join(base, "out.json"));
   assert.equal(res.status, 2);
   assert.match(res.stderr, /布局目录 dsh-home\/ 非空/);
   assert.equal(fs.readFileSync(target, "utf8"), "stray");
@@ -244,7 +258,7 @@ test("布局路径存在但为普通文件（dsh-home 为文件）→ exit 2（�
   const root = path.join(base, "sentinel");
   buildSentinel(root, { withDirs: false });
   fs.writeFileSync(path.join(root, "dsh-home"), "x");
-  const res = runProbe(root, path.join(base, "out.json"));
+  const res = runRealSentinel(root, path.join(base, "out.json"));
   assert.equal(res.status, 2);
   assert.match(res.stderr, /布局路径 dsh-home\/ 非真实目录/);
   assert.equal(fs.readFileSync(path.join(root, "dsh-home"), "utf8"), "x");
@@ -261,7 +275,7 @@ test("排他创建契约：正例运行后 marker 与 real-copy 文件逐字节�
   fs.mkdirSync(path.join(root, "started"), { recursive: true });
   for (const [rel, content] of Object.entries(realCopy)) fs.writeFileSync(path.join(root, rel), content);
   const outFile = path.join(base, "out.json");
-  const res = runProbe(root, outFile);
+  const res = runRealSentinel(root, outFile);
   assert.equal(res.status, 0, `正例必须通过（stderr=${res.stderr}）`);
   const payload = JSON.parse(fs.readFileSync(outFile, "utf8"));
   assert.deepEqual(payload.guardChain, [
@@ -299,7 +313,7 @@ test("保护根别名：DSH_HOME 为 symlink 且 sentinel 位于其真实子树 
   buildSentinel(root);
   const alias = path.join(base, "dsh-home-alias");
   fs.symlinkSync(protectedDir, alias, "dir");
-  const res = runProbe(root, path.join(base, "out.json"), { dshHome: alias });
+  const res = runRealSentinel(root, path.join(base, "out.json"), { dshHome: alias });
   assert.equal(res.status, 2, `期望 exit 2（canonical 口径应识破别名），实际 ${res.status}；stderr=${res.stderr}`);
   assert.match(res.stderr, /重叠/);
   assert.equal(fs.existsSync(path.join(base, "out.json")), false);
@@ -312,7 +326,7 @@ test("--out 位于 sentinel 根内 → exit 2 + 根内零新增 + 无结果文�
   const base = mkTmp();
   const root = path.join(base, "sentinel");
   buildSentinel(root);
-  const res = runProbe(root, path.join(root, "result-inside.json"));
+  const res = runRealSentinel(root, path.join(root, "result-inside.json"));
   assert.equal(res.status, 2, `stderr=${res.stderr}`);
   const e = parseProbeError(res);
   assert.ok(e && e.code === "OUTPUT_CONTRACT_VIOLATION");
@@ -329,7 +343,7 @@ test("--out 指向真实 DSH_HOME 子树 → exit 2 + 零写入（真实运行�
   buildSentinel(root);
   const realHome = path.resolve(process.env.DSH_HOME ?? path.join(os.homedir(), ".dsh"));
   const outFile = path.join(realHome, "p65-guard-out-probe-test.json");
-  const res = runProbe(root, outFile);
+  const res = runRealSentinel(root, outFile);
   assert.equal(res.status, 2, `stderr=${res.stderr}`);
   const e = parseProbeError(res);
   assert.ok(e && e.code === "OUTPUT_CONTRACT_VIOLATION", "O-2 输出合同拒绝（ephemeral 归属或保护区）");
@@ -345,7 +359,7 @@ test("--out 最终组件为 dangling symlink 且目标位于真实 DSH_HOME → 
   const protectedTarget = path.join(protectedDir, "evidence-created-through-link.json");
   const outFile = path.join(base, "out-dangling.json");
   fs.symlinkSync(protectedTarget, outFile, "file");
-  const res = runProbe(root, outFile, { dshHome: protectedDir });
+  const res = runRealSentinel(root, outFile, { dshHome: protectedDir });
   assert.equal(res.status, 2, `dangling --out 必须被拒绝，实际 ${res.status}；stderr=${res.stderr}`);
   assert.match((parseProbeError(res) ?? { details: { reasons: [] } }).details.reasons.join("；"), /路径含symlink/);
   assert.equal(fs.existsSync(protectedTarget), false, "dangling symlink 目标不得被创建");
@@ -361,7 +375,7 @@ test("--out 父目录为 symlink → exit 2 + 外部目录零写入", () => {
   fs.mkdirSync(outside);
   fs.symlinkSync(outside, path.join(base, "out-link"), "dir");
   const outFile = path.join(base, "out-link", "result.json");
-  const res = runProbe(root, outFile);
+  const res = runRealSentinel(root, outFile);
   assert.equal(res.status, 2, `--out 父目录 symlink 必须被拒绝，实际 ${res.status}；stderr=${res.stderr}`);
   assert.match((parseProbeError(res) ?? { details: { reasons: [] } }).details.reasons.join("；"), /路径含symlink/);
   assert.deepEqual(fs.readdirSync(outside), [], "外部 evidence 目录必须零写入");
@@ -380,7 +394,7 @@ test("--out 最终组件为 hardlink 且指向真实 DSH_HOME 文件 → exit 2 
   fs.linkSync(protectedFile, outFile);
   const before = fs.readFileSync(protectedFile, "utf8");
   const beforeStat = fs.statSync(protectedFile, { bigint: true });
-  const res = runProbe(root, outFile, { dshHome: protectedDir });
+  const res = runRealSentinel(root, outFile, { dshHome: protectedDir });
   assert.equal(res.status, 2, `hardlink --out 必须被拒绝，实际 ${res.status}；stderr=${res.stderr}`);
   assert.match((parseProbeError(res) ?? { details: { reasons: [] } }).details.reasons.join("；"), /输出目标已存在/);
   assert.equal(fs.readFileSync(protectedFile, "utf8"), before, "受保护 inode 内容不得被截断");

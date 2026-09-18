@@ -20,14 +20,13 @@ import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const ENTRY = path.join(repoRoot, "scripts", "review-enforcement-probe.cjs");
 const RUNNER = path.join(repoRoot, "scripts", "evidence-runner.mjs");
 
 const {
   resolveSourceManifest, buildProbeRaw, buildExecutionSourceManifest, checkRawTimingOrder, buildCaptureManifest,
   claimRun, appendRunLedger, validateRunRegistry, ProvenanceValidationError
 } = await import("../lib/sentinel-provenance.js");
-const { shadowLayoutManifestDigest, canonicalJsonString } = await import("../lib/review-enforcement.js");
+const { shadowLayoutManifestDigest, canonicalJsonString } = await import("../lib/sentinel-shadow.js");
 
 const results = [];
 const test = (name, fn) => results.push([name, fn]);
@@ -44,13 +43,14 @@ const T1 = "2026-08-30T02:00:01.000Z";
 
 // ---------------- 策略 A 源解析 ----------------
 
-test("真实入口：sourceManifest 恰为［脚本＋三层依赖］，sha256/byteLength 正确，node:/裸说明符排除", () => {
-  const { sourceManifest, sourceManifestSha256 } = resolveSourceManifest(ENTRY, repoRoot);
+test("真实入口：sourceManifest 恰为［脚本＋依赖闭包］，sha256/byteLength 正确，node:/裸说明符排除", () => {
+  const { sourceManifest, sourceManifestSha256 } = resolveSourceManifest(RUNNER, repoRoot);
   const paths = sourceManifest.map((e) => e.path);
-  // O-5 分层后：CLI 动态导入 runner/safety/enforcement；runner 静态导入
-  // safety+enforcement；enforcement 静态导入 safety——闭包恰为四文件。
+  // 15 号票后：runner 静态导入 parity-manifest/safety＋动态字面量导入
+  // provenance/shadow——闭包恰为五文件。
   assert.deepEqual(paths, [
-    "lib/review-enforcement.js", "lib/sentinel-runner.js", "lib/sentinel-safety.js", "scripts/review-enforcement-probe.cjs"
+    "lib/parity-manifest.js", "lib/sentinel-provenance.js", "lib/sentinel-safety.js",
+    "lib/sentinel-shadow.js", "scripts/evidence-runner.mjs"
   ]);
   for (const e of sourceManifest) {
     const buf = fs.readFileSync(path.join(repoRoot, e.path));
@@ -87,27 +87,25 @@ test("node_modules 裸说明符排除（不解析、不失败）", () => {
 
 const RUN_ID = randomUUID();
 
-test("buildProbeRaw：schema 字段齐备；probeScriptHash/libSha256 与源清单一致；layoutManifestSha256 绑定", () => {
+test("buildProbeRaw：schema 字段齐备；evidenceRunnerHash 与源清单一致；layoutManifestSha256 绑定", () => {
   const raw = buildProbeRaw({
-    runId: RUN_ID, argv: ["node", ENTRY, "--shadow"],
+    runId: RUN_ID, argv: ["node", RUNNER],
     timing: { runStartedAt: T0, probeObservedAt: T0, payloadGeneratedAt: T1, artifactWriteStartedAt: T1 },
     payload: { mode: "shadow", layoutManifest: { digest: shadowLayoutManifestDigest() } },
-    repoRoot, runnerScript: RUNNER, spawnClosures: ["scripts/review-enforcement-probe.cjs"], consumerScripts: ["scripts/evidence-packager.mjs"]
+    repoRoot, runnerScript: RUNNER, consumerScripts: ["scripts/evidence-packager.mjs"]
   });
-  assert.equal(raw.schemaVersion, "p6-5-probe-raw/2");
+  assert.equal(raw.schemaVersion, "p6-5-probe-raw/3");
   assert.equal(raw.runId, RUN_ID);
-  assert.ok(Array.isArray(raw.argv) && raw.argv.length === 3);
+  assert.ok(Array.isArray(raw.argv) && raw.argv.length === 2);
   assert.equal(typeof raw.nodeVersion, "string");
-  const expected = buildExecutionSourceManifest({ repoRoot, runnerScript: RUNNER, spawnClosures: ["scripts/review-enforcement-probe.cjs"], consumerScripts: ["scripts/evidence-packager.mjs"] });
+  const expected = buildExecutionSourceManifest({ repoRoot, runnerScript: RUNNER, consumerScripts: ["scripts/evidence-packager.mjs"] });
   assert.deepEqual(raw.probe.sourceManifest, expected.sourceManifest);
   assert.equal(raw.probe.sourceManifestSha256, expected.sourceManifestSha256);
-  // O-6.5 语义分离
+  // O-6.5 语义（/3）：evidenceRunnerHash 绑定 runner；probe CLI 绑定字段退役
   assert.equal(raw.probe.evidenceRunnerHash, expected.sourceManifest.find((e) => e.path === "scripts/evidence-runner.mjs").sha256, "evidenceRunnerHash 绑定 runner");
-  assert.equal(raw.probe.probeCliHash, expected.sourceManifest.find((e) => e.path === "scripts/review-enforcement-probe.cjs").sha256, "probeCliHash 绑定 probe CLI");
-  assert.equal(raw.probe.probeScriptHash, raw.probe.probeCliHash, "probeScriptHash 为历史兼容字段（=probeCliHash）");
-  assert.match(raw.probe.probeScriptHashSemantics, /历史兼容/);
-  assert.ok(raw.probe.probeRuntimeClosure.files.includes("lib/sentinel-runner.js"), "probeRuntimeClosure 覆盖 probe 实际依赖");
-  assert.equal(raw.schemaVersion, "p6-5-probe-raw/2");
+  assert.equal("probeCliHash" in raw.probe, false, "/3 不再产出 probeCliHash（探针 CLI 已退役）");
+  assert.equal("probeScriptHash" in raw.probe, false, "/3 不再产出 probeScriptHash");
+  assert.equal("probeRuntimeClosure" in raw.probe, false, "/3 不再产出 probeRuntimeClosure");
   assert.equal(raw.probe.layoutManifestSha256, shadowLayoutManifestDigest());
 });
 
@@ -116,14 +114,14 @@ test("buildProbeRaw：layoutManifestDigest 平铺键（runner 集成面）绑定
     runId: RUN_ID, argv: [],
     timing: { runStartedAt: T0, probeObservedAt: T0, payloadGeneratedAt: T1, artifactWriteStartedAt: T1 },
     payload: { mode: "shadow", layoutManifestDigest: shadowLayoutManifestDigest() },
-    repoRoot, runnerScript: RUNNER, spawnClosures: ["scripts/review-enforcement-probe.cjs"], consumerScripts: ["scripts/evidence-packager.mjs"]
+    repoRoot, runnerScript: RUNNER, consumerScripts: ["scripts/evidence-packager.mjs"]
   });
   assert.equal(flat.probe.layoutManifestSha256, shadowLayoutManifestDigest(), "平铺键必须绑定（runner 载荷即平铺键——0006 实证曾因此恒 null）");
   const none = buildProbeRaw({
     runId: RUN_ID, argv: [],
     timing: { runStartedAt: T0, probeObservedAt: T0, payloadGeneratedAt: T1, artifactWriteStartedAt: T1 },
     payload: { mode: "shadow" },
-    repoRoot, runnerScript: RUNNER, spawnClosures: ["scripts/review-enforcement-probe.cjs"], consumerScripts: ["scripts/evidence-packager.mjs"]
+    repoRoot, runnerScript: RUNNER, consumerScripts: ["scripts/evidence-packager.mjs"]
   });
   assert.equal(none.probe.layoutManifestSha256, null);
 });
@@ -132,12 +130,12 @@ test("raw 不得携带 artifactWriteCompletedAt（由 capture manifest 持有）
   assert.throws(() => buildProbeRaw({
     runId: RUN_ID, argv: [],
     timing: { runStartedAt: T0, probeObservedAt: T0, payloadGeneratedAt: T1, artifactWriteStartedAt: T1, artifactWriteCompletedAt: T1 },
-    payload: {}, repoRoot, runnerScript: RUNNER, spawnClosures: ["scripts/review-enforcement-probe.cjs"], consumerScripts: ["scripts/evidence-packager.mjs"]
+    payload: {}, repoRoot, runnerScript: RUNNER, consumerScripts: ["scripts/evidence-packager.mjs"]
   }), ProvenanceValidationError);
   assert.throws(() => buildProbeRaw({
     runId: "not-a-uuid", argv: [],
     timing: { runStartedAt: T0, probeObservedAt: T0, payloadGeneratedAt: T1, artifactWriteStartedAt: T1 },
-    payload: {}, repoRoot, runnerScript: RUNNER, spawnClosures: ["scripts/review-enforcement-probe.cjs"], consumerScripts: ["scripts/evidence-packager.mjs"]
+    payload: {}, repoRoot, runnerScript: RUNNER, consumerScripts: ["scripts/evidence-packager.mjs"]
   }), ProvenanceValidationError);
 });
 
@@ -165,7 +163,7 @@ test("篡改检出①②：raw 改一字节／capture manifest 改一字节 → 
   const rawObj = buildProbeRaw({
     runId: randomUUID(), argv: ["x"],
     timing: { runStartedAt: T0, probeObservedAt: T0, payloadGeneratedAt: T1, artifactWriteStartedAt: T1 },
-    payload: { mode: "shadow" }, repoRoot, runnerScript: RUNNER, spawnClosures: ["scripts/review-enforcement-probe.cjs"], consumerScripts: ["scripts/evidence-packager.mjs"]
+    payload: { mode: "shadow" }, repoRoot, runnerScript: RUNNER, consumerScripts: ["scripts/evidence-packager.mjs"]
   });
   const rawBytes = Buffer.from(JSON.stringify(rawObj, null, 2) + "\n");
   fs.writeFileSync(rawPath, rawBytes);
@@ -391,28 +389,26 @@ test("O-6.4 ledger /2 负例：缺绑定字段/非法 hash/非终态 → 拒绝�
   assert.equal(fs.existsSync(path.join(dir, "run-registry.jsonl")), false, "残缺终态记录零落盘");
 });
 
-test("O-6.5 spawn 执行闭包：runner∪probe∪packager 闭包恰为 9 文件（含 lib/parity-manifest.js），evidenceRunnerHash/probeCliHash 语义分离", () => {
+test("O-6.5 执行闭包：runner∪packager 闭包恰为 7 文件（含 lib/parity-manifest.js 与 lib/sentinel-shadow.js）；evidenceRunnerHash 绑定 runner", () => {
   const { sourceManifest, sourceManifestSha256 } = buildExecutionSourceManifest({
     repoRoot, runnerScript: RUNNER,
-    spawnClosures: ["scripts/review-enforcement-probe.cjs"],
     consumerScripts: ["scripts/evidence-packager.mjs"]
   });
   assert.deepEqual(sourceManifest.map((e) => e.path).sort(), [
-    "lib/evidence-packager.js", "lib/parity-manifest.js", "lib/review-enforcement.js",
-    "lib/sentinel-provenance.js", "lib/sentinel-runner.js", "lib/sentinel-safety.js",
-    "scripts/evidence-packager.mjs", "scripts/evidence-runner.mjs", "scripts/review-enforcement-probe.cjs"
+    "lib/evidence-packager.js", "lib/parity-manifest.js",
+    "lib/sentinel-provenance.js", "lib/sentinel-safety.js",
+    "lib/sentinel-shadow.js",
+    "scripts/evidence-packager.mjs", "scripts/evidence-runner.mjs"
   ]);
   const byPath = new Map(sourceManifest.map((e) => [e.path, e.sha256]));
   const raw = buildProbeRaw({
     runId: randomUUID(), argv: ["x"],
     timing: { runStartedAt: T0, probeObservedAt: T0, payloadGeneratedAt: T1, artifactWriteStartedAt: T1 },
     payload: { mode: "shadow" }, repoRoot, runnerScript: RUNNER,
-    spawnClosures: ["scripts/review-enforcement-probe.cjs"], consumerScripts: ["scripts/evidence-packager.mjs"]
+    consumerScripts: ["scripts/evidence-packager.mjs"]
   });
-  assert.equal(raw.probe.evidenceRunnerHash, byPath.get("scripts/evidence-runner.mjs"), "evidenceRunnerHash 绑定 runner（不再伪装 probe hash）");
-  assert.equal(raw.probe.probeCliHash, byPath.get("scripts/review-enforcement-probe.cjs"), "probeCliHash 绑定 probe CLI");
-  assert.notEqual(raw.probe.evidenceRunnerHash, raw.probe.probeCliHash);
-  assert.match(raw.probe.probeRuntimeClosure.files.join(","), /sentinel-runner/);
+  assert.equal(raw.probe.evidenceRunnerHash, byPath.get("scripts/evidence-runner.mjs"), "evidenceRunnerHash 绑定 runner");
+  assert.equal("probeCliHash" in raw.probe, false, "/3 无 probe CLI 绑定字段（探针 CLI 已退役）");
 });
 
 test("O-6.5 闭包容错：清单内文件变更 → sourceManifestSha256 失配检出", () => {

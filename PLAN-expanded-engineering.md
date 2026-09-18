@@ -169,6 +169,11 @@ capability 不允许创建 review-invocation、写 user-decision、扩大 job sc
 
 ### P0.3 stage、作者、可见性与转换表
 
+> **〔废止标注（2026-09-18，org-v2 15 号票）〕本表为 v1 评审形态的冻结决策件，随 v1
+> 评审业务面退役（org-v2 03 号票）整体废止；组织语义由 org-v2 规格取代
+> （`.scratch/org-v2/spec.md` §C/§E）。按规格 §I 纪律「加废止标注、不删表」——
+> 下表原文保留不动，仅作历史可追溯件。**
+
 
 reviewer RPC 输出必须是 stage 专用 JSON envelope，所有 schema 均
 `additionalProperties=false`：

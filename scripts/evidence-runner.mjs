@@ -2,8 +2,10 @@
 /**
  * evidence-runner（v3.2.1 O-4b；O-6.1/6.2/6.3/6.5 证据收口批修订）——
  * scripts/evidence-runner.mjs。
- * 职责：隔离执行测试、probe、parity，产生原始产物（raw＋capture manifest＋
+ * 职责：隔离执行测试与 parity 比对，产生原始产物（raw＋capture manifest＋
  * run-registry 记录）。**不打包**——packager 只读消费本 runner 的产物。
+ * （/3：原 probe 段随 v1 探针 CLI 退役、原并发压测段随其 v1 模块退役
+ * （org-v2 03/15 号票），两段不再是证据链阶段。）
  *
  * 用法：
  *   node scripts/evidence-runner.mjs [--out-root <dir>] [--out-profile evidence|ephemeral]
@@ -16,8 +18,8 @@
  *   - ephemeral：显式根须在仓库外/DSH_HOME/部署目录之外、逐组件 lstat 通过；
  *   - 任意路径不自动合法；受保护根（DSH_HOME/部署目录/仓库代码区/symlink 别名）
  *     一律拒绝；错误结构 {code,phase,details,exitCode,scenePolicy}，合同违规/
- *     前置失败 exit 2——失败发生在任何 raw/capture/registry 产物写入与 probe
- *     执行之前，且不自动创建任何受保护目录。
+ *     前置失败 exit 2——失败发生在任何 raw/capture/registry 产物写入之前，
+ *     且不自动创建任何受保护目录。
  *
  * O-6.2 registry 初始化责任：runner 不自动创建 registry 根／runs 根；
  * 唯一建根路径为独立命令 --init-registry（显式授权边界）。普通运行路径对
@@ -29,9 +31,8 @@
  * 核验即 INCONCLUSIVE，不得宣称 clean/pass；绝不修改/恢复/删除真实运行面。
  *
  * O-6.5 执行闭包 provenance：raw.probe.sourceManifest 覆盖 runner import 闭包
- * ∪ probe CLI 运行时闭包 ∪ packager CLI 闭包（buildExecutionSourceManifest）；
- * evidenceRunnerHash/probeCliHash/probeRuntimeClosure 语义分离；probeScriptHash
- * 为历史兼容字段（恒等于 probeCliHash）。
+ * ∪ packager CLI 闭包（buildExecutionSourceManifest）；evidenceRunnerHash 绑定
+ * 运行入口。（raw /3：probe CLI 绑定字段已随 v1 探针薄 CLI 退役——15 号票。）
  */
 import { spawnSync } from "node:child_process";
 import { existsSync, lstatSync, mkdirSync, openSync, closeSync, readFileSync, readdirSync, statSync, writeSync, fsyncSync } from "node:fs";
@@ -43,7 +44,6 @@ import { canonicalizePath, pathInsideOrEqual, pathsOverlap, findExistingPathIssu
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const runnerScript = fileURLToPath(import.meta.url);
-const probeCli = join(repoRoot, "scripts", "review-enforcement-probe.cjs");
 const packagerCli = join(repoRoot, "scripts", "evidence-packager.mjs");
 
 // ---------------- O-6.3：真实运行面快照 ----------------
@@ -280,9 +280,11 @@ async function runEvidence(opts) {
   const preIncomplete = preSnapshots.some((s) => !s.snapshot.ok);
 
   // ---- Phase 1：claim（严格 sourceManifestSha256 绑定） ----
+  // /3：探针 CLI 已随 v1 评审形态退役（org-v2 15 号票）——无 spawn 目标，
+  // 闭包＝runner import 闭包 ∪ packager CLI 闭包。
   const closure = provenance.buildExecutionSourceManifest({
     repoRoot, runnerScript,
-    spawnClosures: [relative(repoRoot, probeCli).split(sep).join("/")],
+    spawnClosures: [],
     consumerScripts: [relative(repoRoot, packagerCli).split(sep).join("/")]
   });
   const runId = randomUUID();
@@ -309,8 +311,6 @@ async function runEvidence(opts) {
     const payload = {
       runner: "scripts/evidence-runner.mjs",
       fullRegression: opts.fullRegression,
-      concurrencyStress: opts.concurrencyStress,
-      probe: opts.probe,
       parity: opts.parity,
       realSurfaceCheck: {
         surfaces: surfaceDiffs,
@@ -330,7 +330,7 @@ async function runEvidence(opts) {
     };
     const raw = buildProbeRaw({
       runId, argv: process.argv.slice(2), timing, payload, repoRoot, runnerScript,
-      spawnClosures: [relative(repoRoot, probeCli).split(sep).join("/")],
+      spawnClosures: [],
       consumerScripts: [relative(repoRoot, packagerCli).split(sep).join("/")]
     });
     const timingCheck = checkRawTimingOrder(raw.timing);
@@ -374,9 +374,7 @@ async function runEvidence(opts) {
       sourceManifestSha256: closure.sourceManifestSha256,
       sourceManifestFiles: raw.probe.sourceManifest.map((e) => e.path),
       evidenceRunnerHash: raw.probe.evidenceRunnerHash,
-      probeCliHash: raw.probe.probeCliHash,
       fullRegression: opts.fullRegression,
-      concurrencyStress: opts.concurrencyStress,
       parity: opts.parity,
       ...extra,
       summary: "产物已就绪；打包须由 evidence-packager 只读消费（七项绑定核验）"
@@ -396,23 +394,9 @@ async function runEvidence(opts) {
     fullRegression = { passed: Number(match[1]), total: Number(match[2]), source: "tests/run.mjs" };
   }
 
-  // ---- Phase 3：并发模块 ----
-  let concurrencyStress = { runs: 0, results: [], source: "skipped (--skip-tests)" };
-  if (!opts.skipTests) {
-    const result = spawnSync(process.execPath, [join(repoRoot, "tests", "review-concurrency.test.mjs")], { encoding: "utf8" });
-    concurrencyStress = { runs: 1, results: [result.status === 0 ? "ok" : "failed"], source: "tests/review-concurrency.test.mjs" };
-    if (result.status !== 0) { opts.fullRegression = fullRegression; return finish("failed", { failure: { phase: "3-concurrency", detail: "并发模块失败" } }); }
-  }
-
-  // ---- Phase 4：probe（shadow 非破坏性） ----
-  const probeObservedAt = nowIso();
-  const probeResult = spawnSync(process.execPath, [probeCli, "--shadow"], { encoding: "utf8" });
-  if (probeResult.status !== 0) {
-    return finish("failed", { failure: { phase: "4-probe", detail: `probe shadow 失败 status=${probeResult.status}：${probeResult.stderr?.slice(0, 300)}` } });
-  }
-  const probe = JSON.parse(probeResult.stdout);
-
-  // ---- Phase 5：parity（单源清单派生，repo↔deploy 只读比对） ----
+  // ---- Phase 3：parity（单源清单派生，repo↔deploy 只读比对） ----
+  // （/3：原并发压测段随其 v1 模块退役（03 号票）；原 probe 段随 v1 探针 CLI
+  // 退役（15 号票）——两段不再是证据链阶段，payload 不再携带对应段。）
   const parity = { manifest: [...PARITY_MANIFEST], deployDir, deployExists: existsSync(deployDir), checked: 0, identical: 0, diffs: [] };
   if (parity.deployExists) {
     for (const rel of PARITY_MANIFEST) {
@@ -427,14 +411,13 @@ async function runEvidence(opts) {
     }
   }
 
-  // ---- Phase 6/7/8：payload→raw→capture→ledger ----
+  // ---- Phase 4/5/6：payload→raw→capture→ledger ----
   opts.fullRegression = fullRegression;
-  opts.concurrencyStress = concurrencyStress;
-  opts.probe = probe;
   opts.parity = parity;
-  const layoutManifestDigest = (await import("../lib/review-enforcement.js")).shadowLayoutManifestDigest();
+  const { shadowLayoutManifestDigest } = await import("../lib/sentinel-shadow.js");
+  const layoutManifestDigest = shadowLayoutManifestDigest();
   opts.layoutManifestDigest = layoutManifestDigest; // 布局唯一来源绑定（raw.probe.layoutManifestSha256 消费）
-  finish("completed", { probeObservedAt, layoutManifestDigestForLog: layoutManifestDigest, skipTests: opts.skipTests });
+  finish("completed", { layoutManifestDigestForLog: layoutManifestDigest, skipTests: opts.skipTests });
 }
 
 // ---------------- 入口（模块导入时仅导出 helper，不执行 main） ----------------
