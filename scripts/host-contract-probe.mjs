@@ -27,13 +27,20 @@
  * 用法：node scripts/host-contract-probe.mjs [--face=dev|deploy] [--report <file>]
  * 退出码：0＝门通过；1＝FAIL（或部署面 SKIP）；2＝门自身错误。
  */
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, basename, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { HOST_FACES } from "../lib/host-faces.js";
+import { profileIdFromBaseUrl } from "../lib/host-services.js";
+import { createRequire } from "node:module";
 import { createTaskLedger, eventsFile, validateEventRecord } from "../lib/org/task-ledger.js";
+import { deriveStats, readSessionEventsFromFile } from "../lib/stats.js";
+
+// CJS 共享层（仓库惯例经 createRequire 消费，见 lib/index.js）：patch 构造单一坐标
+const requireCjs = createRequire(import.meta.url);
+const { buildPatchYaml } = requireCjs("../lib/shared.cjs");
 
 const isMain =
   process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
@@ -103,18 +110,467 @@ function libFiles(roots, pkg, subdirs = ["lib"]) {
   return out;
 }
 
-function presetFiles(roots) {
-  const out = [];
-  for (const root of roots) {
-    const presets = join(root, "dsh-agent-presets", "presets");
-    if (!existsSync(presets)) continue;
-    try {
-      for (const entry of readdirSync(presets, { withFileTypes: true })) {
-        if (entry.isDirectory()) out.push(join(presets, entry.name, "agent.cordis.yml"));
-      }
-    } catch { /* 跳过 */ }
+// ---------------- client bundle 行为化调起 harness（org-v2 18 号票） ----------------
+
+/** 探针失败原因的统一消息化（catch 块复用）。 */
+const errMsg = (error) => (error instanceof Error ? error.message : String(error));
+
+/**
+ * 无头执行域：保存并替换 globalThis.window/document（官方 client bundle 在
+ * import 期注入 CSS、在 apply 期读写 DOM 与视口宽度），fn 结束后恢复。createElement
+ * 产物逐个收入 elements（视觉面令牌断言的载体）。
+ */
+export async function withDomStubs(fn) {
+  const previousWindow = globalThis.window;
+  const previousDocument = globalThis.document;
+  const elements = [];
+  const makeElement = (tag) => ({
+    tag, style: { setProperty: () => {}, getPropertyValue: () => "" }, dataset: {},
+    setAttribute: () => {}, remove: () => {}, textContent: "", name: "", appendChild: () => {}
+  });
+  globalThis.window = {
+    innerWidth: 1400, innerHeight: 900, addEventListener: () => {},
+    matchMedia: () => ({ matches: false, addEventListener: () => {} })
+  };
+  globalThis.document = {
+    createElement: (tag) => { const el = makeElement(tag); elements.push(el); return el; },
+    documentElement: { style: { setProperty: () => {} }, dataset: {} },
+    body: { style: makeElement("").style, dataset: {}, classList: { add: () => {}, remove: () => {}, toggle: () => {} }, appendChild: () => {}, removeChild: () => {} },
+    head: { appendChild: () => {} },
+    addEventListener: () => {}, removeEventListener: () => {},
+    querySelector: () => null, querySelectorAll: () => [], getElementById: () => null,
+    title: ""
+  };
+  try {
+    return await fn({ elements });
+  } finally {
+    if (previousWindow === undefined) delete globalThis.window; else globalThis.window = previousWindow;
+    if (previousDocument === undefined) delete globalThis.document; else globalThis.document = previousDocument;
   }
-  return out;
+}
+
+/**
+ * 记录型 client ctx：P-CLIENT-LOCALE 先例的 mock ctx 升级版。register/inject/
+ * subscribe/provide 全留痕；inject 回调立即实调（＝shell 惰性装载语义，官方
+ * sidebar 包把 register 藏在 inject 回调里）；effect 实调（异常记入 record
+ * 不中断 apply——单条 effect 异常不掩盖已完成的槽树声明）。
+ */
+export function makeRecordingClientCtx() {
+  const record = [];
+  const provided = {};
+  const NOOP = () => () => {};
+  const guarded = (op, name, fn) => {
+    try { fn(); } catch (error) { record.push({ op: "effect-throw", where: op, name, msg: errMsg(error) }); }
+  };
+  const ctx = {
+    record, provided,
+    effect: (fn) => { guarded("effect", undefined, fn); return NOOP; },
+    provide: (name, svc) => { provided[name] = svc; record.push({ op: "provide", name }); return NOOP; },
+    reflect: { provide: (name, svc) => { provided[name] = svc; record.push({ op: "provide", name }); return NOOP; } },
+    on: () => NOOP, emit: () => {},
+    get: () => ({ getSnapshot: () => ({}), subscribe: () => () => {}, getTheme: () => ({}), panels: { getSnapshot: () => ({}) } }),
+    locale: {
+      register: () => NOOP, subscribe: () => () => {},
+      bind: () => ({ getSnapshot: () => ({ value: undefined }), subscribe: () => () => {} }),
+      setLocale: () => {}, getLocale: () => "en"
+    },
+    slots: {
+      register: (opts) => { record.push({ op: "register", opts }); return NOOP; },
+      inject: (name, factory) => { record.push({ op: "inject", name }); if (typeof factory === "function") guarded("inject", name, factory); return NOOP; },
+      subscribe: (name) => { record.push({ op: "subscribe", name }); return NOOP; },
+      entries: () => [], entriesOfSlot: () => [],
+      provideRoot: (opts) => { record.push({ op: "provideRoot", opts }); return NOOP; },
+      installLocale: () => {}
+    },
+    settingsScope: { bind: () => ({ subscribe: () => () => {}, getSnapshot: () => ({ value: undefined, preference: "system", revision: 0, fontSize: 0 }), set: () => {} }) }
+  };
+  return ctx;
+}
+
+/**
+ * 官方 client bundle 的 require shim（P-CLIENT-LOCALE 先例）：store 提供方按
+ * 宿主版本二选一、响应式行为以最小真形状补齐（官方 layout/theme bundle 的
+ * apply 期会真实 create/读写快照）；其余依赖给空实现。
+ */
+export function makeClientRequireShim(id) {
+  if (id === "@deepseek-ai/dsh-client-store" || id === "@deepseek-ai/dsh-client-runtime/client") {
+    return {
+      defineStore: (def) => ({
+        def,
+        create() {
+          const state = def.init();
+          const actions = {};
+          for (const [name, fn] of Object.entries(def.actions ?? {})) actions[name] = (...args) => fn(state, ...args);
+          return { ...state, actions, getSnapshot: () => state, subscribe: () => () => {} };
+        },
+        getSnapshot() { return this.def.init(); },
+        subscribe: () => () => {}
+      }),
+      createSnapshotStore: (def) => {
+        const state = typeof def === "function" ? def() : (def?.init?.() ?? def ?? {});
+        return { getSnapshot: () => state, subscribe: () => () => {}, set: () => {} };
+      }
+    };
+  }
+  return {};
+}
+
+/**
+ * 真实调起一个官方 client bundle：ModuleLoader 捕获 → factory(shim) →
+ * apply(记录型 ctx)，返回 { record, provided, elements }。bundle 缺失、未走
+ * 装载协议、缺 apply、apply 抛错都响亮抛错（由调用方转 FAIL）。
+ */
+export async function runClientBundle(roots, pkg) {
+  const candidates = roots.map((root) => join(root, pkg, "lib", "client.js")).filter(existsSync);
+  if (candidates.length === 0) {
+    throw new Error(`官方 bundle ${pkg} 不在本机（${roots.join(" ; ") || "无包根"}）`);
+  }
+  return withDomStubs(async ({ elements }) => {
+    let captured = null;
+    const previousLoader = globalThis.window.__ModuleLoader__;
+    globalThis.window.__ModuleLoader__ = { load: (opts) => { captured = opts; } };
+    try {
+      await import(pathToFileURL(candidates[0]).href);
+    } finally {
+      globalThis.window.__ModuleLoader__ = previousLoader;
+    }
+    if (!captured || typeof captured.factory !== "function") {
+      throw new Error(`官方 bundle ${pkg} 未走 __ModuleLoader__.load 装载协议`);
+    }
+    const official = captured.factory(makeClientRequireShim);
+    if (typeof official?.apply !== "function") {
+      throw new Error(`官方 bundle ${pkg} 工厂产物未导出 apply`);
+    }
+    const ctx = makeRecordingClientCtx();
+    await official.apply(ctx);
+    return { record: ctx.record, provided: ctx.provided, elements };
+  });
+}
+
+/**
+ * P-CLIENT-SLOTS 行为化 stage：真实 apply 官方 layout/sidebar bundle，断言其
+ * 声明的槽树覆盖组织层依赖的槽坐标（sidebar single／main keyed／shell.overlay
+ * list／sidebar.footer.action list）。渲染期子坐标（priority/abdicate 语义与
+ * conversation 的 entryKey 归属）无头环境不可调起——显式降级声明见探针
+ * describe 与登记表 readAccess，归 V-A6.8 人工目视清单覆盖。
+ */
+export async function probeClientSlotsStage(roots) {
+  let layout;
+  try { layout = await runClientBundle(roots, "dsh-client-ui-layout"); }
+  catch (error) {
+    return { state: "FAIL", reason: `官方 layout bundle 无法调起：${errMsg(error)}`, coordinate: "dsh-client-ui-layout/lib/client.js" };
+  }
+  const rootReg = layout.record.find((c) => c.op === "register" && c.opts?.name === "root");
+  if (!rootReg) {
+    return { state: "FAIL", reason: "官方 layout bundle apply 未声明 root 槽树（槽装载协议漂移）", coordinate: "dsh-client-ui-layout" };
+  }
+  const children = rootReg.opts.children ?? {};
+  for (const [name, kind] of [["sidebar", "single"], ["main", "keyed"], ["shell.overlay", "list"]]) {
+    if (children[name]?.kind !== kind) {
+      return { state: "FAIL", reason: `layout 槽树声明漂移：槽「${name}」${children[name] ? `kind=${children[name].kind}（期望 ${kind}）` : "未声明"}（槽改名＝组件静默退回原生）`, coordinate: "dsh-client-ui-layout" };
+    }
+  }
+  let sidebar;
+  try { sidebar = await runClientBundle(roots, "dsh-client-ui-sidebar"); }
+  catch (error) {
+    return { state: "FAIL", reason: `官方 sidebar bundle 无法调起：${errMsg(error)}`, coordinate: "dsh-client-ui-sidebar/lib/client.js" };
+  }
+  const sidebarReg = sidebar.record.find((c) => c.op === "register" && c.opts?.name === "sidebar");
+  if (!sidebarReg) {
+    return { state: "FAIL", reason: "官方 sidebar bundle apply 未声明 sidebar 槽（注册在 inject 回调内但回调未被触发——装载协议漂移）", coordinate: "dsh-client-ui-sidebar" };
+  }
+  const footer = sidebarReg.opts.children?.["sidebar.footer.action"];
+  if (footer?.kind !== "list") {
+    return { state: "FAIL", reason: `sidebar 子槽声明漂移：「sidebar.footer.action」${footer ? `kind=${footer.kind}` : "未声明"}（入口槽失位＝按钮静默消失）`, coordinate: "dsh-client-ui-sidebar" };
+  }
+  return { state: "PASS", coordinate: "layout root 槽树＋sidebar 子槽（真实 apply 断言）" };
+}
+
+/**
+ * P-CLIENT-VISUAL 行为化 stage：真实 apply 官方 theme bundle（--dsw-* 令牌的
+ * 官方提供方），断言运行期注入的样式文本确含令牌定义、theme 服务形状完整
+ * （getTheme 可调）。primitives 导出形状与 ownerProps（collapsed/wide）无头
+ * 不可调起（primitives 仅存于 shell 产物种子表、无实体包）——显式降级声明见
+ * 探针 describe 与登记表 readAccess，存在性归 P-PLUGIN-IDENTITY（B 类），
+ * 形状归 V-A6.8 人工目视清单。
+ */
+export async function probeClientVisualStage(roots) {
+  let theme;
+  try { theme = await runClientBundle(roots, "dsh-client-ui-theme"); }
+  catch (error) {
+    return { state: "FAIL", reason: `官方 theme bundle 无法调起：${errMsg(error)}`, coordinate: "dsh-client-ui-theme/lib/client.js" };
+  }
+  const themeService = theme.provided.theme;
+  if (!themeService || typeof themeService.getTheme !== "function") {
+    return { state: "FAIL", reason: "官方 theme bundle apply 未提供形状完整的 theme 服务（getTheme 可调）", coordinate: "dsh-client-ui-theme" };
+  }
+  let snapshot = null;
+  try { snapshot = themeService.getTheme(); } catch (error) {
+    return { state: "FAIL", reason: `theme 服务 getTheme 调用失败：${errMsg(error)}`, coordinate: "dsh-client-ui-theme" };
+  }
+  if (typeof snapshot !== "object" || snapshot === null) {
+    return { state: "FAIL", reason: "theme 服务 getTheme 未返回主题快照对象", coordinate: "dsh-client-ui-theme" };
+  }
+  const css = theme.elements.map((el) => String(el.textContent ?? "")).join("\n");
+  if (!css.includes("--dsw-")) {
+    return { state: "FAIL", reason: "官方 theme bundle 运行期注入样式不含 --dsw-* 令牌（令牌改名＝视觉静默退化）", coordinate: "dsh-client-ui-theme" };
+  }
+  if (!css.includes(":root")) {
+    return { state: "FAIL", reason: "官方 theme bundle 注入样式缺 :root 级令牌定义（组织层注入样式将解析落空）", coordinate: "dsh-client-ui-theme" };
+  }
+  return { state: "PASS", coordinate: "theme bundle 运行期样式注入＋theme 服务形状（真实 apply 断言）" };
+}
+
+/** 宿主侧 ESM 包的 lib/index.js 装载：缺包 → null；装载失败 → 抛错（调用方转 FAIL）。 */
+async function importHostIndex(roots, pkg) {
+  const candidates = roots.map((root) => join(root, pkg, "lib", "index.js")).filter(existsSync);
+  if (candidates.length === 0) return null;
+  try {
+    return await import(pathToFileURL(candidates[0]).href);
+  } catch (error) {
+    throw new Error(`官方 ${pkg} 无法装载：${errMsg(error)}`);
+  }
+}
+
+/**
+ * P-CTX-SERVICES 行为化 stage（服务名半）：真实实例化官方 ToolRuntime／
+ * SystemPrompt（cordis Service 语义下构造即 reflect.provide 服务名），断言
+ * 组织层依赖的服务名 "tools"/"systemPrompt" 与官方产出一致——名字漂移时
+ * 官方类提供的就是新名，断言必 FAIL（标记扫描抓不到这种漂移）。
+ */
+export async function probeCtxServicesNamesStage(roots) {
+  let tools;
+  try { tools = await importHostIndex(roots, "dsh-tools"); }
+  catch (error) { return { state: "FAIL", reason: error.message, coordinate: "dsh-tools/lib/index.js" }; }
+  if (tools === null) return { state: "FAIL", reason: "dsh-tools 载体包不存在（工具服务提供方缺失）", coordinate: roots.join(" ; ") };
+  if (typeof tools.ToolRuntime !== "function") {
+    return { state: "FAIL", reason: "官方 dsh-tools 未导出 ToolRuntime 服务类", coordinate: "dsh-tools/lib/index.js" };
+  }
+  const toolsProvided = {};
+  try {
+    new tools.ToolRuntime(
+      { reflect: { provide: (name, svc) => { toolsProvided[name] = svc; } }, systemPrompt: { tools: () => {}, section: () => {} } },
+      {}
+    );
+  } catch (error) {
+    return { state: "FAIL", reason: `官方 ToolRuntime 真实实例化失败：${errMsg(error)}`, coordinate: "dsh-tools/lib/index.js" };
+  }
+  if (toolsProvided.tools === undefined || toolsProvided.tools === null) {
+    return { state: "FAIL", reason: "官方 ToolRuntime 构造未以服务名 \"tools\" 注册（服务改名→工具面静默不注册）", coordinate: "dsh-tools/lib/index.js" };
+  }
+  let prompt;
+  try { prompt = await importHostIndex(roots, "dsh-system-prompt"); }
+  catch (error) { return { state: "FAIL", reason: error.message, coordinate: "dsh-system-prompt/lib/index.js" }; }
+  if (prompt === null) return { state: "FAIL", reason: "dsh-system-prompt 载体包不存在（提示段服务提供方缺失）", coordinate: roots.join(" ; ") };
+  if (typeof prompt.SystemPrompt !== "function") {
+    return { state: "FAIL", reason: "官方 dsh-system-prompt 未导出 SystemPrompt 服务类", coordinate: "dsh-system-prompt/lib/index.js" };
+  }
+  const promptProvided = {};
+  try {
+    new prompt.SystemPrompt(
+      { reflect: { provide: (name, svc) => { promptProvided[name] = svc; } }, effect: (fn) => { fn(); }, emit: () => {} },
+      {}
+    );
+  } catch (error) {
+    return { state: "FAIL", reason: `官方 SystemPrompt 真实实例化失败：${errMsg(error)}`, coordinate: "dsh-system-prompt/lib/index.js" };
+  }
+  if (promptProvided.systemPrompt === undefined || promptProvided.systemPrompt === null) {
+    return { state: "FAIL", reason: "官方 SystemPrompt 构造未以服务名 \"systemPrompt\" 注册（提示段注册静默失效）", coordinate: "dsh-system-prompt/lib/index.js" };
+  }
+  return { state: "PASS", coordinate: "ToolRuntime/SystemPrompt 真实实例化（服务名断言）" };
+}
+
+/**
+ * P-CTX-SERVICES 行为化 stage（baseUrl 半）：以空插件树最小真实调用官方
+ * boot()，断言 ctx.baseUrl＝配置目录的 file: URL（宿主产出端语义），并把该
+ * 产出喂进本仓适配层 profileIdFromBaseUrl 回读 profile id（消费端闭环）。
+ */
+export async function probeCtxServicesBaseUrlStage(roots) {
+  let bootMod;
+  try { bootMod = await importHostIndex(roots, "dsh-app-boot"); }
+  catch (error) { return { state: "FAIL", reason: error.message, coordinate: "dsh-app-boot/lib/index.js" }; }
+  if (bootMod === null) return { state: "FAIL", reason: "dsh-app-boot 载体包不存在（ctx.baseUrl 产出方缺失）", coordinate: roots.join(" ; ") };
+  if (typeof bootMod.boot !== "function") {
+    return { state: "FAIL", reason: "官方 dsh-app-boot 未导出 boot()（baseUrl 产出端漂移）", coordinate: "dsh-app-boot/lib/index.js" };
+  }
+  const home = mkdtempSync(join(tmpdir(), "dsh-probe-boot-"));
+  let booted;
+  try {
+    writeFileSync(join(home, "agent.cordis.yml"), "[]\n");
+    booted = await bootMod.boot("dsh-contract-probe", join(home, "agent.cordis.yml"), [], undefined, undefined);
+    const baseUrl = booted?.baseUrl;
+    if (typeof baseUrl !== "string" || !baseUrl.startsWith("file:") || !baseUrl.endsWith("/")) {
+      return { state: "FAIL", reason: `官方 boot() 的 ctx.baseUrl 形状漂移（期望配置目录的 file: URL）：${JSON.stringify(baseUrl)}`, coordinate: "dsh-app-boot/lib/index.js" };
+    }
+    const profileId = profileIdFromBaseUrl({ baseUrl });
+    if (profileId !== basename(home)) {
+      return { state: "FAIL", reason: `适配层 baseUrl→profile id 解析与官方产出不符（得 ${JSON.stringify(profileId)}，期望 ${basename(home)}）`, coordinate: "lib/host-services.js" };
+    }
+    return { state: "PASS", coordinate: "boot() 空树最小调用＋适配层回读（baseUrl 语义断言）" };
+  } catch (error) {
+    return { state: "FAIL", reason: `官方 boot() 空树调用失败：${errMsg(error)}`, coordinate: "dsh-app-boot/lib/index.js" };
+  } finally {
+    try { booted?.fiber?.dispose?.(); } catch { /* 已 dispose/无 fiber → 忽略 */ }
+    rmSync(home, { recursive: true, force: true });
+  }
+}
+
+/** 定位本机最新的真实会话日志（<DSH_HOME>/sessions/<分片>/<会话>/session.jsonl.zstd）。 */
+export function findNewestSessionLog(dshHome) {
+  const sessionsRoot = join(dshHome, "sessions");
+  let shards;
+  try { shards = readdirSync(sessionsRoot, { withFileTypes: true }); }
+  catch { return null; }
+  let best = null;
+  for (const shard of shards) {
+    if (!shard.isDirectory()) continue;
+    let sessions;
+    try { sessions = readdirSync(join(sessionsRoot, shard.name), { withFileTypes: true }); }
+    catch { continue; }
+    for (const session of sessions) {
+      if (!session.isDirectory()) continue;
+      const file = join(sessionsRoot, shard.name, session.name, "session.jsonl.zstd");
+      if (!existsSync(file)) continue;
+      try {
+        const mtime = statSync(file).mtimeMs;
+        if (best === null || mtime > best.mtime) best = { file, mtime, coordinate: join(shard.name, session.name) };
+      } catch { /* 不可读 → 跳过 */ }
+    }
+  }
+  return best;
+}
+
+/**
+ * P-SESSION-LOG 行为化 stage：把本机最新的真实会话日志喂进适配层
+ * lib/stats.js 的真实解码路径（多帧 zstd → JSONL 事件 → 四大投影）——
+ * 不再只核文件存在，而是对宿主产出的真实格式做读取解析实调；布局或事件
+ * 形状漂移在此响亮 FAIL。无任何已落盘会话 → SKIP（本机无可核格式）。
+ */
+export function probeSessionLogStage(dshHome) {
+  const found = findNewestSessionLog(dshHome);
+  if (found === null) {
+    return { state: "SKIP", reason: "本机无已落盘会话日志（宿主未产出会话，无真实格式可核）", coordinate: join(dshHome, "sessions") };
+  }
+  let events;
+  try {
+    events = readSessionEventsFromFile(found.file);
+  } catch (error) {
+    return { state: "FAIL", reason: `真实会话日志解码失败（zstd 帧布局/落盘格式漂移）：${errMsg(error)}`, coordinate: found.coordinate };
+  }
+  if (events.length === 0) {
+    return { state: "FAIL", reason: "真实会话日志解出零事件（行格式漂移或空帧）", coordinate: found.coordinate };
+  }
+  for (const event of events) {
+    if (typeof event !== "object" || event === null || typeof event.type !== "string") {
+      return { state: "FAIL", reason: `会话事件行形状漂移（期望 {type:string,...} 的 JSONL 事件）：${JSON.stringify(event)?.slice(0, 80)}`, coordinate: found.coordinate };
+    }
+  }
+  let stats;
+  try {
+    stats = deriveStats(events);
+  } catch (error) {
+    return { state: "FAIL", reason: `会话日志统计推导失败（投影契约漂移）：${errMsg(error)}`, coordinate: found.coordinate };
+  }
+  for (const key of ["tokenUsage", "sessionStats", "contextPressure", "contextBreakdown"]) {
+    if (typeof stats?.[key] !== "object" || stats[key] === null) {
+      return { state: "FAIL", reason: `统计推导缺投影「${key}」（lib/stats.js 四大投影契约漂移）`, coordinate: "lib/stats.js" };
+    }
+  }
+  return { state: "PASS", coordinate: found.coordinate };
+}
+
+/**
+ * 关键配置 id（静默 no-op 即伤核心配置者：模型 pin／人设／沙箱／审批／settings
+ * 重定向／模型路由／只读禁用的两个 shell 工具）。只读禁用的其余 tool-* id 属
+ * shared.cjs 已声明可选（条目 id 不存在时 patch loader 无害忽略），只核往返、
+ * 不核官方全集在位。
+ */
+export const CONFIG_IDS_CRITICAL = Object.freeze([
+  "agent-default-model", "system-prompt", "sandbox-policy", "approval",
+  "settings", "llm-pi-ai", "tool-bash", "tool-pwsh"
+]);
+
+/** 从官方装载器的解析产物里收全部 id（含 insert 子项）。 */
+function patchIdsOf(parsed) {
+  const ids = [];
+  for (const entry of parsed ?? []) {
+    if (entry && typeof entry.id === "string") ids.push(entry.id);
+    if (Array.isArray(entry?.insert)) {
+      for (const item of entry.insert) if (item && typeof item.id === "string") ids.push(item.id);
+    }
+  }
+  return ids;
+}
+
+/**
+ * P-CONFIG-IDS 行为化 stage（三段真实调用）：
+ * ① 我方 patch 构造（lib/shared.cjs 单一坐标）经官方 dsh-app-boot 装载器
+ *    loadOverlayPatches 往返——id 与 insert bots 全数保留（格式漂移响亮）；
+ * ② 官方组合 patch（dsh-base＋dsh-web-app）解析出官方 id 全集，关键 id
+ *    逐一对照——宿主侧改名必 FAIL（patch loader 对未知 id 无害忽略，标记
+ *    扫描抓不到这种静默）；
+ * ③ 官方命名空间常量（AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE／llm-pi-ai
+ *    name）与我方写入的配置 id 核对。
+ */
+export async function probeConfigIdsStage(roots) {
+  let boot;
+  try { boot = await importHostIndex(roots, "dsh-app-boot"); }
+  catch (error) { return { state: "FAIL", reason: error.message, coordinate: "dsh-app-boot/lib/index.js" }; }
+  if (boot === null) return { state: "FAIL", reason: "dsh-app-boot 载体包不存在（patch 装载器缺失）", coordinate: roots.join(" ; ") };
+  if (typeof boot.loadOverlayPatches !== "function") {
+    return { state: "FAIL", reason: "官方 dsh-app-boot 未导出 loadOverlayPatches（装载器形状漂移）", coordinate: "dsh-app-boot/lib/index.js" };
+  }
+  const home = mkdtempSync(join(tmpdir(), "dsh-probe-config-"));
+  try {
+    const patchFile = join(home, "cordis.patch.yml");
+    writeFileSync(patchFile, buildPatchYaml({
+      botId: "dsh-contract-probe", role: "probe", provider: "probe-provider", model: "probe-model",
+      permission: "workspace-write", workspace: "/tmp/dsh-contract-probe-ws", settingsPath: "/tmp/dsh-contract-probe-settings.yaml"
+    }));
+    let ours;
+    try { ours = boot.loadOverlayPatches("dsh-contract-probe", patchFile); }
+    catch (error) {
+      return { state: "FAIL", reason: `我方 patch 构造未被官方装载器接受（格式漂移）：${errMsg(error)}`, coordinate: "lib/shared.cjs" };
+    }
+    const ourIds = new Set(patchIdsOf(ours));
+    for (const id of ["agent-default-model", "system-prompt", "sandbox-policy", "approval", "settings", "bots"]) {
+      if (!ourIds.has(id)) {
+        return { state: "FAIL", reason: `我方 patch 经官方装载器往返后丢失「${id}」`, coordinate: "lib/shared.cjs" };
+      }
+    }
+    const universe = new Set();
+    for (const bundle of ["dsh-base", "dsh-web-app"]) {
+      const bundlePatch = roots.map((root) => join(root, bundle, "cordis.patch.yml")).filter(existsSync)[0];
+      if (!bundlePatch) {
+        return { state: "FAIL", reason: `官方组合 patch 缺失：${bundle}/cordis.patch.yml`, coordinate: roots.join(" ; ") };
+      }
+      let parsed;
+      try { parsed = boot.loadOverlayPatches("dsh-contract-probe", bundlePatch); }
+      catch (error) {
+        return { state: "FAIL", reason: `官方组合 patch ${bundle} 解析失败：${errMsg(error)}`, coordinate: bundlePatch };
+      }
+      for (const id of patchIdsOf(parsed)) universe.add(id);
+    }
+    const misses = CONFIG_IDS_CRITICAL.filter((id) => !universe.has(id));
+    if (misses.length > 0) {
+      return { state: "FAIL", reason: `关键配置 id 不在官方组合 patch 全集（宿主侧改名＝patch 静默 no-op）：${misses.join("、")}`, coordinate: "dsh-base/cordis.patch.yml＋dsh-web-app/cordis.patch.yml" };
+    }
+    const agentDefaultModel = await importHostIndex(roots, "dsh-agent-default-model").catch((error) => ({ __importError: errMsg(error) }));
+    if (agentDefaultModel === null) return { state: "FAIL", reason: "dsh-agent-default-model 载体包不存在", coordinate: roots.join(" ; ") };
+    if (agentDefaultModel.__importError) return { state: "FAIL", reason: `dsh-agent-default-model 无法装载：${agentDefaultModel.__importError}`, coordinate: "dsh-agent-default-model/lib/index.js" };
+    if (agentDefaultModel.AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE !== "agent-default-model") {
+      return { state: "FAIL", reason: `官方模型 pin 命名空间漂移：${JSON.stringify(agentDefaultModel.AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE)}（期望 agent-default-model）`, coordinate: "dsh-agent-default-model/lib/index.js" };
+    }
+    const piAiModule = await importHostIndex(roots, "dsh-llm-pi-ai").catch((error) => ({ __importError: errMsg(error) }));
+    if (piAiModule === null) return { state: "FAIL", reason: "dsh-llm-pi-ai 载体包不存在", coordinate: roots.join(" ; ") };
+    if (piAiModule.__importError) return { state: "FAIL", reason: `dsh-llm-pi-ai 无法装载：${piAiModule.__importError}`, coordinate: "dsh-llm-pi-ai/lib/index.js" };
+    if (piAiModule.name !== "llm-pi-ai") {
+      return { state: "FAIL", reason: `官方模型路由服务名漂移：${JSON.stringify(piAiModule.name)}（期望 llm-pi-ai）`, coordinate: "dsh-llm-pi-ai/lib/index.js" };
+    }
+    return { state: "PASS", coordinate: "官方装载器往返＋官方 id 全集对照＋命名空间常量（三段真实调用）" };
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
 }
 
 // ---------------- 探针实现（每个返回 {state, reason?, coordinate?}） ----------------
@@ -171,70 +627,28 @@ export const HOST_CONTRACT_PROBES = [
   {
     id: "P-CONFIG-IDS",
     face: "HF-CONFIG-IDS",
-    describe: "配置面 id/key：patch 目标 id 在宿主侧存在（presets/插件包内标记）",
-    run(ctx) {
+    describe: "配置面 id/key：行为探针——我方 patch 构造经官方 dsh-app-boot 装载器往返复验＋官方组合 patch 全集对照＋官方命名空间常量核对",
+    async run(ctx) {
       if (!ctx.hostInstalled) return { state: "SKIP", reason: "本机未安装宿主", coordinate: "discoverPackageRoots" };
-      const checks = [
-        ["agent-default-model", libFiles(ctx.roots, "dsh-agent-default-model")],
-        ["system-prompt", libFiles(ctx.roots, "dsh-system-prompt")],
-        ["sandbox-policy", libFiles(ctx.roots, "dsh-sandbox-policy")],
-        ["approval", libFiles(ctx.roots, "dsh-user-approval")],
-        ["llm-pi-ai", libFiles(ctx.roots, "dsh-llm-pi-ai")],
-        ["tool-bash", presetFiles(ctx.roots)]
-      ];
-      for (const [needle, files] of checks) {
-        if (files.length === 0) {
-          return { state: "FAIL", reason: `id「${needle}」的宿主载体包不存在`, coordinate: ctx.roots.join(" ; ") };
-        }
-        if (!marker(files, needle)) {
-          return { state: "FAIL", reason: `配置 id「${needle}」在宿主包/presets 内无标记（疑似改名）`, coordinate: files.slice(0, 3).join(" ; ") };
-        }
-      }
-      for (const bundle of ["dsh-base", "dsh-web-app"]) {
-        if (!ctx.roots.some((root) => existsSync(join(root, bundle)))) {
-          return { state: "FAIL", reason: `profile bundle 包 ${bundle} 不在宿主安装中`, coordinate: ctx.roots.join(" ; ") };
-        }
-      }
-      if (!ctx.roots.some((root) => existsSync(join(root, "dsh-settings")))) {
-        return { state: "FAIL", reason: "settings 文档宿主插件包 dsh-settings 不存在", coordinate: ctx.roots.join(" ; ") };
-      }
-      return { state: "PASS" };
+      return probeConfigIdsStage(ctx.roots);
     }
   },
   {
     id: "P-CLIENT-SLOTS",
     face: "HF-CLIENT-SLOTS",
-    describe: "前端槽位：四个槽名在宿主 layout/sidebar bundle 与契约类型中在位（槽装载探针）",
-    run(ctx) {
+    describe: "前端槽位：行为探针——真实 apply 官方 layout/sidebar bundle，断言声明槽树（sidebar single／main keyed／shell.overlay list／sidebar.footer.action list）；渲染期 priority/abdicate 语义与 conversation entryKey 归属无头不可调起——显式降级归 V-A6.8 人工目视清单",
+    async run(ctx) {
       if (!ctx.hostInstalled) return { state: "SKIP", reason: "本机未安装宿主", coordinate: "discoverPackageRoots" };
-      const layoutFiles = libFiles(ctx.roots, "dsh-client-ui-layout");
-      for (const slot of ["sidebar", "conversation", "shell.overlay"]) {
-        if (!marker(layoutFiles, slot)) {
-          return { state: "FAIL", reason: `槽名「${slot}」在 dsh-client-ui-layout bundle 中无标记（槽位改名/让位＝静默面）`, coordinate: layoutFiles.join(" ; ") };
-        }
-      }
-      const sidebarFiles = libFiles(ctx.roots, "dsh-client-ui-sidebar", ["lib", join("lib", "types", "client", "contract")]);
-      if (!marker(sidebarFiles, "sidebar.footer.action")) {
-        return { state: "FAIL", reason: "槽名「sidebar.footer.action」在 dsh-client-ui-sidebar（含 slots 契约类型）中无标记", coordinate: sidebarFiles.slice(0, 3).join(" ; ") };
-      }
-      return { state: "PASS" };
+      return probeClientSlotsStage(ctx.roots);
     }
   },
   {
     id: "P-CLIENT-VISUAL",
     face: "HF-CLIENT-VISUAL",
-    describe: "视觉件：--dsw-* 主题令牌在宿主 layout bundle 在位＋primitives 包可解析",
-    run(ctx) {
+    describe: "视觉件：行为探针——真实 apply 官方 theme bundle，断言运行期 --dsw-* 令牌注入与 theme 服务形状；primitives 导出形状与 ownerProps（collapsed/wide）无头不可调起（primitives 仅存于 shell 种子表、无实体包）——显式降级，存在性归 P-PLUGIN-IDENTITY（B 类）、形状归 V-A6.8 人工目视清单",
+    async run(ctx) {
       if (!ctx.hostInstalled) return { state: "SKIP", reason: "本机未安装宿主", coordinate: "discoverPackageRoots" };
-      const layoutFiles = libFiles(ctx.roots, "dsh-client-ui-layout");
-      if (!marker(layoutFiles, "--dsw-")) {
-        return { state: "FAIL", reason: "宿主 layout bundle 不含 --dsw-* 主题令牌（令牌改名＝视觉静默退化）", coordinate: layoutFiles.join(" ; ") };
-      }
-      // primitives 经 require 由 Vite shell 种子表提供（web-frontend 产物内标记）
-      if (!marker(ctx.webAssets, "@deepseek-ai/dsh-client-ui-primitives")) {
-        return { state: "FAIL", reason: "Vite shell 种子表不含 @deepseek-ai/dsh-client-ui-primitives（require 将落空＝渲染静默失败）", coordinate: ctx.webAssets.length > 0 ? ctx.webAssets[0] : "dsh-web-frontend/dist/assets" };
-      }
-      return { state: "PASS" };
+      return probeClientVisualStage(ctx.roots);
     }
   },
   {
@@ -292,7 +706,7 @@ export const HOST_CONTRACT_PROBES = [
         }
         return { state: "PASS" };
       } catch (error) {
-        return { state: "FAIL", reason: `真实调起官方 locale 运行时失败：${error instanceof Error ? error.message : String(error)}`, coordinate: candidates[0] };
+        return { state: "FAIL", reason: `真实调起官方 locale 运行时失败：${errMsg(error)}`, coordinate: candidates[0] };
       } finally {
         if (previousLoader !== undefined && previousWindow !== undefined) {
           globalThis.window.__ModuleLoader__ = previousLoader;
@@ -307,18 +721,12 @@ export const HOST_CONTRACT_PROBES = [
   {
     id: "P-CTX-SERVICES",
     face: "HF-CTX-SERVICES",
-    describe: "宿主服务容器：tools/systemPrompt 服务名在宿主插件包内在位",
-    run(ctx) {
+    describe: "宿主服务容器：行为探针——真实实例化官方 ToolRuntime/SystemPrompt 断言服务名，＋官方 boot() 空树产出 baseUrl 经适配层回读",
+    async run(ctx) {
       if (!ctx.hostInstalled) return { state: "SKIP", reason: "本机未安装宿主", coordinate: "discoverPackageRoots" };
-      const toolsFiles = libFiles(ctx.roots, "dsh-tools");
-      if (!marker(toolsFiles, "\"tools\"")) {
-        return { state: "FAIL", reason: "dsh-tools 包内无 \"tools\" 服务名标记（服务改名→工具面静默不注册）", coordinate: toolsFiles.slice(0, 3).join(" ; ") };
-      }
-      const promptFiles = [...libFiles(ctx.roots, "dsh-system-prompt"), ...toolsFiles];
-      if (!marker(promptFiles, "\"systemPrompt\"")) {
-        return { state: "FAIL", reason: "宿主包内无 \"systemPrompt\" 服务名标记（提示段注册静默失效）", coordinate: promptFiles.slice(0, 3).join(" ; ") };
-      }
-      return { state: "PASS" };
+      const names = await probeCtxServicesNamesStage(ctx.roots);
+      if (names.state !== "PASS") return names;
+      return probeCtxServicesBaseUrlStage(ctx.roots);
     }
   },
   {
@@ -471,30 +879,10 @@ export const HOST_CONTRACT_PROBES = [
   {
     id: "P-SESSION-LOG",
     face: "HF-SESSION-LOG",
-    describe: "会话日志面：DSH_HOME/sessions/<分片>/<会话>/session.jsonl.zstd 布局在位",
+    describe: "会话日志面：行为探针——本机最新真实会话日志经 lib/stats.js 读取解析实调（多帧 zstd→事件形状→四大投影）",
     run(ctx) {
       if (!ctx.hostInstalled) return { state: "SKIP", reason: "本机未安装宿主", coordinate: "discoverDshCliDirs" };
-      const dshHome = process.env.DSH_HOME ?? join(homedir(), ".dsh");
-      const sessionsRoot = join(dshHome, "sessions");
-      const coordinate = sessionsRoot;
-      let shards;
-      try {
-        shards = readdirSync(sessionsRoot, { withFileTypes: true });
-      } catch {
-        return { state: "SKIP", reason: "本机无会话日志目录（宿主未产出会话）", coordinate };
-      }
-      for (const shard of shards) {
-        if (!shard.isDirectory()) continue;
-        try {
-          for (const session of readdirSync(join(sessionsRoot, shard.name), { withFileTypes: true })) {
-            if (session.isDirectory()
-              && existsSync(join(sessionsRoot, shard.name, session.name, "session.jsonl.zstd"))) {
-              return { state: "PASS", coordinate: join(shard.name, session.name) };
-            }
-          }
-        } catch { /* 分片不可读 → 继续扫 */ }
-      }
-      return { state: "SKIP", reason: "会话日志根存在但尚无 session.jsonl.zstd（无旧会话可核布局）", coordinate };
+      return probeSessionLogStage(process.env.DSH_HOME ?? join(homedir(), ".dsh"));
     }
   }
 ];
@@ -560,7 +948,7 @@ async function runGate({ face, reportFile } = {}) {
     } catch (error) {
       results.push({
         probeId: probe.id, face: probe.face, describe: probe.describe,
-        state: "FAIL", reason: `探针自身异常：${error instanceof Error ? error.message : String(error)}`
+        state: "FAIL", reason: `探针自身异常：${errMsg(error)}`
       });
     }
   }
@@ -611,7 +999,7 @@ if (isMain) {
     console.log(lines.join("\n"));
     process.exit(gatePass ? 0 : 1);
   } catch (error) {
-    console.error(`宿主契约门: 门自身错误（${error instanceof Error ? error.message : String(error)}）`);
+    console.error(`宿主契约门: 门自身错误（${errMsg(error)}）`);
     process.exit(2);
   }
 }

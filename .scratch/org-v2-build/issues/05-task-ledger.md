@@ -107,6 +107,27 @@ bot 侧**无台账文件直写通道**。
   `NOTIFY_TO`／`OPS` 五张表按事件类型分别维护（新增一个事件类型需动五处）——这是「确定性层
   表驱动」的显式代价，换取机械可校验；接受。
 
+### 评审补修（2026-09-18 `/code-review` 全批重审，固定点 `326f4d8...HEAD`）
+
+- **Spec 轴发现（已修）**：`task.wait-user` 缺归属约束——原任意 post 实例可把他人任务挂成
+  `waiting-user`（该态无超时自动动作＝可被无限期冻结），与 `task.block`（`ownerOnly`）及票面
+  自述「承接类转移只许当前归属者」不一致 → OPS 表补 `postOwnerOnly`：post 触发须归属者本人，
+  host／user（上浮终裁／用户域裁定，规格 §F）照旧放行；新增回归用例（非归属 post 拒且留痕、
+  归属者 post／host／user 三类触发放行）。
+- **边界如实化（不改行为）**：「拒绝 fail closed 并落 `command-rejected` 事件」不含结构性拒绝
+  四类（unknown-op／invalid-task-id／invalid-actor／缺幂等键）——只回执不落账：前两类无法归
+  到任务流、后两类无可信幂等锚点，落账反成写放大面；模块头注已明示，全量拒绝落账语义归
+  06 号票（`V-A3.6`）。
+- **Standards 轴发现（已修）**：`loadTask`／`ledger.task()`／`command()` 三处「存在性＋投影＋
+  抛损坏」重复收敛为 `findTask(events, taskId)`，并修 `command()` 投影损坏时 `existing` 为
+  `undefined`（非 `null`）的隐性不一致（`supersedes` 查旧任务与 `foldAll` 同收——损坏现统一为
+  `ledger-corrupt` 回执或读侧抛）；`buildEvent` 内「来态留痕」注释漂移修正（实际注入点在
+  `appendStateEvent`）。
+- **留观（不修）**：`reject()` 前四参（taskId／actor／idempotencyKey／op）Data Clump——单文件
+  私有 helper、约 18 个调用点纯机械改动，回归风险大于收益。
+- 验证：`TMPDIR=/dev/shm npm test` 62/62（task-ledger 23 条）；preflight 四道门 ①62/62 ②9/9
+  ③0 违例 ④11 PASS / 0 FAIL / 0 SKIP ＝ PASS。
+
 ### 授权依据
 
 2026-09-16 用户 `/implement` 调用（并明示「另有并行对话在工作不要误领」——本票与并行对话在

@@ -517,6 +517,44 @@ test("LLM 岗位只提交判断输入：judgement 不改状态，管理类转移
   }
 });
 
+test("wait-user 挂起：host／user 上浮裁定放行，post 触发须归属者本人（postOwnerOnly）", () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
+    toRunning(ledger, "TK-00000080");
+    // 非归属 post 不得把他人任务挂起——waiting-user 无超时自动动作，任由挂起＝无限期冻结
+    const notOwner = ledger.command({
+      op: "task.wait-user", taskId: "TK-00000080", actor: POST("intruder"),
+      ...cas(ledger, "TK-00000080"), idempotencyKey: "t80-wait-intruder", payload: { reason: "越权挂起" }
+    });
+    assert.equal(notOwner.ok, false);
+    assert.equal(notOwner.code, "not-owner");
+    assert.equal(ledger.task("TK-00000080").status, "running", "越权挂起不得改变状态");
+    assert.equal(ledger.events({ taskId: "TK-00000080" }).filter((e) => e.type === "command-rejected").length, 1);
+    // 归属者 post（不可逆写入放行请求）与 host（上浮终裁）／user（用户域裁定）三类触发均放行（规格 §F）
+    const ownerWait = ledger.command({
+      op: "task.wait-user", taskId: "TK-00000080", actor: POST("implementer"),
+      ...cas(ledger, "TK-00000080"), idempotencyKey: "t80-wait-owner", payload: { reason: "不可逆写入放行" }
+    });
+    assert.equal(ownerWait.ok, true);
+    for (const [actor, key] of [[HOST, "t80-wait-host"], [USER, "t80-wait-user"]]) {
+      assert.equal(ledger.command({
+        op: "task.resume", taskId: "TK-00000080", actor: HOST, ...cas(ledger, "TK-00000080"),
+        idempotencyKey: `t80-resume-${key}`, payload: { resumeTo: "running" }
+      }).ok, true);
+      const waited = ledger.command({
+        op: "task.wait-user", taskId: "TK-00000080", actor,
+        ...cas(ledger, "TK-00000080"), idempotencyKey: key, payload: { reason: "上浮终裁" }
+      });
+      assert.equal(waited.ok, true, `${actor.kind} 应可触发 wait-user`);
+      assert.equal(ledger.task("TK-00000080").status, "waiting-user");
+    }
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
 test("异常四类统一走台账：非法类别拒、四类均可登记且不改状态（V-A2.11）", () => {
   const home = mkHome();
   try {

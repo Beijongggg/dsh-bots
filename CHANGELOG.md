@@ -7,6 +7,85 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 实现批 **18 号票「宿主契约门 A 类探针行为化升级＋V-A6.8 人工目视
+  清单」**，2026-09-18 用户 `/implement` 调用「新发布的修复票据」＝授权；上承同日
+  `/code-review` 全批重审立票）：
+  - **范围**：A 类 5 探针（P-CONFIG-IDS／P-CLIENT-SLOTS／P-CLIENT-VISUAL／
+    P-CTX-SERVICES／P-SESSION-LOG）由宿主安装产物标记扫描升级为真实调用＋结果形状
+    断言（规格 §H「行为探针」、`V-A6.4`「门只由行为断言把守」）；B 类三探针按规格
+    §H 维持形状/存在性探针不动；`V-A6.8` 目视清单备件落票面（执行待核验人）。
+  - **五面真实调起机制**（均先经真实宿主 scratch 验证再落码）：
+    - `P-CONFIG-IDS`：三段真实调用——我方 patch 构造（lib/shared.cjs）经官方
+      dsh-app-boot `loadOverlayPatches` 往返复验；官方组合 patch（dsh-base＋
+      dsh-web-app）解析官方 id 全集对照 `CONFIG_IDS_CRITICAL` 八项（patch loader
+      对未知 id 无害忽略＝标记扫描抓不到的静默，此处对照必抓）；官方命名空间常量
+      （AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE／llm-pi-ai name）核对。只读禁用的
+      其余 tool-* id 维持 shared.cjs 已声明可选口径（只核往返不核全集）。
+    - `P-CLIENT-SLOTS`：真实 apply 官方 layout/sidebar bundle（ModuleLoader 捕获
+      →factory(shim)→apply 记录型 ctx，inject 回调实调——官方 sidebar 把注册藏在
+      inject 回调内），断言声明槽树 sidebar single／main keyed／shell.overlay list／
+      sidebar.footer.action list。渲染期 priority/abdicate 语义与 conversation
+      entryKey 无头不可调起——**显式降级声明**落探针 describe＋登记表 readAccess
+      双落点，归 V-A6.8 目视清单。
+    - `P-CLIENT-VISUAL`：真实 apply 官方 theme bundle（--dsw-* 官方提供方），断言
+      运行期注入样式含 `--dsw-*` 令牌与 `:root` 定义＋theme 服务 getTheme 形状。
+      primitives 导出形状与 ownerProps 无头不可调起（primitives 仅存于 shell 产物
+      种子表、安装内符号链接悬空可证）——**显式降级声明**双落点：存在性归
+      P-PLUGIN-IDENTITY（B 类）、形状归目视清单。
+    - `P-CTX-SERVICES`：真实实例化官方 ToolRuntime/SystemPrompt（cordis Service
+      构造即 reflect.provide 服务名，tools/systemPrompt 改名必 FAIL）；baseUrl＝
+      官方 boot() 空插件树最小调用，断言 ctx.baseUrl 产出形状并喂回
+      lib/host-services.js 适配层回读 profile id（产出端→消费端闭环，无降级）。
+    - `P-SESSION-LOG`：本机最新真实会话日志喂入 lib/stats.js 真实解码路径（多帧
+      zstd→JSONL 事件形状→四大投影）；无已落盘会话→SKIP 带原因（dev 面可见不阻断，
+      部署面视同 FAIL 语义不变，`V-A6.3`）。
+  - **测试**（四处接缝经用户确认；合成 fixture 驱动，真实宿主实跑归 preflight ④
+    不并入套件）：tests/host-contract-gate.test.mjs 新增 11 条、21 条全绿——harness
+    装载协议/记录 ctx/DOM 桩正负例、各 stage PASS/FAIL/SKIP、登记表双落点降级声明、
+    适配层↔探针 id 无漂移（buildPatchYaml 输出 id ⊆ CRITICAL∪READ_ONLY_TOOLS∪insert）、
+    升级探针无宿主 SKIP 三态协议保持。
+  - **票面**：18 号票勾选至「代码面完成」（V-A6.8 清单备件落票面，核验人待执行
+    署名后代签＝落档作假）；01 号票 V-A6.4/V-A6.8 注记同步收口表述。
+  - **验证**：`TMPDIR=/dev/shm npm test` **39/39 个测试文件** ✅；preflight 四道门
+    ①回归 39/39 ②冻结面（0008 包）9/9 ③status-lint 0 违例 ④宿主契约 **11 PASS /
+    0 FAIL / 0 SKIP**＝`preflight: PASS`（当次实跑输出；六 stage 真实宿主 scratch
+    全 PASS 合计 341ms；冻结面全程零触碰）。
+  - **授权依据**：2026-09-18 用户 `/implement` 调用（「新发布的修复票据」＝18 号票）；
+    接缝清单经用户 AskUserQuestion 确认四处。
+  - **未落档面**：无（18/01 票面＋本条目齐）。
+
+- ✅ 本轮（org-v2 `/code-review` 全批重审**小件原地修复＋修复批立票 18**，2026-09-18
+  用户 `/code-review` 调用（固定点 `326f4d8` 全批重审）＋同日裁定「任务量较小原地修复、
+  较大发布为修复批 issue」＝授权）：
+  - **范围**：固定点 `326f4d8...HEAD`（02/04/01/05 号票＋e2f1e58 修复补录）两轴重审。
+    上轮「已修复」四项核验全部真实落位、无回归；成文规范未发现新硬违反。
+  - **修复（4 件，代码 2 文件＋测试 1 文件）**：
+    - **权限缺口（Spec 轴最重项）**：`lib/org/task-ledger.js` `task.wait-user` 补
+      `postOwnerOnly`——原任意 post 实例可把他人任务挂成 `waiting-user`（该态无超时
+      自动动作＝可被无限期冻结），与 `task.block`（`ownerOnly`）不一致；现 post 触发须
+      归属者本人，host／user 上浮终裁／用户域裁定照旧放行（规格 §F）。新增回归用例
+      1 条（非归属 post 拒且留痕＋三类触发放行）。
+    - `task-ledger.js` 三处「存在性＋投影＋抛损坏」重复收敛为 `findTask(events, taskId)`
+      （`loadTask`／`ledger.task()`／`command()`），并修 `command()` 投影损坏时
+      `existing` 为 `undefined`（非 `null`）的隐性不一致（`supersedes` 查旧任务与
+      `foldAll` 同收——损坏统一为 `ledger-corrupt` 回执或读侧抛）。
+    - `lib/host-faces.js` `HOST_FACE_FIELDS` 冻结集补 `failureMode`（校验器无条件消费
+      却未入冻结集）；`exclusionReason`／`pending` 以条件键注记（按类别由校验器把守）。
+    - `buildEvent` 内「来态留痕」注释漂移修正（实际注入点在 `appendStateEvent`）。
+  - **票面如实注记（不改行为）**：01 号票 `V-A6.4`（11 探针中 3 个为真实调用，A 类另
+    5 面现为标记扫描、行为化升级立 18 号票；B 类形状探针按规格 §H 合规）与 `V-A6.8`
+    （人工目视清单未执行、归 18 号票）；05 号票 Comments 补「评审补修」段（wait-user
+    修复＋结构性拒绝四类只回执不落账的边界——unknown-op／invalid-task-id 无法归流、
+    invalid-actor／缺幂等键无可信锚点，防写放大；全量语义归 06 号票 `V-A3.6`）。
+  - **立票**：`.scratch/org-v2-build/issues/18-probe-behavior-upgrade.md`（A 类 5 探针
+    行为化升级＋`V-A6.8` 人工目视清单）——任务量裁定：每面需无头环境真实调起机制设计，
+    非原地小件。
+  - **留观（不修）**：`reject()` 前四参（taskId／actor／idempotencyKey／op）Data Clump
+    ——单文件私有 helper、约 18 调用点纯机械改动，回归风险大于收益。
+  - **验证**：`TMPDIR=/dev/shm npm test` **62/62** ✅（task-ledger 23 条）；preflight
+    四道门 ①回归 62/62 ②冻结面（0008 包）9/9 ③status-lint 0 违例（扫 59 个 md）④宿主
+    契约 **11 PASS / 0 FAIL / 0 SKIP** ＝ `preflight: PASS`（当次实跑输出；冻结面全程
+    零触碰）。
 - ✅ 本轮（org-v2 **03 号票「退役评审业务面」**，2026-09-18 用户 `/implement` 调用＝
   授权，票面 `.scratch/org-v2-build/issues/03-retire-review-surface.md`；Blocked by
   02 已 resolved；规格出处 spec §I 迁移清单第 3 项、§C 形态废弃）：
