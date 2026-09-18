@@ -4,7 +4,7 @@
  * 只测 lib/org/capability-base.js 自身原语——HMAC 签名/验签（canonical payload
  * 键序无关）／nonce 单次消费与过期清理／secret 0600 独占创建／capability 账
  * O_APPEND 追加与损坏 fail-closed／实例身份注册表五字段代际绑定 fail-closed
- * 语义。评审面经门面的行为等价由既有 review-capability 测试继续把守。
+ * 语义（v1 门面已随 03 号票退役，本模块即 capability 原语唯一实现）。
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";

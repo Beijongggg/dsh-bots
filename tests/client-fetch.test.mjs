@@ -103,9 +103,9 @@ test("apiText 文本端点：裸 fetch，无令牌头、无引导", async () => 
   await resetToken();
   stubFetch([csrfJson("tok-A")]);
   await refreshCsrfToken(); // 令牌在缓存中
-  stubFetch([res(200, "# 评审正文", "text")]);
-  const text = await apiText("/api/bots/review/results/r1/body");
-  assert.equal(text, "# 评审正文");
+  stubFetch([res(200, "# 纯文本响应", "text")]);
+  const text = await apiText("/api/bots/export/report.md");
+  assert.equal(text, "# 纯文本响应");
   assert.equal(calls.length, 1);
   assert.equal(tokenHeader(calls[0]), undefined, "文本端点不经令牌层");
 });

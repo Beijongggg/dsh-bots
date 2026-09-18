@@ -1,8 +1,7 @@
 /**
- * B1（2026-09-05，PLAN §十一）：/api/bots 变更面 CSRF 令牌门控＋principal 适配层。
- * 三层覆盖：①api-security 单元（签发/校验/轮换/宽限/过期）；②principalFor ↔
- * assertDecisionWriter 集成（P5-4 提供者形状）；③handleApi 端到端（门控 403/放行、
- * _csrf 引导端点、decision 写面经 principal 解封、未接线 provider 仍 fail closed）。
+ * B1（2026-09-05，PLAN §十一）：/api/bots 变更面 CSRF 令牌门控。
+ * 两层覆盖：①api-security 单元（签发/校验/轮换/宽限/过期）；②handleApi 端到端
+ * （门控 403/放行、_csrf 引导端点）。
  * 只读直测不写生产代码：handleApi / BotsApi 经 internals 导出（对齐 route.test 惯例）。
  */
 import assert from "node:assert/strict";
@@ -12,7 +11,6 @@ import os from "node:os";
 import { EventEmitter } from "node:events";
 
 import { createApiSecurity, isMutatingMethod, TOKEN_HEADER } from "../lib/api-security.js";
-import { assertDecisionWriter } from "../lib/review-results.js";
 
 const { internals } = await import("../lib/index.js");
 const { BotsApi, handleApi, writeRegistryAtomic } = internals;
@@ -64,24 +62,6 @@ test("空白会话：未签发时任意令牌 → invalid（无 current/previous
   assert.deepEqual(sec.verify("anything"), { ok: false, code: "csrf-token-invalid" });
 });
 
-// ---------- 集成：principalFor ↔ assertDecisionWriter（P5-4 提供者形状） ----------
-test("principalFor：有效令牌 → {ok, principal:{role:'user'}}，经 assertDecisionWriter 认可", () => {
-  const sec = createApiSecurity();
-  const token = sec.issue().token;
-  const auth = sec.principalFor(token);
-  assert.equal(auth.ok, true);
-  assert.equal(auth.principal.role, "user");
-  assert.equal(auth.principal.source, "local-csrf-token");
-  assert.equal(assertDecisionWriter(auth).ok, true);
-});
-
-test("principalFor：无效令牌 → ok:false，assertDecisionWriter fail closed", () => {
-  const sec = createApiSecurity();
-  const auth = sec.principalFor("forged");
-  assert.equal(auth.ok, false);
-  assert.equal(assertDecisionWriter(auth).ok, false);
-});
-
 // ---------- 端到端：handleApi 门控 ----------
 function makeCtx() {
   return { logger: { info() {}, warn() {}, error() {}, debug() {} } };
@@ -131,13 +111,9 @@ async function call(api, method, url, headers = {}, body = null) {
 }
 
 /** 复刻宿主 apply 的接线形状（B1 生产形态）。 */
-function makeApi(home, { security = true, provider = true } = {}) {
+function makeApi(home, { security = true } = {}) {
   const api = new BotsApi(makeCtx(), home);
-  if (security) {
-    const sec = createApiSecurity();
-    api.apiSecurity = sec;
-    if (provider) api.reviewPrincipalProvider = (req) => sec.principalFor(req.headers?.[TOKEN_HEADER]);
-  }
+  if (security) api.apiSecurity = createApiSecurity();
   return api;
 }
 
@@ -184,27 +160,6 @@ test("_csrf 端点：GET 签发（token/expiresAt）；非 GET 405；未接线 4
   assert.equal((await call(legacy, "GET", "/api/bots/_csrf")).status, 404, "未接线对称 404");
 });
 
-test("decision 写面：有效令牌 → 过 principal 门（空载荷 400 非恒 403）；无令牌 → 门控 403", async () => {
-  const api = makeApi(mkHome());
-  const token = api.apiSecurity.issue().token;
-  const unlocked = await call(api, "POST", "/api/bots/review/decisions",
-    { "content-type": "application/json", [TOKEN_HEADER]: token }, {});
-  assert.equal(unlocked.status, 400, "principal 已认（B1 解封），空载荷被信封校验拒绝");
-
-  const gated = await call(api, "POST", "/api/bots/review/decisions",
-    { "content-type": "application/json" }, {});
-  assert.equal(gated.status, 403);
-  assert.equal(gated.body.code, "csrf-token-required", "变更面门控先于 principal");
-});
-
-test("decision 写面：接线 apiSecurity 但 provider 缺席 → 仍 403 fail closed（P5-4 语义保持）", async () => {
-  const api = makeApi(mkHome(), { security: true, provider: false });
-  const token = api.apiSecurity.issue().token;
-  const denied = await call(api, "POST", "/api/bots/review/decisions",
-    { "content-type": "application/json", [TOKEN_HEADER]: token }, {});
-  assert.equal(denied.status, 403);
-  assert.match(denied.body.error, /principal|宿主/, "拒绝原因应为 principal 缺席而非令牌");
-});
 
 // ---------- 运行 ----------
 let failed = 0;

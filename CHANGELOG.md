@@ -7,6 +7,45 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 **03 号票「退役评审业务面」**，2026-09-18 用户 `/implement` 调用＝
+  授权，票面 `.scratch/org-v2-build/issues/03-retire-review-surface.md`；Blocked by
+  02 已 resolved；规格出处 spec §I 迁移清单第 3 项、§C 形态废弃）：
+  - **范围**：v1 评审形态从业务代码面整体退役——16 个非冻结 `review-*` 模块、插件
+    入口评审段、前端评审子面、双席席位／13 stage 协议／提示层双审注入／enforcement
+    矩阵业务引用一并消失；冻结面（0008 包 9 文件）零触碰。
+  - **删除（40 文件，-13,324 行）**：16 个 `lib/review-*` 模块（capability／
+    discussion／envelopes／evidence／flow／http-api／intake／job-tools／jobs／
+    migration／orchestrator／protocol／relay／report／results／store）＋21 个
+    `tests/review-*.test.mjs`＋`tests/discuss-mail.test.mjs`（专测双审讨论续环）＋
+    `scripts/p6-4-verify.mjs`＋`tests/p6-4-verify.test.mjs`（v1 capability 验收
+    工具，依赖已退役门面；实例行五字段断言已由 org-capability-base 测试覆盖，
+    org-v2 capability 验收归 06 号票）。冻结件 `lib/review-enforcement.js`／
+    `scripts/review-enforcement-probe.cjs`／`tests/review-enforcement-matrix.test.mjs`
+    留置归 15 号票。
+  - **插件入口（lib/index.js 3,657→2,861 行）**：评审 imports、评审主机泵 region
+    （emitReviewNotify／buildReviewRunner／handleCompletedInvocation／
+    pumpReviewInvocations／startReviewHostWatcher 等）、job 受信链与 reviewHttpApi
+    接线、`/api/bots/review/*` 路由分支、apply 内 nonce 清扫／
+    reviewPrincipalProvider／engineering+review 组工具注册／评审泵 effect、双审
+    两段提示注入（`dsh-bots:review`／`dsh-bots:review-gate`）、send_mail 的
+    `kind=mail-discuss` 形参、P3-1 误投守卫、mail-discuss 续环（DISCUSSION_MAX_
+    ROUNDS 路径）、P6-1 三路径启动校验（R2-11 宿主受信链件，随链退役；L1 权限面
+    重建归 06 号票）、internals 24 项评审导出。
+  - **前端（lib/client.js）**：i18n 键 `review.entry`（zh/en）、`reviewApi`、
+    `REVIEW_NOTIFY_KEYS`／`reviewNoticeText`／`pushReviewNotices`、SSE `review`
+    监听与四个评审导出摘除；`apiText` 通用原语保留。
+  - **连带**：`lib/mail-plane.js` mail-discuss 写侧退役（读侧 `inboxHasResponseTo`
+    保留历史行容忍，防升级窗口重复回信）；`lib/api-security.js` 摘 `principalFor`
+    （P5-4 评审写面适配；CSRF 会话不变）；`lib/org/*` 头注与 org 测试头注残留表述
+    清理；`tests/api-security.test.mjs` 改纯 CSRF 门控两层覆盖；`tests/
+    client-fetch.test.mjs` 示例路径换中性。
+  - **边界注记（归 15 号票）**：冻结件 `scripts/evidence-runner.mjs` Phase 3 spawn
+    `tests/review-concurrency.test.mjs`（本轮已删）的悬空引用——冻结面零触碰未改，
+    15 号票处置前真实全量证据采集须 `--skip-tests` 口径。
+  - **验证**：`TMPDIR=/dev/shm node tests/run.mjs` **39/39** ✅（原 62 文件，本票
+    删 23 个评审面测试）；preflight 四道门 ①回归 39/39 ②冻结面（0008 包）9/9
+    ③status-lint 0 违例（扫 59 个 md）④宿主契约 **11 PASS / 0 FAIL / 0 SKIP** ＝
+    `preflight: PASS`（当次实跑输出；工作树含 18 号票并行在制品，一并过门）。
 - ✅ 本轮（org-v2 实现批 **01 号票「宿主适配面与宿主契约门」＋02 号票「通用基座
   拆出」**（与并行会话的 04/05 号票同批），2026-09-16 用户 `/implement` 调用＝
   授权；上承同日 `/to-tickets` 切票与规格冻结；本条目为两票实施的补录落档，

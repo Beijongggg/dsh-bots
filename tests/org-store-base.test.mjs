@@ -3,7 +3,7 @@
  *
  * 只测 lib/org/store-base.js 自身原语——锁域隔离／原子写／audit fail-closed／
  * 事件溯源（非评审类型表——用台账式自定义事件验证通用性，为 05 号票预演）／
- * 幂等预留索引。评审面经门面的行为等价由既有 review-* 测试继续把守。
+ * 幂等预留索引（v1 门面已随 03 号票退役，本模块即 store 原语唯一实现）。
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
