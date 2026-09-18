@@ -946,3 +946,248 @@ test("队列滞留超时：intake 上浮用户／triaged 退回分诊／planned 
     rmSync(home, { recursive: true, force: true });
   }
 });
+
+// ---------------- 复核件套台账面（org-v2 08 号票；V-A2.7／规格 §C） ----------------
+
+import { REVIEW_BOUNDARY_IDS } from "../lib/org/review-kit.js";
+
+const REVIEW_BRIEF = Object.freeze({
+  ...VALID_BRIEF,
+  reviewPoints: ["before-external-visibility"]
+});
+
+/** 建一张 produced 态任务（复核流的被审对象）。 */
+function toProduced(ledger, taskId, botId = "implementer", brief = REVIEW_BRIEF) {
+  assert.equal(openTask(ledger, taskId, { brief }).ok, true);
+  assert.equal(ledger.command({
+    op: "task.triage", taskId, actor: HOST, ...cas(ledger, taskId),
+    idempotencyKey: `${taskId}-triage`, payload: { decision: "立项" }
+  }).ok, true);
+  assert.equal(ledger.command({
+    op: "task.plan", taskId, actor: HOST, ...cas(ledger, taskId),
+    idempotencyKey: `${taskId}-plan`, payload: {}
+  }).ok, true);
+  assert.equal(ledger.command({
+    op: "task.assign", taskId, actor: HOST, ...cas(ledger, taskId),
+    idempotencyKey: `${taskId}-assign`, payload: { assignee: botId }
+  }).ok, true);
+  assert.equal(ledger.command({
+    op: "task.accept", taskId, actor: POST(botId), ...cas(ledger, taskId),
+    idempotencyKey: `${taskId}-accept`, payload: {}
+  }).ok, true);
+  assert.equal(ledger.command({
+    op: "task.start", taskId, actor: POST(botId), ...cas(ledger, taskId),
+    idempotencyKey: `${taskId}-start`, payload: {}
+  }).ok, true);
+  assert.equal(ledger.command({
+    op: "task.report", taskId, actor: POST(botId), ...cas(ledger, taskId),
+    idempotencyKey: `${taskId}-report`, payload: { deliverable: "patch 已落坐标" }
+  }).ok, true);
+}
+
+const CLOSED_REPORT = Object.freeze({
+  subject: "before-external-visibility",
+  verdict: "closed",
+  gaps: [],
+  modelIdentity: "glm-5.3-flash（复核实例）"
+});
+
+test("review.request：点须在必审枚举；简报点降级（免审）即拒；加审须归因", () => {
+  const ledger = createTaskLedger({ dshHome: mkHome(), now: clockAt().now });
+  toProduced(ledger, "TK-00000090");
+  // 枚举外 point 拒（fail closed，不当作咨询主题）
+  const bad = ledger.command({
+    op: "review.request", taskId: "TK-00000090", actor: HOST, ...cas(ledger, "TK-00000090"),
+    idempotencyKey: "rv-bad-point", payload: { point: "交付前看一眼", reviewer: "bot-reviewer" }
+  });
+  assert.equal(bad.ok, false);
+  assert.equal(bad.code, "invalid-review-point");
+  // 简报冻结点不可降级为咨询（可加审不可免审）
+  const exempt = ledger.command({
+    op: "review.request", taskId: "TK-00000090", actor: HOST, ...cas(ledger, "TK-00000090"),
+    idempotencyKey: "rv-exempt", payload: { point: "before-external-visibility", mandatory: false, reviewer: "bot-reviewer" }
+  });
+  assert.equal(exempt.ok, false);
+  assert.equal(exempt.code, "review-exemption-forbidden");
+  // 加审（枚举点 ∉ 简报）无归因即拒
+  const noAttribution = ledger.command({
+    op: "review.request", taskId: "TK-00000090", actor: HOST, ...cas(ledger, "TK-00000090"),
+    idempotencyKey: "rv-no-attr", payload: { point: "before-irreversible-write", mandatory: true, reviewer: "bot-reviewer" }
+  });
+  assert.equal(noAttribution.ok, false);
+  assert.equal(noAttribution.code, "review-attribution-required");
+  // 咨询性请求（topic）合法
+  const advisory = ledger.command({
+    op: "review.request", taskId: "TK-00000090", actor: HOST, ...cas(ledger, "TK-00000090"),
+    idempotencyKey: "rv-advisory", payload: { topic: "文档口径", reviewer: "bot-reviewer" }
+  });
+  assert.equal(advisory.ok, true);
+});
+
+test("review.request：排除产出方与不空闲实例（复核帽＝当次空闲、非产出方）", () => {
+  const ledger = createTaskLedger({ dshHome: mkHome(), now: clockAt().now });
+  toProduced(ledger, "TK-00000091");
+  // 产出方自任复核者 → 拒
+  const self = ledger.command({
+    op: "review.request", taskId: "TK-00000091", actor: HOST, ...cas(ledger, "TK-00000091"),
+    idempotencyKey: "rv-self", payload: { topic: "咨询", reviewer: "implementer" }
+  });
+  assert.equal(self.ok, false);
+  assert.equal(self.code, "reviewer-is-producer");
+  // 在手任务实例不空闲：researcher 持有 TK-00000092（produced 属在手态）→ 拒
+  toProduced(ledger, "TK-00000092", "researcher");
+  const busy = ledger.command({
+    op: "review.request", taskId: "TK-00000091", actor: HOST, ...cas(ledger, "TK-00000091"),
+    idempotencyKey: "rv-busy", payload: { topic: "咨询", reviewer: "researcher" }
+  });
+  assert.equal(busy.ok, false);
+  assert.equal(busy.code, "reviewer-not-idle");
+  // 空闲且非产出方 → 放行
+  const ok = ledger.command({
+    op: "review.request", taskId: "TK-00000091", actor: HOST, ...cas(ledger, "TK-00000091"),
+    idempotencyKey: "rv-ok", payload: { topic: "咨询", reviewer: "bot-reviewer" }
+  });
+  assert.equal(ok.ok, true);
+});
+
+test("必审拦截（V-A2.7）：简报点未闭合时交付转移被拒；闭合后放行", () => {
+  const ledger = createTaskLedger({ dshHome: mkHome(), now: clockAt().now });
+  toProduced(ledger, "TK-00000093");
+  const blocked = ledger.command({
+    op: "task.deliver", taskId: "TK-00000093", actor: POST("implementer"), ...cas(ledger, "TK-00000093"),
+    idempotencyKey: "dl-blocked", payload: {}
+  });
+  assert.equal(blocked.ok, false);
+  assert.equal(blocked.code, "review-gaps-open");
+  assert.ok(blocked.reason.includes("before-external-visibility"));
+  // 拒绝落账（command-rejected 在案）
+  assert.ok(ledger.events({ taskId: "TK-00000093" }).some((e) => e.type === "command-rejected" && e.op === "task.deliver"));
+  // 召集复核并闭合 → 放行
+  assert.equal(ledger.command({
+    op: "review.request", taskId: "TK-00000093", actor: HOST, ...cas(ledger, "TK-00000093"),
+    idempotencyKey: "rv-open", payload: { point: "before-external-visibility", reviewer: "bot-reviewer" }
+  }).ok, true);
+  assert.equal(ledger.recordReviewReport({
+    taskId: "TK-00000093", reviewer: "bot-reviewer", report: CLOSED_REPORT, idempotencyKey: "rr-closed"
+  }).ok, true);
+  const delivered = ledger.command({
+    op: "task.deliver", taskId: "TK-00000093", actor: POST("implementer"), ...cas(ledger, "TK-00000093"),
+    idempotencyKey: "dl-ok", payload: {}
+  });
+  assert.equal(delivered.ok, true);
+  assert.equal(delivered.status, "delivered");
+});
+
+test("清单外咨询性不阻断交付：gaps-open 报告在案 deliver 照常通过", () => {
+  const ledger = createTaskLedger({ dshHome: mkHome(), now: clockAt().now });
+  toProduced(ledger, "TK-00000094", "implementer", { ...VALID_BRIEF, reviewPoints: [] });
+  assert.equal(ledger.command({
+    op: "review.request", taskId: "TK-00000094", actor: HOST, ...cas(ledger, "TK-00000094"),
+    idempotencyKey: "rv-adv", payload: { topic: "文档口径", reviewer: "bot-reviewer" }
+  }).ok, true);
+  const advisoryOpen = ledger.recordReviewReport({
+    taskId: "TK-00000094", reviewer: "bot-reviewer",
+    report: { subject: "文档口径", verdict: "gaps-open", gaps: [{ severity: "minor", summary: "s", evidence: "e" }], modelIdentity: "m" },
+    idempotencyKey: "rr-adv"
+  });
+  assert.equal(advisoryOpen.ok, true);
+  assert.equal(advisoryOpen.escalated, false);
+  const delivered = ledger.command({
+    op: "task.deliver", taskId: "TK-00000094", actor: POST("implementer"), ...cas(ledger, "TK-00000094"),
+    idempotencyKey: "dl-adv", payload: {}
+  });
+  assert.equal(delivered.ok, true);
+});
+
+test("recordReviewReport：形状不符／未被指定／产出方自任／未请求的 subject 即拒", () => {
+  const ledger = createTaskLedger({ dshHome: mkHome(), now: clockAt().now });
+  toProduced(ledger, "TK-00000095");
+  assert.equal(ledger.command({
+    op: "review.request", taskId: "TK-00000095", actor: HOST, ...cas(ledger, "TK-00000095"),
+    idempotencyKey: "rv-req", payload: { point: "before-external-visibility", reviewer: "bot-reviewer" }
+  }).ok, true);
+  const malformed = ledger.recordReviewReport({
+    taskId: "TK-00000095", reviewer: "bot-reviewer",
+    report: { subject: "before-external-visibility", verdict: "passed", gaps: [] },
+    idempotencyKey: "rr-bad"
+  });
+  assert.equal(malformed.ok, false);
+  assert.equal(malformed.code, "invalid-review-report");
+  const stranger = ledger.recordReviewReport({
+    taskId: "TK-00000095", reviewer: "bot-stranger", report: CLOSED_REPORT, idempotencyKey: "rr-stranger"
+  });
+  assert.equal(stranger.ok, false);
+  assert.equal(stranger.code, "not-designated-reviewer");
+  const producer = ledger.recordReviewReport({
+    taskId: "TK-00000095", reviewer: "implementer", report: CLOSED_REPORT, idempotencyKey: "rr-producer"
+  });
+  assert.equal(producer.ok, false);
+  assert.equal(producer.code, "reviewer-is-producer");
+  const unrequested = ledger.recordReviewReport({
+    taskId: "TK-00000095", reviewer: "bot-reviewer",
+    report: { ...CLOSED_REPORT, subject: "before-irreversible-write" }, idempotencyKey: "rr-unreq"
+  });
+  assert.equal(unrequested.ok, false);
+  assert.equal(unrequested.code, "review-not-requested");
+});
+
+test("连续两轮未闭合上浮用户终裁：第二轮 gaps-open 自动 escalated（waiting-user、清归属、通知 user）", () => {
+  const ledger = createTaskLedger({ dshHome: mkHome(), now: clockAt().now });
+  toProduced(ledger, "TK-00000096");
+  assert.equal(ledger.command({
+    op: "review.request", taskId: "TK-00000096", actor: HOST, ...cas(ledger, "TK-00000096"),
+    idempotencyKey: "rv-req", payload: { point: "before-external-visibility", reviewer: "bot-reviewer" }
+  }).ok, true);
+  const gap = (summary) => ({
+    subject: "before-external-visibility",
+    verdict: "gaps-open",
+    gaps: [{ severity: "major", summary, evidence: `coord:${summary}` }],
+    modelIdentity: "m"
+  });
+  const round1 = ledger.recordReviewReport({
+    taskId: "TK-00000096", reviewer: "bot-reviewer", report: gap("round-1"), idempotencyKey: "rr-r1"
+  });
+  assert.equal(round1.ok, true);
+  assert.equal(round1.consecutiveUnclosed, 1);
+  assert.equal(round1.escalated, false);
+  assert.equal(ledger.task("TK-00000096").status, "produced");
+  const round2 = ledger.recordReviewReport({
+    taskId: "TK-00000096", reviewer: "bot-reviewer", report: gap("round-2"), idempotencyKey: "rr-r2"
+  });
+  assert.equal(round2.ok, true);
+  assert.equal(round2.escalated, true);
+  const task = ledger.task("TK-00000096");
+  assert.equal(task.status, "waiting-user");
+  assert.equal(task.owner, null);
+  // 通知投影：复核请求→指定复核者；上浮→user
+  const notifications = ledger.notificationsAfter(0).notifications;
+  assert.ok(notifications.some((n) => n.type === "review-requested" && n.to === "bot-reviewer"));
+  assert.ok(notifications.some((n) => n.type === "escalated" && n.to === "user"));
+  // 已挂起后再报不重复上浮
+  const round3 = ledger.recordReviewReport({
+    taskId: "TK-00000096", reviewer: "bot-reviewer", report: gap("round-3"), idempotencyKey: "rr-r3"
+  });
+  assert.equal(round3.ok, true);
+  assert.equal(round3.escalated, false);
+});
+
+test("复核事件入事实源且可重建：事件 schema 校验通过、投影不串状态", () => {
+  const ledger = createTaskLedger({ dshHome: mkHome(), now: clockAt().now });
+  toProduced(ledger, "TK-00000097");
+  assert.equal(ledger.command({
+    op: "review.request", taskId: "TK-00000097", actor: HOST, ...cas(ledger, "TK-00000097"),
+    idempotencyKey: "rv-req", payload: { point: "before-external-visibility", reviewer: "bot-reviewer" }
+  }).ok, true);
+  assert.equal(ledger.recordReviewReport({
+    taskId: "TK-00000097", reviewer: "bot-reviewer", report: CLOSED_REPORT, idempotencyKey: "rr-closed"
+  }).ok, true);
+  const events = ledger.events({ taskId: "TK-00000097" });
+  const requested = events.find((e) => e.type === "review-requested");
+  const reported = events.find((e) => e.type === "review-reported");
+  assert.equal(requested.reviewer, "bot-reviewer");
+  assert.equal(requested.mandatory, true);
+  assert.equal(reported.subject, "before-external-visibility");
+  assert.equal(reported.verdict, "closed");
+  assert.equal(reported.modelIdentity, "glm-5.3-flash（复核实例）");
+  assert.equal(ledger.task("TK-00000097").status, "produced");
+});

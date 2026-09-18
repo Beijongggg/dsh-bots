@@ -31,7 +31,7 @@ const BRIEF = VALID_BRIEF; // 合法基线简报＝测试共用件
 function makeFetch({ routes = {}, requests = [] } = {}) {
   const impl = async (url, options = {}) => {
     const path = new URL(url, ORIGIN).pathname;
-    requests.push({ path, method: options.method ?? "GET", headers: options.headers ?? {}, body: options.body ? JSON.parse(options.body) : null });
+    requests.push({ path, url, method: options.method ?? "GET", headers: options.headers ?? {}, body: options.body ? JSON.parse(options.body) : null });
     const handler = routes[`${options.method ?? "GET"} ${path}`];
     if (handler === undefined) return { ok: false, status: 404, json: async () => ({ error: "not found" }) };
     const [status, body] = await handler(options.body ? JSON.parse(options.body) : null, requests.length);
@@ -161,4 +161,53 @@ test("CSRF 轮换：403（csrf-*）后重取令牌并重试一次", async () => 
   const posts = fetchImpl.requests.filter((r) => r.method === "POST");
   assert.equal(posts.length, 2, "恰好重试一次");
   assert.ok(fetchImpl.requests.filter((r) => r.path === "/api/bots/_csrf").length >= 2, "重试前重取了令牌");
+});
+
+// ---------------- 复核面路由（org-v2 08 号票） ----------------
+
+test("复核面路由：review.report 走 POST /reviews；响应捕获复核帽；artifact.read 随头携帽读移交件", async () => {
+  const HAT = Object.freeze({ payload: { jti: "h1", botId: "bot-r", post: "verifier", ops: ["artifact.read", "review.report"] }, sig: "hs" });
+  const NEXT_HAT = Object.freeze({ payload: { jti: "h2", botId: "bot-r", post: "verifier", ops: ["artifact.read", "review.report"] }, sig: "hs2" });
+  const fetchImpl = makeFetch({
+    routes: {
+      ...baseRoutes(),
+      "POST /api/bots/_ledger/reviews": async () => [200, {
+        ok: true, taskId: "TK-00000090", subject: "before-external-visibility",
+        round: 1, consecutiveUnclosed: 0, escalated: false, capability: NEXT_HAT
+      }],
+      "GET /api/bots/_ledger/review-handoff": async () => [200, {
+        taskId: "TK-00000090", status: "produced", brief: structuredClone(BRIEF), requests: [], reports: []
+      }]
+    }
+  });
+  const dispatch = createPostChannel({ origin: ORIGIN, botId: "bot-r", probeCtx: { dshHome: tmpdir() }, fetchImpl });
+  const report = await dispatch("review.report", {
+    taskId: "TK-00000090",
+    report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "m" },
+    idempotencyKey: "rr-1"
+  });
+  assert.equal(report.ok, true);
+  const post = fetchImpl.requests.find((r) => r.path === "/api/bots/_ledger/reviews");
+  assert.equal(post.method, "POST", "review.report 是执行面 op，但路由独立于探针（不落 runProbe）");
+  assert.equal(post.headers["x-dsh-bots-token"], "csrf-1");
+  assert.deepEqual(post.body.actor, { kind: "post", id: "bot-r" });
+  assert.equal(post.body.report.verdict, "closed");
+  assert.equal(post.body.capability, undefined, "首报无帽不携带（帽的初次分发＝13 号票自举）");
+  // 响应携带续签帽 → 捕获为复核帽（与命令信封分槽持有，互不覆盖）
+  const handoff = await dispatch("artifact.read", { taskId: "TK-00000090" });
+  assert.equal(handoff.body.taskId, "TK-00000090");
+  const get = fetchImpl.requests.find((r) => r.path === "/api/bots/_ledger/review-handoff");
+  assert.equal(get.method, "GET");
+  assert.equal(get.headers["x-dsh-bots-bot-id"], "bot-r");
+  assert.deepEqual(JSON.parse(get.headers["x-dsh-bots-capability"]), NEXT_HAT);
+  assert.ok(get.url.includes("taskId=TK-00000090"));
+});
+
+test("artifact.read 参数守门：缺 taskId 即拒（不发起请求）", async () => {
+  const fetchImpl = makeFetch({ routes: baseRoutes() });
+  const dispatch = createPostChannel({ origin: ORIGIN, botId: "bot-r", probeCtx: { dshHome: tmpdir() }, fetchImpl });
+  const result = await dispatch("artifact.read", {});
+  assert.equal(result.ok, false);
+  assert.equal(result.code, "artifact-read-args");
+  assert.equal(fetchImpl.requests.some((r) => r.path.includes("review-handoff")), false);
 });

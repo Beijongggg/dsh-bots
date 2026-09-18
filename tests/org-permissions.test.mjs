@@ -20,7 +20,7 @@ import { botWorkspaceDir, createLedgerAuthorizer, isBotWritablePath } from "../l
 import { createCapabilityIssuer } from "../lib/org/capability-issue.js";
 import { instanceRegistryFile } from "../lib/org/capability-base.js";
 import { ROLE_CARDS, ROLE_CARD_FIELDS } from "../lib/org/role-cards.js";
-import { deriveToolFace, OP_SET, WRITE_OPS } from "../lib/org/op-set.js";
+import { deriveToolFace, LEDGER_COMMAND_OPS, OP_SET, WRITE_OPS } from "../lib/org/op-set.js";
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 
@@ -68,8 +68,10 @@ test("组织命令面零路径工具：派生注册集不含任何文件写工�
       if (slug === "verifier") assert.equal(tool.writes, false);
     }
   }
-  // 写 op 全部是台账命令（经鉴权通道），没有任何一个以文件路径为副作用面
-  for (const op of WRITE_OPS) assert.ok(op.startsWith("task."));
+  // 写 op 全部是台账命令面词表成员（副作用＝经鉴权通道的台账事件），没有
+  // 任何一个以文件路径为副作用面（08 号票起命令面含 review.request 等非
+  // task.* 前缀的管理类 op——按词表断言，不按前缀）
+  for (const op of WRITE_OPS) assert.ok(LEDGER_COMMAND_OPS.includes(op));
 });
 
 test("V-A3.8：岗位卡文本扫描——danger-full-access 只许以禁用句式出现，不得作为履约前提", () => {

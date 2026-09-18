@@ -79,10 +79,14 @@ test("来源条目＝{tool, ref} ID-only：夹带摘录字段即拒", () => {
   assert.ok(verdict.violations.some((line) => line.includes("excerpt")));
 });
 
-test("reviewPoints 可省略可空数组；给出时须为非空字符串数组", () => {
+test("reviewPoints 可省略可空数组；给出时须为必审清单边界 id（08 号票三判据封闭枚举）", () => {
   assert.equal(validateBrief({ ...VALID_BRIEF, reviewPoints: undefined }).ok, true);
   assert.equal(validateBrief({ ...VALID_BRIEF, reviewPoints: [] }).ok, true);
-  assert.equal(validateBrief({ ...VALID_BRIEF, reviewPoints: ["跨实例移交前"] }).ok, true);
+  assert.equal(validateBrief({ ...VALID_BRIEF, reviewPoints: ["before-cross-instance-handoff"] }).ok, true);
+  assert.equal(validateBrief({ ...VALID_BRIEF, reviewPoints: ["跨实例移交前"] }).ok, false);
+  assert.ok(
+    validateBrief({ ...VALID_BRIEF, reviewPoints: ["跨实例移交前"] }).violations.some((line) => line.includes("reviewPoints"))
+  );
   assert.equal(validateBrief({ ...VALID_BRIEF, reviewPoints: [""] }).ok, false);
   assert.equal(validateBrief({ ...VALID_BRIEF, reviewPoints: "派单前复核" }).ok, false);
 });

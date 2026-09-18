@@ -269,11 +269,15 @@ test("越表签发 fail closed：op 越出岗位表／给复核帽签发任何 o
   assert.equal(over.ok, false);
   assert.equal(over.code, "issue-op-set");
 
+  // 06 时「复核帽无可执行 op、签发必拒」——08 号票升表后帽签发合法（形状见下条测试）
   const verifierCap = issuer.issueRoleCapability({ botId: "bot-v", post: "verifier" });
-  assert.equal(verifierCap.ok, false, "复核帽当前无可执行 op，签发必须拒（保留集归 08 号票升表）");
+  assert.equal(verifierCap.ok, true, verifierCap.reason);
+  assert.deepEqual([...verifierCap.envelope.payload.ops].sort(), ["artifact.read", "review.report"].sort());
 
   const reserved = issuer.issueRoleCapability({ botId: "bot-a", post: "researcher", ops: ["artifact.submit"] });
   assert.equal(reserved.ok, false, "保留 op 不得签发（未落命令面）");
+  const reservedVerifier = issuer.issueRoleCapability({ botId: "bot-v", post: "verifier", ops: ["results.read"] });
+  assert.equal(reservedVerifier.ok, false, "复核帽保留 op（裁定包读面）不得签发（未升表）");
 });
 
 test("续签＝重签：旧信封 nonce 已消费、新信封独立有效；审计链逐笔在案（V-A3.5 心跳续签）", () => {
@@ -337,3 +341,24 @@ function diffPaths(before, after) {
   const old = new Set(before);
   return after.filter((path) => !old.has(path));
 }
+
+test("复核帽签发（08 号票）：role 信封携复核面 op；任务能力腿只携 evidence.probe", () => {
+  const home = mkHome(); HOMES.push(home);
+  const clock = clockAt();
+  writeInstanceRow(home, "bot-reviewer");
+  const issuer = mkIssuer(home, clock);
+  // 复核帽＝role 信封（帽持有者非任务 owner，任务能力的 owner 吊销腿不适用）
+  const hat = issuer.issueRoleCapability({ botId: "bot-reviewer", post: "verifier" });
+  assert.equal(hat.ok, true, hat.reason);
+  assert.equal(hat.envelope.payload.kind, "role");
+  assert.equal(hat.envelope.payload.post, "verifier");
+  assert.deepEqual([...hat.envelope.payload.ops].sort(), ["artifact.read", "review.report"].sort());
+  // 验签面认定 review.report 非任务域 op → 不走 owner 吊销腿，帽验签通过
+  const verdict = issuer.verify({ envelope: hat.envelope, botId: "bot-reviewer", op: "review.report" });
+  assert.equal(verdict.ok, true, verdict.reason);
+  // 任务能力腿：verifier 的任务域 op 只有 evidence.probe
+  const taskId = `TK-${Math.random().toString(16).slice(2, 12)}`;
+  const task = issuer.issueTaskCapability({ taskId, botId: "bot-reviewer", post: "verifier" });
+  assert.equal(task.ok, true, task.reason);
+  assert.deepEqual(task.envelope.payload.ops, ["evidence.probe"]);
+});

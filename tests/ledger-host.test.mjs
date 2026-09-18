@@ -21,6 +21,9 @@ import { join } from "node:path";
 
 import { internals } from "../lib/index.js";
 import { createLedgerHost, startLedgerTicker, windowKeyFor } from "../lib/org/ledger-host.js";
+import { createCapabilityIssuer } from "../lib/org/capability-issue.js";
+import { instanceRegistryFile } from "../lib/org/capability-base.js";
+import { createReviewFaceGate } from "../lib/org/review-kit.js";
 import { createTaskLedger, eventsFile, ledgerDir } from "../lib/org/task-ledger.js";
 
 const ledgerDirExists = (home) => existsSync(ledgerDir(home));
@@ -164,11 +167,11 @@ test("值守轮询：实例死亡回收租约并广播台账投影，无变化�
 
 // ---------------- HTTP 面 ----------------
 
-function makeReq(method, url, body = null) {
+function makeReq(method, url, body = null, headers = {}) {
   const req = new EventEmitter();
   req.method = method;
   req.url = url;
-  req.headers = {};
+  req.headers = headers;
   process.nextTick(() => {
     if (body !== null) req.emit("data", Buffer.from(JSON.stringify(body)));
     req.emit("end");
@@ -186,8 +189,8 @@ function makeRes() {
   };
 }
 
-async function call(api, method, url, body = null) {
-  const req = makeReq(method, url, body);
+async function call(api, method, url, body = null, headers = {}) {
+  const req = makeReq(method, url, body, headers);
   const res = makeRes();
   await handleApi(req, res, api);
   let parsed = res.body;
@@ -369,6 +372,88 @@ test("值守 disposer 释放台账写锁（宿主停机/热重载不留悬空写
     // 释放后新宿主可直接取得写锁（重启语义）
     const restarted = createTaskLedger({ dshHome: home, now: () => NOW, lockSpinMs: 0 });
     assert.equal(openTaskViaLedger(restarted, "TK-00000082").ok, true);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+// ---------------- 复核面 HTTP（org-v2 08 号票） ----------------
+
+test("复核面 HTTP：移交件读与报告提交经帽信封门；未携帽 403；报告响应携带续签帽", async () => {
+  const home = mkHome();
+  try {
+    // 实例行（活 pid＝本进程）＋签发面＋复核面 gate 全真接线
+    const row = {
+      botId: "bot-reviewer", pid: process.pid, startedAt: `proc:${process.pid}`,
+      hostInstanceId: "gen-reviewer", at: Date.now()
+    };
+    mkdirSync(join(home, "bots", "started"), { recursive: true });
+    writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
+    const ledger = createTaskLedger({ dshHome: home, now: () => NOW });
+    const issuer = createCapabilityIssuer({ dshHome: home, ledger, now: () => NOW });
+    const reviewGate = createReviewFaceGate({ issuer, ledger });
+    const host = createLedgerHost({
+      ledger, now: () => NOW, readBotIds: () => [], isAlive: () => true, broadcast: () => {},
+      logger: { warn() {}, info() {} }, reviewGate, issuer
+    });
+    const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
+
+    // 任务（简报带复核点）＋复核请求
+    const created = await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "task.intake", taskId: "TK-00000070", actor: { kind: "user", id: "user" },
+      idempotencyKey: "rvh-intake", payload: {
+        class: "project", brief: { ...VALID_BRIEF, reviewPoints: ["before-external-visibility"] }
+      }
+    });
+    assert.equal(created.body.ok, true);
+    const requested = await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "review.request", taskId: "TK-00000070", actor: { kind: "user", id: "user" },
+      idempotencyKey: "rvh-request", payload: { point: "before-external-visibility", reviewer: "bot-reviewer" }
+    });
+    assert.equal(requested.body.ok, true, requested.body.reason);
+
+    const hat = issuer.issueRoleCapability({ botId: "bot-reviewer", post: "verifier" });
+    assert.equal(hat.ok, true, hat.reason);
+    const hatHeader = JSON.stringify(hat.envelope);
+
+    // 未携帽读移交件 → 403（fail closed）
+    const naked = await call(api, "GET", "/api/bots/_ledger/review-handoff?taskId=TK-00000070");
+    assert.equal(naked.status, 403);
+    assert.equal(naked.body.code, "capability-malformed", "未携帽＝信封缺格，验签腿 fail closed");
+
+    // 携帽读 → 200，移交件含冻结简报与指定关系、不含判断输入
+    const handoff = await call(api, "GET", "/api/bots/_ledger/review-handoff?taskId=TK-00000070", null, {
+      "x-dsh-bots-bot-id": "bot-reviewer",
+      "x-dsh-bots-capability": hatHeader
+    });
+    assert.equal(handoff.status, 200);
+    assert.equal(handoff.body.taskId, "TK-00000070");
+    assert.equal(handoff.body.requests[0].reviewer, "bot-reviewer");
+    assert.deepEqual(handoff.body.brief.reviewPoints, ["before-external-visibility"]);
+
+    // 携帽报 closed → 200＋续签帽；上浮不触发（一轮闭合）
+    const reported = await call(api, "POST", "/api/bots/_ledger/reviews", {
+      taskId: "TK-00000070", actor: { kind: "post", id: "bot-reviewer" }, idempotencyKey: "rvh-report",
+      capability: hat.envelope,
+      report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "review-model" }
+    });
+    assert.equal(reported.status, 200);
+    assert.equal(reported.body.ok, true);
+    assert.equal(reported.body.escalated, false);
+    assert.equal(reported.body.capability?.payload?.post, "verifier", "响应携带续签帽（链式）");
+
+    // 他人冒用帽 → 403（信封属 bot-reviewer）
+    const impostor = await call(api, "POST", "/api/bots/_ledger/reviews", {
+      taskId: "TK-00000070", actor: { kind: "post", id: "bot-other" }, idempotencyKey: "rvh-bad",
+      capability: hat.envelope,
+      report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "m" }
+    });
+    assert.equal(impostor.status, 403);
+    assert.equal(impostor.body.code, "capability-bot-mismatch");
+
+    // 通知投影：复核请求送达指定复核者
+    const notes = await call(api, "GET", "/api/bots/_ledger/notifications?cursor=0");
+    assert.ok(notes.body.notifications.some((n) => n.type === "review-requested" && n.to === "bot-reviewer"));
   } finally {
     rmSync(home, { recursive: true, force: true });
   }

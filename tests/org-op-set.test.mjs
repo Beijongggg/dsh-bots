@@ -46,7 +46,7 @@ test("ledger.read 四常设岗有、复核帽无（V-A3.3）", () => {
 });
 
 test("表内 op 全部真实存在：台账命令面 op ∪ ledger.read ∪ 执行面；保留集**按岗位**单列不混入", () => {
-  const known = new Set([...Object.keys(OPS), "ledger.read", ...EXECUTE_OPS]);
+  const known = new Set([...Object.keys(OPS), ...READ_OPS, ...EXECUTE_OPS]);
   for (const [slug, ops] of Object.entries(OP_SET)) {
     for (const op of ops) {
       assert.ok(known.has(op), `${slug} 的 op ${op} 不在命令面词表（不得登记不可执行的 op）`);
@@ -62,9 +62,16 @@ test("表内 op 全部真实存在：台账命令面 op ∪ ledger.read ∪ 执�
   }
 });
 
-test("分类是封闭枚举：读集∪写集＝命令面全词表∪ledger.read，执行面单列，三类两两不交（机械检查的完备性前提）", () => {
+test("分类是封闭枚举：读写集覆盖命令面全词表∪ledger.read（08 起另含复核读面，单列在案），执行面单列，三类两两不交", () => {
   const classified = new Set([...READ_OPS, ...WRITE_OPS]);
-  assert.deepEqual([...classified].sort(), [...LEDGER_COMMAND_OPS, "ledger.read"].sort());
+  for (const op of LEDGER_COMMAND_OPS) {
+    assert.ok(classified.has(op), `命令面 op ${op} 漏分类（新命令面 op 必须归类，漏分类即被此处抓出）`);
+  }
+  assert.ok(classified.has("ledger.read"));
+  assert.deepEqual(READ_OPS, ["ledger.read", "artifact.read"]); // 08 号票：复核移交件读面
+  for (const op of READ_OPS) {
+    assert.ok(!LEDGER_COMMAND_OPS.includes(op) || op === "ledger.read", `读面扩展 op ${op} 不得是台账命令（读面不落事件）`);
+  }
   for (const op of READ_OPS) assert.ok(!WRITE_OPS.includes(op), `${op} 不得同时属读写两类`);
   for (const op of WRITE_OPS) assert.ok(!READ_OPS.includes(op), `${op} 不得同时属读写两类`);
   // 执行面（非台账命令工具）：不在读写两类内（不落台账事件），但须在册
@@ -75,13 +82,29 @@ test("分类是封闭枚举：读集∪写集＝命令面全词表∪ledger.read
   }
 });
 
-test("evidence.probe 升表（07 号票）：承接岗可执行、复核帽仍在保留集（其执行面随 08 升表）", () => {
+test("evidence.probe 升表（07 号票）：承接岗可执行；复核帽执行面已随 08 升表", () => {
   for (const slug of ["researcher", "implementer"]) {
     assert.ok(OP_SET[slug].includes("evidence.probe"), `${slug} 须持 evidence.probe`);
     assert.ok(!RESERVED_OPS[slug].includes("evidence.probe"), `${slug} 保留集不得再留已升表 op`);
   }
-  assert.ok(RESERVED_OPS.verifier.includes("evidence.probe"), "复核帽的 evidence.probe 仍在保留集（归 08 号票）");
-  assert.equal(OP_SET.verifier.includes("evidence.probe"), false, "复核帽可执行表仍不含 evidence.probe");
+  assert.ok(OP_SET.verifier.includes("evidence.probe"), "复核帽可执行表含 evidence.probe（08 号票升表）");
+});
+
+test("复核面 op 升表（08 号票）：复核帽可执行集＝移交件读＋探针＋报告；保留集收缩为裁定包/移交读", () => {
+  assert.deepEqual([...OP_SET.verifier].sort(), ["artifact.read", "evidence.probe", "review.report"].sort());
+  assert.deepEqual([...RESERVED_OPS.verifier].sort(), ["evidence.read", "results.read"].sort());
+  // 复核面读/报告 op 不得进常设岗行（复核帽专用面）
+  for (const slug of STANDING_POST_SLUGS) {
+    for (const op of ["artifact.read", "review.report"]) {
+      assert.ok(!OP_SET[slug].includes(op), `${slug} 不得持复核帽专用 op ${op}`);
+    }
+  }
+});
+
+test("review.request 升表（08 号票）：project-lead 持之，属命令面写集（管理类）", () => {
+  assert.ok(OP_SET["project-lead"].includes("review.request"));
+  assert.ok(!RESERVED_OPS["project-lead"].includes("review.request"));
+  assert.ok(WRITE_OPS.includes("review.request"), "review.request 是台账命令（落事件），属写集");
 });
 
 test("task.decline 升表（07 号票带理由拒收）：承接岗可执行且属任务域执行集", () => {
@@ -95,7 +118,7 @@ test("task.decline 升表（07 号票带理由拒收）：承接岗可执行且�
 test("复核帽不含任何写 op——可执行集与保留集双向机械检查（V-A3.4）", () => {
   for (const op of OP_SET.verifier) {
     assert.ok(!WRITE_OPS.includes(op), `复核帽可执行表不得含写 op：${op}`);
-    assert.ok(READ_OPS.includes(op), `复核帽可执行表只收读 op：${op}`);
+    assert.ok(READ_OPS.includes(op) || EXECUTE_OPS.includes(op), `复核帽可执行表只收读面/执行面 op：${op}`);
   }
   for (const op of RESERVED_OPS.verifier) {
     assert.ok(!WRITE_OPS.includes(op), `复核帽保留集不得预置写 op：${op}`);

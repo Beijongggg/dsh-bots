@@ -7,6 +7,82 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 实现批 **08 号票「复核件套」**，2026-09-18 用户 `/implement`
+  调用＝授权；领票时工作树净、01–07＋15＋18 已入库无并行在制品，票面 Comments
+  在案；blocker 07 已 resolved）：
+  - **范围**：「必审清单＋判据＋gaps 报告＋修复回合＋上浮」一件套，无 stage 机
+    （规格 §C、附录 A `V-A2.7`／`V-A1.3`；07 号票留界⑥鉴权读落点与⑧复核者读
+    路径的本票份额）。
+  - **变化**：
+    - `lib/org/review-kit.js`（新）：三判据封闭枚举（before-irreversible-write／
+      before-external-visibility／before-cross-instance-handoff）＋报告形状校验
+      （gaps＋严重度封闭枚举＋证据坐标＋modelIdentity 必填＋顶层键封闭＝复核者
+      唯一可写产物、不携带改工件／改判据字段）＋复核状态折叠（逐 subject 记
+      rounds／连续未闭合数／closed，必审集＝简报冻结点∪强制请求）＋复核帽选择
+      原语（holdingsFor 空闲判定＋排除产出方＋确定性首中，13/16 召集接线复用）
+      ＋fresh-context 移交件（冻结简报＋复核请求/报告史，judgement 判断输入机械
+      不可达）＋复核面 gate（帽信封 post=verifier＋op 在帽内＋指定关系；读不消费
+      nonce、报告单次消费）。
+    - `lib/org/brief.js`：reviewPoints 收紧为必审枚举封闭——枚举外字符串不得
+      冻结进简报（命中即强制的冻结期把守）。
+    - `lib/org/task-ledger.js`：新非状态事件 review-requested／review-reported
+      （负载键封闭）＋新命令 review.request（点∈枚举或咨询主题二选一、简报冻结
+      点**不可降级**＝可加审不可免审、强制加审须留归因、reviewer 必填且非产出方
+      且台账在手为空＝当次空闲）＋`task.deliver` 装必审拦截（必审点未闭合即
+      review-gaps-open 拒绝，不在结算处另设）＋host 侧 recordReviewReport 门面
+      （形状／指定关系／产出方不得自任机械校验；强制点连续两轮未闭合自动
+      escalated 上浮 waiting-user、通知投影达 user、已挂起不重复上浮）＋通知
+      投影两落点（review-requested→指定复核者、review-reported→产出方）。
+    - `lib/org/op-set.js`：08 升表——verifier 可执行集＝artifact.read＋
+      evidence.probe＋review.report（读面∪执行面、零写 op、无 ledger.read），
+      project-lead 升 review.request（命令面写集）；保留集收缩为 evidence.read／
+      results.read（裁定包/移交读面，消费方落 09/14 时升表）与 artifact.submit
+      （14 提交链）；TOOL_KIND 两新描述。
+    - `lib/org/ledger-host.js`：HTTP 面两新路由——GET _ledger/review-handoff
+      （帽信封门、读不消费 nonce；07 留界⑥「鉴权读真消费方」的落点）、POST
+      _ledger/reviews（帽单次消费、成功响应携带续签帽＝06 链式纪律在复核面的
+      兑现，签发权仍在 host）；createLedgerHost 透传 reviewGate/issuer。
+    - `lib/org/post-channel.js`：review.report／artifact.read 两 op 路由（复核帽
+      与命令链信封**分槽持有**互不覆盖；报告响应续签帽捕获回持；帽初次分发＝
+      13 号票自举，本通道不伪造）。
+    - `lib/index.js`：createReviewFaceGate 接线进 ledgerHost（issuer＋v2Ledger）。
+  - **测试**：新模块 tests/org-review-kit.test.mjs 18 条（枚举封闭／报告形状
+    正负例／状态折叠与必审开启集／帽选择台账腿／移交件独立性／复核面 gate）；
+    task-ledger 扩 7 条（review.request 校验五类拒绝＋V-A2.7 拦截与闭合放行＋
+    咨询性不阻断＋recordReviewReport 四类拒绝＋两轮上浮全流＋事件入事实源可
+    重建）＋org-brief 1 条改（reviewPoints 枚举）＋org-op-set 扩 2 条改 3 断言
+    （07 快照随 08 升表更新：verifier 可执行集、封闭分类覆盖语义、帽签发形状）
+    ＋org-capability-issue 扩 2 条（帽 role 信封携复核面 op、越表签发随升表
+    更新）＋org-post-channel 扩 2 条（复核面路由与帽分槽）＋ledger-host 扩 1 条
+    （HTTP 复核面全真接线：未携帽 403／移交件读／报告提交与续签帽/冒用拒）。
+  - **验证**：`TMPDIR=/dev/shm npm test` 48/48；preflight ①48/48 ②0009 包 7/7
+    ③status-lint 0 违例（扫 59 md）④11 PASS/0 FAIL/0 SKIP，四门全绿。
+  - **`/code-review` 双轴处置（Standards 硬违例 1／judgement 9；Spec (a)3
+    (b)2 (c)1）**：
+    - **修**：①review-kit 共用原语去重（isNonEmptyString 自 brief、
+      isPlainObject 自 capability-base——02 纪律「同一原语不得两处各留一份」）；
+      ②gate 头注 op 名笔误 review.review→review.report；③ledger-host 路由侧
+      issuer 防御链噪声消除（构造侧注入为准）；④测试行文（中段 import 归并
+      头部、无谓字面量解包删除、模块头注「只测外部行为」与被测面对齐）；
+      ⑤op-set 写集断言由 task.* 前缀改按 LEDGER_COMMAND_OPS 词表（08 起命令面
+      含管理类 op，词表断言才是本意）；⑥票面 Comments 接缝预核与实物错位更正
+      （V-A2.7 拦截等三条实测落 task-ledger.test.mjs）。
+    - **留界（未改，理由在案）**：⑦**边界三处宿主侧拦截面**——今日台账唯一
+      确定性咽喉＝task.deliver（对外可见边界）；「不可逆写入之前」与「跨实例
+      移交之前」的越界动作发生在产出实例工具面（L1 限自身 workspace、部署动作
+      用户逐项点名）与 14 提交链，宿主侧无附着点，三判据枚举＋冻结简报
+      reviewPoints＋deliver 回兜已把语义守住，附着面随 14/16 补齐；⑧**移交件
+      不附工件本体**——按 §F 裁定包同口径「不自动附全文工件，按指针取用」，
+      工件本体的机械核验路径＝evidence.probe（fs.contains 开文件对照判据），
+      实体读取面随 14 定形；⑨**selectReviewer 生产零调用**——V-A1.3 台账查询腿
+      的机械口径原语，13/16 召集接线的复用件，台账侧 reviewer-not-idle 为同
+      口径权威门（互指注记在案）；⑩**报告响应续签帽**——06 链式纪律（成功
+      认证动作必携下一张）在复核面的兑现，两轮连报（票面第 9 条）的前提，
+      签发权仍在 host；⑪REVIEW_BOUNDARIES 判据措辞照规格 §C 原文（含「外部
+      API 写入」），较 CONTEXT.md 摘要词更全，不改。
+  - **凭据义务**：本条＋票面 Comments（AGENTS.md §1）。零部署动作；零冻结面
+    触碰（门② 0009 包 7/7 零触碰）。
+
 - ✅ 本轮（org-v2 实现批 **07 号票「四要素简报与派单租约」**，2026-09-18
   用户 `/implement` 调用＝授权；领票时工作树净、01–06＋15 已入库无并行在制品，
   票面 Comments 在案）：
