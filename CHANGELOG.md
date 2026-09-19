@@ -7,6 +7,12 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 **18 号票：`/implement 18` 复验轮——代码面零改动，`V-A6.8` 执行前提落定**）：
+  - **范围**：`.scratch/org-v2-build/issues/18-probe-behavior-upgrade.md`（Comments 新增复验轮注记）＋本条目；
+  - **变化**：机械面零改动。18 号票五探针行为化代码面在 HEAD（34bdb78）复验成立；唯一余项 `V-A6.8` 人工目视清单经只读核实**暂不具备执行条件**——①部署面 `~/.dsh/plugins/dsh-bots` 为 org-v2 之前旧快照（缺 `lib/org/` 与 `lib/host-faces.js`/`lib/host-services.js`、残留已退役 review-* 件、client inject 契约旧版），在其上目视＝目视旧代码、结果无效；②宿主未运行；③清单执行与签名按票面归核验人（代签＝落档作假）。执行时点落定＝16 号票切换批「部署同步→重启链」点名段之后（部署同步受 AGENTS.md §2 逐项点名授权约束、16 号票 Blocked by 12/14 未完成）；事实与前提已注记票面；
+  - **验证结果**：`TMPDIR=/dev/shm npm test` 51/51；preflight 四道门 exit 0（①51/51 ②冻结面 0009 包 7/7 ③0 违例扫 65 md ④11 PASS / 0 FAIL / 0 SKIP）；部署面比对为只读 diff，运行面零写入；
+  - **授权依据**：2026-09-19 用户点名 `/implement 18`。
+
 - ✅ 本轮（org-v2 **24 号票：复审后规格口径收口**——09＋19–23 六票复审 Spec 轴
   三项「实现与冻结合同字面语义偏差」，三项均先用户裁定再动机械面）：
   - **范围**：`.scratch/org-v2-build/issues/24-post-review-spec-alignment.md`

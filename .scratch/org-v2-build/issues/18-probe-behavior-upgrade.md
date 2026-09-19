@@ -27,7 +27,8 @@ bundle／官方运行时、执行一次调用、断言返回形状）；每面�
 **Blocked by:** None（可立即开始）
 
 **Status:** ready-for-human（代码面完成：五探针行为化＋显式降级声明＋四道门 PASS；余项
-`V-A6.8` 属人工目视——待核验人执行下方清单并署名后翻 `resolved`）
+`V-A6.8` 属人工目视——待核验人执行下方清单并署名后翻 `resolved`；执行前置＝16 号票切换批
+部署同步之后，2026-09-19 复验轮核实，见 Comments）
 
 - [x] `P-CONFIG-IDS` 升级为真实调用＋形状断言（三段真实调用：我方 patch 经官方
       dsh-app-boot `loadOverlayPatches` 往返复验＋官方 dsh-base/dsh-web-app 组合 patch
@@ -92,3 +93,22 @@ Standards 轴 5 条 judgement call 全部原地收口，行为保持（describe/
 - `scripts/host-contract-probe.mjs`：「装载→null 检→typeof 检→FAIL」级联收敛为 `requireHostExport()`（4 处）；候选解析收敛 `resolveCandidates()`（5 处）；SKIP 前奏收敛 `noHostSkip()`（8 处，坐标仍按发现面区分）；装载捕获抽 `importViaModuleLoader()` 供 `runClientBundle` 与 P-CLIENT-LOCALE 共用；P-CLIENT-LOCALE 迁 `withDomStubs`/捕获通用件但**保留**其严格 require shim（未知依赖即抛＝形状断言）与最小 apply ctx——不迁记录型通用件以免放宽断言；六 id 往返必含集命名 `OUR_PATCH_MUST_RETAIN`（与 `CONFIG_IDS_CRITICAL` 刻意不同集，注记在案）。
 - `tests/host-contract-gate.test.mjs`：root3 迷你装载器改复用 `MINI_PATCH_LOADER`（原逐字重内联）；官方组合 patch fixture 改 `criticalIdsYaml()` 派生（八 id 字面 3 处→1 处独立断言看守）。
 - 验证：`TMPDIR=/dev/shm npm test` 39/39；preflight ①39/39 ②9/9 ③0 违例 ④11 PASS / 0 FAIL / 0 SKIP。
+
+### 复验轮注记（2026-09-19 `/implement 18`，无机械面变化）
+
+代码面在 HEAD（34bdb78）复验成立：回归 `TMPDIR=/dev/shm npm test` 51/51；preflight 四道门
+exit 0（①51/51 ②冻结面 0009 包 7/7 ③0 违例扫 65 md ④11 PASS / 0 FAIL / 0 SKIP）。
+
+**`V-A6.8` 当前不具备执行条件**（只读核实，运行面零写入）：
+
+1. **部署面为 org-v2 之前旧快照**——`~/.dsh/plugins/dsh-bots` 缺 `lib/org/`、
+   `lib/host-faces.js`、`lib/host-services.js`，残留已退役 review-* 旧件，package.json
+   client inject 契约为旧版（多 `dsh-client-runtime`、scripts 缺 `preflight` 条目）。在其上
+   目视＝目视旧代码，结果对本票无效。
+2. **宿主未运行**（无 dsh 进程；`dsh web` 启动属出仓库动作，受 `AGENTS.md` §2 逐项点名
+   授权约束）。
+3. **清单执行与签名归核验人**（票面既定：代签＝落档作假）。
+
+执行时点落定：**16 号票切换批「部署同步→重启链」点名段之后**（部署同步须逐项点名授权；
+16 号票 Blocked by 12/14 未完成）——届时部署面携带 HEAD 契约，本清单在 `dsh web` 正常运行
+面执行一次并由核验人署名。
