@@ -31,6 +31,7 @@ import { trailingRunSteps } from "../lib/org/run-count.js";
 import {
   DEFAULT_UNAUTHORIZED_THRESHOLD,
   UNAUTHORIZED_ESCALATION_ACTOR,
+  pendingNoticeTaskIds,
   unauthorizedRuns,
   unauthorizedThreats
 } from "../lib/org/unauthorized-count.js";
@@ -364,6 +365,71 @@ test("缝③ 阈值＝用户域缝：LEASE_DEFAULTS 缺省在案，lease.unautho
     assert.equal(swept.unauthorized[0].escalatedTaskId, "TK-aaaa0001");
     assert.equal(ledger.task("TK-aaaa0001").status, "waiting-user");
   }, { lease: { unauthorizedThreshold: 1 } });
+});
+
+// ---- 缝⑤ 通知事件投影（24 号票①：§B「通知＝台账事件投影，无事件不通知」） ----
+
+test("缝⑤ 达阈通知落台账事件：每被越权任务一条 unauthorized-notified（非状态事件），通知投影经 NOTIFY_TO 可达派单方", () => {
+  withLedger((ledger) => {
+    dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
+    for (let index = 1; index <= 3; index += 1) {
+      attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index });
+    }
+    const swept = ledger.sweep({ at: Date.now() });
+    assert.equal(swept.unauthorized.length, 1);
+    assert.equal(swept.unauthorized[0].notices.length, 1);
+    assert.ok(Number.isInteger(swept.unauthorized[0].notices[0].seq), "随 sweep 结果回报通知事件 seq");
+
+    const notifiedEvents = ledger.events().filter((event) => event.type === "unauthorized-notified");
+    assert.equal(notifiedEvents.length, 1, "通知落台账事件（非仅日志＋SSE）");
+    assert.equal(notifiedEvents[0].taskId, "TK-aaaa0001");
+    assert.equal(notifiedEvents[0].instanceId, "bot-a");
+    assert.equal(notifiedEvents[0].count, 3);
+    assert.equal(notifiedEvents[0].actor.kind, UNAUTHORIZED_ESCALATION_ACTOR.kind);
+    assert.equal(notifiedEvents[0].actor.id, UNAUTHORIZED_ESCALATION_ACTOR.id);
+
+    const projection = ledger.notificationsAfter(0).notifications
+      .filter((note) => note.type === "unauthorized-notified");
+    assert.equal(projection.length, 1, "无事件不通知的反面：有事件即投影");
+    assert.equal(projection[0].taskId, "TK-aaaa0001");
+    assert.equal(projection[0].to, "project-lead", "派单方收件通道＝通知投影");
+    assert.equal(swept.unauthorized[0].notices[0].seq, notifiedEvents[0].seq, "回执 seq 与事件一致");
+  });
+});
+
+test("缝⑤ 无在手任务路径的事件落点：只通知不上浮但也有事件；同串下一拍不重发（锚点＝事件本体，跨拍稳定）", () => {
+  withLedger((ledger) => {
+    dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
+    for (let index = 1; index <= 3; index += 1) {
+      attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-b", code: "task-domain-mismatch", index });
+    }
+    const swept = ledger.sweep({ at: Date.now() });
+    assert.equal(swept.unauthorized[0].escalatedTaskId, null);
+    const notifiedEvents = ledger.events().filter((event) => event.type === "unauthorized-notified");
+    assert.equal(notifiedEvents.length, 1, "零事件路径补齐：通知事件锚在被越权任务上");
+    assert.equal(notifiedEvents[0].instanceId, "bot-b");
+
+    assert.deepEqual(ledger.sweep({ at: Date.now() }).unauthorized, [], "同串已通知（事件锚点）——下一拍不重发");
+    assert.equal(ledger.events().filter((event) => event.type === "unauthorized-notified").length, 1);
+  });
+});
+
+test("缝⑤ 纯函数面：通知事件锚定本串（instanceId＋seq ≥ firstSeq）；串前的、他实例写出的通知不抑制本串", () => {
+  const violated = [2, 3, 4].map((seq) => rejection({ seq, actor: "bot-a" }));
+  const notifiedAt = (seq, overrides = {}) => ({
+    seq, type: "unauthorized-notified", taskId: "TK-test0001",
+    actor: { kind: "host", id: "unauthorized-count" },
+    instanceId: "bot-a", count: 3, ...overrides
+  });
+  const run = { actor: "bot-a", firstSeq: 2, taskIds: ["TK-test0001"] };
+  // 串内（seq ≥ firstSeq=2）已有本面通知＝该任务本串已通知
+  assert.deepEqual(pendingNoticeTaskIds([...violated, notifiedAt(5)], run), []);
+  // 通知事件在串起点之前＝对上一串的处置，本串重新武装
+  assert.deepEqual(pendingNoticeTaskIds([notifiedAt(1), ...violated], run), ["TK-test0001"]);
+  // 他实例写出的通知不抑制本实例的串
+  assert.deepEqual(pendingNoticeTaskIds([...violated, notifiedAt(5, { instanceId: "bot-z" })], run), ["TK-test0001"]);
+  // 他人写出的通知（非本面 actor）不抑制
+  assert.deepEqual(pendingNoticeTaskIds([...violated, notifiedAt(5, { actor: { kind: "host", id: "web" } })], run), ["TK-test0001"]);
 });
 
 // ---- 缝④ ledger-host tick 接线 ----

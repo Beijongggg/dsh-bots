@@ -332,6 +332,31 @@ test("裁定包五件齐备：冻结简报／判据事实／双方立场＋全�
   assert.deepEqual(built.packet.brief.deliverables, [{ format: "patch", location: "lib/mail-plane.js" }]);
 });
 
+test("立场补齐句带机械事实标注（24 号票③裁定＝补齐句合规＋显式标注）：补齐句不以立场名义冒充，真实立场句不受影响", () => {
+  // 无产出／复核事件的越权上浮：立场件由派单方／归属者机械事实句补齐
+  const fallback = buildRulingPackage({
+    task: { ...PACKET_TASK, waitingClass: "escalation", escalationCause: "out-of-bounds", owner: "bot-x", dispatchCount: 1 },
+    events: [{ seq: 3, taskId: PACKET_TASK_ID, type: "escalated", cause: "out-of-bounds", dispatchCount: 1, previousOwner: "bot-x" }],
+    taskId: PACKET_TASK_ID,
+    modelIdentity: "glm-5.3-flash（初审代理）"
+  });
+  assert.equal(fallback.ok, true, JSON.stringify(fallback.violations));
+  const sides = fallback.packet.positions.entries;
+  assert.deepEqual(sides.map((entry) => entry.side), ["dispatcher", "holder"]);
+  for (const entry of sides) {
+    assert.match(entry.statement, /^〔机械事实〕/, `补齐句显式标注机械事实性质：${entry.statement}`);
+  }
+  // 真实立场句（产出方／复核者）不带标注
+  const real = buildRulingPackage({
+    task: PACKET_TASK, events: PACKET_EVENTS, taskId: PACKET_TASK_ID, modelIdentity: "glm-5.3-flash（初审代理）"
+  });
+  for (const entry of real.packet.positions.entries) {
+    if (entry.side === "producer" || entry.side === "reviewer") {
+      assert.doesNotMatch(entry.statement, /^〔机械事实〕/, `真实立场句不标机械事实：${entry.statement}`);
+    }
+  }
+});
+
 test("裁定包缺件即拒（fail closed）：缺模型身份／缺冻结简报／非挂起态／无任务（V-A5.6）", () => {
   const base = { task: PACKET_TASK, events: PACKET_EVENTS, taskId: PACKET_TASK_ID };
   const noIdentity = buildRulingPackage({ ...base, modelIdentity: "  " });
