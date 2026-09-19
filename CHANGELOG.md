@@ -7,6 +7,65 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 实现批 **21 号票「capability 续签、读面 gate 与岗位 op 集合同口径」**，
+  2026-09-19 用户 `/implement` 调用＝授权；领票核查在案——修复批余票 19/20/23 与 21
+  均未阻塞，本轮经用户裁定**只领 21 号票**（范围裁定在案；19 号票 ⑤/⑥ 口径同轮裁定、
+  已落 19 票面 Comments 待其实施批引用））：
+  - **范围**：§D 权限面三收口＋一裁定——①续签断链修正（续签条件从「命令成功」改为
+    「授权有效且信封已消费」，覆盖命令面与复核面两侧）、②读面 gate 补 op 白名单腿
+    （§E「工具面裁剪＝权限裁剪」在读面成立）、③`issued.jsonl` 对账补独立消费面
+    （§附录 A `V-A3.3` 证据列「对账脚本」半边）、④岗位 op 集与续签点的合同口径裁定
+    （06 号票复审 Spec 轴 (a)3/(b)1/(b)2/(c)1/(c)2）。
+  - **TDD 接缝预核**：三缝经用户确认在案（①命令面 `createLedgerCommandDispatcher` 返回值；
+    ②读面 `authorizeLedgerRead` 返回的 readGate；③对账脚本 CLI＋子进程退出码），并
+    经用户批准把①的修正面**两面一并收口**（复核面同缺陷同口径）。
+  - **变化**：
+    - ①**续签条件修正**：`lib/org/task-ledger.js` 命令面拒绝统一出口 `rejectHere`
+      （37 处收束）＋拒绝回执新增 `authorized: true`——只加在**鉴权门之后**的拒绝上
+      （授权有效且岗位信封已被本命令单次消费），只入回执、不进事件负载（事件 schema
+      键封闭）；`lib/org/permissions.js` 的 dispatch 续签判据改为「成功 ∪ 授权通过而
+      被拒」，鉴权门之前的拒绝（角色不符／鉴权失败／结构校验）不续签（越权不换新
+      信封），续签闸门＝任务存在且在办态（照既有「不签死信」口径）。复核面
+      `lib/org/ledger-host.js` 同口径：帽续签条件改为「帽 gate 已通过」——报告被台账
+      拒绝（`review-not-requested` 等常态拒绝）也续签帽，gate 自身拒绝不续签。
+    - ②**读面腿二**：命令面与读面共用新原语 `postCapabilityVerdict`（信封在场→形状→
+      验签→home 岗位解析→`op ∈ availableOps(home, 信封)`），读面 `consumeNonce:false`
+      且不绑任务域；`authorizeLedgerRead({issuer, postForBot})` 语义＝并集口径
+      （home 岗位表 ∪ 当次信封）。
+    - ③**对账面**：新件 `scripts/capability-issued-audit.mjs`（`--dsh-home`，退出码即
+      结论；结构层＋`reconcileIssuedVsOpSet` 表对账）＋新测试
+      `tests/capability-issued-audit.test.mjs`（子进程取退出码，不新起第五道门）。
+      `op-set.js` 新导出 `tableOpsForKind`（kind 切分单一源，`capability-issue.js`
+      内部重复实现删除）、`capability-issue.js` 导出 `issuedAuditFile`（审计链落点
+      单一源）。
+    - ④**口径升格（用户裁定）**：`op-set.js` 头注升格为裁定口径（岗位 op 集以本表为
+      唯一源、§D 域级列举不构成台账命令面封闭枚举）、续签点＝每个授权有效的 post 命令
+      口径落 `CONTEXT.md`「能力（capability）」词条＋`permissions.js` 头注，spec §D
+      文本未动（历次验收凭据不失效）。
+  - **验证**：scoped——`tests/org-ledger-authz.test.mjs` 17/17（两新测试；越权不续签
+    的边界测试经临时放宽续签条件验证敏感度＝转红）、`tests/ledger-host.test.mjs` 12/12
+    （一新测试：报告被拒也续签帽＋续签帽可连报＋无帽不续签）、
+    `tests/capability-issued-audit.test.mjs` 4/4（绿例／越表／形状与切分／链不可信＋
+    空链）；全量 `TMPDIR=/dev/shm npm test` 50/50；preflight 四门 exit 0
+    （①50/50 ②0009 包 7/7 ③0 违例 ④11 PASS/0 FAIL/0 SKIP）。
+  - **复审**：`/code-review` 双轴并行（Standards 硬违例 2／judgement call 3；
+    Spec 缺失 2／越权 0／不符 1）全处置：落档＝本条目（H1 消）；四文件续签措辞同步
+    （`permissions.js` 头注／`lib/index.js` 接线注／`capability-issue.js` 头注＋
+    `issuedAuditFile`／`org-ledger-authz.test.mjs` 头注，H2 消）；命令面两出口合一
+    `rejectHere`＋`authzCleared` 更名 `authorized`（一名一义）；命令面/读面腿二抽取
+    `postCapabilityVerdict` 单一源；对账面补 kind↔taskId↔op 集切分（复审给出的
+    `taskId:"not-a-task-id"` 假绿例已入测试锁定）＋审计链落点单一源。留界四项
+    （见票面 Comments）：角色能力不在续签链（06 票面留界「role-cap 分发通道归
+    07/13」在案——07 已入库、13 checklist 未点名该面，本票如实指留界链、不追改
+    归属）／读面路由接线不在本票（通用 `GET /_ledger` 按设计为 localhost 公开读
+    投影，06→07→08 留界链在案，本票只补 gate 的 op 白名单腿）／续签闸门＝在办态／
+    `ledger-corrupt` 罕见路径自洽＋幂等重放不重签（既有口径不动）。
+  - **授权依据**：2026-09-19 用户 `/implement` 调用；同轮 AskUserQuestion 裁定——
+    领票范围＝只领 21 号票；④＝推导注记升格；TDD 三缝确认；①修正面＝两面一并收口；
+    另裁定 19 号票 ⑤＝扩 `needs-user` 上浮原因枚举、⑥＝reviewPoints 省略口径注记留
+    派单方自觉（落 19 票面 Comments）。
+  - **未落档面**：无（本条目＋21 票面 Comments＋19 票面裁定 Comments 齐）。
+
 - ✅ 本轮（org-v2 实现批 **22 号票「探针沙箱快照形态」**，2026-09-19 用户
   `/implement`「领修复批」调用＝授权；领票核查在案——修复批五票中 19/20/23
   主体在 09 号票并行会话当时在制施工面（task-ledger.js/brief.js 同文件冲突）、

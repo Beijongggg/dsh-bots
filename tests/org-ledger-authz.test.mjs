@@ -8,8 +8,9 @@
  *   - `V-A3.10` user principal（kind=user）持台账全权、不经岗位 op 表 → 本模块
  *     （岗位实例侧的「不持有 user principal」归通道面：HTTP 拒 host 冒名＋CSRF
  *     门把守 user 通道，见 ledger-host 与 api-security 既有回归）
- *   - `V-A3.5` 签发联动：assign 转移点签发、accept/heartbeat 续签重签（结果件
- *     携带下一张能力）→ 本模块
+ *   - `V-A3.5` 签发联动：assign 转移点签发、此后每个授权有效且信封已消费的 post
+ *     命令续签重签（含「授权通过而命令被拒」的常态拒绝；结果件携带下一张能力）
+ *     → 本模块
  *
  * 只测外部行为：命令面返回码、台账事件序列、投影结论；不触真实 ~/.dsh。
  */
@@ -47,7 +48,7 @@ function mkRig(clock, { posts = {} } = {}) {
   });
   issuer.bindLedger(gated); // 吊销投影腿读同一门面（构造顺序解耦）
   const dispatcher = createLedgerCommandDispatcher({ ledger: gated, issuer, postForBot });
-  return { home, issuer, authorizer, gated, dispatcher };
+  return { home, issuer, authorizer, gated, dispatcher, postForBot };
 }
 
 /** 开一张派给给定 bot 的任务（intake→triage→plan→assign，host 驱动）。 */
@@ -353,16 +354,134 @@ test("吊销投影腿（装具级）：host 取消任务后，原任务能力经
 
 test("读面 gate：ledger.read 岗位实例须持有效信封且不消费 nonce（读重放无害）", async () => {
   const clock = clockAt();
-  const { issuer, home } = mkRig(clock, { posts: { "bot-a": "implementer" } });
+  const { issuer, home, postForBot } = mkRig(clock, { posts: { "bot-a": "implementer" } });
   writeInstanceRow(home, "bot-a");
   const role = issuer.issueRoleCapability({ botId: "bot-a", post: "implementer" });
   assert.equal(role.ok, true);
 
-  const readGate = authorizeLedgerRead({ issuer });
+  const readGate = authorizeLedgerRead({ issuer, postForBot });
   const first = await readGate({ actor: POST("bot-a"), capability: role.envelope });
   assert.equal(first.ok, true, first.reason);
   const second = await readGate({ actor: POST("bot-a"), capability: role.envelope });
   assert.equal(second.ok, true, "读面不消费 nonce：读重放无害");
   const none = await readGate({ actor: POST("bot-a"), capability: undefined });
   assert.equal(none.code, "capability-required");
+});
+
+test("读面 gate 腿二（21 号票 ②）：ledger.read 须在 availableOps(home, 信封) 内——复核帽（无 ledger.read）即拒", async () => {
+  const clock = clockAt();
+  const { issuer, home, postForBot } = mkRig(clock, {
+    posts: { "bot-a": "implementer", "bot-reviewer": "verifier" }
+  });
+  writeInstanceRow(home, "bot-a");
+  writeInstanceRow(home, "bot-reviewer");
+  const readGate = authorizeLedgerRead({ issuer, postForBot });
+
+  // 承接岗持 ledger.read（§D/§E 基础工具面）→ 放行
+  const worker = issuer.issueRoleCapability({ botId: "bot-a", post: "implementer" });
+  assert.equal(worker.ok, true);
+  const allowed = await readGate({ actor: POST("bot-a"), capability: worker.envelope });
+  assert.equal(allowed.ok, true, allowed.reason);
+
+  // 复核帽自身的 op 集不含 ledger.read（§D）；但读面腿二与命令面同一口径——
+  // 可用集＝home 岗位表 ∪ 当次信封，故拒绝只在 home 表也不含 ledger.read 时成立。
+  // 常设四岗的岗位表均含 ledger.read，此腿把守的是**并集口径本身**（复核帽实例
+  // 若不以承接岗为 home，即不得读投影）；装具此处以「verifier 为 home」构造该形。
+  const hat = issuer.issueRoleCapability({ botId: "bot-reviewer", post: "verifier" });
+  assert.equal(hat.ok, true, hat.reason);
+  const denied = await readGate({ actor: POST("bot-reviewer"), capability: hat.envelope });
+  assert.equal(denied.ok, false);
+  assert.equal(denied.code, "op-not-in-opset", "home 岗位表与信封均无 ledger.read：读面拒");
+
+  // 并集口径的另一面：承接岗实例持复核面信封读投影仍放行（home 表含 ledger.read）
+  const hatForWorker = issuer.issueRoleCapability({ botId: "bot-a", post: "verifier" });
+  assert.equal(hatForWorker.ok, true, hatForWorker.reason);
+  const union = await readGate({ actor: POST("bot-a"), capability: hatForWorker.envelope });
+  assert.equal(union.ok, true, "可用集＝home 岗位表 ∪ 当次信封（与命令面同一条腿）");
+
+  // 未绑定 home 岗位 → post-unassigned（fail closed）
+  writeInstanceRow(home, "bot-x");
+  const stranger = issuer.issueRoleCapability({ botId: "bot-x", post: "implementer" });
+  assert.equal(stranger.ok, true);
+  const unbound = await readGate({ actor: POST("bot-x"), capability: stranger.envelope });
+  assert.equal(unbound.code, "post-unassigned", "未绑定岗位无从判定白名单：fail closed");
+
+  // host／user 不经岗位表：读面直接放行（v1 语义保持）
+  const host = await readGate({ actor: HOST, capability: undefined });
+  assert.equal(host.ok, true);
+  const user = await readGate({ actor: USER, capability: undefined });
+  assert.equal(user.ok, true);
+});
+
+test("续签条件＝授权有效且信封已消费（21 号票 ①）：授权通过而被拒的常态拒绝（cas-mismatch）同样续签下一张", () => {
+  const clock = clockAt();
+  const { gated, dispatcher, home } = mkRig(clock, { posts: { "bot-a": "implementer" } });
+  writeInstanceRow(home, "bot-a");
+  gated.command({ op: "task.intake", taskId: "TK-00000020", actor: HOST, idempotencyKey: "ret-1", payload: { class: "project", brief: { ...VALID_BRIEF } } });
+  gated.command({ op: "task.triage", taskId: "TK-00000020", actor: HOST, idempotencyKey: "ret-2", expectedStatus: "intake", expectedSeq: 1, payload: { decision: "立项" } });
+  gated.command({ op: "task.plan", taskId: "TK-00000020", actor: HOST, idempotencyKey: "ret-3", expectedStatus: "triaged", expectedSeq: 2, payload: {} });
+  const assigned = dispatcher({
+    op: "task.assign", taskId: "TK-00000020", actor: HOST, idempotencyKey: "ret-4",
+    expectedStatus: "planned", expectedSeq: 3, payload: { assignee: "bot-a", dispatcher: "project-lead" }
+  });
+  assert.equal(assigned.ok, true, assigned.reason);
+
+  // 授权通过（三元组全过、信封已被本命令消费）而命令被拒：CAS 期望序号不符
+  const rejected = dispatcher({
+    op: "task.accept", taskId: "TK-00000020", actor: POST("bot-a"), capability: assigned.capability,
+    idempotencyKey: "ret-5", expectedStatus: "assigned", expectedSeq: 999, payload: {}
+  });
+  assert.equal(rejected.ok, false);
+  assert.equal(rejected.code, "cas-mismatch");
+  assert.equal(rejected.authorized, true, "鉴权门之后的拒绝须带 authorized 标记（续签判定的机械证据）");
+  assert.ok(rejected.capability?.payload?.jti, "授权通过而被拒也须续签下一张——否则旧信封已消费＝断链（须 host 重签）");
+  assert.notEqual(rejected.capability.payload.jti, assigned.capability.payload.jti, "续签＝重签新 jti");
+
+  // 续签件独立有效：用新信封把接单做完（链式接力不依赖 host 干预；被拒命令
+  // 自身落 command-rejected 事件，故任务 lastSeq 已推进到 5）
+  const accepted = dispatcher({
+    op: "task.accept", taskId: "TK-00000020", actor: POST("bot-a"), capability: rejected.capability,
+    idempotencyKey: "ret-6", expectedStatus: "assigned", expectedSeq: 5, payload: {}
+  });
+  assert.equal(accepted.ok, true, accepted.reason);
+
+  // 单次消费语义不动：被拒那条命令消费掉的旧信封不可再用于任何命令
+  const stale = dispatcher({
+    op: "task.report", taskId: "TK-00000020", actor: POST("bot-a"), capability: assigned.capability,
+    idempotencyKey: "ret-7", payload: { deliverable: "x.md" }
+  });
+  assert.equal(stale.ok, false);
+  assert.equal(stale.code, "capability-replayed", "被拒命令消费的信封照旧单次消费（续签另发新件，不是复活旧件）");
+});
+
+test("续签边界（21 号票 ①）：鉴权拒绝不续签——越表 op 回执不带 authorized、不携新信封，且原信封已消费", () => {
+  const clock = clockAt();
+  const { gated, dispatcher, home } = mkRig(clock, { posts: { "bot-a": "implementer" } });
+  writeInstanceRow(home, "bot-a");
+  gated.command({ op: "task.intake", taskId: "TK-00000021", actor: HOST, idempotencyKey: "bd-1", payload: { class: "project", brief: { ...VALID_BRIEF } } });
+  gated.command({ op: "task.triage", taskId: "TK-00000021", actor: HOST, idempotencyKey: "bd-2", expectedStatus: "intake", expectedSeq: 1, payload: { decision: "立项" } });
+  gated.command({ op: "task.plan", taskId: "TK-00000021", actor: HOST, idempotencyKey: "bd-3", expectedStatus: "triaged", expectedSeq: 2, payload: {} });
+  const assigned = dispatcher({
+    op: "task.assign", taskId: "TK-00000021", actor: HOST, idempotencyKey: "bd-4",
+    expectedStatus: "planned", expectedSeq: 3, payload: { assignee: "bot-a", dispatcher: "project-lead" }
+  });
+  assert.equal(assigned.ok, true, assigned.reason);
+
+  // 越表 op（task.triage 属值班统筹）：鉴权腿二拒绝——信封已被验签消费，但授权无效
+  const denied = dispatcher({
+    op: "task.triage", taskId: "TK-00000021", actor: POST("bot-a"), capability: assigned.capability,
+    idempotencyKey: "bd-5", payload: { decision: "立项" }
+  });
+  assert.equal(denied.ok, false);
+  assert.equal(denied.code, "op-not-in-opset");
+  assert.equal(denied.authorized, undefined, "鉴权门之前的拒绝不带 authorized：授权无效者不得换新信封");
+  assert.equal(denied.capability, undefined, "鉴权拒绝不续签（越权尝试不续发能力）");
+
+  // 越权尝试同样单次消费：旧信封不可复用（越权不豁免单次消费语义）
+  const after = dispatcher({
+    op: "task.accept", taskId: "TK-00000021", actor: POST("bot-a"), capability: assigned.capability,
+    idempotencyKey: "bd-6", expectedStatus: "assigned", expectedSeq: 4, payload: {}
+  });
+  assert.equal(after.ok, false);
+  assert.equal(after.code, "capability-replayed", "越权尝试已消费信封：不得为越权续签，也不得复活旧件");
 });

@@ -513,3 +513,68 @@ test("复核面 HTTP：移交件读与报告提交经帽信封门；未携帽 40
     rmSync(home, { recursive: true, force: true });
   }
 });
+
+test("复核面续签（21 号票 ①）：报告被台账拒绝（review-not-requested）也续签帽——连报不断链", async () => {
+  const home = mkHome();
+  try {
+    const row = {
+      botId: "bot-reviewer", pid: process.pid, startedAt: `proc:${process.pid}`,
+      hostInstanceId: "gen-reviewer", at: Date.now()
+    };
+    mkdirSync(join(home, "bots", "started"), { recursive: true });
+    writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
+    const ledger = createTaskLedger({ dshHome: home, now: () => NOW });
+    const issuer = createCapabilityIssuer({ dshHome: home, ledger, now: () => NOW });
+    const reviewGate = createReviewFaceGate({ issuer, ledger });
+    const host = createLedgerHost({
+      ledger, now: () => NOW, readBotIds: () => [], isAlive: () => true, broadcast: () => {},
+      logger: { warn() {}, info() {} }, reviewGate, issuer
+    });
+    const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
+
+    await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "task.intake", taskId: "TK-00000071", actor: { kind: "user", id: "user" },
+      idempotencyKey: "rvr-intake", payload: {
+        class: "project", brief: { ...VALID_BRIEF, reviewPoints: ["before-external-visibility"] }
+      }
+    });
+    const requested = await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "review.request", taskId: "TK-00000071", actor: { kind: "user", id: "user" },
+      idempotencyKey: "rvr-request", payload: { point: "before-external-visibility", reviewer: "bot-reviewer" }
+    });
+    assert.equal(requested.body.ok, true, requested.body.reason);
+
+    const hat = issuer.issueRoleCapability({ botId: "bot-reviewer", post: "verifier" });
+    assert.equal(hat.ok, true, hat.reason);
+
+    // 帽 gate 通过（被指定），但台账拒绝：subject 未在本任务登记复核请求
+    const rejected = await call(api, "POST", "/api/bots/_ledger/reviews", {
+      taskId: "TK-00000071", actor: { kind: "post", id: "bot-reviewer" }, idempotencyKey: "rvr-bad",
+      capability: hat.envelope,
+      report: { subject: "before-irreversible-write", verdict: "closed", gaps: [], modelIdentity: "review-model" }
+    });
+    assert.equal(rejected.status, 409);
+    assert.equal(rejected.body.code, "review-not-requested");
+    assert.equal(rejected.body.capability?.payload?.post, "verifier",
+      "授权有效（帽已被 gate 单次消费）而报告被拒：同样续签帽，否则复核者连报即断链");
+
+    // 续签帽可连报：换合法 subject 提交即 200（链式接力）
+    const reported = await call(api, "POST", "/api/bots/_ledger/reviews", {
+      taskId: "TK-00000071", actor: { kind: "post", id: "bot-reviewer" }, idempotencyKey: "rvr-ok",
+      capability: rejected.body.capability,
+      report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "review-model" }
+    });
+    assert.equal(reported.status, 200, reported.body.reason);
+    assert.equal(reported.body.ok, true);
+
+    // 边界：帽 gate 自身拒绝（无帽）不给新帽——鉴权失败不续签
+    const naked = await call(api, "POST", "/api/bots/_ledger/reviews", {
+      taskId: "TK-00000071", actor: { kind: "post", id: "bot-reviewer" }, idempotencyKey: "rvr-naked",
+      report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "review-model" }
+    });
+    assert.equal(naked.status, 403);
+    assert.equal(naked.body.capability, undefined, "未过帽 gate：不续签（越权不换新信封）");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
