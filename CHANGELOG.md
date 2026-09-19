@@ -7,6 +7,53 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 实现批 **23 号票「复审后续行为保持重构批」**，2026-09-19 用户
+  `/implement` 调用＝授权；领票核查在案——修复批 19/20/21/22 已入库
+  （`8488bce`／`48911a6`／`3cb332b`／`f74e175`），工作树仅余未跟踪
+  `.video_agent/`（插件产物，不入本批），23 票 `ready-for-agent` 无阻塞即领；
+  行为保持批无新行为缝——TDD 以既有回归为红线，③装配件工厂这一新组合面补
+  1 条锁定测试）：
+  - **范围**：06/07/08 号票复审 Standards 轴剩余 judgement call 的行为保持收口
+    （探针与断言面不动，修复批票 23；含自 09 号票并行在制移交的简报侧同口径
+    收尾与通知收件人 map 化两项）。
+  - **变化**：①review-kit 事件遍历分派共享——`REVIEW_EVENT_DISPATCH` 分派表＋
+    `eachReviewEvent` 共享单遍（taskId 过滤→类型分派→subject 守卫单一源），
+    `collectReviewState`／`reviewHandoff` 同型 if 级联收敛（移交件＝单次折叠＋
+    单次遍历产出，报告行按 seq 自折叠结果取）；②复核状态查询域捆装——
+    review-kit 新导出 `reviewScope`（`{brief, events, taskId}` 三件套具名捆装）
+    ＋`taskReviewScope`（任务投影→域），task-ledger 五处＋human-inbox
+    `criteriaFactsFor` 散拼点改捆装，各查询函数签名与断言面不动；③权限装配件
+    工厂——permissions.js 新 `createLedgerAccessKit({issuer, postForBot, logger})`
+    （authorize 即取、`createDispatcher(ledger)` 后置——台账先以 authorize 建出
+    的构造顺序解耦），lib/index.js 鉴权器／dispatcher／接线三处结伴改一处装配
+    成套取出，org-permissions 补锁定测试；④op-set `TOOL_KIND`→`TOOL_META`
+    名实相称改名（表持 {kind, description} 工具元数据；模块内部常量，输出
+    零变化）；⑤台账简报前置门拆件——新件 `lib/org/brief-gate.js`（briefReject
+    ＋briefGate：plan/amend/assign 三命令统一入口，intake 保留 creates 分支内
+    briefReject 直查、序位原位），判定序位与四拒绝码（invalid-brief／
+    criteria-gap／review-exemption-forbidden／brief-missing）及理由逐字保持，
+    task-ledger 对 brief.js 的 import 随之清零；⑥简报侧同口径收尾——新件
+    `lib/org/is-non-empty-string.js`（brief↔review-kit 循环 import 解环，双方
+    单向依赖）、brief.js 判据 args 校验接 probe.js `argsMatchArgKeys`（执行侧
+    同口径单源）、isPlainObject 去重取 capability-base 版（带原型校验，真实
+    路径等价域内，头注点明）、org-brief.test.mjs 的 VALID_BRIEF 改自
+    tests/helpers/brief-fixture.mjs 派生（单一事实源）；⑦通知收件人解析 map 化
+    ——`NOTIFY_RECIPIENT` 解析表（与 NOTIFY_TO 角色词表同源：assignee/
+    dispatcher/reviewer 事件负载优先投影兜底、owner＝在手者、表外角色名直发），
+    四层嵌套三元退役。
+  - **复审**：`/code-review` 双轴并行（Standards 硬违例 1/judgement 5；Spec
+    缺失 0/越权 0/不符 0）全处置——brief.js 死转出口删除、reviewScope 无消费
+    缺省值删除、NOTIFY_RECIPIENT 表外 fallback 闭包改条件式、reviewHandoff 同
+    模块收口捆装、CHANGELOG 落档随提交闭合（修）；isPlainObject 原型校验
+    收紧头注点明＋票面 Comments 留界；eachReviewEvent 对 reviewHandoff 的
+    subject 守卫微漂移（合法事件流不可达——写路径把守 point/topic 二选一非空）
+    留，理由在案。
+  - **验证**：scoped 8 文件 152/152＋全量 51/51＋preflight 四门 exit 0
+    （①51/51 ②0009 包 7/7 ③0 违例扫 64 md ④11 PASS/0 FAIL/0 SKIP）。
+  - **授权依据**：2026-09-19 用户 `/implement` 调用；票面七项 breakdown 经用户
+    AskUserQuestion 批准在案（同日立票轮）。
+  - **未落档面**：无（本条目＋票面翻 resolved＋Comments 凭据齐）。
+
 - ✅ 本轮（org-v2 实现批 **20 号票「连续越权计数与上浮」**，2026-09-19 用户
   `/implement` 调用＝授权；领票核查在案——修复批 19/21 已入库（`8488bce`／
   `3cb332b`）、工作树仅余本票在制；施工中 19/21 先后入库、`lib/org/human-inbox.js`

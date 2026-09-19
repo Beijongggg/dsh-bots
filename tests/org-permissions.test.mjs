@@ -16,7 +16,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { join } from "node:path";
 
-import { botWorkspaceDir, createLedgerAuthorizer, isBotWritablePath } from "../lib/org/permissions.js";
+import { botWorkspaceDir, createLedgerAccessKit, createLedgerAuthorizer, isBotWritablePath } from "../lib/org/permissions.js";
 import { createCapabilityIssuer } from "../lib/org/capability-issue.js";
 import { instanceRegistryFile } from "../lib/org/capability-base.js";
 import { ROLE_CARDS, ROLE_CARD_FIELDS } from "../lib/org/role-cards.js";
@@ -116,4 +116,35 @@ test("V-A3.9 正交（能力侧）：真 capability 扩不出文件面——共�
   // capability 槽位——行为上即「有能力≠可写共享面」。
   assert.equal(isBotWritablePath({ dshHome: HOME, botId: "bot-a", target: join(HOME, "bots", "ledger", "events.jsonl") }), false,
     "L1 不因任何任务域授权而放宽");
+});
+
+test("权限装配件工厂（23 号票③）：{issuer, postForBot, logger} 一处装配——authorize 直通鉴权器、createDispatcher 成套取出 dispatcher", () => {
+  const home = mkdtempSync(join(tmpdir(), "dsh-perm-kit-"));
+  process.on("exit", () => rmSync(home, { recursive: true, force: true }));
+  mkdirSync(join(home, "bots", "started"), { recursive: true });
+  const issuer = createCapabilityIssuer({ dshHome: home });
+  const kit = createLedgerAccessKit({
+    issuer, postForBot: () => "implementer", logger: { warn: () => {} }
+  });
+  // authorize 直通 createLedgerAuthorizer：post 无信封即 capability-required
+  const verdict = kit.authorize({
+    op: "task.accept", taskId: "TK-00000001",
+    actor: { kind: "post", id: "bot-a" }, capability: undefined
+  });
+  assert.equal(verdict.code, "capability-required", "装配件的 authorize 与鉴权器同判");
+  // user 不经岗位表直接放行（同鉴权器口径）
+  assert.deepEqual(
+    kit.authorize({ op: "task.accept", taskId: "TK-00000001", actor: { kind: "user", id: "u" } }),
+    { ok: true }
+  );
+  // dispatcher：台账门面后置组装（构造顺序＝先装鉴权器、后台账、再建 dispatcher），
+  // 命令结论透传（host actor 无签发联动分支）
+  const dispatch = kit.createDispatcher({
+    command: (input) => ({ ok: true, taskId: input.taskId })
+  });
+  assert.equal(typeof dispatch, "function", "createDispatcher 返回 dispatch 函数");
+  assert.deepEqual(
+    dispatch({ op: "task.accept", taskId: "TK-00000001", actor: { kind: "host", id: "web" } }),
+    { ok: true, taskId: "TK-00000001" }
+  );
 });

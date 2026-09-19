@@ -15,16 +15,7 @@ import assert from "node:assert/strict";
 
 import { droppedReviewPoints, validateBrief } from "../lib/org/brief.js";
 import { PROBE_COMMAND_NAMES } from "../lib/org/probe.js";
-
-/** 合法基线简报（判据用白名单内命令）——各负例在此之上做单点破坏。 */
-const VALID_BRIEF = Object.freeze({
-  goal: "修复 mail-plane 的收单积压告警误报",
-  deliverables: [{ format: "patch", location: "lib/mail-plane.js" }],
-  sources: [{ tool: "ledger.read", ref: "TK-TEST-BRIEF-BASE" }],
-  boundaries: "不改投递面协议形状；不动冻结面",
-  acceptance: [{ probe: "fs.contains", args: { location: "bots/ledger/events.jsonl", text: "命令面" } }],
-  reviewPoints: []
-});
+import { VALID_BRIEF } from "./helpers/brief-fixture.mjs";
 
 test("合法基线简报通过校验（四要素＋判据齐备）", () => {
   const verdict = validateBrief(VALID_BRIEF);
