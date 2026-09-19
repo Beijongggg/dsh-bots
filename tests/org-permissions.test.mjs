@@ -24,7 +24,8 @@ import { deriveToolFace, LEDGER_COMMAND_OPS, OP_SET, WRITE_OPS } from "../lib/or
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 
-const HOME = "/tmp/dsh-permissions-fixture";
+const HOME = mkdtempSync(join(tmpdir(), "dsh-permissions-fixture-"));
+process.on("exit", () => rmSync(HOME, { recursive: true, force: true }));
 
 test("L1：自身 workspace 内可写（V-A3.1 正例）", () => {
   const ws = botWorkspaceDir(HOME, "bot-a");

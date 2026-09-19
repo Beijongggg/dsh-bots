@@ -22,8 +22,7 @@ import { join } from "node:path";
 import { createTaskLedger } from "../lib/org/task-ledger.js";
 import { createCapabilityIssuer } from "../lib/org/capability-issue.js";
 import { createLedgerAuthorizer, createLedgerCommandDispatcher, authorizeLedgerRead } from "../lib/org/permissions.js";
-import { instanceRegistryFile } from "../lib/org/capability-base.js";
-import { writeFileSync, mkdirSync } from "node:fs";
+import { clockAt, writeInstanceRow } from "./helpers/capability-fixture.mjs";
 import { VALID_BRIEF } from "./helpers/brief-fixture.mjs";
 
 const HOMES = [];
@@ -37,18 +36,6 @@ function mkHome() {
   return home;
 }
 
-function clockAt(startMs = Date.parse("2026-09-18T10:00:00.000Z")) {
-  let current = startMs;
-  return { now: () => current, advance(ms) { current += ms; return current; } };
-}
-
-function writeInstanceRow(home, botId, hostInstanceId = `gen-${botId}`) {
-  mkdirSync(join(home, "bots", "started"), { recursive: true });
-  writeFileSync(instanceRegistryFile(home), `${JSON.stringify({
-    botId, pid: process.pid, startedAt: `proc:${botId}`, hostInstanceId, at: Date.now()
-  })}\n`, { flag: "a" });
-}
-
 /** 标准装具：鉴权台账＋签发面＋岗位表桩（单一台账门面，避免锁域自竞争）。 */
 function mkRig(clock, { posts = {} } = {}) {
   const home = mkHome();
@@ -58,7 +45,7 @@ function mkRig(clock, { posts = {} } = {}) {
   const gated = createTaskLedger({
     dshHome: home, now: clock.now, authorize: authorizer.authorize
   });
-  issuer.ledger = gated; // 吊销投影腿读同一门面（构造顺序解耦）
+  issuer.bindLedger(gated); // 吊销投影腿读同一门面（构造顺序解耦）
   const dispatcher = createLedgerCommandDispatcher({ ledger: gated, issuer, postForBot });
   return { home, issuer, authorizer, gated, dispatcher };
 }
@@ -339,6 +326,29 @@ test("结构性拒绝仍不落账（unknown-op 等，守 05 号票语义；06 �
   });
   assert.equal(unknown.code, "unknown-op");
   assert.equal(gated.events().length, before, "结构性拒绝不落账");
+});
+
+test("吊销投影腿（装具级）：host 取消任务后，原任务能力经鉴权面验签即 capability-revoked（V-A3.2 投影吊销）", () => {
+  const clock = clockAt();
+  const { gated, issuer } = mkRig(clock, { posts: { "bot-a": "implementer" } });
+  writeInstanceRow(gated.dshHome, "bot-a");
+  assignedTask(gated, "TK-00000014", "bot-a");
+  const issued = issuer.issueTaskCapability({ taskId: "TK-00000014", botId: "bot-a", post: "implementer" });
+  assert.equal(issued.ok, true);
+
+  const cancelled = gated.command({
+    op: "task.cancel", taskId: "TK-00000014", actor: HOST, idempotencyKey: "revoke-1",
+    expectedStatus: "assigned", expectedSeq: 4, payload: { reason: "上位取消" }
+  });
+  assert.equal(cancelled.ok, true, cancelled.reason);
+
+  const revoked = gated.command({
+    op: "task.accept", taskId: "TK-00000014", actor: POST("bot-a"),
+    capability: issued.envelope, idempotencyKey: "revoke-2",
+    expectedStatus: "cancelled", expectedSeq: 5, payload: {}
+  });
+  assert.equal(revoked.ok, false);
+  assert.equal(revoked.code, "capability-revoked", "取消后离开在办持有态：信封虽有效仍须被投影吊销拒绝");
 });
 
 test("读面 gate：ledger.read 岗位实例须持有效信封且不消费 nonce（读重放无害）", async () => {

@@ -81,3 +81,15 @@
     影响，仅缺签发联动（注释已澄清）。
 - 凭据义务：本条＋CHANGELOG 顶部条目（AGENTS.md §1）。V-A3.5 的「实验期一次」
   活体签发/吊销演练归 16/17 批执行留证。
+- 2026-09-19 用户额外模型 `/code-review` 复审（06/07/08 三票批；与 2026-09-18
+  实施批内复审相互独立）发现注记：
+  - **时点注记（不返工）**：本票时点 `OP_SET.verifier` 为空数组、`routine.trigger`
+    在保留集——`V-A3.4`／`V-A4.9`（复核帽零写 op）当时以**空集**机械通过。
+    08 号票已升 verifier 三 op（artifact.read／evidence.probe／review.report），
+    剩余 `evidence.read`／`results.read` 随 09/14 升表（消费方在）。
+  - **移交修复批**：①「连续越权通知派单方并计入上浮」（§D）未落→20 号票；
+    ②cas-mismatch 等常态拒绝烧信封断链＋读面 gate 不校验 op∈availableOps＋
+    `issued.jsonl` 对账缺独立消费面→21 号票；③岗位表 §B 责任表推导扩五 op 与
+    重签点加宽的冻结合同口径裁定→21 号票（需用户裁定面）。
+  - 测试装具盲区（authz 装具 `issuer.ledger =` 加属性未真正绑定吊销投影腿）随
+    2026-09-19 就地修复批改正（`bindLedger`＋补吊销腿断言），见 CHANGELOG。

@@ -7,6 +7,45 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 **06/07/08 三票用户额外模型 `/code-review` 复审处置**——修复
+  批立票 19–23＋简单项就地修复，2026-09-19 用户裁定「简单任务就地修复、内容
+  较多的按 `/to-tickets` 发布为新 issue」＝授权；与各票实施批内自带的复审环节
+  相互独立——15 号票同型的后补复审）：
+  - **范围**：固定点 `32792a3...HEAD`（07＋08 两票）＋ `e5c8aee...328071d`
+    （06 号票）三段两轴复审的发现处置；01–05＋18 已有全批/就地复审凭据
+    （2026-09-18），15 号票后补审在案，至此 org-v2 已入库实现票全部经过用户
+    额外发起的独立复审。
+  - **修复批立票（5 张，均无阻塞，`ready-for-agent`）**：19 简报契约边界完整性
+    （amend 冻结点不可降级＋承接方持有件刷新缝＋criteria-gap 分码＋needs-user
+    上浮——07/08 同族发现）；20 连续越权计数与上浮（§D）；21 capability 续签
+    断链修正＋读面 gate 腿二＋对账独立消费面＋岗位 op 集合同口径裁定（§D/§E，
+    含需用户裁定面）；22 探针沙箱快照形态（§E）；23 复审后续行为保持重构批
+    （含自 09 号票并行在制移交的简报侧同口径收尾、通知收件人 map 化、
+    dispatchCommand 回退分支回收等项）。
+  - **就地修复（行为保持＋测试盲区，12 项）**：authz 测试装具改真绑定
+    `bindLedger`（原 `issuer.ledger =` 加属性未触闭包 ledgerRef——投影吊销腿
+    在鉴权面测试静默失效）＋补吊销腿断言 1 条；post-channel CSRF 重试提取
+    `postWithCsrfRetry`（命令/复核两处同型）；probe 导出 `argsMatchArgKeys`
+    同口径谓词（runCriterion 消费，brief 侧接线归 23）；op-set 复核帽写 op
+    判定提取 `isVerifierWriteOp`（三站点）＋承接岗 researcher/implementer
+    共享常量（可执行表＋保留集）；测试装具归一 `tests/helpers/capability-fixture.mjs`
+    （clockAt/writeInstanceRow 两文件近逐字复制收敛）；org-permissions HOME
+    硬编码改 mkdtemp；review-kit selectReviewer holdingsFor 单调；CONTEXT.md
+    「四要素简报」词条补 reviewPoints；06/08 票面 Comments 复审注记（06：复核
+    帽 op 空集时点＋移交 20/21；08：验收第 2 项实况＝三判据收敛 deliver 单点
+    强制＋移交 19）。
+  - **验证**：我方份额 11 文件逐项测试全绿（authz 14/14 含新吊销腿断言）；
+    `TMPDIR=/dev/shm npm test` 47/49（唯一红＝**09 号票并行会话在制**的新增
+    V-A5.x 条目，失败项两次跑间滚动变化＝对方 TDD 施工态；本批在
+    task-ledger.js/task-ledger.test.mjs/brief.js/org-brief.test.mjs 的三处
+    微项因同文件并行施工撤销或移交 23 号票，工作树让净）；preflight ①48/49
+    ❌（同前归因）②0009 包 7/7 ③0 违例（扫 64 个 md）④11 PASS/0 FAIL/0 SKIP。
+  - **授权依据**：2026-09-19 用户 `/code-review` 调用（三票后补复审）＋同日
+    裁定「简单任务就地修复，内容较多的按照/to ticket 发布为新 issue」；`/to-tickets`
+    技能显式载入照文执行，票面 breakdown 经用户 AskUserQuestion 批准（七张并
+    五张）。
+  - **未落档面**：无（本条目＋19–23 五票面＋06/08 票面注记齐）。
+
 - ✅ 本轮（org-v2 实现批 **08 号票「复核件套」**，2026-09-18 用户 `/implement`
   调用＝授权；领票时工作树净、01–07＋15＋18 已入库无并行在制品，票面 Comments
   在案；blocker 07 已 resolved）：

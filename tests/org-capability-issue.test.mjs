@@ -13,14 +13,13 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { createCapabilityIssuer, capabilityDir } from "../lib/org/capability-issue.js";
 import { createTaskLedger } from "../lib/org/task-ledger.js";
-import { instanceRegistryFile } from "../lib/org/capability-base.js";
+import { clockAt, writeInstanceRow } from "./helpers/capability-fixture.mjs";
 import { VALID_BRIEF } from "./helpers/brief-fixture.mjs";
 
 function mkHome() {
@@ -30,37 +29,6 @@ process.on("exit", () => {
   for (const home of HOMES) rmSync(home, { recursive: true, force: true });
 });
 const HOMES = [];
-
-/** 固定时钟（与台账共享同一时钟源，租约/回收演练用毫秒推进）。 */
-function clockAt(startMs = Date.parse("2026-09-18T10:00:00.000Z")) {
-  let current = startMs;
-  return {
-    now: () => current,
-    advance(ms) {
-      current += ms;
-      return current;
-    }
-  };
-}
-
-/** 实例注册表行（五字段代际绑定，新格式）：默认活 pid＝本测试进程。 */
-function writeInstanceRow(home, botId, { alive = true, hostInstanceId = `gen-${botId}`, pid = process.pid } = {}) {
-  mkdirSync(join(home, "bots", "started"), { recursive: true });
-  let deadPid = pid;
-  if (!alive) {
-    const dead = spawnSync(process.execPath, ["-e", ""]);
-    deadPid = dead.pid ?? 0;
-  }
-  const row = {
-    botId,
-    pid: deadPid,
-    startedAt: `proc:${deadPid}`,
-    hostInstanceId,
-    at: Date.now()
-  };
-  writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
-  return row;
-}
 
 /** 建一张派到 bot-a 的在办任务（assign 转移点之后的台账事实）。 */
 function assignedTask(home, clock, { botId = "bot-a" } = {}) {
