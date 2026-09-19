@@ -21,6 +21,7 @@ import { createCapabilityIssuer } from "../lib/org/capability-issue.js";
 import { instanceRegistryFile } from "../lib/org/capability-base.js";
 import { ROLE_CARDS, ROLE_CARD_FIELDS } from "../lib/org/role-cards.js";
 import { deriveToolFace, LEDGER_COMMAND_OPS, OP_SET, WRITE_OPS } from "../lib/org/op-set.js";
+import { indexFile, knowledgeDir, reportsDirFor, templateFileFor } from "../lib/knowledge.js";
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 
@@ -50,6 +51,32 @@ test("L1 负例：~/.dsh 全域与一切共享面零直写——注册表/profil
   for (const target of shared) {
     assert.equal(isBotWritablePath({ dshHome: HOME, botId: "bot-a", target }), false, `共享面须拒写：${target}`);
   }
+});
+
+test("L1 负例：知识库容器协议**真实面**路径全部界外（V-A3.1 与 10 号票 V-A7.5 的交点）", () => {
+  // 上方负例表里的 `~/.dsh/knowledge/` 是历史路径形态；知识库真实面是
+  // `<dshHome>/bots/knowledge/`（lib/knowledge.js knowledgeDir）。两处都须界外，
+  // 且真实面路径由此处从 lib/knowledge.js 单源派生——防止路径漂移后本守卫失效。
+  const byHelper = [
+    knowledgeDir(HOME),
+    indexFile(HOME),
+    reportsDirFor(HOME),
+    templateFileFor(HOME),
+    join(reportsDirFor(HOME), "R-2026-001.md"),
+  ];
+  const byLiteral = [
+    join(HOME, "bots", "knowledge"),
+    join(HOME, "bots", "knowledge", "index.jsonl"),
+    join(HOME, "bots", "knowledge", ".lock", "owner.json"),
+  ];
+  for (const target of [...byHelper, ...byLiteral]) {
+    assert.equal(isBotWritablePath({ dshHome: HOME, botId: "bot-a", target }), false,
+      `知识库共面须拒写：${target}`);
+  }
+  // 正例对照：岗位私有记忆（workspace 自由笔记）是本层唯一合法直写区
+  assert.equal(
+    isBotWritablePath({ dshHome: HOME, botId: "bot-a", target: join(botWorkspaceDir(HOME, "bot-a"), "notes", "scratch.md") }),
+    true, "岗位私有笔记落在 workspace 界内（唯一合法直写区）");
 });
 
 test("L1 负例：路径遍历（workspace 内的 ../ 跳出）与非法 botId 一律拒（V-A3.1）", () => {

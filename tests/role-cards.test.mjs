@@ -358,3 +358,24 @@ test("home 岗位只许常设岗：复核帽不入常驻编制（V-A1.3）", () 
   assert.equal(verifier.ok, false);
   assert.ok(/常设岗/.test(verifier.error) && /V-A1\.3/.test(verifier.error), verifier.error);
 });
+
+test("检索引导只进调研承载岗：「开工先 search」在研究员卡面（派生段）且不在全员共享段（10 号票 §G 检索引导）", () => {
+  // 卡面：研究员承载检索引导（提示段是派生物，故断言卡面即断言段）
+  const researcher = ROLE_CARDS.find((card) => card.slug === "researcher");
+  const researchSegment = renderPostPromptSegment(researcher);
+  assert.ok(researchSegment.includes("开工前先 knowledge_search"),
+    "研究员岗位段须带「开工先 search」引导（§G：只写进调研承载岗）");
+
+  // 其余岗位卡不得带——引导不全员灌
+  for (const card of ROLE_CARDS) {
+    if (card.slug === "researcher") continue;
+    const segment = renderPostPromptSegment(card);
+    assert.ok(!segment.includes("开工前先 knowledge_search"),
+      `${card.slug} 岗位段不得带检索引导（只进调研承载岗）`);
+  }
+
+  // 全员共享的团队协作段也不得带（引导下沉到岗位段）
+  const source = readFileSync(new URL("../lib/index.js", import.meta.url), "utf8");
+  assert.ok(!source.includes("调研类任务开工前先 knowledge_search"),
+    "团队协作提示段不得再全员灌「开工先 search」");
+});

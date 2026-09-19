@@ -19,7 +19,7 @@ import os from "node:os";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-const { ensureKnowledgeBase, readIndex, nextReportId, registerReport, searchIndex,
+const { ensureKnowledgeBase, readIndex, nextReportId, registerReport, deprecateReport, searchIndex,
   knowledgeDir, indexFile, reportsDirFor, templateFileFor, acquireIndexLock } = await import("../lib/knowledge.js");
 const { internals } = await import("../lib/index.js");
 const { registerKnowledgeTools } = internals;
@@ -164,6 +164,51 @@ test("registerReport 存储失败（目录不可写）→ ok:false，不吞错",
   } finally {
     fs.chmodSync(knowledgeDir(home), 0o755);
   }
+});
+
+// ---------- 失效登记：废弃（10 号票 V-A7.8「显式取代／废弃」的废弃腿） ----------
+test("deprecateReport：显式废弃登记——append 语义翻状态、不物理删除、旧痕迹保留", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  registerReport({ dshHome: home, botId: "b", input: input({ title: "待废弃" }), now: NOW });
+  const r = deprecateReport({ dshHome: home, id: "R-2026-001", reason: "被后续实测否定", now: NOW });
+  assert.equal(r.ok, true, r.error);
+  assert.equal(r.id, "R-2026-001");
+  const entry = readIndex(home).find((e) => e.id === "R-2026-001");
+  assert.equal(entry.status, "deprecated", "状态翻为 deprecated");
+  assert.equal(entry.deprecatedReason, "被后续实测否定", "废弃理由留痕");
+  assert.ok(fs.existsSync(path.join(reportsDirFor(home), "R-2026-001.md")), "报告全文不删档（append 语义）");
+  // 废弃是唯一失效机制：无自动失效字段落地
+  for (const key of ["expiresAt", "ttlDays", "accessCount", "hitCount", "lastAccessedAt", "score"]) {
+    assert.equal(key in entry, false, `废弃登记不得引入自动失效/热字段：${key}`);
+  }
+});
+
+test("deprecateReport：未知 id / 已废弃 / 非法入参 → ok:false 且不动索引", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  registerReport({ dshHome: home, botId: "b", input: input(), now: NOW });
+  const before = fs.readFileSync(indexFile(home), "utf8");
+  assert.equal(deprecateReport({ dshHome: home, id: "R-2020-999", now: NOW }).ok, false, "未知 id 拒");
+  assert.equal(deprecateReport({ dshHome: home, id: "", now: NOW }).ok, false, "空 id 拒");
+  assert.equal(deprecateReport({ dshHome: home, id: "R-2026-001", reason: 42, now: NOW }).ok, false,
+    "理由非字符串拒（不给非文本留痕）");
+  assert.equal(fs.readFileSync(indexFile(home), "utf8"), before, "拒绝路径不动索引");
+  assert.equal(deprecateReport({ dshHome: home, id: "R-2026-001", reason: "误", now: NOW }).ok, true);
+  assert.equal(deprecateReport({ dshHome: home, id: "R-2026-001", reason: "再误", now: NOW }).ok, false,
+    "已废弃不二次废弃（状态转移非法即拒）");
+});
+
+test("deprecateReport：并发下不丢更新（同锁协议）", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  for (let i = 1; i <= 5; i++) registerReport({ dshHome: home, botId: "b", input: input({ title: `报${i}` }), now: NOW });
+  const results = [1, 2, 3, 4, 5].map((i) =>
+    deprecateReport({ dshHome: home, id: `R-2026-00${i}`, reason: "批量废弃", now: NOW }));
+  assert.ok(results.every((r) => r.ok === true), JSON.stringify(results));
+  const entries = readIndex(home);
+  assert.equal(entries.length, 5, "五条都在（不物理删除）");
+  assert.ok(entries.every((e) => e.status === "deprecated"));
 });
 
 // ---------- 检索 ----------
@@ -347,7 +392,30 @@ process.stdout.write(JSON.stringify(out));
 });
 
 // ---------- 工具集成 ----------
-test("registerKnowledgeTools：注册两个工具，execute 端到端（登记→检索回读）", async () => {
+test("检索面维持索引级子串：报告正文不参与检索（否决全文检索；10 号票 §G 检索面口径）", async () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  const unique = "ZQ正文独有串QZ";
+  registerReport({
+    dshHome: home, botId: "b", now: NOW,
+    input: input({ title: "索引级报告", summary: "索引里的摘要", body: `# 正文\n${unique}` })
+  });
+  // 索引级：标题/摘要等索引字段命中
+  assert.equal(searchIndex(readIndex(home), "索引里的摘要").length, 1, "索引字段可命中");
+  // 全文级：正文独有串**不得**命中——searchIndex 只吃索引行，正文不在其内
+  assert.equal(searchIndex(readIndex(home), unique).length, 0, "正文不参与检索（否决全文检索）");
+  // 工具面同口径：knowledge_search 亦读不到正文
+  const registered = [];
+  registerKnowledgeTools(
+    { get: (n) => (n === "tools" ? { register: (t) => { registered.push(t); return () => {}; } } : undefined), logger: { debug() {}, info() {}, warn() {} } },
+    { dshHome: home }, "b"
+  );
+  const search = registered.find((t) => t.name === "knowledge_search");
+  const viaTool = await search.execute({ query: unique });
+  assert.equal(viaTool.results.length, 0, "工具面同样检索不到正文");
+});
+
+test("registerKnowledgeTools：**只**注册读取工具 knowledge_search（写口已命令化，读取面照旧；V-A4.5）", async () => {
   const home = mkHome();
   ensureKnowledgeBase(home);
   const registered = [];
@@ -355,20 +423,13 @@ test("registerKnowledgeTools：注册两个工具，execute 端到端（登记�
   const ctx = { get: (name) => (name === "tools" ? tools : undefined), logger: { info() {}, warn() {} } };
   const api = { dshHome: home };
   registerKnowledgeTools(ctx, api, "bot-mt0x6r0y");
-  assert.deepEqual(registered.map((t) => t.name).sort(), ["knowledge_register", "knowledge_search"],
-    "两个工具注册");
+  assert.deepEqual(registered.map((t) => t.name), ["knowledge_search"],
+    "bot 侧知识工具只剩读取面（写口＝host 侧 knowledge.register 命令）");
 
   const search = registered.find((t) => t.name === "knowledge_search");
-  const register = registered.find((t) => t.name === "knowledge_register");
-
-  // 校验失败路径（工具层防御）
-  const badRes = await register.execute({});
-  assert.equal(badRes.status, "rejected");
-
-  // 正常登记 + 检索回读
-  const res = await register.execute(input({ title: "工具侧报告" }));
-  assert.equal(res.status, "created");
-  assert.equal(res.id, "R-2026-001");
+  // 读取面端到端：登记（host 侧路径）→ 检索回读
+  const res = registerReport({ dshHome: home, botId: "bot-mt0x6r0y", input: input({ title: "工具侧报告" }), now: NOW });
+  assert.equal(res.ok, true);
   const found = await search.execute({ query: "工具侧" });
   assert.equal(found.status, undefined, "search 结果无 status 字段（输出 schema 形状）");
   assert.equal(found.total, 1, "total 计数");
@@ -378,27 +439,28 @@ test("registerKnowledgeTools：注册两个工具，execute 端到端（登记�
   assert.equal(all.results.length, 1, "空 query 全列");
 });
 
-test("F-R4-1：knowledge_register 描述动态嵌入 REPORT_TEMPLATE.md；模板缺失降级（零静态内联）", () => {
-  const lgr = { debug() {}, info() {}, warn() {} };
+test("F-R4-1（命令化后的延续形态）：knowledge.register 描述经 describeOp 现读嵌入 REPORT_TEMPLATE.md；模板缺失降级", async () => {
+  const { deriveToolFace } = await import("../lib/org/op-set.js");
+  const { internals: idx } = await import("../lib/index.js");
+  const describeFor = idx.buildRegisterDescriptionForTest;
+  assert.equal(typeof describeFor, "function", "描述构造面须可测（导出供只读断言）");
+
   // 有模板：描述含现读模板结构节 + 基础句保留
   const home = mkHome();
   ensureKnowledgeBase(home);
-  const reg = [];
-  const ctx = { get: (n) => (n === "tools" ? { register: (t) => { reg.push(t); return () => {}; } } : undefined), logger: lgr };
-  registerKnowledgeTools(ctx, { dshHome: home }, "b");
-  const register = reg.find((t) => t.name === "knowledge_register");
-  assert.ok(register.description.includes("报告模板结构（REPORT_TEMPLATE.md 现读"), "标注动态来源（非静态内联）");
-  assert.ok(register.description.includes("## 摘要"), "描述含现读模板结构节");
-  assert.ok(register.description.includes("supersedes 与 reused 可对同一旧 id 同时填"), "基础句保留");
+  const face = deriveToolFace("researcher", { describeOp: ({ op, description }) => (op === "knowledge.register" ? describeFor(home) : description) });
+  const tool = face.find((t) => t.op === "knowledge.register");
+  assert.ok(tool.description.includes("报告模板结构（REPORT_TEMPLATE.md 现读"), "标注动态来源（非静态内联）");
+  assert.ok(tool.description.includes("## 摘要"), "描述含现读模板结构节");
+  assert.ok(tool.description.includes("supersedes 与 reused 可对同一旧 id 同时填"), "基础句保留");
+  assert.ok(tool.description.includes("命令化"), "基础句须说明写口在 host（命令化）");
 
-  // 无模板：降级为纯基础描述，不带模板节，不阻塞注册
+  // 无模板：降级为纯基础描述，不带模板节
   const home2 = mkHome();
-  const reg2 = [];
-  const ctx2 = { get: (n) => (n === "tools" ? { register: (t) => { reg2.push(t); return () => {}; } } : undefined), logger: lgr };
-  registerKnowledgeTools(ctx2, { dshHome: home2 }, "b");
-  const register2 = reg2.find((t) => t.name === "knowledge_register");
-  assert.ok(!register2.description.includes("报告模板结构（REPORT_TEMPLATE.md"), "无模板 → 无模板节");
-  assert.ok(register2.description.includes("把一份调研报告登记进团队共享知识库"), "基础句仍在，注册不阻塞");
+  const face2 = deriveToolFace("researcher", { describeOp: ({ op, description }) => (op === "knowledge.register" ? describeFor(home2) : description) });
+  const tool2 = face2.find((t) => t.op === "knowledge.register");
+  assert.ok(!tool2.description.includes("报告模板结构（REPORT_TEMPLATE.md"), "无模板 → 无模板节");
+  assert.ok(tool2.description.includes("把一份产出登记进团队共享知识库"), "基础句仍在");
 });
 
 // ---------- 运行 ----------

@@ -272,3 +272,33 @@ test("brief.refresh（19 号票②）：amend 后持有件重同步为台账真�
   assert.equal(badArgs.code, "brief-refresh-args");
   assert.equal(requests.length, 0, "缺参即拒，零请求");
 });
+
+// ---------------- 知识登记命令化（org-v2 10 号票 V-A4.5） ----------------
+
+test("knowledge.register 路由：走 POST /commands（含 capability／payload），**不走**本地探针腿（V-A4.5）", async () => {
+  const fetchImpl = makeFetch({ routes: baseRoutes() });
+  const dispatch = createPostChannel({ origin: ORIGIN, botId: "bot-a", probeCtx: { dshHome: tmpdir() }, fetchImpl });
+  // 先链上一张信封（模拟既有命令后的持有态）
+  await dispatch("task.accept", { taskId: "TK-00000090", idempotencyKey: "k0" });
+  const payload = { title: "命令化登记", summary: "摘要", body: "# 正文" };
+  const result = await dispatch("knowledge.register", { payload, idempotencyKey: "k1" });
+  assert.equal(result.ok, true);
+  const posted = fetchImpl.requests.filter((r) => r.path === "/api/bots/_ledger/commands").at(-1);
+  assert.equal(posted.method, "POST");
+  assert.equal(posted.body.op, "knowledge.register");
+  assert.deepEqual(posted.body.payload, payload, "报告入参经 payload 透传");
+  assert.deepEqual(posted.body.actor, { kind: "post", id: "bot-a" });
+  assert.deepEqual(posted.body.capability, NEXT_ENVELOPE, "链式能力随命令回传（持有侧不断链）");
+  // 不得落到本地探针腿：探针腿只认 evidence.probe（会因缺 taskId/index 拒）
+  assert.ok(!String(result.code ?? "").startsWith("probe"), "knowledge.register 不得被探针路由截获");
+});
+
+test("knowledge.register 未携 payload：仍走命令面（形状由 host 侧登记执行面判，bot 侧不预判）", async () => {
+  const fetchImpl = makeFetch({ routes: baseRoutes({
+    "POST /api/bots/_ledger/commands": async (body) => [409, { ok: false, code: "title 不能为空", op: body.op }]
+  }) });
+  const dispatch = createPostChannel({ origin: ORIGIN, botId: "bot-a", probeCtx: { dshHome: tmpdir() }, fetchImpl });
+  const result = await dispatch("knowledge.register", { idempotencyKey: "k2" });
+  assert.equal(result.ok, false);
+  assert.equal(result.code, "title 不能为空", "host 侧结论原样回传（登记校验不在 bot 侧重做）");
+});

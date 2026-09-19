@@ -21,12 +21,12 @@
     },
     {
       "slug": "researcher",
-      "cardDigest": "4580ff69ddcd51bbb5c8d2cf0c440f81260ff9c2279871efa15f65c515315ee8",
-      "renderDigest": "98b01eb39ade71ad8551af9b7a65855267cbe34fb602d245a24d9374252c7428",
-      "renderBytes": 973,
+      "cardDigest": "9c5f3f276fe7f69ce1e94e951eaed98043cc46fbfdb816c60d956b1d1a3558ac",
+      "renderDigest": "e2c05f7ba36c8501c71ad920f5d3bd17c5ea0caca2b7ef25b6ee74f7c95d26d3",
+      "renderBytes": 1054,
       "toolNamespace": "tool:researcher",
       "permissionNamespace": "perm:researcher",
-      "rendered": "## 岗位契约：研究员（researcher）\n\n- 一句话职责：事实调查：对指定问题取得可引用的事实与来源，产出报告（含盲区清单）。\n- 触发条件：项目经理派单（承接任务，按简报边界开工）。\n- 输入输出契约：输入＝派单简报（四要素＋验收预登记）与当次签发的 capability；输出＝带来源引用的报告（含盲区清单）与工件提交。\n- 边界（不做什么）：不改代码/文档/配置等工件；不自行改判据；不替派单方做取舍决定；不在简报范围外扩查。\n- 存在理由：超单窗信息与外部知识面——需要独立上下文的隔离调查（v1 实施面成员空缺，属新建）。\n- 放大机制：外置（工件）＋隔离（独立上下文）\n- 依赖面·更迭敏感性：HF-CTX-SERVICES、HF-LEDGER-COMMANDS、HF-V2-LEDGER-FORMAT（宿主适配面 id 引用；面形状更迭时改登记表条目与适配层，不改本卡）"
+      "rendered": "## 岗位契约：研究员（researcher）\n\n- 一句话职责：事实调查：对指定问题取得可引用的事实与来源，产出报告（含盲区清单）。\n- 触发条件：项目经理派单（承接任务，按简报边界开工）。\n- 输入输出契约：输入＝派单简报（四要素＋验收预登记）与当次签发的 capability；输出＝带来源引用的报告（含盲区清单）与工件提交。开工前先 knowledge_search 查历史结论作起点（避免重复调研）。\n- 边界（不做什么）：不改代码/文档/配置等工件；不自行改判据；不替派单方做取舍决定；不在简报范围外扩查。\n- 存在理由：超单窗信息与外部知识面——需要独立上下文的隔离调查（v1 实施面成员空缺，属新建）。\n- 放大机制：外置（工件）＋隔离（独立上下文）\n- 依赖面·更迭敏感性：HF-CTX-SERVICES、HF-LEDGER-COMMANDS、HF-V2-LEDGER-FORMAT（宿主适配面 id 引用；面形状更迭时改登记表条目与适配层，不改本卡）"
     },
     {
       "slug": "implementer",
@@ -47,5 +47,5 @@
       "rendered": "## 岗位契约：复核者（verifier）\n\n- 一句话职责：独立复核：只看 diff＋判据，报 gaps 不报 style。\n- 触发条件：关键产出的复核点命中（复核点是边界事件，不是流程阶段；形式归复核件套）。\n- 输入输出契约：输入＝diff、台账简报里预登记的验收判据、只读 capability；输出＝gaps 报告（复核件），两轮未闭合即上浮。\n- 边界（不做什么）：无任何写 op、无台账全量读（只读是结构性的，不靠约定）；不改工件、不代产出方修复；不评 style；不入常驻编制（按需召集，注册表无常驻复核席位）。\n- 存在理由：MAST「任务验证缺失」类失败——以 fresh-context 实例做独立复核。\n- 放大机制：互检（fresh context）\n- 依赖面·更迭敏感性：HF-CTX-SERVICES、HF-LEDGER-COMMANDS、HF-V2-LEDGER-FORMAT（宿主适配面 id 引用；面形状更迭时改登记表条目与适配层，不改本卡）"
     }
   ],
-  "aggregate": "79e39d784f14a6dccba201067ecc1a73e6cf63381e5ed4f9ea6f8ebc44c77786"
+  "aggregate": "5477e875c711ddd668226101512673f8d21a33cb77f9f5332b864ca0e81a813f"
 }

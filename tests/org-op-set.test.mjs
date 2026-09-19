@@ -19,6 +19,7 @@ import { readFileSync } from "node:fs";
 import {
   EXECUTE_OPS,
   LEDGER_COMMAND_OPS,
+  MUTATING_OPS,
   OP_SET,
   READ_OPS,
   RESERVED_OPS,
@@ -133,8 +134,12 @@ test("任务域 op 集（须绑定 taskId 的能力）：台账命令类属写�
   for (const slug of ["researcher", "implementer"]) {
     for (const op of OP_SET[slug]) {
       // 读面 op 不属任务域执行集：ledger.read 是公开投影读；brief.refresh（19 号票②）
-      // 是实例侧本地同步（读台账投影＋本地状态更新，不经 host 任务域能力授权）
-      if (op === "ledger.read" || op === "brief.refresh") continue;
+      // 是实例侧本地同步（读台账投影＋本地状态更新，不经 host 任务域能力授权）。
+      // knowledge.register（10 号票）：登记是**角色能力**而非任务域 op——§G 的时点
+      // 是「任务关闭或归档流程内」，但登记动作属产出岗的常驻职责（谁产出谁登记，
+      // 值班统筹亦然），授权由角色能力承载、不绑单张任务。
+      if (op === "ledger.read" || op === "brief.refresh"
+        || op === "knowledge.register" || op === "knowledge.deprecate") continue;
       assert.ok(TASK_SCOPED_OPS.includes(op), `${slug} 的 op ${op} 应属任务域执行集`);
     }
   }
@@ -229,6 +234,39 @@ test("岗位卡覆盖：表键不超出在册岗位卡 slug（表与卡同源，
   for (const slug of Object.keys(OP_SET)) {
     assert.ok(cardSlugs.has(slug), `op-set 键 ${slug} 无对应岗位卡`);
   }
+});
+
+test("knowledge.register 升表（10 号票 V-A4.5 命令化）：四常设岗持之、复核帽不持；属宿主侧执行面", () => {
+  for (const slug of STANDING_POST_SLUGS) {
+    assert.ok(OP_SET[slug].includes("knowledge.register"),
+      `${slug} 须持 knowledge.register（§G「谁产出谁登记」——登记是产出岗的角色职责）`);
+    assert.ok(!RESERVED_OPS[slug].includes("knowledge.register"), `${slug} 保留集不得再留已升表 op`);
+  }
+  assert.ok(!OP_SET.verifier.includes("knowledge.register"),
+    "复核帽无任何写 op，不得持知识登记（V-A4.9）");
+  assert.ok(EXECUTE_OPS.includes("knowledge.register"), "分类＝宿主侧执行面（非台账命令）");
+  assert.ok(!LEDGER_COMMAND_OPS.includes("knowledge.register"), "知识登记不是台账状态命令");
+  assert.ok(!WRITE_OPS.includes("knowledge.register"), "不落台账事件，不属台账写集");
+  assert.ok(!TASK_SCOPED_OPS.includes("knowledge.register"),
+    "不绑任务域：登记是角色能力（产出方在任务关闭/归档流程内登记，不是任务域 op）");
+});
+
+test("knowledge.register 工具派生（kind＝knowledge-register）", () => {
+  const tool = deriveToolFace("researcher").find((entry) => entry.op === "knowledge.register");
+  assert.equal(tool.kind, "knowledge-register");
+  assert.equal(tool.writes, false, "不落台账事件故 writes=false（共享面写者身份由 op-set 分类表达）");
+  assert.ok(tool.description.includes("knowledge.register"), "描述须点名 op");
+});
+
+test("复核帽不含任何**变异** op——写集 ∪ 共享面写者（V-A3.4 的本义）", () => {
+  for (const op of OP_SET.verifier) {
+    assert.ok(!MUTATING_OPS.includes(op), `复核帽可执行表不得含变异 op：${op}`);
+  }
+  for (const op of RESERVED_OPS.verifier) {
+    assert.ok(!MUTATING_OPS.includes(op), `复核帽保留集不得预置变异 op：${op}`);
+  }
+  assert.ok(MUTATING_OPS.includes("knowledge.register"),
+    "共享面写者须计入变异集（否则复核帽可经它写共享面）");
 });
 
 test("registerPostTools：注册集＝派生面（岗位表），复核帽注册集天然不含写工具（V-A4.1/V-A4.9）", async () => {

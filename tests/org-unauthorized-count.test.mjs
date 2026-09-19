@@ -187,7 +187,16 @@ test("缝② 阈值缺省＝用户域数值常量（注入缝在台账 lease，�
 
 // ---- 缝③ task-ledger sweep 越权上浮腿（经台账门面外部行为） ----
 
-function clockAt(startMs = Date.parse("2026-09-19T10:00:00.000Z")) {
+/**
+ * 冻结时钟（run 内所有台账事件共用同一时刻，保持单次运行内确定性）。
+ *
+ * **锚定真实当前时刻、不写死绝对日期**（2026-09-19 修：写死
+ * `2026-09-19T10:00:00Z` 是定时炸弹——本文件多处 `ledger.sweep({ at: Date.now() })`
+ * 传的是**真实**时刻，而台账事件时刻来自本冻结时钟；真实时刻一旦漂过租约窗口，
+ * `sweep` 先做租约回收（accept-timeout）把任务释放回队列，越权上浮腿因「任务不在手」
+ * 不再触发，缝③/缝④ 的 7 条断言随即失败。锚定 now 后两者同步漂移，窗口不再是变量）。
+ */
+function clockAt(startMs = Date.now()) {
   let current = startMs;
   return {
     now: () => current,

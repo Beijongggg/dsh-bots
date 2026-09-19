@@ -111,6 +111,27 @@ test("判据冻结期即按执行侧同口径校验参数键：错形判据不�
   assert.ok(missingArgs.gap.reason.includes("缺 args"));
 });
 
+// ---------------- 10 号票：晋升强制性预声明（V-A7.7） ----------------
+
+test("promotion（晋升强制性预声明）可选：给出须为 {required: boolean} 封闭形状（10 号票 V-A7.7）", () => {
+  const omitted = { ...VALID_BRIEF };
+  delete omitted.promotion;
+  assert.deepEqual(validateBrief(omitted), { ok: true, violations: [], gap: null },
+    "缺省＝派单方未预声明（全局不设强制）");
+  assert.equal(validateBrief({ ...VALID_BRIEF, promotion: { required: true } }).ok, true);
+  assert.equal(validateBrief({ ...VALID_BRIEF, promotion: { required: false } }).ok, true);
+
+  for (const bad of [true, false, "required", null, [], { required: "yes" }, { required: 1 }, {}]) {
+    const verdict = validateBrief({ ...VALID_BRIEF, promotion: bad });
+    assert.equal(verdict.ok, false, `promotion=${JSON.stringify(bad)} 应拒`);
+    assert.ok(verdict.violations.some((line) => line.includes("promotion")), "违例应点名 promotion");
+  }
+  // 条目键封闭：夹带其它字段即拒（不得把预声明做成语义决定的侧门）
+  const extra = validateBrief({ ...VALID_BRIEF, promotion: { required: true, note: "建议登记" } });
+  assert.equal(extra.ok, false);
+  assert.ok(extra.violations.some((line) => line.includes("note")));
+});
+
 // ---------------- 19 号票：简报契约边界完整性 ----------------
 
 test("reviewPoints 省略口径（2026-09-19 用户裁定，19 号票⑥）：整体省略＝零必审交付合法（注记留派单方自觉，校验不加码）", () => {

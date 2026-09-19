@@ -24,7 +24,9 @@ import { createLedgerHost, startLedgerTicker, windowKeyFor } from "../lib/org/le
 import { createCapabilityIssuer } from "../lib/org/capability-issue.js";
 import { instanceRegistryFile } from "../lib/org/capability-base.js";
 import { createReviewFaceGate } from "../lib/org/review-kit.js";
+import { createLedgerAccessKit } from "../lib/org/permissions.js";
 import { createTaskLedger, eventsFile, ledgerDir } from "../lib/org/task-ledger.js";
+import { deprecateReport, readIndex, registerReport, reportsDirFor } from "../lib/knowledge.js";
 
 const ledgerDirExists = (home) => existsSync(ledgerDir(home));
 import { receiptsDirFor } from "../lib/mail-plane.js";
@@ -574,6 +576,161 @@ test("复核面续签（21 号票 ①）：报告被台账拒绝（review-not-re
     });
     assert.equal(naked.status, 403);
     assert.equal(naked.body.capability, undefined, "未过帽 gate：不续签（越权不换新信封）");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+// ---------------- 知识登记命令化 HTTP（org-v2 10 号票 V-A4.5） ----------------
+
+test("knowledge.register 命令化：授权过的岗位实例经 host 执行登记（bot 侧无直写通道）", async () => {
+  const home = mkHome();
+  try {
+    const row = {
+      botId: "bot-researcher", pid: process.pid, startedAt: `proc:${process.pid}`,
+      hostInstanceId: "gen-researcher", at: Date.now()
+    };
+    mkdirSync(join(home, "bots", "started"), { recursive: true });
+    writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
+    const ledger = createTaskLedger({ dshHome: home, now: () => NOW });
+    const issuer = createCapabilityIssuer({ dshHome: home, ledger, now: () => NOW });
+    const access = createLedgerAccessKit({ issuer, postForBot: (botId) => (botId === "bot-researcher" ? "researcher" : null) });
+    const host = createLedgerHost({
+      ledger, now: () => NOW, readBotIds: () => [], isAlive: () => true, broadcast: () => {},
+      logger: { warn() {}, info() {} },
+      authorizeCommand: access.authorize,
+      knowledgeRegister: ({ op, payload, botId }) =>
+        (op === "knowledge.deprecate"
+          ? deprecateReport({ dshHome: home, id: payload.id, reason: payload.reason })
+          : registerReport({ dshHome: home, botId, input: payload }))
+    });
+    const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
+
+    // 未携 capability → 403（fail closed；不因「登记是轻动作」而放行）
+    const naked = await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "knowledge.register", actor: { kind: "post", id: "bot-researcher" }, idempotencyKey: "k-naked",
+      payload: { title: "裸登记", summary: "s", body: "b" }
+    });
+    assert.equal(naked.status, 403, JSON.stringify(naked.body));
+    assert.equal(readIndex(home).length, 0, "未授权不得落盘");
+
+    // 持岗位角色能力 → 200 且索引落一行（写者＝host 进程）
+    const role = issuer.issueRoleCapability({ botId: "bot-researcher", post: "researcher" });
+    assert.equal(role.ok, true, role.reason);
+    const ok = await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "knowledge.register", actor: { kind: "post", id: "bot-researcher" }, idempotencyKey: "k-ok",
+      capability: role.envelope,
+      payload: { title: "命令化登记", summary: "摘要", body: "# 正文", conclusions: ["结论1"] }
+    });
+    assert.equal(ok.status, 200, JSON.stringify(ok.body));
+    assert.equal(ok.body.ok, true);
+    assert.equal(ok.body.id, "R-2026-001");
+    const entries = readIndex(home);
+    assert.equal(entries.length, 1);
+    assert.equal(entries[0].botId, "bot-researcher", "产出者＝提交命令的实例");
+    assert.ok(existsSync(join(reportsDirFor(home), "R-2026-001.md")), "报告全文由 host 落盘");
+
+    // 登记不落台账事件（登记不构成任务完成依据）
+    assert.equal(ledger.events().length, 0, "knowledge.register 是宿主侧执行面 op，不落台账事件");
+
+    // 复核帽不得持该 op：帽信封调用即拒（op 不在 availableOps）
+    const hat = issuer.issueRoleCapability({ botId: "bot-reviewer", post: "verifier" });
+    const denied = await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "knowledge.register", actor: { kind: "post", id: "bot-reviewer" }, idempotencyKey: "k-hat",
+      capability: hat.envelope,
+      payload: { title: "帽登记", summary: "s", body: "b" }
+    });
+    assert.equal(denied.status, 403, JSON.stringify(denied.body));
+    assert.equal(readIndex(home).length, 1, "拒绝路径零写入");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("knowledge.deprecate：命令化废弃腿——授权后走 host 执行，未接线/未授权一律 fail closed", async () => {
+  const home = mkHome();
+  try {
+    const row = {
+      botId: "bot-researcher", pid: process.pid, startedAt: `proc:${process.pid}`,
+      hostInstanceId: "gen-deprecate", at: Date.now()
+    };
+    mkdirSync(join(home, "bots", "started"), { recursive: true });
+    writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
+    const ledger = createTaskLedger({ dshHome: home, now: () => NOW });
+    const issuer = createCapabilityIssuer({ dshHome: home, ledger, now: () => NOW });
+    const access = createLedgerAccessKit({ issuer, postForBot: (botId) => (botId === "bot-researcher" ? "researcher" : null) });
+    const host = createLedgerHost({
+      ledger, now: () => NOW, readBotIds: () => [], isAlive: () => true, broadcast: () => {},
+      logger: { warn() {}, info() {} },
+      authorizeCommand: access.authorize,
+      knowledgeRegister: ({ op, payload, botId }) =>
+        (op === "knowledge.deprecate"
+          ? deprecateReport({ dshHome: home, id: payload.id, reason: payload.reason })
+          : registerReport({ dshHome: home, botId, input: payload }))
+    });
+    const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
+
+    const role = issuer.issueRoleCapability({ botId: "bot-researcher", post: "researcher" });
+    const seeded = await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "knowledge.register", actor: { kind: "post", id: "bot-researcher" }, idempotencyKey: "d-0",
+      capability: role.envelope, payload: { title: "将被废弃", summary: "s", body: "b" }
+    });
+    assert.equal(seeded.body.ok, true, seeded.body.reason);
+
+    // 未携 capability → 403；废弃路径零写入
+    const naked = await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "knowledge.deprecate", actor: { kind: "post", id: "bot-researcher" }, idempotencyKey: "d-1",
+      payload: { id: "R-2026-001", reason: "无授权尝试" }
+    });
+    assert.equal(naked.status, 403, JSON.stringify(naked.body));
+    assert.equal(readIndex(home)[0].status, "valid", "未授权不得改状态");
+
+    // 持角色能力 → 200，状态翻 deprecated 且旧痕迹保留
+    const role2 = issuer.issueRoleCapability({ botId: "bot-researcher", post: "researcher" });
+    const ok = await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "knowledge.deprecate", actor: { kind: "post", id: "bot-researcher" }, idempotencyKey: "d-2",
+      capability: role2.envelope, payload: { id: "R-2026-001", reason: "被后续实测否定" }
+    });
+    assert.equal(ok.status, 200, JSON.stringify(ok.body));
+    const entry = readIndex(home)[0];
+    assert.equal(entry.status, "deprecated");
+    assert.equal(entry.deprecatedReason, "被后续实测否定", "理由留痕");
+    assert.equal(ledger.events().length, 0, "废弃腿同样不落台账事件");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("知识命令面未接线 → 503 fail closed（不得跳过鉴权直落盘）", async () => {
+  const home = mkHome();
+  try {
+    const ledger = createTaskLedger({ dshHome: home, now: () => NOW });
+    const host = createLedgerHost({
+      ledger, now: () => NOW, readBotIds: () => [], isAlive: () => true, broadcast: () => {},
+      logger: { warn() {}, info() {} }
+      // authorizeCommand / knowledgeRegister 均未接线
+    });
+    const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
+    const res = await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "knowledge.register", actor: { kind: "post", id: "bot-x" }, idempotencyKey: "u-1",
+      payload: { title: "t", summary: "s", body: "b" }
+    });
+    assert.equal(res.status, 503);
+    assert.equal(res.body.code, "knowledge-command-unwired");
+    assert.equal(readIndex(home).length, 0, "未接线路径零写入");
+
+    // 只接线执行面、缺鉴权面 → 同样 503（不得 fail-open 跳过鉴权）
+    const host2 = createLedgerHost({
+      ledger, now: () => NOW, readBotIds: () => [], isAlive: () => true, broadcast: () => {},
+      logger: { warn() {}, info() {} },
+      knowledgeRegister: () => ({ ok: true, id: "SHOULD-NOT-RUN" })
+    });
+    const api2 = { dshHome: home, ledgerHost: host2, ctx: { logger: { warn() {}, error() {}, info() {} } } };
+    const res2 = await call(api2, "POST", "/api/bots/_ledger/commands", {
+      op: "knowledge.register", actor: { kind: "post", id: "bot-x" }, idempotencyKey: "u-2",
+      payload: { title: "t", summary: "s", body: "b" }
+    });
+    assert.equal(res2.status, 503, "缺鉴权面不得放行（fail-open 即共享面裸写）");
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
