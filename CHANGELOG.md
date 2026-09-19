@@ -7,6 +7,43 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 实现批 **19 号票「简报契约边界完整性」**，2026-09-19 用户
+  `/implement`「继续修复」调用＝授权；领票核查在案——21 号票先由并行会话在制，
+  本会话按避让纪律挂后台监视器待其入库（`3cb332b`）后领票；⑤/⑥ 口径沿用 21 轮
+  用户裁定〔票面 Comments 在案〕；施工落档期间 20 号票又由并行会话开工、
+  `lib/org/human-inbox.js` 同文件混存——提交按 hunk 归属部分暂存，本票只入
+  needs-user 枚举两 hunk，20 号票 hunks 及其新件留工作树未动）：
+  - **范围**：规格 §B「派出即冻结，改动只走 amend 追加事件并显式通知承接方」＋
+    「判据必须可执行…分解不出来标 needs-user 上浮」＋§C「可加审不可免审」在
+    台账边界的机械面收口（07/08 号票复审 Spec 轴发现；修复批票 19）。
+  - **变化**：①`task.amend` 冻结复核点不可降级——置换件删减/整体省略已冻结
+    `reviewPoints` 即拒（回执 `review-exemption-forbidden` 逐点可归因；判定
+    原语 `droppedReviewPoints` 落 `lib/org/brief.js`，subject 集合语义与
+    collectReviewState 同口径）；②承接方持有件刷新缝——`lib/org/post-channel.js`
+    新 `brief.refresh` 读面 op（只许当前归属者；amend 通知后把本地持有简报
+    重同步为台账真源，探针 `probe-stale-brief` tripwire 恢复可用，合法修改
+    路径不再是死路），op-set 承接岗升表＋READ_OPS/TOOL_KIND 同步；③amend
+    显式通知承接方投影凭据（05 号票复审②口径）落 19① 回归断言；④简报校验
+    分码——判据缺口＝`criteria-gap`、结构违规＝`invalid-brief`
+    （briefRejectReason 结构化为 briefReject，intake/plan/amend/assign 四处
+    同口径；两类同时在案结构优先、缺口原因仍可见）；⑤needs-user 上浮路径——
+    `ESCALATION_CAUSES` 扩条 `needs-user`（**词表扩条授权依据＝2026-09-19 用户
+    裁定**，21 轮 AskUserQuestion、19 号票 Comments 在案）＋`escalated` 来态
+    扩 `triaged`（立项期缺口在简报未冻结前上浮）＋台账门面 `recordNeedsUser`
+    （照 `recordPreScreen` 同型：锚定最近拒绝＝criteria-gap、judgement 事实
+    留痕、escalated 通知 user、已挂起不重复；生产触发面随 13/14 召集接线，
+    同 recordPreScreen 留界）；⑥reviewPoints 省略口径注记（**2026-09-19 用户
+    裁定＝注记留派单方自觉**）：省略/空数组＝零必审交付合法，brief.js 头注＋
+    CONTEXT.md 两词条落档，校验与模板零改动。
+  - **复审**：`/code-review` 双轴并行（Standards 硬违例 0/judgement 5；Spec
+    缺失 1/越权 0/不符 2）全处置——fetchLedgerTask 共用件提取、op-set 头注
+    覆盖句、human-inbox 枚举头注改按类目陈述、recordNeedsUser 已挂起分支
+    口径、droppedReviewPoints 集合语义头注、19① 补 amend 通知断言（修）；
+    留界两条凭据落票面 Comments（needs-user 锚定对后续拒绝覆盖脆弱＝机械
+    规则已声明；生产触发面归 13/14）。
+  - **验证**：scoped 106/106＋全量 50/50＋preflight 四门 exit 0（①50/50
+    ②0009 包 7/7 ③0 违例扫 64 md ④11 PASS/0 FAIL/0 SKIP）。
+
 - ✅ 本轮（org-v2 实现批 **21 号票「capability 续签、读面 gate 与岗位 op 集合同口径」**，
   2026-09-19 用户 `/implement` 调用＝授权；领票核查在案——修复批余票 19/20/23 与 21
   均未阻塞，本轮经用户裁定**只领 21 号票**（范围裁定在案；19 号票 ⑤/⑥ 口径同轮裁定、

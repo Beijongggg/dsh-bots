@@ -13,7 +13,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { validateBrief } from "../lib/org/brief.js";
+import { droppedReviewPoints, validateBrief } from "../lib/org/brief.js";
 import { PROBE_COMMAND_NAMES } from "../lib/org/probe.js";
 
 /** 合法基线简报（判据用白名单内命令）——各负例在此之上做单点破坏。 */
@@ -118,4 +118,35 @@ test("判据冻结期即按执行侧同口径校验参数键：错形判据不�
   });
   assert.equal(missingArgs.ok, false);
   assert.ok(missingArgs.gap.reason.includes("缺 args"));
+});
+
+// ---------------- 19 号票：简报契约边界完整性 ----------------
+
+test("reviewPoints 省略口径（2026-09-19 用户裁定，19 号票⑥）：整体省略＝零必审交付合法（注记留派单方自觉，校验不加码）", () => {
+  const omitted = { ...VALID_BRIEF };
+  delete omitted.reviewPoints;
+  assert.deepEqual(validateBrief(omitted), { ok: true, violations: [], gap: null },
+    "省略该键不构成结构违规——必审集另受强制请求通道兜底（可加审不可免审）");
+  assert.equal(validateBrief({ ...VALID_BRIEF, reviewPoints: [] }).ok, true, "空数组同口径");
+});
+
+test("droppedReviewPoints（19 号票①）：amend 置换件对冻结复核点的删减判定——省略该键＝删全部，加审不在删减列", () => {
+  const frozen = { ...VALID_BRIEF, reviewPoints: ["before-external-visibility", "before-irreversible-write"] };
+  assert.deepEqual(
+    droppedReviewPoints(frozen, { ...VALID_BRIEF }),
+    ["before-external-visibility", "before-irreversible-write"],
+    "置换件省略 reviewPoints＝视为删全部（免审不得经省略侧门兑现）"
+  );
+  assert.deepEqual(
+    droppedReviewPoints(frozen, { ...VALID_BRIEF, reviewPoints: ["before-external-visibility"] }),
+    ["before-irreversible-write"],
+    "部分删减逐点可归因"
+  );
+  assert.deepEqual(
+    droppedReviewPoints(frozen, { ...frozen, reviewPoints: [...frozen.reviewPoints, "before-cross-instance-handoff"] }),
+    [],
+    "加审（新增点）不构成删减"
+  );
+  assert.deepEqual(droppedReviewPoints({ ...VALID_BRIEF }, { ...VALID_BRIEF }), [], "冻结件无点则无可删");
+  assert.deepEqual(droppedReviewPoints(undefined, { ...VALID_BRIEF }), [], "无冻结件（intake 前置换）不适用本判定");
 });

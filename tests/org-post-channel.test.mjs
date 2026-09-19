@@ -217,3 +217,58 @@ test("artifact.read 参数守门：缺 taskId 即拒（不发起请求）", asyn
   assert.equal(result.code, "artifact-read-args");
   assert.equal(fetchImpl.requests.some((r) => r.path.includes("review-handoff")), false);
 });
+
+// ---------------- 持有件刷新（org-v2 19 号票②） ----------------
+
+test("brief.refresh（19 号票②）：amend 后持有件重同步为台账真源、evidence.probe 恢复可用；非归属者/无简报/缺参即拒", async () => {
+  const home = mkdtempSync(join(tmpdir(), "post-channel-"));
+  mkdirSync(join(home, "docs"), { recursive: true });
+  writeFileSync(join(home, "docs", "x.md"), "示例产出已落坐标", "utf8");
+  const amendedBrief = { ...BRIEF, goal: "台账上是被 amend 过的目标" };
+  const ledgerView = {
+    lastSeq: 5, open: 3,
+    tasks: [
+      { taskId: "TK-00000091", status: "running", owner: "bot-a", brief: structuredClone(amendedBrief) },
+      { taskId: "TK-00000093", status: "running", owner: "bot-a", brief: null }
+    ]
+  };
+  const routes = baseRoutes({
+    "GET /api/bots/_ledger": async () => [200, ledgerView],
+    "POST /api/bots/_ledger/commands": async (body) => [200, { ok: true, taskId: body.taskId, status: "accepted", seq: 4, capability: NEXT_ENVELOPE, task: { taskId: body.taskId, status: "accepted", brief: structuredClone(BRIEF) } }]
+  });
+  const dispatch = createPostChannel({ origin: ORIGIN, botId: "bot-a", probeCtx: { dshHome: home }, fetchImpl: makeFetch({ routes }) });
+  // 接单持有旧简报；台账上已是 amend 后新简报 → 逐字比对不符，探针 fail closed
+  await dispatch("task.accept", { taskId: "TK-00000091", idempotencyKey: "acc-91", expectedStatus: "assigned", expectedSeq: 3, payload: {} });
+  const stale = await dispatch("evidence.probe", { taskId: "TK-00000091", index: 0 });
+  assert.equal(stale.ok, false);
+  assert.equal(stale.code, "probe-stale-brief", "刷新前：amend 后未重同步，探针 tripwire 照常");
+  // 刷新：本地持有件重同步为台账真源
+  const refreshed = await dispatch("brief.refresh", { taskId: "TK-00000091" });
+  assert.equal(refreshed.ok, true);
+  assert.deepEqual(refreshed.brief, amendedBrief, "刷新结论携带重同步后的简报");
+  const probe = await dispatch("evidence.probe", { taskId: "TK-00000091", index: 0 });
+  assert.equal(probe.ok, true, "刷新后探针恢复可用（19 号票②：合法修改路径不再是死路）");
+  // 非归属者即拒（持有件＝承接方接单契约）
+  const other = createPostChannel({ origin: ORIGIN, botId: "bot-b", probeCtx: { dshHome: home }, fetchImpl: makeFetch({ routes }) });
+  const notOwner = await other("brief.refresh", { taskId: "TK-00000091" });
+  assert.equal(notOwner.ok, false);
+  assert.equal(notOwner.code, "brief-refresh-not-owner");
+  // 任务无简报可同步
+  const noBrief = await dispatch("brief.refresh", { taskId: "TK-00000093" });
+  assert.equal(noBrief.ok, false);
+  assert.equal(noBrief.code, "brief-refresh-no-brief");
+  // 台账无任务
+  const unknown = await dispatch("brief.refresh", { taskId: "TK-00000099" });
+  assert.equal(unknown.ok, false);
+  assert.equal(unknown.code, "brief-refresh-task-unknown");
+  // 缺参不发起请求
+  const requests = [];
+  const counting = createPostChannel({
+    origin: ORIGIN, botId: "bot-a", probeCtx: { dshHome: home },
+    fetchImpl: makeFetch({ routes, requests })
+  });
+  const badArgs = await counting("brief.refresh", {});
+  assert.equal(badArgs.ok, false);
+  assert.equal(badArgs.code, "brief-refresh-args");
+  assert.equal(requests.length, 0, "缺参即拒，零请求");
+});

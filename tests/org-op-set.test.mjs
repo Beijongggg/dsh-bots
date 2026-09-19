@@ -68,7 +68,7 @@ test("分类是封闭枚举：读写集覆盖命令面全词表∪ledger.read（
     assert.ok(classified.has(op), `命令面 op ${op} 漏分类（新命令面 op 必须归类，漏分类即被此处抓出）`);
   }
   assert.ok(classified.has("ledger.read"));
-  assert.deepEqual(READ_OPS, ["ledger.read", "artifact.read"]); // 08 号票：复核移交件读面
+  assert.deepEqual(READ_OPS, ["ledger.read", "artifact.read", "brief.refresh"]); // 08 号票：复核移交件读面；19 号票：承接方持有件刷新（读面驱动、不落事件）
   for (const op of READ_OPS) {
     assert.ok(!LEDGER_COMMAND_OPS.includes(op) || op === "ledger.read", `读面扩展 op ${op} 不得是台账命令（读面不落事件）`);
   }
@@ -132,7 +132,9 @@ test("任务域 op 集（须绑定 taskId 的能力）：台账命令类属写�
   }
   for (const slug of ["researcher", "implementer"]) {
     for (const op of OP_SET[slug]) {
-      if (op === "ledger.read") continue;
+      // 读面 op 不属任务域执行集：ledger.read 是公开投影读；brief.refresh（19 号票②）
+      // 是实例侧本地同步（读台账投影＋本地状态更新，不经 host 任务域能力授权）
+      if (op === "ledger.read" || op === "brief.refresh") continue;
       assert.ok(TASK_SCOPED_OPS.includes(op), `${slug} 的 op ${op} 应属任务域执行集`);
     }
   }

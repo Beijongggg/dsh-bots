@@ -14,15 +14,15 @@ reviewPoints 整体省略＝零必审交付的口径（必填化 or 注记留派
 
 **Blocked by:** None（can start immediately）
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] amend 置换简报删减已冻结 reviewPoints 被拒且回执可归因（免审禁在 amend 通道兑现）
-- [ ] accepted/running 态 amend 后承接方持有简报可刷新、evidence.probe 恢复可用
-- [ ] amend 显式通知承接方的投影在案
-- [ ] 台账边界区分 criteria-gap 与结构违规（分拒绝码）
-- [ ] 判据缺口分解不出时标 needs-user 上浮 waiting-user 的路径在位
-- [ ] reviewPoints 省略口径有用户裁定并落档
-- [ ] 全量回归 PASS
+- [x] amend 置换简报删减已冻结 reviewPoints 被拒且回执可归因（免审禁在 amend 通道兑现）
+- [x] accepted/running 态 amend 后承接方持有简报可刷新、evidence.probe 恢复可用
+- [x] amend 显式通知承接方的投影在案（经查 05 号票复审②已在：NOTIFY_TO.amend→owner「通知任务在手者」；本票落 19① 回归断言为凭据）
+- [x] 台账边界区分 criteria-gap 与结构违规（分拒绝码）
+- [x] 判据缺口分解不出时标 needs-user 上浮 waiting-user 的路径在位
+- [x] reviewPoints 省略口径有用户裁定并落档（2026-09-19 用户裁定＝注记留派单方自觉，见下）
+- [x] 全量回归 PASS
 
 ## Comments
 
@@ -37,3 +37,25 @@ reviewPoints 整体省略＝零必审交付的口径（必填化 or 注记留派
     —— 该裁定系**封闭词表扩条**（09 号票「在案五条＋契约五条」之外的第 11 条），
     实施批须同步 `human-inbox.js` 头注与 `CONTEXT.md` 词条，并在 CHANGELOG 记明
     词表扩条的授权依据＝本条裁定。
+
+- 2026-09-19 实施批凭据（`/implement`「继续修复」，21 号票入库 `3cb332b` 后领票；
+  ⑤/⑥ 沿用上轮用户裁定）：①`brief.js` 新 `droppedReviewPoints`＋`task.amend`
+  置换件删减/整体省略即拒（`review-exemption-forbidden`，回执逐点可归因）；
+  ②`post-channel.js` 新 `brief.refresh` 读面 op（op-set 承接岗升表＋READ_OPS/
+  TOOL_KIND 同步；只许当前归属者，刷新后 `probe-stale-brief` 解除、探针恢复）；
+  ③通知投影凭据＝19① 回归断言（amend→承接方本人，05 号票复审②口径）；
+  ④`briefRejectReason` 结构化为 `briefReject`：gap-only＝`criteria-gap`、结构
+  违规＝`invalid-brief`、两类同时在案结构优先缺口仍可见（intake/plan/amend/
+  assign 四处同口径）；⑤`ESCALATION_CAUSES` 扩条 `needs-user`（**授权依据＝
+  2026-09-19 用户裁定**，21 轮 AskUserQuestion）＋`escalated` 来态扩 `triaged`
+  ＋`recordNeedsUser` 门面（recordPreScreen 同型：锚定最近拒绝＝criteria-gap、
+  judgement 留痕、escalated 通知 user、已挂起不重复）；⑥省略口径注记落
+  brief.js 头注＋CONTEXT.md 两词条，校验与模板零改动。验证 scoped 106/106＋
+  全量 50/50＋preflight 四门 exit 0。
+- **留界两条**（机械口径已声明，非缺陷）：⑴`recordNeedsUser` 的锚定规则
+  「最近一次拒绝须为 criteria-gap」对后续任何 command-rejected 覆盖
+  `lastRejection` 脆弱——锚丢失时须重新触发一次缺口拒绝再上浮（fail closed
+  方向，防通用挂起旁路）；⑵`recordNeedsUser` 生产触发面（谁代表承接流程调用）
+  随 13/14 召集接线，同 `recordPreScreen` 留界口径。另注：`droppedReviewPoints`
+  按 subject 集合语义判定（重复条目折叠＝collectReviewState 同口径，重复条目
+  增减不改变必审集、不构成删减）。

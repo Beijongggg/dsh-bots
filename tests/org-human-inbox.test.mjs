@@ -72,6 +72,7 @@ test("上浮原因＝封闭枚举：在案两路（复核两轮未闭合、队�
   for (const id of ["pre-screen-rejected", "conflict", "out-of-bounds"]) {
     assert.ok(ESCALATION_CAUSE_IDS.includes(id), `${id} 是初审拒绝／永不可代两项的上浮原因，须在枚举内`);
   }
+  assert.ok(ESCALATION_CAUSE_IDS.includes("needs-user"), "needs-user 是判据缺口分解不出来的上浮原因（规格 §B 原词；2026-09-19 用户裁定扩条，19 号票）");
   for (const entry of ESCALATION_CAUSES) {
     assert.ok(typeof entry.criterion === "string" && entry.criterion !== "");
   }
