@@ -7,6 +7,34 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 实现批 **20 号票「连续越权计数与上浮」**，2026-09-19 用户
+  `/implement` 调用＝授权；领票核查在案——修复批 19/21 已入库（`8488bce`／
+  `3cb332b`）、工作树仅余本票在制；施工中 19/21 先后入库、`lib/org/human-inbox.js`
+  同文件混存两轮均由对方按 hunk 归属部分暂存解决，本票 hunks 留工作树至本轮提交；
+  TDD 四缝经用户 AskUserQuestion 确认在案）：
+  - **范围**：规格 §D「拒绝＝fail closed 不执行……连续越权通知派单方并计入上浮」
+    的机械面收口（06 号票复审 Spec 轴 (a)1；修复批票 20）。
+  - **变化**：新件 `lib/org/run-count.js`（trailing 连续计数共用原语——02 纪律：
+    09 号票 `noticesFrom` 改接同源、行为保持由既有测试锁定）＋
+    `lib/org/unauthorized-count.js`（拒绝回执链按**岗位实例**折叠计数、达阈通知
+    派单方投影、每串至多一次守卫）；台账 sweep 增连续越权上浮腿（达阈且在手 →
+    `escalated` cause=out-of-bounds〔09 号票预冻词表兑现，越权处置永不可代、
+    `userRulingRequirement` 随投影生效〕；每串至多一次**双锚点**＝串内本面上浮
+    事件＋通知幂等预留〔覆盖无在手任务的零事件路径；/code-review 探针实证每拍
+    重发洞后修、回归锁定〕；上浮失败 exceptionFailures 响亮回报、下拍带通知重试；
+    来态限在手四态＝`ALLOWED_FROM.escalated` 合法转移）＋
+    `LEASE_DEFAULTS.unauthorizedThreshold` 阈值缝（缺省 3＝用户域数值的缝，可
+    注入）；ledger-host tick 计入 changed／swept 载荷＋值守日志达阈回报；human-inbox
+    导出 `isCapabilityFaceCode`／`classifyCapabilityFaceRejection`（任务链与实例链
+    两分类器共用核心）。
+  - **复审**：`/code-review` 双轴并行（Standards 硬违例 0/judgement 6；Spec
+    缺失 1/不符 1）全处置——分类器核心提取共用件、sweep 腿读面一次读定透传、
+    sweep docstring 补越权腿、无在手串通知幂等锚点（修）；runs 返回值契约面、
+    `swept.unauthorized?.length` 防御风格、动作词表回调内字面量（留，理由在案）；
+    分叉口径与投影裁定落票面 Comments。
+  - **验证**：scoped 15/15＋全量 51/51＋preflight 四门 exit 0（①51/51 ②0009 包
+    7/7 ③0 违例扫 64 md ④11 PASS/0 FAIL/0 SKIP）。
+
 - ✅ 本轮（org-v2 实现批 **19 号票「简报契约边界完整性」**，2026-09-19 用户
   `/implement`「继续修复」调用＝授权；领票核查在案——21 号票先由并行会话在制，
   本会话按避让纪律挂后台监视器待其入库（`3cb332b`）后领票；⑤/⑥ 口径沿用 21 轮
