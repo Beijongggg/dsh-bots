@@ -91,6 +91,19 @@ test("reviewPoints 可省略可空数组；给出时须为必审清单边界 id�
   assert.equal(validateBrief({ ...VALID_BRIEF, reviewPoints: "派单前复核" }).ok, false);
 });
 
+test("dueAt（边界要素的业务截止时间）可选：给出须为可解析时间戳，缺省＝无到期投影（09 号票）", () => {
+  assert.equal(validateBrief({ ...VALID_BRIEF }).ok, true, "缺省即合法（无到期投影）");
+  assert.equal(validateBrief({ ...VALID_BRIEF, dueAt: undefined }).ok, true);
+  assert.equal(validateBrief({ ...VALID_BRIEF, dueAt: "2026-10-01T00:00:00.000Z" }).ok, true);
+  assert.equal(validateBrief({ ...VALID_BRIEF, dueAt: "2026-10-01" }).ok, true, "日期粒度可解析即可");
+
+  for (const bad of ["不是时间", 1798761600000, {}, null, "  "]) {
+    const verdict = validateBrief({ ...VALID_BRIEF, dueAt: bad });
+    assert.equal(verdict.ok, false, `dueAt=${JSON.stringify(bad)} 应拒`);
+    assert.ok(verdict.violations.some((line) => line.includes("dueAt")), "违例应点名 dueAt");
+  }
+});
+
 test("判据冻结期即按执行侧同口径校验参数键：错形判据不得冻结成永不满足的死判据", () => {
   const wrongKeys = validateBrief({
     ...VALID_BRIEF,

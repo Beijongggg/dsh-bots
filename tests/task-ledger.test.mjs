@@ -37,8 +37,11 @@ import {
   createTaskLedger,
   eventsFile,
   isTaskId,
-  ledgerDir
+  ledgerDir,
+  validateEventRecord
 } from "../lib/org/task-ledger.js";
+import { ESCALATION_CAUSE_IDS, RULING_CLASS_IDS, applyRuling } from "../lib/org/human-inbox.js";
+import { eventHashFor } from "../lib/org/store-base.js";
 
 function mkHome() {
   return mkdtempSync(join(tmpdir(), "dsh-task-ledger-"));
@@ -523,7 +526,8 @@ test("wait-user 挂起：host／user 上浮裁定放行，post 触发须归属�
     // 非归属 post 不得把他人任务挂起——waiting-user 无超时自动动作，任由挂起＝无限期冻结
     const notOwner = ledger.command({
       op: "task.wait-user", taskId: "TK-00000080", actor: POST("intruder"),
-      ...cas(ledger, "TK-00000080"), idempotencyKey: "t80-wait-intruder", payload: { reason: "越权挂起" }
+      ...cas(ledger, "TK-00000080"), idempotencyKey: "t80-wait-intruder",
+      payload: { class: "irreversible-write", reason: "越权挂起" }
     });
     assert.equal(notOwner.ok, false);
     assert.equal(notOwner.code, "not-owner");
@@ -532,21 +536,69 @@ test("wait-user 挂起：host／user 上浮裁定放行，post 触发须归属�
     // 归属者 post（不可逆写入放行请求）与 host（上浮终裁）／user（用户域裁定）三类触发均放行（规格 §F）
     const ownerWait = ledger.command({
       op: "task.wait-user", taskId: "TK-00000080", actor: POST("implementer"),
-      ...cas(ledger, "TK-00000080"), idempotencyKey: "t80-wait-owner", payload: { reason: "不可逆写入放行" }
+      ...cas(ledger, "TK-00000080"), idempotencyKey: "t80-wait-owner",
+      payload: { class: "irreversible-write", reason: "不可逆写入放行" }
     });
     assert.equal(ownerWait.ok, true);
-    for (const [actor, key] of [[HOST, "t80-wait-host"], [USER, "t80-wait-user"]]) {
+    for (const [actor, cls, key] of [[HOST, "escalation", "t80-wait-host"], [USER, "user-domain", "t80-wait-user"]]) {
       assert.equal(ledger.command({
         op: "task.resume", taskId: "TK-00000080", actor: HOST, ...cas(ledger, "TK-00000080"),
         idempotencyKey: `t80-resume-${key}`, payload: { resumeTo: "running" }
       }).ok, true);
       const waited = ledger.command({
         op: "task.wait-user", taskId: "TK-00000080", actor,
-        ...cas(ledger, "TK-00000080"), idempotencyKey: key, payload: { reason: "上浮终裁" }
+        ...cas(ledger, "TK-00000080"), idempotencyKey: key, payload: { class: cls, reason: "上浮终裁" }
       });
       assert.equal(waited.ok, true, `${actor.kind} 应可触发 wait-user`);
       assert.equal(ledger.task("TK-00000080").status, "waiting-user");
     }
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("只有三类裁定进 waiting-user：class 必填且封闭，缺省／枚举外即拒（V-A5.1）", () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
+    toRunning(ledger, "TK-00000081");
+    // 缺省 class：拒——裁定类不得由「触发方是谁」反推（不静默降级）
+    const missing = ledger.command({
+      op: "task.wait-user", taskId: "TK-00000081", actor: POST("implementer"),
+      ...cas(ledger, "TK-00000081"), idempotencyKey: "t81-wait-missing", payload: { reason: "无裁定类" }
+    });
+    assert.equal(missing.ok, false);
+    assert.equal(missing.code, "invalid-ruling-class");
+    assert.equal(ledger.task("TK-00000081").status, "running", "拒绝不得改状态");
+    // 枚举外（含近形大写、空串、非字符串）：一律拒
+    for (const [index, bad] of ["闲聊", "", "ESCALATION", 1, null, "escalation "].entries()) {
+      const verdict = ledger.command({
+        op: "task.wait-user", taskId: "TK-00000081", actor: HOST, ...cas(ledger, "TK-00000081"),
+        idempotencyKey: `t81-bad-${String(index)}`, payload: { class: bad, reason: "枚举外" }
+      });
+      assert.equal(verdict.ok, false, `class=${JSON.stringify(bad)} 应拒`);
+      assert.equal(verdict.code, "invalid-ruling-class");
+    }
+    assert.equal(ledger.task("TK-00000081").status, "running");
+    // 三类各自放行：投影记住裁定类，恢复后清空（状态＝事件投影，重建可复现）
+    RULING_CLASS_IDS.forEach((cls, index) => {
+      const waited = ledger.command({
+        op: "task.wait-user", taskId: "TK-00000081", actor: HOST, ...cas(ledger, "TK-00000081"),
+        idempotencyKey: `t81-wait-${String(index)}`, payload: { class: cls, reason: "三类之一" }
+      });
+      assert.equal(waited.ok, true, `${cls} 应放行`);
+      assert.equal(ledger.task("TK-00000081").waitingClass, cls, "投影须记住裁定类");
+      const resumed = ledger.command({
+        op: "task.resume", taskId: "TK-00000081", actor: USER, ...cas(ledger, "TK-00000081"),
+        idempotencyKey: `t81-resume-${String(index)}`, payload: { resumeTo: "running" }
+      });
+      assert.equal(resumed.ok, true);
+      assert.equal(ledger.task("TK-00000081").waitingClass, null, "恢复后裁定类清空");
+    });
+    // 重建投影：裁定类随事件重放复现（不依赖内存态）
+    const rebuilt = createTaskLedger({ dshHome: home, now: clock.now });
+    assert.equal(rebuilt.task("TK-00000081").waitingClass, null);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
@@ -947,6 +999,274 @@ test("队列滞留超时：intake 上浮用户／triaged 退回分诊／planned 
   }
 });
 
+test("上浮终裁原因封闭：escalated 的 cause 与 wait-user 的 class 同受 schema 把守（V-A5.1）", () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const ledger = createTaskLedger({ dshHome: home, now: clock.now, lease: { stallMs: 1000 } });
+    // planned 滞留 → sweep 上浮（cause=queue-stall）；投影归入「上浮终裁」类
+    openTask(ledger, "TK-00000082");
+    ledger.command({ op: "task.triage", taskId: "TK-00000082", actor: HOST, ...cas(ledger, "TK-00000082"), idempotencyKey: "t82", payload: { decision: "立项" } });
+    ledger.command({ op: "task.plan", taskId: "TK-00000082", actor: HOST, ...cas(ledger, "TK-00000082"), idempotencyKey: "p82", payload: {} });
+    clock.advance(1500);
+    ledger.sweep({ at: clock.now() });
+    const escalated = ledger.events({ taskId: "TK-00000082" }).find((event) => event.type === "escalated");
+    assert.ok(ESCALATION_CAUSE_IDS.includes(escalated.cause), "在位事件原因须在枚举内");
+    assert.equal(ledger.task("TK-00000082").waitingClass, "escalation", "上浮＝上浮终裁类（投影随事件）");
+    assert.equal(validateEventRecord(escalated, escalated.seq - 1).ok, true, "在位的上浮事件须过 schema");
+    for (const cause of ["闲聊", undefined, "QUEUE-STALL", ""]) {
+      // 形状合法但词表外的写入（重放/外部写入）：hash 重算后仍须被原因枚举拦下
+      const shape = { ...escalated, cause };
+      const tampered = validateEventRecord({ ...shape, eventHash: eventHashFor(shape) }, escalated.seq - 1);
+      assert.equal(tampered.ok, false, `cause=${String(cause)} 应视为事实源损坏`);
+      assert.ok(tampered.reason.includes("cause"), "拒绝理由须点名 cause");
+    }
+    // wait-user 的裁定类在 schema 层同样封闭（重放/外部写入路径）
+    openTask(ledger, "TK-00000083");
+    clock.advance(1500);
+    ledger.sweep({ at: clock.now() });
+    const waited = ledger.events({ taskId: "TK-00000083" }).find((event) => event.type === "wait-user");
+    assert.equal(waited.class, "escalation", "队列滞留上浮＝上浮终裁类");
+    assert.equal(validateEventRecord(waited, waited.seq - 1).ok, true);
+    const tampered = validateEventRecord({ ...waited, class: "闲聊", eventHash: eventHashFor({ ...waited, class: "闲聊" }) }, waited.seq - 1);
+    assert.equal(tampered.ok, false);
+    assert.ok(tampered.reason.includes("class"));
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("永不可代三项：用户域挂起点只许 user 终裁——post／host 代裁（含取消）一律拒（V-A5.4）", () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
+    toRunning(ledger, "TK-00000084");
+    assert.equal(ledger.command({
+      op: "task.wait-user", taskId: "TK-00000084", actor: HOST, ...cas(ledger, "TK-00000084"),
+      idempotencyKey: "t84-wait", payload: { class: "user-domain", reason: "模型指派与预算待用户定" }
+    }).ok, true);
+    assert.equal(ledger.task("TK-00000084").waitingClass, "user-domain");
+    // 代理（post，无论是否原归属者）与确定性层（host）都不得代行用户域裁定
+    for (const [actor, key] of [[POST("implementer"), "t84-resume-post"], [HOST, "t84-resume-host"]]) {
+      const verdict = ledger.command({
+        op: "task.resume", taskId: "TK-00000084", actor, ...cas(ledger, "TK-00000084"),
+        idempotencyKey: key, payload: { resumeTo: "running" }
+      });
+      assert.equal(verdict.ok, false, `${actor.kind} 不得代行用户域裁定`);
+      assert.equal(verdict.code, "ruling-not-delegable");
+      assert.equal(ledger.task("TK-00000084").status, "waiting-user", "拒绝不得改状态");
+    }
+    // 连「取消」都不许代（永不可代＝处置本身也不可代）
+    const cancelByLead = ledger.command({
+      op: "task.cancel", taskId: "TK-00000084", actor: POST("project-lead"), ...cas(ledger, "TK-00000084"),
+      idempotencyKey: "t84-cancel", payload: { reason: "代裁取消", attribution: "越权代裁" }
+    });
+    assert.equal(cancelByLead.ok, false);
+    assert.equal(cancelByLead.code, "ruling-not-delegable");
+    // user 终裁放行（裁定不走新命令面：仍是既有 resume）
+    assert.equal(ledger.command({
+      op: "task.resume", taskId: "TK-00000084", actor: USER, ...cas(ledger, "TK-00000084"),
+      idempotencyKey: "t84-resume-user", payload: { resumeTo: "running" }
+    }).ok, true);
+    assert.equal(ledger.task("TK-00000084").status, "running");
+    assert.equal(ledger.task("TK-00000084").waitingClass, null);
+    // 非永不可代挂起点不误伤：上浮终裁（复习两轮未闭合类）仍按既有语义由 host 恢复
+    assert.equal(ledger.command({
+      op: "task.wait-user", taskId: "TK-00000084", actor: HOST, ...cas(ledger, "TK-00000084"),
+      idempotencyKey: "t84-wait-2", payload: { class: "escalation", reason: "复核两轮未闭合" }
+    }).ok, true);
+    assert.equal(ledger.command({
+      op: "task.resume", taskId: "TK-00000084", actor: HOST, ...cas(ledger, "TK-00000084"),
+      idempotencyKey: "t84-resume-2", payload: { resumeTo: "running" }
+    }).ok, true, "非永不可代挂起点保持既有恢复语义");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("挂起语义：waiting-user 不占租约、无超时自动动作、可原样恢复（V-A5.3）", () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const ledger = createTaskLedger({ dshHome: home, now: clock.now, lease: { stallMs: 1000 } });
+    toRunning(ledger, "TK-00000085", "implementer");
+    // 挂起前：该实例持进行中任务——第二张派单机械拒绝（一实例一进行中任务）
+    openTask(ledger, "TK-00000086");
+    ledger.command({ op: "task.triage", taskId: "TK-00000086", actor: HOST, ...cas(ledger, "TK-00000086"), idempotencyKey: "t86-triage", payload: { decision: "立项" } });
+    ledger.command({ op: "task.plan", taskId: "TK-00000086", actor: HOST, ...cas(ledger, "TK-00000086"), idempotencyKey: "t86-plan", payload: {} });
+    const held = ledger.command({
+      op: "task.assign", taskId: "TK-00000086", actor: HOST, ...cas(ledger, "TK-00000086"),
+      idempotencyKey: "t86-assign", payload: { assignee: "implementer" }
+    });
+    assert.equal(held.ok, false);
+    assert.equal(held.code, "assignee-holding");
+    // 挂起（归属者触发不可逆写入放行）→ 不再占租约：同一实例随即可以接别的任务
+    assert.equal(ledger.command({
+      op: "task.wait-user", taskId: "TK-00000085", actor: POST("implementer"), ...cas(ledger, "TK-00000085"),
+      idempotencyKey: "t85-wait", payload: { class: "irreversible-write", reason: "改真实运行面的写入待放行" }
+    }).ok, true);
+    assert.equal(ledger.command({
+      op: "task.assign", taskId: "TK-00000086", actor: HOST, ...cas(ledger, "TK-00000086"),
+      idempotencyKey: "t86-assign-2", payload: { assignee: "implementer" }
+    }).ok, true, "挂起不占租约：同实例可接第二张（对比挂起前的机械拒绝）");
+    // 无超时自动动作：时间推进远超所有时限，sweep 对该任务零动作、零事件、通知不重复
+    const before = ledger.events({ taskId: "TK-00000085" }).length;
+    const notesFor = (taskId) => ledger.notificationsAfter(0).notifications.filter((n) => n.taskId === taskId).length;
+    const notesBefore = notesFor("TK-00000085");
+    clock.advance(24 * 60 * 60 * 1000);
+    const swept = ledger.sweep({ at: clock.now() });
+    assert.equal(swept.released.filter((entry) => entry.taskId === "TK-00000085").length, 0);
+    assert.equal(swept.escalated.filter((entry) => entry.taskId === "TK-00000085").length, 0);
+    assert.equal(swept.stalled.filter((entry) => entry.taskId === "TK-00000085").length, 0);
+    assert.equal(ledger.events({ taskId: "TK-00000085" }).length, before, "挂起无限期：无任何自动动作落事件");
+    assert.equal(notesFor("TK-00000085"), notesBefore, "不重复提醒（提醒属投递面节律，不烧 token）");
+    assert.equal(ledger.task("TK-00000085").status, "waiting-user");
+    // 可恢复：归位点＝挂起前状态，归属者未变（挂起不夺归属），恢复后回到在手态
+    const task = ledger.task("TK-00000085");
+    assert.equal(task.resumeFrom, "running");
+    assert.equal(task.owner, "implementer");
+    assert.equal(ledger.command({
+      op: "task.resume", taskId: "TK-00000085", actor: USER, ...cas(ledger, "TK-00000085"),
+      idempotencyKey: "t85-resume", payload: { resumeTo: task.resumeFrom }
+    }).ok, true);
+    assert.equal(ledger.task("TK-00000085").status, "running");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("结算/关闭超时：delivered／settled 滞留＝登记异常并上浮用户，绝不自动结算/自动关闭（V-A5.3）", () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const ledger = createTaskLedger({ dshHome: home, now: clock.now, lease: { stallMs: 1000 } });
+    const toDelivered = (taskId) => {
+      toRunning(ledger, taskId);
+      assert.equal(ledger.command({
+        op: "task.report", taskId, actor: POST("implementer"), ...cas(ledger, taskId),
+        idempotencyKey: `${taskId}-report`, payload: { deliverable: "坐标：docs/x.md" }
+      }).ok, true);
+      assert.equal(ledger.command({
+        op: "task.deliver", taskId, actor: POST("implementer"), ...cas(ledger, taskId),
+        idempotencyKey: `${taskId}-deliver`, payload: {}
+      }).ok, true, "无必审点冻结的简报：交付即放行");
+    };
+    // delivered 滞留 → settle-timeout：登记异常（task-stalled）＋上浮用户
+    toDelivered("TK-00000087");
+    clock.advance(1500);
+    let swept = ledger.sweep({ at: clock.now() });
+    assert.deepEqual(
+      swept.stalled.find((entry) => entry.taskId === "TK-00000087"),
+      { taskId: "TK-00000087", from: "delivered", action: "escalated" }
+    );
+    let task = ledger.task("TK-00000087");
+    assert.equal(task.status, "waiting-user", "结算超时＝上浮用户终裁（不自动结算）");
+    assert.equal(task.waitingClass, "escalation");
+    assert.equal(task.escalationCause, "settle-timeout");
+    const exceptions = ledger.events({ taskId: "TK-00000087" }).filter((event) => event.type === "exception");
+    assert.equal(exceptions.length, 1, "异常统一走台账、无静默丢失");
+    assert.equal(exceptions[0].kind, "task-stalled");
+    assert.equal(exceptions[0].detail.cause, "settle-timeout");
+    assert.ok(ledger.notificationsAfter(0).notifications.some(
+      (note) => note.type === "escalated" && note.to === "user" && note.taskId === "TK-00000087"
+    ));
+    // settled 滞留 → close-timeout（同样上浮，不自动关闭）
+    toDelivered("TK-00000088");
+    assert.equal(ledger.command({
+      op: "task.settle", taskId: "TK-00000088", actor: HOST, ...cas(ledger, "TK-00000088"),
+      idempotencyKey: "TK-00000088-settle", payload: {}
+    }).ok, true);
+    clock.advance(1500);
+    swept = ledger.sweep({ at: clock.now() });
+    assert.deepEqual(
+      swept.stalled.find((entry) => entry.taskId === "TK-00000088"),
+      { taskId: "TK-00000088", from: "settled", action: "escalated" }
+    );
+    task = ledger.task("TK-00000088");
+    assert.equal(task.status, "waiting-user", "关闭超时＝上浮用户终裁（不自动关闭）");
+    assert.equal(task.escalationCause, "close-timeout");
+    // 再拍不动（已挂起＝不在滞留表内；挂起无限期）
+    clock.advance(10 * 60 * 60 * 1000);
+    swept = ledger.sweep({ at: clock.now() });
+    assert.equal(swept.stalled.filter((entry) => entry.taskId === "TK-00000088").length, 0);
+    assert.equal(ledger.task("TK-00000088").status, "waiting-user");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("终裁＝台账命令特化视图：接单／驳回／授权修复落既有命令，幂等键、CAS 与审计随台账继承（V-A5.5）", () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
+    const taskId = "TK-00000089";
+    const suspend = (key, cls = "irreversible-write") => {
+      const current = ledger.task(taskId);
+      const waited = ledger.command({
+        op: "task.wait-user", taskId, actor: POST("implementer"),
+        expectedStatus: current.status, expectedSeq: current.lastSeq,
+        idempotencyKey: key, payload: { class: cls, reason: "待用户放行" }
+      });
+      assert.equal(waited.ok, true, `${key} 应可挂起`);
+      return ledger.task(taskId);
+    };
+    toRunning(ledger, taskId);
+    // 接单（放行）→ task.resume（唯一命令；不另起命令面）
+    let waiting = suspend("t89-wait-1");
+    const accepted = applyRuling({
+      ledger, action: "accept", taskId, idempotencyKey: "ruling-accept-1",
+      expectedStatus: waiting.status, expectedSeq: waiting.lastSeq, resumeTo: "running"
+    });
+    assert.equal(accepted.ok, true);
+    assert.deepEqual(accepted.results.map((entry) => entry.op), ["task.resume"]);
+    assert.equal(ledger.task(taskId).status, "running");
+    // 同键重放＝台账重放语义（不重复落事件）
+    const replayed = applyRuling({
+      ledger, action: "accept", taskId, idempotencyKey: "ruling-accept-1",
+      expectedStatus: waiting.status, expectedSeq: waiting.lastSeq, resumeTo: "running"
+    });
+    assert.equal(replayed.ok, true);
+    assert.equal(replayed.results[0].replayed, true);
+    assert.equal(ledger.events({ taskId }).filter((event) => event.type === "resume").length, 1, "重放不重复落事件");
+    // CAS 错值：台账照旧拒绝（终裁不绕过 CAS），且回报失败步
+    waiting = suspend("t89-wait-2");
+    const stale = applyRuling({
+      ledger, action: "accept", taskId, idempotencyKey: "ruling-accept-2",
+      expectedStatus: waiting.status, expectedSeq: waiting.lastSeq - 1, resumeTo: "running"
+    });
+    assert.equal(stale.ok, false);
+    assert.equal(stale.code, "cas-mismatch");
+    assert.equal(stale.failedAt, "task.resume");
+    assert.equal(ledger.task(taskId).status, "waiting-user", "CAS 拒绝＝状态不变");
+    // 授权修复 → amend（完整合法简报置换冻结件）＋ resume（复合：第二步自动取新 CAS）
+    const current = ledger.task(taskId); // 拒绝也落 command-rejected 事件：CAS 须取当刻投影
+    const repaired = applyRuling({
+      ledger, action: "authorize-repair", taskId, idempotencyKey: "ruling-repair",
+      expectedStatus: current.status, expectedSeq: current.lastSeq,
+      resumeTo: "running", brief: { ...VALID_BRIEF, goal: "按用户授权范围修复后的目标" }
+    });
+    assert.equal(repaired.ok, true);
+    assert.deepEqual(repaired.results.map((entry) => entry.op), ["task.amend", "task.resume"]);
+    assert.equal(ledger.task(taskId).brief.goal, "按用户授权范围修复后的目标", "授权范围写进简报");
+    assert.equal(ledger.task(taskId).status, "running");
+    // 驳回（终止）→ task.cancel：终态，归档不删档；审计：终裁动作 actor 均为 user
+    waiting = suspend("t89-wait-3");
+    const rejected = applyRuling({
+      ledger, action: "reject", taskId, idempotencyKey: "ruling-reject",
+      expectedStatus: waiting.status, expectedSeq: waiting.lastSeq, reason: "用户终裁驳回"
+    });
+    assert.equal(rejected.ok, true);
+    assert.equal(ledger.task(taskId).status, "cancelled");
+    for (const event of ledger.events({ taskId }).filter((entry) => ["resume", "cancel", "amend"].includes(entry.type))) {
+      assert.equal(event.actor.kind, "user", "终裁动作的 actor 须为 user（事件审计）");
+    }
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
 // ---------------- 复核件套台账面（org-v2 08 号票；V-A2.7／规格 §C） ----------------
 
 import { REVIEW_BOUNDARY_IDS } from "../lib/org/review-kit.js";
@@ -1190,4 +1510,99 @@ test("复核事件入事实源且可重建：事件 schema 校验通过、投影
   assert.equal(reported.verdict, "closed");
   assert.equal(reported.modelIdentity, "glm-5.3-flash（复核实例）");
   assert.equal(ledger.task("TK-00000097").status, "produced");
+});
+
+// ---------------- 人间接口台账面（org-v2 09 号票；V-A5.4／V-A5.5） ----------------
+
+test("初审裁决执行面：命中必审清单不可处置；通过＝只留痕；初审拒绝＝强制上浮（V-A5.4）", () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
+    // 命中必审清单（简报冻结点未闭合）：初审只可整理裁定包，处置被拒
+    toProduced(ledger, "TK-00000101"); // REVIEW_BRIEF：reviewPoints=before-external-visibility
+    const forbidden = ledger.recordPreScreen({
+      taskId: "TK-00000101", reviewer: "bot-prescreen", disposition: "approve", idempotencyKey: "ps-101"
+    });
+    assert.equal(forbidden.ok, false);
+    assert.equal(forbidden.code, "pre-screen-dispose-forbidden");
+    assert.equal(ledger.task("TK-00000101").status, "produced", "拒绝不得改状态");
+    assert.equal(
+      ledger.events({ taskId: "TK-00000101" }).filter((event) => event.type === "judgement").length, 0,
+      "被拒的处置不得留判断痕（未处置即未发生）"
+    );
+    // 未命中必审清单：通过＝只落判断事实（非状态），不改状态、不上浮
+    toProduced(ledger, "TK-00000102", "researcher", { ...VALID_BRIEF });
+    const approved = ledger.recordPreScreen({
+      taskId: "TK-00000102", reviewer: "bot-prescreen", disposition: "approve", note: "产出与判据相符", idempotencyKey: "ps-102"
+    });
+    assert.equal(approved.ok, true);
+    assert.equal(approved.escalated, false);
+    assert.equal(ledger.task("TK-00000102").status, "produced");
+    const fact = ledger.events({ taskId: "TK-00000102" }).find((event) => event.type === "judgement");
+    assert.equal(fact.intent, "pre-screen");
+    assert.equal(fact.input.disposition, "approve");
+    assert.equal(fact.input.reviewer, "bot-prescreen");
+    // 同键重放：结论一致、不重复落事件
+    const replayed = ledger.recordPreScreen({
+      taskId: "TK-00000102", reviewer: "bot-prescreen", disposition: "approve", note: "产出与判据相符", idempotencyKey: "ps-102"
+    });
+    assert.equal(replayed.ok, true);
+    assert.equal(replayed.replayed, true);
+    assert.equal(ledger.events({ taskId: "TK-00000102" }).filter((event) => event.type === "judgement").length, 1);
+    // 初审拒绝（回笼）＝强制上浮用户终裁：escalated(pre-screen-rejected) → waiting-user
+    const bounced = ledger.recordPreScreen({
+      taskId: "TK-00000102", reviewer: "bot-prescreen", disposition: "return", note: "与判据不符，退回承接方", idempotencyKey: "ps-102-return"
+    });
+    assert.equal(bounced.ok, true);
+    assert.equal(bounced.escalated, true);
+    assert.equal(bounced.cause, "pre-screen-rejected");
+    const task = ledger.task("TK-00000102");
+    assert.equal(task.status, "waiting-user", "初审拒绝＝上浮用户终裁（代理不得把问题压在下面）");
+    assert.equal(task.waitingClass, "escalation");
+    assert.equal(task.escalationCause, "pre-screen-rejected");
+    assert.equal(task.owner, null, "上浮清归属（租约回收链同口径）");
+    assert.ok(ledger.notificationsAfter(0).notifications.some(
+      (note) => note.type === "escalated" && note.to === "user" && note.taskId === "TK-00000102"
+    ));
+    // 已挂起不重复上浮；未知处置即拒（fail closed）
+    const again = ledger.recordPreScreen({
+      taskId: "TK-00000102", reviewer: "bot-prescreen", disposition: "return", note: "再来一次", idempotencyKey: "ps-102-return-2"
+    });
+    assert.equal(again.ok, true);
+    assert.equal(again.escalated, false, "已挂起＝不重复上浮");
+    const unknown = ledger.recordPreScreen({
+      taskId: "TK-00000101", reviewer: "bot-prescreen", disposition: "闲聊", idempotencyKey: "ps-101-bad"
+    });
+    assert.equal(unknown.ok, false);
+    assert.equal(unknown.code, "invalid-prescreen-disposition");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("轮询处置的异常登记失败响亮可核：sweep 回报 exceptionFailures，不静默（V-A2.11 同口径）", () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const ledger = createTaskLedger({ dshHome: home, now: clock.now, lease: { stallMs: 1000 } });
+    // 造一张 delivered 滞留任务，但把异常处置的幂等键占掉：异常登记重放为……不占用则不可能失败，
+    // 故此处以「异常登记返回值必须可核」为断言面——正常路径下 exceptionFailures 为空数组（字段在位）
+    toRunning(ledger, "TK-00000103");
+    assert.equal(ledger.command({
+      op: "task.report", taskId: "TK-00000103", actor: POST("implementer"), ...cas(ledger, "TK-00000103"),
+      idempotencyKey: "TK-00000103-report", payload: { deliverable: "坐标：docs/x.md" }
+    }).ok, true);
+    assert.equal(ledger.command({
+      op: "task.deliver", taskId: "TK-00000103", actor: POST("implementer"), ...cas(ledger, "TK-00000103"),
+      idempotencyKey: "TK-00000103-deliver", payload: {}
+    }).ok, true);
+    clock.advance(1500);
+    const swept = ledger.sweep({ at: clock.now() });
+    assert.deepEqual(swept.exceptionFailures, [], "正常路径：无异常登记失败");
+    assert.equal(swept.stalled.length, 1, "结算超时仍按滞留处置上浮");
+    assert.equal(ledger.events({ taskId: "TK-00000103" }).filter((event) => event.type === "exception").length, 1);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
 });

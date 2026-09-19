@@ -7,6 +7,78 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 实现批 **09 号票「人间接口与人间收件箱」**，2026-09-19 用户
+  `/implement` 调用＝授权；领票时工作树净（仅无关未跟踪 `.video_agent/`）、
+  01–08＋15＋18 已入库、blocker 06／07 均 resolved，票面 Comments 在案）：
+  - **范围**：人间接口一件套——三类裁定进 `waiting-user`、到人告知三类、
+    收件箱投递面（只读＋内嵌终裁操作）、挂起语义（不占租约／无超时自动动作／
+    到期只投影「已过期」）、终裁＝台账命令特化视图、裁定包五件、初审代理边界
+    （规格 §F、附录 A `V-A5.1`–`V-A5.6`；含 `STATE_RESPONSIBILITY` 结算/关闭
+    两条超时处置＝本票份额）。
+  - **变化**：
+    - `lib/org/human-inbox.js`（新）：人间接口件套（与 review-kit 同型的判定／
+      投影层）——三类裁定封闭枚举 `RULING_CLASSES`（`irreversible-write`／
+      `escalation`／`user-domain`）＋上浮原因封闭枚举 `ESCALATION_CAUSES`
+      （在案五条＋契约五条：初审拒绝／结算关闭超时／冲突／越权）＋告知三类
+      `NOTICE_KINDS`＋永不可代三项 `NON_DELEGABLE` 与 `userRulingRequirement`
+      （用户域挂起与冲突／越权上浮的终裁只许 user，含取消）＋初审边界
+      `preScreenBoundary`（必审未闭合＝package-only）与 `preScreenEscalation`
+      （初审拒绝／两轮未闭合强制上浮；未知裁决 fail closed）＋到期投影
+      `isExpired`＋告知投影 `noticesFrom`（交付回笼／取消失败／连续越权计数，
+      越权面按能力码词形单源判定 `isUnauthorizedCode`，运维性码不洗链）＋裁定包
+      `buildRulingPackage`（五件齐备才交付）＋终裁视图 `RULING_ACTIONS`（表内自带
+      负载构造与必填输入）／`applyRuling`（幂等键＝`<裁定键>:<taskId>:<op>`，缺键
+      即拒；CAS 续取当刻投影；`defer` 零事件）＋收件箱 `buildInbox`。
+    - `lib/org/task-ledger.js`：`task.wait-user` 必填 `class`∈三枚举；`escalated.cause`
+      与 `wait-user.class` 同受 `validateEventRecord` 词表把守（含旧格式事件的
+      fail-closed 迁移归因）；非委代项挂起点状态改写只许 user（`ruling-not-delegable`）；
+      投影增 `waitingClass`／`escalationCause`（随事件重建）；`escalated` 来态扩
+      `delivered`／`settled`；队列滞留表增两态（先登记 `task-stalled` 异常再上浮，
+      登记失败经 `exceptionFailures` 响亮回报，绝不自动结算/自动关闭）；新增
+      **初审裁决入账面** `recordPreScreen`（必审命中即拒处置、结论落 `judgement`
+      事实、初审拒绝或两轮未闭合追加 `escalated`）；两轮阈值读 review-kit 单一源。
+    - `lib/org/review-kit.js`：导出 `UNCLOSED_ROUNDS_TO_ESCALATE`（阈值为单一源，
+      台账 claim 侧与初审判定同读）。
+    - `lib/org/brief.js`：边界要素可选键 `dueAt`（ISO；缺省＝无到期投影）。
+    - `lib/org/ledger-host.js`：`GET /api/bots/_ledger/inbox?cursor=`（只读投递面，
+      非 GET 405；终裁仍走 `POST /commands`，不新增写路径）；`createLedgerHost`
+      透传 `now`；值守日志回报 `exceptionFailures`。
+    - `CONTEXT.md`：「人间收件箱」词条补机械口径（三类裁定 id／告知三类／终裁四式
+      ／推迟零事件）；`docs/PROJECT_UNDERSTANDING.md`：留界登记「阻塞超时上浮落地」。
+  - **测试**：新模块 `tests/org-human-inbox.test.mjs` 17 条（枚举封闭／告知投影＋
+    越权连续口径与洗链负例／初审边界正负例／裁定包五件与缺件拒／终裁四式与
+    mail 回文负例／缺键与跨任务串键负例／收件箱投影）；`tests/task-ledger.test.mjs`
+    扩 8 条（裁定类闸门、上浮原因 schema、非委代归属门、挂起语义、结算/关闭超时、
+    终裁特化视图、初审裁决执行面、异常登记失败回报）；`tests/org-brief.test.mjs`
+    扩 1 条（`dueAt`）；`tests/ledger-host.test.mjs` 扩 1 条（收件箱 HTTP 面）。
+  - **验证**：`TMPDIR=/dev/shm npm test` **49/49**；preflight ①49/49
+    ②0009 包 7/7 零触碰 ③0 违例 ④11 PASS/0 FAIL/0 SKIP，四门全绿。
+  - **`/code-review` 双轴处置（Standards 硬违例 2／judgement 4；Spec 高 1／中 2／
+    低 2）**：
+    - **修**：①`applyRuling` 幂等键洞（缺键拼出 `undefined:<op>` 假键、同键跨任务
+      重放＝**漏裁报成功**）——缺键即拒＋键带 taskId 分量＋补两条负例；
+      ②越权码表不完备＝能力面拒绝静默降级为角色类拒绝并洗掉连续链——改按能力码
+      词形单源判定（`capability-*` 全族入类、运维性四码不计数不洗链、门码显式在表），
+      并以 `isUnauthorizedCode` 导出与 20 号票互指；③裁定包立场只到「至少一方」——
+      改以机械可得事实补齐至双方各一句，缺两句即判缺件；④V-A5.4 初审强制上浮无
+      执行面——新增 `recordPreScreen`（必审门＋判断事实＋escalated 通道）并测试；
+      ⑤判据事实字段名实不符（附判据定义而非结果原文）——改 `criteria`＋结果原文
+      随 `gaps.evidence`／`criteriaGaps`；⑥`sweep` 异常登记返回值未校验——经
+      `exceptionFailures` 响亮回报＋值守日志（两处分支同口径）；⑦死词表项
+      `host-channel-forbidden` 出表（HTTP 403 不进 `command-rejected`）；⑧`latestEvent`
+      提取（末次语义一处）；⑨`requires` 由摆设改为强制校验、负载构造入表（去
+      switch）；⑩两轮阈值单源（`UNCLOSED_ROUNDS_TO_ESCALATE`）。
+    - **留界（未改，理由在案）**：⑪「其余挂起点的终裁由 user 行使」是投递面约定，
+      机械硬门只覆盖永不可代三项（其余挂起点维持既有恢复语义，不越出本票判据收紧
+      冻结状态机）；⑫`blocked` 超时上浮（05 起头注挂 08 名下、08 未实施）——
+      在 `PROJECT_UNDERSTANDING` 留界登记，待用户裁量立票；⑬初审代理的**结论提交面**
+      （工具/op 接线）随 13／14 召集与自举补齐，本票只落台账侧执行面与见证测试。
+  - **授权依据**：2026-09-19 用户 `/implement` 调用；`/tdd` 接缝预核与四处范围裁定
+    经用户 AskUserQuestion 批准（票面 Comments 在案）；`/code-review` 技能显式载入
+    照文执行（两轴并行子代理复审）。
+  - **未落档面**：无（本条目＋票面 Comments 实施与复审记录＋CONTEXT.md 词条＋
+    PROJECT_UNDERSTANDING 留界齐）。
+
 - ✅ 本轮（org-v2 **06/07/08 三票用户额外模型 `/code-review` 复审处置**——修复
   批立票 19–23＋简单项就地修复，2026-09-19 用户裁定「简单任务就地修复、内容
   较多的按 `/to-tickets` 发布为新 issue」＝授权；与各票实施批内自带的复审环节

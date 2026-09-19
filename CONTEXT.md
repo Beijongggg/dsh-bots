@@ -198,6 +198,11 @@ user principal＝台账全权）。组织层对既有边界＝复用＋加严、
 
 到人的单一权威投递面：等待用户裁定的事件与通知的投影，内嵌终裁操作。
 邮件等出仓库通道只是其只读转发副本——回文永不构成裁定（org-v2 09 号票裁定）。
+机械口径（09 号票）：只有三类裁定能进 `waiting-user`（`irreversible-write`／
+`escalation`／`user-domain`，`class` 必填且封闭）；其余到人事件＝纯告知三类
+（`delivery-return`／`cancel-failure`／`unauthorized-count`），不挂起。终裁四式
+（接单／驳回／推迟／授权修复）＝既有台账命令的特化视图，只由 `actor=user` 行使；
+推迟属投递面节律、零台账事件。
 
 ## 验收初审（acceptance pre-screen）
 

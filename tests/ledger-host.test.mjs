@@ -247,6 +247,61 @@ test("HTTP 面：读投影／通知投影／命令面；未接线 404、非 GET 
   }
 });
 
+test("人间收件箱投递面：待裁项带裁定包与终裁动作、告知项并列；读面不写台账（V-A5.2／V-A5.3）", async () => {
+  const home = mkHome();
+  try {
+    const { ledger, host } = mkHost(home);
+    const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
+    // 一张挂起任务（业务截止时间已过）＋一张走完交付的任务（告知项来路）
+    const open = (taskId, brief = { ...VALID_BRIEF }) => ledger.command({
+      op: "task.intake", taskId, actor: { kind: "host", id: "web" },
+      idempotencyKey: `${taskId}-intake`, payload: { class: "project", brief }
+    });
+    const step = (taskId, op, actor, payload) => ledger.command({
+      op, taskId, actor, ...cas(ledger, taskId), idempotencyKey: `${taskId}-${op}`, payload
+    });
+    assert.equal(open("TK-00000095", { ...VALID_BRIEF, dueAt: "2026-09-15T00:00:00.000Z" }).ok, true);
+    assert.equal(step("TK-00000095", "task.triage", { kind: "host", id: "web" }, { decision: "立项" }).ok, true);
+    assert.equal(step("TK-00000095", "task.plan", { kind: "host", id: "web" }, {}).ok, true);
+    assert.equal(step("TK-00000095", "task.assign", { kind: "host", id: "web" }, { assignee: "researcher" }).ok, true);
+    assert.equal(step("TK-00000095", "task.accept", { kind: "post", id: "researcher" }, {}).ok, true);
+    assert.equal(step("TK-00000095", "task.start", { kind: "post", id: "researcher" }, {}).ok, true);
+    assert.equal(step("TK-00000095", "task.wait-user", { kind: "post", id: "researcher" }, {
+      class: "irreversible-write", reason: "改真实运行面前请放行"
+    }).ok, true);
+    assert.equal(open("TK-00000096").ok, true);
+    assert.equal(step("TK-00000096", "task.triage", { kind: "host", id: "web" }, { decision: "立项" }).ok, true);
+    assert.equal(step("TK-00000096", "task.plan", { kind: "host", id: "web" }, {}).ok, true);
+    assert.equal(step("TK-00000096", "task.assign", { kind: "host", id: "web" }, { assignee: "researcher" }).ok, true);
+    assert.equal(step("TK-00000096", "task.accept", { kind: "post", id: "researcher" }, {}).ok, true);
+    assert.equal(step("TK-00000096", "task.start", { kind: "post", id: "researcher" }, {}).ok, true);
+    assert.equal(step("TK-00000096", "task.report", { kind: "post", id: "researcher" }, { deliverable: "坐标：docs/x.md" }).ok, true);
+    assert.equal(step("TK-00000096", "task.deliver", { kind: "post", id: "researcher" }, {}).ok, true);
+
+    const before = ledger.events().length;
+    const inbox = await call(api, "GET", "/api/bots/_ledger/inbox?cursor=0");
+    assert.equal(inbox.status, 200);
+    assert.equal(inbox.body.pending.length, 1, "只有挂起任务进待裁列表");
+    const item = inbox.body.pending[0];
+    assert.equal(item.taskId, "TK-00000095");
+    assert.equal(item.waitingClass, "irreversible-write");
+    assert.equal(item.resumeFrom, "running");
+    assert.equal(item.expired, true, "业务截止时间已过＝投影已过期（不自动取消）");
+    assert.deepEqual(item.actions.map((entry) => entry.id), ["accept", "reject", "defer", "authorize-repair"]);
+    assert.equal(item.packet.modelIdentity, "host（确定性层组装）");
+    assert.equal(item.packet.brief.goal, VALID_BRIEF.goal, "裁定包附冻结简报");
+    assert.deepEqual(item.packet.positions.trail.toSeq, ledger.task("TK-00000095").lastSeq);
+    assert.deepEqual(inbox.body.notices.map((entry) => entry.kind), ["delivery-return"], "告知项并列、不进待裁");
+    assert.ok(inbox.body.cursor > 0);
+    assert.equal(ledger.events().length, before, "投递面是只读投影：读不改台账");
+    assert.equal(ledger.task("TK-00000095").status, "waiting-user");
+    const wrongMethod = await call(api, "POST", "/api/bots/_ledger/inbox");
+    assert.equal(wrongMethod.status, 405);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
 test("HTTP 命令面是唯一写入口：台账事件只由命令面产生（V-A2.1）", async () => {
   const home = mkHome();
   try {
