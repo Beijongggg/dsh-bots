@@ -7,6 +7,34 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 **09＋19–23 六票用户额外模型 `/code-review` 复审处置**——立票
+  24＋四项就地修复，2026-09-19 用户裁定「延续前两轮口径（简单就地修、较多立票）」
+  ＝授权）：
+  - **范围**：固定点 `f283864...HEAD`（09 号票人间接口＋修复批 19–23，36 文件
+    +4418/-327）两轴复审——至此 org-v2 已入库面（01–09＋15＋18＋19–23）全部
+    经过用户额外发起的独立复审。
+  - **复审结论**：Standards 0 硬违例＋6 项 judgement call；Spec 7 项（缺 2 均
+    有留界归属〔初审代理接线随 13/14、mail 转发随 11〕／越权 2 均票面自报在案
+    ／存疑 3）。处置：立票 24「复审后规格口径收口」打包三项存疑（①20 号票
+    「通知派单方」无台账事件投影通道 vs §B「无事件不通知」②22 号票 node.tests
+    漂移守卫 vs §E「对快照执行」字面形态〔22 票面待确认挂起项随其销账〕
+    ③09 号票裁定包 positionsFor 缺位机械补齐句 vs「双方立场」口径——三项均
+    先用户裁定口径再动机械面）；20/22 票面 Comments 复审注记落档。
+  - **就地修复（4 项，行为保持，测试锁定）**：task-ledger `recordPreScreen`/
+    `recordNeedsUser` 同型 55 行双份收敛为 `judgementEscalationLeg` 共享腿
+    （event 主结论口径参数化保持两函数原返回件形状）；`validateEventRecord`
+    wait-user/escalated 平行词表 if 表化（`STATE_ENUM_KEYS` 与命令面共用同一
+    词表源，报错文案逐字不变）；human-inbox `RULING_ACTIONS` 负载构造由闭包
+    `payloadFor` 改表声明 `commands[].keys`＋`payloadFromInputs` 通用取值
+    （undefined 键不入负载——可选输入 attribution 语义保持；表断言随形状
+    更新）；`dueAt` 可解析判定收敛 `brief.js isParseableDueAt`（冻结期校验与
+    投递面 `isExpired` 共口径，单向引用无环）。
+  - **验证**：`TMPDIR=/dev/shm npm test` **51/51** ✅；preflight 四门
+    exit 0（①51/51 ②0009 包 7/7 ③0 违例扫 65 md ④11 PASS/0 FAIL/0 SKIP）。
+  - **授权依据**：2026-09-19 用户「进行一次复审」＋同日「延续前两轮口径」裁定；
+    立票 breakdown 经用户 AskUserQuestion 批准（一票＋四项就地）。
+  - **未落档面**：无（本条目＋24 号票面＋20/22 票面注记齐）。
+
 - ✅ 本轮（org-v2 实现批 **23 号票「复审后续行为保持重构批」**，2026-09-19 用户
   `/implement` 调用＝授权；领票核查在案——修复批 19/20/21/22 已入库
   （`8488bce`／`48911a6`／`3cb332b`／`f74e175`），工作树仅余未跟踪

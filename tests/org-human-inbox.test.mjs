@@ -166,7 +166,9 @@ test("终裁四式＝台账命令的特化视图：命令全部落在台账命�
     assert.ok(Array.isArray(action.commands), `${action.id} 的 commands 须为数组`);
     for (const command of action.commands) {
       assert.ok(LEDGER_COMMAND_OPS.includes(command.op), `${action.id} 的 ${command.op} 必须在台账命令词表内（不另起命令面）`);
-      assert.equal(typeof command.payloadFor, "function", `${action.id}.${command.op} 须自带负载构造（表即单一源）`);
+      // 负载构造＝表声明（keys 指名取哪些终裁输入，组装统一走 payloadFromInputs——表即单一源）
+      assert.ok(Array.isArray(command.keys) && command.keys.length > 0 && command.keys.every((key) => typeof key === "string"),
+        `${action.id}.${command.op} 须声明非空 keys 负载取键（表即单一源）`);
     }
     for (const name of action.requires) {
       assert.equal(typeof name, "string", `${action.id} 的 requires 须为输入名`);
