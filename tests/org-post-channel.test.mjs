@@ -15,6 +15,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -99,7 +100,12 @@ test("接单即得契约＋判据真源：accept 响应携带简报，探针按�
   const dispatch = createPostChannel({ origin: ORIGIN, botId: "bot-a", probeCtx: { dshHome: home }, fetchImpl });
   await dispatch("task.accept", { taskId: "TK-00000090", idempotencyKey: "acc-1", expectedStatus: "assigned", expectedSeq: 3, payload: {} });
   const probe = await dispatch("evidence.probe", { taskId: "TK-00000090", index: 0 });
-  assert.deepEqual(probe, { ok: true, output: "命中（docs/x.md）" }, "判据（fs.contains docs/x.md ⊇ 示例）按预登记执行且通过");
+  const artifact = "示例产出已落坐标";
+  assert.deepEqual(probe, {
+    ok: true,
+    output: "命中（docs/x.md）",
+    snapshot: { location: "docs/x.md", sha256: createHash("sha256").update(artifact, "utf8").digest("hex"), bytes: Buffer.byteLength(artifact, "utf8") }
+  }, "判据（fs.contains docs/x.md ⊇ 示例）按预登记执行且通过，结论绑定快照原样透传");
 });
 
 test("探针路由 fail closed：台账无任务／任务无简报／索引越界／本地持有件与台账不符即拒", async () => {

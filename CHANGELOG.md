@@ -7,6 +7,41 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 实现批 **22 号票「探针沙箱快照形态」**，2026-09-19 用户
+  `/implement`「领修复批」调用＝授权；领票核查在案——修复批五票中 19/20/23
+  主体在 09 号票并行会话当时在制施工面（task-ledger.js/brief.js 同文件冲突）、
+  21 ①②落 ledger-host.js 同面且④需用户裁定，本票为唯一可领项。本票施工与
+  落档期间 09 号票已由并行会话入库＝`84a8485`，19/20/21/23 的文件冲突随之
+  解除、待下批领用）：
+  - **范围**：§E「沙箱快照与逐字一致校验形态照用」补全另一半（07 号票复审
+    Spec 轴 (a)2；逐字一致半边 07 号票已在，本票补快照半边）。
+  - **变化**：`lib/org/probe.js` 快照纪律三步——①快照采集步先于执行：坐标
+    内容一次读定＋字节级 sha256（fs.contains/node.tests 跑前采集、
+    ledger.no-anomalies 单次读面捕获）；②校验对快照执行：fs.contains 对采集
+    内容判定不再回查活树、ledger 对捕获清单过滤（TOCTOU 缝＝检查时刻与结论
+    使用时刻坐标内容可变）；③结论绑定可核验：执行过的结论携带键封闭
+    `snapshot` 字段（{location,sha256,bytes}／{file,sha256,bytes}／
+    {botId,source,open,sha256}，冻结；ledger 失败结论 output 即捕获清单本体、
+    摘要可就地复验）。node.tests 留界：回归判据的结论主体是仓库树本身（对
+    副本执行验证的是副本而非仓库），执行仍落活树，以跑前采集＋跑后重读比对
+    的漂移守卫兜底——执行窗口内文件变化即新拒绝码 probe-snapshot-drift
+    fail closed（即使退出码 0）；ABA 窗口机械不可证，解释口径已在票面
+    Comments 上抛待用户确认；缺文件在采集步 fail closed（probe-read，先于
+    子进程）。tests/org-probe.test.mjs 五新测试＋物化形 helper；
+    tests/org-post-channel.test.mjs 透传断言随结论契约更新。
+  - **验证**：scoped 19/19（org-probe 11＋org-post-channel 8）；全量
+    `TMPDIR=/dev/shm npm test` 49/49（含 09 号票在制件当刻形态，后原样入库）；
+    preflight 四门 exit 0（①49/49 ②0009 包 7/7 ③0 违例 ④11 PASS/0 FAIL/
+    0 SKIP）。
+  - **复审**：`/code-review` 双轴并行（Standards 硬违例 0／judgement call 3；
+    Spec 缺失 2／越权 0／不符 1）全处置：bytesSnapshot／materializeTestFile
+    抽取、头注「带/不带 snapshot」二分补 probe-spawn/drift 态、总述收窄为
+    按命令分型、ABA 措辞收紧（修）；node.tests 副本执行形态与 ledger 快照化
+    推广落票面 Comments（留界①／注记）。
+  - **授权依据**：2026-09-19 用户 `/implement`「领修复批」调用；修复批五票
+    （19–23）系同日 06/07/08 复审处置经用户 `/to-tickets` 批准立票。
+  - **未落档面**：无（本条目＋22 票面 Comments 齐）。
+
 - ✅ 本轮（org-v2 实现批 **09 号票「人间接口与人间收件箱」**，2026-09-19 用户
   `/implement` 调用＝授权；领票时工作树净（仅无关未跟踪 `.video_agent/`）、
   01–08＋15＋18 已入库、blocker 06／07 均 resolved，票面 Comments 在案）：
