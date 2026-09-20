@@ -56,7 +56,7 @@
 | `dsh-bots-architecture.json`＋`.html` | 总体架构图（archify showcase：9 节点/2 边界/主链路；JSON＝规格源，HTML＝交付件） | 2026-09-08 时点快照；代码演进后以新版本重出，不在线维护 |
 | `dsh-bots-architecture.trace.json`＋`.html`＋`.webm`＋`.gif` | 架构图 trace 变体（同快照仅开 `animation: "trace"`；WebM＝数据传输动效导出、GIF＝其 800×448 无限循环转换件，均为沟通资产） | 冻结原件的旁路派生件，同样以新版本重出 |
 
-### docs/agents/（工程技能脚手架——AGENTS.md §4 的展开）
+### docs/agents/（工程技能脚手架——AGENTS.md §5 的展开）
 
 | 文件 | 角色 | 时效 |
 |---|---|---|
