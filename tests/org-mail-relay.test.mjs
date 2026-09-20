@@ -192,16 +192,25 @@ test("鉴权拒绝留痕（V-A4.7 分支二）：回执＋有任务锚时落 com
   assert.equal(seen.length, 2, "语义失败（未知收件人）不进鉴权留痕");
   assert.equal(seen[1].code, "host-channel-forbidden");
 
-  // 留痕件本体：台账认账的 taskId 才落事件；无锚／无台账＝只回 false
+  // 留痕件本体：台账认账**且 actor 在任务承担链上**的 taskId 才落事件；无锚／
+  // 无台账／actor 与任务无关联＝只留日志（自报 taskId 不得向任意在册任务植入
+  // 拒绝事件——身份认证失败时 actor 不可信，锚点须与台账事实自洽）
   const events = [];
   const ledger = {
-    task: (taskId) => (taskId === "T-9" ? { taskId } : null),
+    task: (taskId) => (taskId === "T-9" ? { taskId, owner: "a", dispatcher: "d" } : null),
     reject: (taskId, actor, key, op, code, reason) => events.push({ taskId, actor, op, code, reason })
   };
   const recorder = createMailRejectionRecorder({ logger: { warn() {} } });
   assert.equal(recorder({ taskId: "T-9", actor: { kind: "post", id: "a" }, code: "mail-actor-spoof", reason: "夹带" },
-    { ledgerHost: { ledger } }), true);
-  assert.deepEqual(events, [{ taskId: "T-9", actor: { kind: "post", id: "a" }, op: "mail.send", code: "mail-actor-spoof", reason: "夹带" }]);
+    { ledgerHost: { ledger } }), true, "锚＝台账认账且 actor 是任务 owner");
+  assert.equal(recorder({ taskId: "T-9", actor: { kind: "post", id: "d" }, code: "mail-actor-spoof", reason: "夹带" },
+    { ledgerHost: { ledger } }), true, "dispatcher 同在承担链上");
+  assert.deepEqual(events, [
+    { taskId: "T-9", actor: { kind: "post", id: "a" }, op: "mail.send", code: "mail-actor-spoof", reason: "夹带" },
+    { taskId: "T-9", actor: { kind: "post", id: "d" }, op: "mail.send", code: "mail-actor-spoof", reason: "夹带" }
+  ]);
+  assert.equal(recorder({ taskId: "T-9", actor: { kind: "post", id: "bystander" }, code: "mail-actor-spoof" },
+    { ledgerHost: { ledger } }), false, "actor 与任务无关联（非 owner/dispatcher）：只留日志");
   assert.equal(recorder({ taskId: "unknown-task", actor: { kind: "post", id: "a" }, code: "mail-actor-spoof" },
     { ledgerHost: { ledger } }), false, "台账无此任务：不落事件（凭空造事实即违零权威线）");
   assert.equal(recorder({ actor: { kind: "post", id: "a" }, code: "mail-actor-forbidden" },
@@ -258,10 +267,13 @@ test("HTTP 面：actor 认证（注册实例＋kind=post）——未在册／hos
   assert.equal(ok.body.ok, true);
   assert.equal(readAllInboxLines(home, "b").length, 1);
 
+  const ghostSeen = [];
   const ghost = await callMailApi(api, "POST", "/api/bots/_mail/send",
-    { body: { actor: { kind: "post", id: "ghost" }, to: "b", text: "投递" } });
+    { body: { actor: { kind: "post", id: "ghost" }, to: "b", text: "投递" }, hooks: { recordRejection: (r) => ghostSeen.push(r) } });
   assert.equal(ghost.status, 403);
   assert.equal(ghost.body.code, "mail-sender-unknown");
+  assert.equal(ghostSeen.length, 1, "relay 判定的身份类拒绝（不在册发信者）也进鉴权留痕");
+  assert.equal(ghostSeen[0].code, "mail-sender-unknown");
 
   const host = await callMailApi(api, "POST", "/api/bots/_mail/send",
     { body: { actor: { kind: "host", id: "host" }, to: "b", text: "投递" } });
@@ -287,11 +299,20 @@ test("HTTP 面：actor 认证（注册实例＋kind=post）——未在册／hos
   const cursorGhost = await callMailApi(api, "GET", "/api/bots/_mail/cursor", { headers: { "x-dsh-bots-bot-id": "ghost" } });
   assert.equal(cursorGhost.status, 403);
 
-  // 未接线＝404 fail closed（无 bot 侧降级通道）；错误方法 405
+  // 未接线＝503 fail closed（通道不可用分支：客户端按分支一有限重试；无 bot 侧降级通道）；错误方法 405
   const unwired = await callMailApi({}, "POST", "/api/bots/_mail/send",
     { body: { actor: { kind: "post", id: "a" }, to: "b", text: "投递" } });
-  assert.equal(unwired.status, 404);
+  assert.equal(unwired.status, 503);
+  assert.equal(unwired.body.code, "mail-channel-unwired");
   const wrongMethod = await callMailApi(api, "DELETE", "/api/bots/_mail/send",
     { body: { actor: { kind: "post", id: "a" }, to: "b", text: "投递" } });
   assert.equal(wrongMethod.status, 405);
+});
+
+test("HTTP 面：中继内部异常＝投递面故障→503（通道不可用分支），不裸 500", async () => {
+  const api = { mailRelay: { send: () => { throw new Error("relay boom"); }, consume: () => ({}), cursor: () => ({}) } };
+  const res = await callMailApi(api, "POST", "/api/bots/_mail/send",
+    { body: { actor: { kind: "post", id: "a" }, to: "b", text: "投递" } });
+  assert.equal(res.status, 503);
+  assert.equal(res.body.code, "mail-relay-failed");
 });

@@ -11,7 +11,7 @@
  * 负例在隔离临时仓库里构造，端到端不触真实 `lib/`。
  */
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -51,6 +51,21 @@ test("投递面写者名单闭合：真实仓库里只有中继面写 mail 面�
     "收口后写者只剩中继面一件（装配面不再直写）");
   assert.deepEqual(r.writers, ["lib/org/mail-relay.js"], "命中写者＝名单内确含写调用的文件");
   assert.ok(r.scanned > 0, "确有被扫文件");
+});
+
+test("身份头字面量单源：x-dsh-bots-bot-id 恰一处（host-channel.js 登记源，消费面一律引用 BOT_ID_HEADER）", () => {
+  const consumers = [
+    "lib/org/mail-client.js", "lib/org/mail-relay.js",
+    "lib/org/post-channel.js", "lib/org/ledger-host.js"
+  ];
+  for (const rel of consumers) {
+    const text = readFileSync(join(repoRoot, rel), "utf8");
+    assert.ok(!text.includes('"x-dsh-bots-bot-id"'),
+      `${rel} 不得内联身份头字面量（引用 host-channel.BOT_ID_HEADER）`);
+  }
+  const source = readFileSync(join(repoRoot, "lib/org/host-channel.js"), "utf8");
+  assert.equal((source.match(/"x-dsh-bots-bot-id"/g) ?? []).length, 1,
+    "字面量唯一登记源＝host-channel.js");
 });
 
 test("内容键封闭：真实仓库写函数造键与调用点传键都在封闭枚举内（V-A2.13）", () => {

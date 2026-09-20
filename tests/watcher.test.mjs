@@ -4,7 +4,8 @@
  * bot 注册到一个必然拒绝连接的端口（bind 后立即 close），每条被消费的消息
  * 经 handleIncoming 错误路径恰好写一行 [bot error]——成功回合路径由
  * reply-route.test.mjs 的假 RPC 覆盖，这里只测游标语义。
- * 场景：追加触发恰一次 / 撕裂行跨读不处理补全后恰一次 / 截断重置存量跳过。
+ * 场景：追加触发恰一次 / 撕裂行跨读不处理补全后恰一次 / 截断重置存量跳过 /
+ * 通道中断游标回滚（恢复后恰一次，不卡到进程重启）。
  *
  * 11 号票（`V-A4.4`）：watcher 的投递与消费记账经 **host 中继**落盘——本测试挂
  * 真实中继（`createMailRelay` ＋ `createMailHttpApi`）到本地 HTTP 服务器，bot 侧
@@ -56,8 +57,11 @@ const readBody = (req) => new Promise((resolve, reject) => {
 const routeSegments = (req) => new URL(req.url, "http://dsh.local").pathname.split("/").filter(Boolean);
 const handleMailApi = createMailHttpApi({ json, readBody, routeSegments });
 const relay = createMailRelay({ dshHome: home, readRegistry: () => registry });
+// 通道闸门（场景 4）：断开＝一律 503，模拟「通道不可用」分支（客户端有限重试后放弃）
+let gateUp = true;
 const mailServer = http.createServer((req, res) => {
   const { pathname } = new URL(req.url, "http://dsh.local");
+  if (!gateUp) return json(res, 503, { ok: false, code: "gate-down", reason: "测试闸门：通道不可用" });
   if (pathname === "/api/bots/_csrf") return json(res, 200, { token: "t-watcher" });
   return handleMailApi(req, res, { mailRelay: relay });
 });
@@ -108,11 +112,24 @@ try {
   await settle();
   assert.equal(outboxCount(), 3, "截断重置后新增 seq=10 应正常消费一次");
   assert.equal(readMaxReceiptSeq(home, "w"), 10, "消费水位由 host 落盘（receipts 面）");
+
+  // 4) 通道中断游标回滚（回归锁）：闸门断→本拍不消费且**字节游标回滚**（否则
+  //    下一拍因「size===offset 早退」把未消费件卡到进程重启）；闸门恢复→下拍
+  //    重读恰一次——已消费行由内存 lastSeq 过滤，重读不产生重复回合。
+  gateUp = false;
+  append(line(11) + "\n");
+  await settle();
+  assert.equal(outboxCount(), 3, "通道中断期 seq=11 不被消费（不越过未消费件）");
+  gateUp = true;
+  await settle();
+  assert.equal(outboxCount(), 4, "通道恢复后下拍重读 seq=11 恰消费一次（游标已回滚）");
+  await settle();
+  assert.equal(outboxCount(), 4, "恢复后不重放 seq=11");
 } finally {
   dispose();
   await new Promise((r) => mailServer.close(() => r()));
   fs.rmSync(home, { recursive: true, force: true });
 }
 
-console.log("✓ inbox watcher 增量游标（追加恰一次/撕裂行跨读/截断重置存量跳过；投递与水位经 host 中继）");
+console.log("✓ inbox watcher 增量游标（追加恰一次/撕裂行跨读/截断重置存量跳过/通道中断回滚恰一次；投递与水位经 host 中继）");
 process.exit(0);

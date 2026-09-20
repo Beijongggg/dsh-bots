@@ -7,6 +7,17 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 **11 号票就地优化批**——用户点名「结合并行实现中的较优部件就地优化入库件」＝授权；四项缺陷修复＋一项单源收敛，TDD 各缝先红后绿；**9 文件（6 lib＋3 测试）**）：
+  - **范围**：本条目＋票面 Comments 优化批注记；机械面＝`lib/index.js`／`lib/org/{mail-relay,mail-client,host-channel,post-channel,ledger-host}.js`＋`tests/{watcher,org-mail-relay,org-mail-shared-face}.test.mjs`。
+  - **变化（四缝＋单源）**：
+    **① watcher 通道中断游标回滚（行为缺陷修复，最重一项）**——`scan()` 此前在读盘后、消费循环**前**就把字节游标推进到 EOF（`offset = size`），消费中止（通道未达 `handleIncoming === false`）只 `return` 不回滚：下一拍因 `size === offset` 早退，**未消费邮件滞留到进程重启**（通道恢复也不重读），且中止日志「下拍重试」名实不符——`V-A4.7` 分支一「通道不可用→有限重试」在消费路径上打折。修法＝记 `offsetBeforeRead`，中止分支回滚 `offset`＋清 `pending`（已消费行由内存 `lastSeq` 过滤，重读不产生重复回合；不按序越过未消费件）。回归锁＝`watcher` 场景 4（测试闸门：断→不消费→恢复→下拍重读恰一次）。
+    **② 未接线 503＋中继异常 503（fail-closed 语义修正）**——`_mail` 面中继未接线此前回 **404**（客户端把它归为不可重试的语义失败，与三分支口径相悖）改 **503 `mail-channel-unwired`**（通道不可用分支：客户端按分支一有限重试）；中继调用统一 `relayCall` 包装——内部异常＝**503 `mail-relay-failed`**（投递面故障可重试），不再裸 500（`send`／`consume`／`cursor` 三腿同口径）。
+    **③ 身份类拒绝留痕收全（`V-A4.7` 分支二）**——relay 核验出的身份拒绝（`mail-sender-unknown`＝发信者不在册等）此前 403 透传**既无事件也无日志**；改与通道层身份检查同走 `rejectAuthz` 留痕腿（op 按动作分 `mail.send`／`mail.consume`）。
+    **④ 留痕锚点自洽加固（零权威线）**——`createMailRejectionRecorder` 此前「负载自报 `taskId` 且台账认账即落 `command-rejected`」：身份认证失败时 actor 不可信，**未认证方可向任意在册任务植入拒绝事件**。收紧＝自报 `taskId` 须台账认账**且** actor 在该任务承担链（`owner`／`dispatcher`）上才落事件（冒名面收窄为「冒充任务承担者」，事件与台账事实自洽）；无自洽锚只留 host 日志（原「actor 缺失回落 host 身份落事件」删除——非认证身份不进台账）。
+    **⑤ 身份头单源（02 纪律）**——`x-dsh-bots-bot-id` 字面量四处（`mail-client`／`mail-relay` 新增＋`post-channel`／`ledger-host` 既有）收敛为 `host-channel.BOT_ID_HEADER` 单一登记源，`org-mail-shared-face` 加扫描锁（消费面内联字面量即红）；`host-channel` 的 `TOKEN_HEADER` 同步接 `api-security.js` 真源。
+  - **验证结果**：TDD 四缝各自先红后绿（watcher 场景 4／relay 未接线 503＋ghost 留痕＋中继异常／recorder 关联负例／身份头扫描锁）；scoped 6 件全绿（relay 8／shared-face 9／client 6／post-channel 11／ledger-host 15／watcher 含新场景）；全量 `TMPDIR=/dev/shm npm test` **57/57** ✅；preflight 四门 **exit 0**（①57/57 ②冻结面 0009 包 7/7 ③0 违例扫 69 md ④11 PASS / 0 FAIL / 0 SKIP）；冻结面零改动。
+  - **授权依据**：2026-09-20 用户点名「结合并行实现中的较优部件对 11 号票入库面就地优化」。
+
 - ✅ 本轮（org-v2 **11 号票：mail 收口与形态改造**——四项口径经 AskUserQuestion 裁定＝授权
   （领 11 号票／严格收口／保自动回信且回信锚＝`replyTo`／TDD 三缝）；票面 8 条验收全勾；TDD 红→绿
   按缝①→缝③推进；**19 文件 +682/-374 ＋ 10 新件（6 lib ＋ 4 测试）**）：

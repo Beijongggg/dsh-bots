@@ -101,3 +101,18 @@ preflight 四门 **exit 0**（①57/57 ②冻结面 0009 包 7/7 ③0 违例扫 
 与 `reply-route` 夹具当 host 侧播种用），非 bot 侧通道；扫描的写者名单已按「确含写调用」取证，
 `lib/index.js` 生产路径零写；③未绑 `post` 的 v1 形态实例随本票起无 `mail.send` 工具（工具面＝岗位
 派生），与其知识登记能力同口径随 16 号票切换批收敛。
+
+### 2026-09-20 就地优化批（用户点名「结合并行实现中的较优部件就地优化入库件」）
+
+四项缺陷修复＋一项单源收敛，TDD 各缝先红后绿（详文见 CHANGELOG 顶部条目）：
+①**watcher 通道中断游标回滚**——中止不回滚会让未消费邮件因「size===offset 早退」滞留到进程重启
+（`V-A4.7` 分支一在消费路径打折）；修＝回滚 `offsetBeforeRead`＋清 `pending`，已消费行由内存
+`lastSeq` 过滤；回归锁＝`watcher` 场景 4 测试闸门（断→不消费→恢复→恰一次）。②**未接线
+404→503 `mail-channel-unwired`**（404 被客户端归为不可重试的语义失败）＋中继内部异常统一
+503 `mail-relay-failed`（不裸 500）。③**relay 身份拒绝留痕收全**——`mail-sender-unknown` 等
+此前 403 透传无事件无日志，改走 `rejectAuthz` 留痕腿。④**留痕锚点自洽**——自报 `taskId` 须台账
+认账且 actor 在承担链（owner/dispatcher）上才落 `command-rejected`（堵未认证方向任意在册任务
+植入拒绝事件；原「actor 缺失回落 host 落事件」删除）。⑤**身份头单源**——`x-dsh-bots-bot-id`
+四处字面量收敛 `host-channel.BOT_ID_HEADER`＋扫描锁；`TOKEN_HEADER` 接 `api-security` 真源。
+验证：scoped 6 件全绿＋全量 **57/57**＋preflight 四门 exit 0。留界三条维持不变（internals
+测试槽位策略经复评判读维持——扫描已按「确含写调用」取证，`lib/index.js` 生产路径零写）。
