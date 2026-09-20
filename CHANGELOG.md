@@ -7,6 +7,59 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 **13 号票：锚点泛化与双席起步编制**——用户点名 `/implement 13` ＝授权；范围经
+  两问裁定：**只做票面 checklist**（06/08/09/21 票面「role-cap 首张出渠／召集接线／初审结论提交面」
+  留界链原样在案）＋锚点席位权限档**保持 read-only**；TDD 四缝先红后绿；**8 文件（3 lib＋1 新测试
+  模块＋2 测试扩＋CONTEXT＋票面）＋新测试 15 项**）：
+  - **范围**：`.scratch/org-v2-build/issues/13-anchor-and-two-seat-bootstrap.md`（八条验收全勾＋
+    Status→resolved＋Comments 凭据）＋`CONTEXT.md`（「bootstrap 锚点席位」补**机械形态**、
+    新词条「起步编制」）＋本条目；机械面＝`lib/index.js`／`lib/org/role-cards.js`／`lib/client.js`／
+    `tests/anchor-bootstrap.test.mjs`（新）／`tests/{ledger-host,org-op-set}.test.mjs`。
+  - **变化（四缝）**：
+    **① 锚点泛化（建锚点函数／删除保护／空表重建目标）**——`createLeadBot` → **`createBootstrapAnchor`**
+    （实例 id＝锚点岗位 slug `duty-coordinator`、显示名与 `role` 取自岗位卡、**home 岗位绑定落表**、
+    席位标记 `bootstrapAnchor: true`、端口＝分配起点、权限档 read-only）；apply 的注册表自举段提取为
+    **`bootstrapRegistry`**（损坏表 `.corrupt-<ts>` 移开分支**原样保留**／空表建 v2 锚点／**非空表零触碰**）。
+    **② 席位不可删按标记判定**——`remove` 改按 `isBootstrapAnchorSeat`（**不按席位名／实例 id 字符串**；
+    v1 旧名记录与用户自建同岗席位均可删——锚点是席位不是岗位特权），`patch` 堵住「改绑／清空 home 岗位」
+    等价路径（同一条不变量的两条路径），编号顺序更正为「先查在场（未知 id＝404）再判保护」。
+    **③ 编制契约与双席起步**——`role-cards` 新导出 `BOOTSTRAP_ANCHOR_POST`／`MINIMAL_ROSTER_POSTS`
+    （双席）／`ON_DEMAND_POSTS`（按需拉起）／`isBootstrapAnchorSeat`／`minimalRosterState`（锚点席位
+    **按标记**判、岗位缺口按 `post` 判、按需岗只作实况）；apply 增**编制回报行**（锚点席位在场否／
+    起步双席齐备否／按需岗在场数）作 16 号票编制就绪探针的可核输入（就绪本身＝门绿＋探针＋smoke，不止编制）。
+    **④ v1 专有注入与席位名硬编码删除**——团队提示段三处 v1 席位名（「你就是领队时…」／「发给领队」／
+    「领队验收」）换 v2 语义席位；`lib/client.js`：`isLead` → **`isAnchorSeat`**（按席位标记）、本地化键
+    `lead.notDeletable` → `anchor.notDeletable`（zh/en）、角色提示文案去 v1 席位名（领队 → 派单方）、
+    头像启发式英文关键词 `lead` → `manager`；双审军规段／双审试点门控／`reviewer-lead` 工件作者硬编码
+    已在 03（`b8cdce8`）／15（`93403cb`）删除，本轮以扫描断言锁死。
+  - **验证结果**：TDD 四缝各先红后绿；`tests/anchor-bootstrap.test.mjs`（新）**15 项**（自举写面四例／
+    锚点记录形状／保护与改绑行为／编制契约与状态／**双席经 `create` 公开面起齐**／跨 bundle 判据等价性／
+    两组源码清零扫描）；scoped＝`role-cards` 14/14、`org-op-set` 23/23（新增锚点岗 home op 集与
+    借用并集断言）、`ledger-host` 15/15；全量 `TMPDIR=/dev/shm npm test` **59/59** ✅；preflight 四门
+    **exit 0**（①59/59 ②冻结面 0009 包 7/7 ③0 违例扫 69 md ④11 PASS / 0 FAIL / 0 SKIP）；冻结面零改动；
+    **真实运行面零写入**（夹具全在临时 `DSH_HOME`）。
+  - **复审（`/code-review` 双轴并行子代理，各只读）**：Standards **硬违例 2**／judgement 5；
+    Spec 缺失 3（含落档）／越权面 3／不符 2，**逐条处置**——硬违例＝①落档缺失（本条目即处置：
+    该轮复审先于落档执行，票面凭据指向本条目）②`lib/client.js` 头像启发式仍含 v1 席位名字面量
+    `lead`（改 `manager`，扫描断言收紧为 `\blead\b` 清零）；不符两项＝①`minimalRosterState.anchorPresent`
+    按 home 岗位判（与 `remove`/`patch` 的标记判据分叉，用户自建同岗席位会假报「锚点在场」）→ 改按
+    **席位标记**判并在 CONTEXT 词条钉死口径②同上 `lead` 字面量。judgement 5 全处置：跨 bundle
+    判据重复 → `client.js` 导出 `isAnchorSeat` ＋**等价性绑定测试**（两处漂移即红）、`minimalRosterState`
+    去掉无消费的 `present` 字段、`ON_DEMAND_POSTS` 接入编制回报行（不再是仅测试消费的常量）、
+    `BASE_PORT`／`ANCHOR_PORT` 重复字面量合一、「编制回报＝就绪探针输入」措辞降级为「编制实况输入」
+    （就绪＝门绿＋探针＋smoke）。Spec 项处置：缺 1（就绪面无实现）＝补**双席经公开 API 起齐**的端到端
+    断言＋票面精确定位（就绪验收归 16 号票）、缺 2（`V-A1.4` 挂标标签字面量）=测试名补
+    「挂「设计推理（无直接文献）」标注条目」、缺 3＝落档（本条目）；越权面 3 **经复核保留并披露**：
+    锚点 `group` 由 v1 的 `leadership` 清零（v1 形态残留）、`patch` 拒改绑（同不变量必需、已入 CONTEXT）、
+    `createBootstrapAnchor` 卡面缺位即 throw（fail closed，构建期契约损坏须响亮）。
+  - **留界（在案）**：①role-cap 首张能力出渠／召集接线／初审结论提交面＝票面 checklist 未点名
+    （用户裁定只做票面），06/08/09/21 留界链原样在案，归 14／16 或另立票。②切换批建双席路径＝清空
+    注册表＋host 启动得锚点，实施者席位经 `POST /api/bots`（带 `post`）建立；**前端尚未暴露 `post` 字段**
+    （04 号票交付范围为写入口），切换批按 API 或另立票补 UI。③`scripts/bot-health.cjs` 仍含 v1 席位名
+    特判（独立旧诊断 CLI，非 bootstrap 路径，不在 checklist 三项点名内）——如需泛化另立票。
+    ④运行面动作（部署同步／重启链／撤旧席／归档）属 `AGENTS.md` §2 逐项点名，本票零运行面写入。
+  - **授权依据**：2026-09-20 用户点名 `/implement 13`（范围与权限档两问经 AskUserQuestion 裁定）。
+
 - ✅ 本轮（**AGENTS.md §1 技能节语调改命令式**——用户点名「更改语调，声明的 skill（/技能名）
   强制显式调用」；仅此节措辞，节序与其余节零改动）：
   - **变化**：标题改「技能——`/技能名` 声明即强制显式调用」；正文由解释性长句改为命令式——

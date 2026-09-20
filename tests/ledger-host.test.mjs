@@ -26,6 +26,7 @@ import { instanceRegistryFile } from "../lib/org/capability-base.js";
 import { createReviewFaceGate } from "../lib/org/review-kit.js";
 import { createLedgerAccessKit } from "../lib/org/permissions.js";
 import { createTaskLedger, eventsFile, ledgerDir } from "../lib/org/task-ledger.js";
+import { BOOTSTRAP_ANCHOR_POST } from "../lib/org/role-cards.js";
 import { deprecateReport, readIndex, registerReport, reportsDirFor } from "../lib/knowledge.js";
 
 const ledgerDirExists = (home) => existsSync(ledgerDir(home));
@@ -344,8 +345,9 @@ test("接线：宿主实例注册台账值守，bot 实例不构造台账（无�
     assert.equal(ledgerDirExists(home), false, "启动不写台账（写锁与事件按需惰性创建）");
 
     // bot 实例（profile == 注册 botId）→ 不构造台账、不注册值守
+    // （13 号票锚点泛化后，注册表自举建出的席位 id＝锚点岗位 slug：`duty-coordinator`）
     const hostEffects = applied.length;
-    await apply(mkCtx(`file://${home}/profiles/lead/`));
+    await apply(mkCtx(`file://${home}/profiles/${BOOTSTRAP_ANCHOR_POST}/`));
     const botEffects = applied.slice(hostEffects);
     assert.ok(botEffects.length > 0, "bot 实例应注册实例侧 effect（watcher／工具）");
     assert.equal(botEffects.some((name) => String(name).includes("台账")), false,

@@ -32,7 +32,7 @@ import {
   validateOpSet
 } from "../lib/org/op-set.js";
 import { OPS } from "../lib/org/task-ledger.js";
-import { ROLE_CARDS, STANDING_POST_SLUGS as CARD_STANDING_SLUGS } from "../lib/org/role-cards.js";
+import { BOOTSTRAP_ANCHOR_POST, ROLE_CARDS, STANDING_POST_SLUGS as CARD_STANDING_SLUGS } from "../lib/org/role-cards.js";
 
 test("op-set 表覆盖五类角色类别，键与岗位卡 slug 集一致（V-A3.3 前置）", () => {
   assert.deepEqual(Object.keys(OP_SET).sort(), [...STANDING_POST_SLUGS, "verifier"].sort());
@@ -194,6 +194,18 @@ test("动态工具面不变量：可用集＝home op 集 ∪ 当次签发 op 集
   for (const op of verifierReads) assert.ok(merged.includes(op), "当次签发 op 必须并入可用集");
   // 无能力＝仅 home 集
   assert.deepEqual(availableOps("implementer", null), OP_SET.implementer);
+});
+
+test("bootstrap 锚点席位（值班统筹）的 home op 集与借用并集（13 号票／`V-A1.4`，挂「设计推理（无直接文献）」标注条目）", () => {
+  // 锚点席位＝一个 home 岗位绑定（duty-coordinator），不携带超出岗位卡的权限：
+  // 可用集＝该岗位表（值守域 op）∪ 当次签发（项目线借用时的任务能力）。
+  const anchorHome = availableOps(BOOTSTRAP_ANCHOR_POST, null);
+  for (const op of ["task.intake", "task.triage", "task.exception", "ledger.read"]) {
+    assert.ok(anchorHome.includes(op), `锚点岗位表缺值守域 op：${op}`);
+  }
+  const borrowed = availableOps(BOOTSTRAP_ANCHOR_POST, { ops: ["task.accept", "task.report"] });
+  for (const op of anchorHome) assert.ok(borrowed.includes(op), "home 集不得因借用丢失");
+  for (const op of ["task.accept", "task.report"]) assert.ok(borrowed.includes(op), "当次签发 op 必须并入可用集");
 });
 
 test("对账：签发集 ⊆ 持有者岗位表；越表签发、复核帽写签发均报违例（V-A3.3）", () => {
