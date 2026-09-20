@@ -1,7 +1,7 @@
 /**
  * 回归：JSONL 解析容错与邮局语义（批次③「parseJsonlLines 收敛」的前置基线）。
  * 覆盖 maxSeqInFile / readAllInboxLines / readOutbox / readConversation / appendMessage
- * 对损坏行、空行、since 过滤、kind 标记的行为。
+ * 对损坏行、空行、since 过滤、taskId／replyTo 形态标记的行为。
  */
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -51,13 +51,20 @@ const since = internals.readConversation(home, "w", "2026-08-22T02:00:00.000Z");
 assert.equal(since.length, 2, "since 过滤：严格晚于的只有 seq3 与 o2");
 assert.ok(since.every((m) => Date.parse(m.timestamp) > Date.parse("2026-08-22T02:00:00.000Z")));
 
-const appended = internals.appendMessage(home, "w", { from: "lead", text: "mail", kind: "mail-response" });
+const appended = internals.appendMessage(home, "w", {
+  from: "lead", text: "mail", taskId: "T-7", replyTo: 1, idempotencyKey: "k-1"
+});
 assert.equal(appended.seq, 4, "appendMessage 接续最大 seq");
-assert.equal(appended.kind, "mail-response", "kind 标记写入");
+assert.equal(appended.taskId, "T-7", "关联键 taskId 落盘（11 号票形态改造）");
+assert.equal(appended.replyTo, 1, "回信锚 replyTo 落盘");
+assert.equal(appended.idempotencyKey, "k-1", "投递幂等锚落盘");
+assert.equal("kind" in appended, false, "kind 枚举已废止");
 const plain = internals.appendMessage(home, "w", { from: "user", text: "x" });
-assert.equal(plain.kind, undefined, "无 kind 时不写字段");
+assert.equal("kind" in plain, false, "不再写 kind 字段");
+assert.equal(plain.taskId, undefined, "无 taskId 时不写字段");
+assert.equal(plain.replyTo, undefined, "无回信锚时不写字段");
 
-console.log("✓ JSONL 容错解析 + 邮局语义（maxSeq/readAll/readOutbox/会话合并/since/kind）");
+console.log("✓ JSONL 容错解析 + 邮局语义（maxSeq/readAll/readOutbox/会话合并/since/taskId+replyTo 形态）");
 
 // ---------- F-S15 修复：inbox seq 写锁（跨进程互斥） ----------
 

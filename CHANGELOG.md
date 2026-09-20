@@ -7,6 +7,70 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 **11 号票：mail 收口与形态改造**——四项口径经 AskUserQuestion 裁定＝授权
+  （领 11 号票／严格收口／保自动回信且回信锚＝`replyTo`／TDD 三缝）；票面 8 条验收全勾；TDD 红→绿
+  按缝①→缝③推进；**19 文件 +682/-374 ＋ 10 新件（6 lib ＋ 4 测试）**）：
+  - **范围**：`.scratch/org-v2-build/issues/11-mail-relay-and-form.md`（验收勾选＋Status＋Comments
+    凭据）＋`CONTEXT.md`（新词条「投递面与 mail 中继」）＋本条目；机械面＝新件
+    `lib/org/{mail-relay,mail-client,host-channel,mail-shared-face,vocabulary-face,face-scan}.js`、
+    `lib/{index,mail-plane,client}.js`、`lib/org/{op-set,post-channel,permissions,ledger-host}.js`
+    ＋测试 13 件（4 件新：`org-mail-relay`／`org-mail-client`／`org-mail-shared-face`／
+    `org-vocabulary-face`）；新件合计 10（lib 6 ＝ `mail-relay`／`mail-client`／`host-channel`／
+    `mail-shared-face`／`vocabulary-face`／`face-scan`，测试 4）。
+  - **变化**：
+    **①host 中继命令面（缝①）**——新件 `mail-relay.js`：`createMailRelay`（`send`／`consume`／
+    `cursor`＝**投递面唯一写入口**；投递者词表＝在册实例∪用户 principal；负载键封闭，夹带状态类
+    键即拒；幂等回复三锚去重＝`replyToMessageId`（outbox）／`replyTo`（inbox 自动回信）／
+    `idempotencyKey`（通道重试）；`consume` 带**归属校验**——汇报的 `(messageId, seq)` 须确在该
+    实例 inbox 内，伪造 receipt 不再能经异常汇入凭空造出台账异常）＋`createMailHttpApi`（`_mail`
+    面 `send`／`consume`／`cursor`：actor 认证、**零 capability 门槛**、host 身份不得声明、
+    未接线 404 fail closed）＋`createMailRejectionRecorder`（鉴权拒绝的**台账留痕**：有任务锚落
+    `command-rejected`，无锚只留日志——分支二的 mail 侧形态）。`lib/index.js` 接 `_mail` 路由、
+    实例化中继，`BotsApi.send`（用户→bot）改走中继。
+    **②bot 侧零直写接线（缝②）**——新件 `mail-client.js`（通道腿 `send`／`claim`／`finalize`／
+    `skip`／`cursor`，**零文件面**）＋`host-channel.js`（CSRF 会话与变更面投递口径抽件，与
+    `post-channel` 单源，403 `csrf-*` 轮换重试一次）。`startInboxWatcher` 起始游标改问 host
+    （取不到即不消费，fail closed）、积压跳过经 `mail.skip`、消费完成才推进内存游标；
+    `handleIncoming` 的 claim／回复／终结三步全经命令（回复幂等锚不变，send 未达即不终结＝水位
+    不前进、重启重放）；`routeReplyToSender` 经中继投回并带 `taskId`；`send_mail` 手写工具**退役**，
+    `mail.send` 升入 op-set 四常设岗（执行面＋**变异集**、复核帽不持、描述带 `{to, text, taskId?}`
+    与「空 `to` 列名单」），工具腿直连中继不经组织命令面；通知监视器协议回信静默改按 `replyTo`
+    锚（v1 遗留行同静默）；`apply` 顶层冗余 `mkdirSync(bots/inbox|outbox)` 删除（mail-plane 写路径
+    本就按需建目录）。
+    **③机械检查（缝③）**——新件 `mail-shared-face.js`（`scanMailWriteFace`：写者名单闭合＝**只剩
+    中继面一件**、bot 侧面六函数零直写、零「触达＋文件写」临界区、通道腿零文件面；
+    `scanMailContentKeys`：写函数造键与调用点传键都在封闭枚举内）＋`vocabulary-face.js`
+    （`scanVocabularyFace`：`skill`／`技能` 零命中＋无非字面说明符动态 import＝无运行时装载机制）＋
+    `face-scan.js`（扫描管路单源：walk／注释判别／函数体提取／写操作名单）；L1 负例补投递面
+    **真实面**路径（inbox／outbox／receipts／responses／seq 锁，从 mail-plane 路径助手单源派生）；
+    `MAIL_INBOX_KEYS`／`MAIL_OUTBOX_KEYS` 与台账状态／事件／命令词表断言不相交。
+    **④形态改造**——`kind` 写侧不再产生、读侧（通知静默／prompt 前缀／回路由守卫）改按 `replyTo`
+    锚；`taskId` 落盘并随回信延续；客户端 `pick.intro` 双语文案去「技能／skills」（v2 词表无 skill，
+    对应物＝岗位＋工具）。
+  - **验证结果**：全量 `TMPDIR=/dev/shm npm test` **57/57** ✅（基线 53/53＋新增 4 件：
+    `org-mail-relay` 7／`org-mail-client` 6／`org-mail-shared-face` 8／`org-vocabulary-face` 4）；
+    preflight 四门 **exit 0**（①57/57 ②冻结面 0009 包 7/7 ③0 违例扫 68 md ④11 PASS / 0 FAIL /
+    0 SKIP）；既有回归按新形态改写：`watcher`（游标语义不变，投递与水位经 host 中继）、
+    `reply-route`（新增「通道不可用止步／零写入／水位不前进」腿）、`jsonl`／`mail-notify`／
+    `mail-at-least-once`（`kind` 废止同步）；扫描件负例各自可辨（注入违规即转红）。**真实运行面
+    零写入**（`~/.dsh` 未触碰，夹具全在临时目录；部署同步未做＝16 号票）。
+  - **复审（/code-review 双轴并行）**：Standards 硬违例 2／judgement 6；Spec 缺失 1／越权 1／不符 3，
+    **全处置**——硬违例：落档补齐（本条＋票面）；单源破损（`HOST_CHANNEL_FORBIDDEN` 抽入
+    `permissions.js` 两面共用、`MAIL_CHANNEL_UNAVAILABLE` 用导出常量、host origin 解析一次后传入）。
+    Standards judgement：扫描管路三份复制抽 `face-scan.js` 单源；两新扫描件豁免名单改名消同名异义；
+    `writers` 语义改「名单内确含写调用」；投递调用名单抽常量；`host-channel` 两态返回归一
+    `{status, body}`；删无生产调用方的 `inboxHasResponseTo`；去冗余 `mkdirSync`；陈旧注释更正。
+    Spec：① V-A4.4 进程粒度缺口＝`BotsApi.send` 改走中继（bot 实例无中继即 fail closed），写者名单
+    收窄为中继面一件；② §E 分支二台账腿＝`createMailRejectionRecorder`（有无任务锚分道）；③
+    `consume` 归属校验加固零权威线；④ `mail-at-least-once` 名实不符改按 `replyTo` 锚。
+  - **留界（在案、待后续票）**：①**部署面未切换**（`~/.dsh/plugins/dsh-bots` 仍旧快照，本轮
+    `_mail` 面与通道腿在部署面未生效；部署同步与重启链＝16 号票点名段）；②`internals` 仍导出
+    mail-plane 写原语＝**测试槽位**（`jsonl`／`reply-route` 夹具当 host 侧播种用），生产路径零写；
+    ③未绑 `post` 的 v1 形态实例随本票起无 `mail.send` 工具（工具面＝岗位派生），与知识登记同口径
+    随 16 号票收敛。
+  - **授权依据**：2026-09-20 用户点名 `/implement` → AskUserQuestion 四问四答（领 11 号票；严格
+    收口；保留自动回信、回信锚＝`replyTo`；按 TDD 三缝执行）。
+
 - ✅ 本轮（org-v2 **10 号票：记忆与知识层**——用户裁定「全量一次干完，拆三个有顺序的子批」＝授权；票面 9 条验收 ＝ `V-A7.5`～`V-A7.10` + `V-A4.5` + 检索级子串 + 「开工先 search」只进调研承载岗；TDD 红→绿按子批推进；**17 文件 +616/-142 ＋ 4 新件**）：
   - **范围**：`.scratch/org-v2-build/issues/10-memory-and-knowledge.md`（验收勾选＋Status＋Comments 凭据）＋`CONTEXT.md`（「知识库」词条补命令化口径）＋本条目；机械面 = `lib/org/memory-layer.js`（新）／`lib/org/knowledge-shared-face.js`（新）／`lib/knowledge.js`／`lib/org/{brief,op-set,post-channel,ledger-host,role-cards}.js`／`lib/index.js`＋对应测试 9 件（2 件新）。
   - **变化（按子批）**：

@@ -67,8 +67,8 @@ test("样本快照（防措辞漂移，取自迁移前原文）", () => {
   assert.equal(en["edit.title"], "Edit Bot \u201c{name}\u201d");
   assert.equal(zh["context.ariaLabel"], "上下文已用 {reading}");
   assert.equal(en["context.ariaLabel"], "{reading} of context used");
-  assert.equal(zh["pick.intro"], "将你的代理配置组织为一组命名的机器人，每个机器人拥有独立的角色、模型与技能，可随时启停、相互通信；配置一次，长期复用。");
-  assert.equal(en["pick.intro"], "Organize your agents as a team of named bots — each with its own role, model, and skills; start, stop, and message them any time.");
+  assert.equal(zh["pick.intro"], "将你的代理配置组织为一组命名的机器人，每个机器人拥有独立的岗位、模型与工具，可随时启停、相互通信；配置一次，长期复用。");
+  assert.equal(en["pick.intro"], "Organize your agents as a team of named bots — each with its own post, model, and tools; start, stop, and message them any time.");
 });
 
 test("client.js 源码：tr/t 调用键全部有定义（含 common 允许集）", () => {

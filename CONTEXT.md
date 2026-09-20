@@ -202,6 +202,20 @@ user principal＝台账全权）。组织层对既有边界＝复用＋加严、
 认 capability 与台账事件。零权威通道不设授权门槛（投递保持低摩擦），冒写最坏
 造成困惑、改不了任何状态（06 号票裁定）。
 
+## 投递面与 mail 中继（delivery plane / mail relay）
+
+邮件投递面的**写者归属**与信箱词表（org-v2 11 号票裁定，2026-09-20 用户四项口径）：
+**host 中继面是投递面唯一写者**——`bots/inbox/<botId>/**`（消息＋receipts／responses
+消费记账）与 `bots/outbox/<botId>/**` 的一切写都由 host 经 `_mail` 认证命令落盘；
+bot 侧只读自己的 inbox 文件、只经命令汇报消费（**无文件直写降级路径**）。序号锁
+（`mail-seq-lock`）由此只剩 host 一侧的并发保护。投递者词表＝**在册实例 ∪ 用户
+principal**；host 无投递者身份（它只是写者）。邮件键封闭：inbox 消息键＝{id, seq,
+from, text, at, taskId?, replyTo?, idempotencyKey?}、outbox 行键＝{id, text, from,
+timestamp, taskId?, replyToMessageId?}——**邮件内容不承载任务状态**（内容键与台账
+状态／事件／命令词表断言不相交）；`taskId`＝关联键，`replyTo`＝回信锚（自带锚的
+邮件不再自动回路由，防 ping-pong），`idempotencyKey`＝投递幂等锚。`kind` 枚举与
+「`replyTo` ⟺ kind」约束**已废止**（v1 遗留行读侧按 `replyTo` 锚继续容忍）。
+
 ## 人间收件箱（human inbox）
 
 到人的单一权威投递面：等待用户裁定的事件与通知的投影，内嵌终裁操作。

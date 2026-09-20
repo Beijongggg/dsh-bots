@@ -138,8 +138,12 @@ test("任务域 op 集（须绑定 taskId 的能力）：台账命令类属写�
       // knowledge.register（10 号票）：登记是**角色能力**而非任务域 op——§G 的时点
       // 是「任务关闭或归档流程内」，但登记动作属产出岗的常驻职责（谁产出谁登记，
       // 值班统筹亦然），授权由角色能力承载、不绑单张任务。
+      // mail.send（11 号票 §E）：投递**零 capability 门槛**——规格把 mail 定为全员
+      // 基础工具、零权威投递通道（V-A3.7），故不接任务域授权；关联键 taskId 只是
+      // 邮件内容里的关联信息，不构成授权绑定。
       if (op === "ledger.read" || op === "brief.refresh"
-        || op === "knowledge.register" || op === "knowledge.deprecate") continue;
+        || op === "knowledge.register" || op === "knowledge.deprecate"
+        || op === "mail.send") continue;
       assert.ok(TASK_SCOPED_OPS.includes(op), `${slug} 的 op ${op} 应属任务域执行集`);
     }
   }

@@ -4,7 +4,7 @@
  *
  * 语义不变量（与设计文档一致）：
  *   - 每 (bot,dir) 首见即静默基线（host 重启存量不回放；bot 新建亦然）；
- *   - inbox：seq 增量 diff；kind="mail-response"（协议回信）静默；
+ *   - inbox：seq 增量 diff；自带 `replyTo` 锚的自动回信（协议流量）静默；
  *     host 自身 POST /send 的写入按 ownSeq 抑制；文件重写（maxSeq 回退）静默重置；
  *   - outbox：按文件名（=ISO 时间戳变体，字典序==时间序）逐文件行数 diff；
  *     新文件全量事件、同文件追加仅新行、截断/删除静默；
@@ -38,7 +38,7 @@ const bot = (id, overrides = {}) => ({
 });
 const inboxFile = (home, id) => path.join(home, "bots", "inbox", id, "messages.jsonl");
 const outboxDir = (home, id) => path.join(home, "bots", "outbox", id);
-/** inbox 一行（含换行）：{seq, from, text, at[, kind]}。 */
+/** inbox 一行（含换行）：{seq, from, text, at[, taskId/replyTo]}。 */
 const inboxLine = (seq, text, extra = {}) =>
   JSON.stringify({ seq, from: extra.from ?? "user", text, at: extra.at ?? "2026-08-23T01:00:00.000Z", ...extra }) + "\n";
 /** outbox 文件内容：一行一个 {id, text, from:"bot", timestamp}。 */
@@ -99,16 +99,22 @@ test("inbox 追加：新消息变事件（dir/from/text 预览/at/seq）", () =>
   assert.deepEqual(again.events, [], "同一 seq 不重放");
 });
 
-test("inbox 协议回信（kind=mail-response）→ 静默", () => {
+test("inbox 自动回信（自带 replyTo 锚）→ 静默；v1 遗留行（kind+replyTo）同样静默", () => {
   const home = mkHome({ a: bot("a") });
   fs.mkdirSync(path.dirname(inboxFile(home, "a")), { recursive: true });
   fs.appendFileSync(inboxFile(home, "a"), inboxLine(1, "任务"));
   const state = scanOnce(home, emptyMailState(), ["a"]).state;
 
-  fs.appendFileSync(inboxFile(home, "a"),
-    inboxLine(2, "已处理", { from: "lead", kind: "mail-response", replyTo: 1 }));
+  // 11 号票形态：回信关系由 replyTo 锚表达（kind 枚举已废止）
+  fs.appendFileSync(inboxFile(home, "a"), inboxLine(2, "已处理", { from: "lead", replyTo: 1 }));
   const { events } = scanOnce(home, state, ["a"]);
   assert.deepEqual(events, [], "自动回信是协议流量，不弹通知");
+
+  // 历史行（v1 写下的 kind+replyTo）：读侧继续按锚静默，升级窗口不炸出旧协议流量
+  fs.appendFileSync(inboxFile(home, "a"),
+    inboxLine(3, "历史回信", { from: "lead", kind: "mail-response", replyTo: 2 }));
+  const { events: legacy } = scanOnce(home, state, ["a"]);
+  assert.deepEqual(legacy, [], "v1 遗留回信行按 replyTo 静默");
 });
 
 test("inbox host 自发 send（ownSends 精确 seq）：自身写入静默，后续 bot 邮件照常", () => {

@@ -22,6 +22,8 @@ import { instanceRegistryFile } from "../lib/org/capability-base.js";
 import { ROLE_CARDS, ROLE_CARD_FIELDS } from "../lib/org/role-cards.js";
 import { deriveToolFace, LEDGER_COMMAND_OPS, OP_SET, WRITE_OPS } from "../lib/org/op-set.js";
 import { indexFile, knowledgeDir, reportsDirFor, templateFileFor } from "../lib/knowledge.js";
+// 投递面真实面路径单源（11 号票）：守卫从路径助手派生，路径漂移不会让负例失效
+import { inboxDirFor, messagesPathFor, outboxDirFor } from "../lib/mail-plane.js";
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 
@@ -77,6 +79,35 @@ test("L1 负例：知识库容器协议**真实面**路径全部界外（V-A3.1 
   assert.equal(
     isBotWritablePath({ dshHome: HOME, botId: "bot-a", target: join(botWorkspaceDir(HOME, "bot-a"), "notes", "scratch.md") }),
     true, "岗位私有笔记落在 workspace 界内（唯一合法直写区）");
+});
+
+test("L1 负例：投递面**真实面**路径（inbox／outbox／receipts／responses）全部界外（V-A3.1 与 11 号票 V-A4.4 的交点）", () => {
+  // 上方负例表里的 `~/.dsh/bots/<bot>/inbox.jsonl` 是历史路径形态；投递面真实面是
+  // `<dshHome>/bots/inbox/<botId>/…` 与 `<dshHome>/bots/outbox/<botId>/…`（lib/mail-plane.js
+  // 的路径助手）。两处都须界外，且真实面路径由此处从 mail-plane 单源派生——路径漂移后
+  // 本守卫不会失效。bot 对投递面连「自己那份」也不得直写：写者只有 host（11 号票收口）。
+  const byHelper = [
+    inboxDirFor(HOME, "bot-a"),
+    messagesPathFor(HOME, "bot-a"),
+    join(inboxDirFor(HOME, "bot-a"), "receipts", "r-1.json"),
+    join(inboxDirFor(HOME, "bot-a"), "responses", "resp-1.json"),
+    outboxDirFor(HOME, "bot-a"),
+    join(outboxDirFor(HOME, "bot-a"), "2026-09-20T00-00-00-000Z.jsonl"),
+    messagesPathFor(HOME, "bot-b"),
+  ];
+  const byLiteral = [
+    join(HOME, "bots", "inbox", "bot-a", "messages.jsonl"),
+    join(HOME, "bots", "outbox", "bot-a", "2026-09-20T00-00-00-000Z.jsonl"),
+    join(HOME, "bots", "inbox", "bot-a", ".seq.lock", "owner.json"),
+  ];
+  for (const target of [...byHelper, ...byLiteral]) {
+    assert.equal(isBotWritablePath({ dshHome: HOME, botId: "bot-a", target }), false,
+      `投递面须拒写（host 是唯一写者）：${target}`);
+  }
+  // 正例对照：workspace 界内仍是本层唯一合法直写区（收口面只收投递面，不扩成全域封禁）
+  assert.equal(
+    isBotWritablePath({ dshHome: HOME, botId: "bot-a", target: join(botWorkspaceDir(HOME, "bot-a"), "notes", "mail-draft.md") }),
+    true, "岗位私有草稿落在 workspace 界内（唯一合法直写区）");
 });
 
 test("L1 负例：路径遍历（workspace 内的 ../ 跳出）与非法 botId 一律拒（V-A3.1）", () => {

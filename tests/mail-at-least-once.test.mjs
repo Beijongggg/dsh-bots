@@ -14,7 +14,7 @@ import {
   appendMessage, appendOutbox, outboxHasReply, messageIdFor,
   writeReceipt, readMaxReceiptSeq, writeBaselineReceipt, pruneReceipts, RECEIPTS_KEEP,
   initialMailCursor, responseState, claimResponse, finalizeResponse,
-  inboxHasResponseTo, readConversationCached, readConversation, readLastMessage,
+  inboxResponseTo, readConversationCached, readConversation, readLastMessage,
   messagesPathFor
 } from "../lib/mail-plane.js";
 
@@ -150,14 +150,17 @@ test("崩溃窗口端到端：claim→outbox 落盘→（崩溃）→重放→�
 });
 
 // ---------- 回路由去重 ----------
-test("inboxHasResponseTo：已存在 kind=mail-response/discuss 且 replyTo=seq → true", () => {
+test("inboxResponseTo：回信锚 replyTo=seq 在场即命中（kind 枚举已废止，含 v1 遗留行）", () => {
   const home = mkHome();
   const senderMsg = appendMessage(home, "sender", { from: "user", text: "hi" });
-  assert.equal(inboxHasResponseTo(home, "sender", senderMsg.seq), false);
-  appendMessage(home, "sender", { from: "w", text: "re", kind: "mail-response", replyTo: senderMsg.seq });
-  assert.equal(inboxHasResponseTo(home, "sender", senderMsg.seq), true);
-  assert.equal(inboxHasResponseTo(home, "sender", 999), false);
-  assert.equal(inboxHasResponseTo(home, "sender", 0), false, "非法 seq 恒 false");
+  assert.equal(inboxResponseTo(home, "sender", senderMsg.seq), null);
+  const reply = appendMessage(home, "sender", { from: "w", text: "re", replyTo: senderMsg.seq });
+  assert.equal(inboxResponseTo(home, "sender", senderMsg.seq).id, reply.id, "命中即取回该行（回路由去重据此）");
+  assert.equal(inboxResponseTo(home, "sender", 999), null);
+  assert.equal(inboxResponseTo(home, "sender", 0), null, "非法 seq 恒 null");
+  // v1 遗留行（kind + replyTo）按锚同样命中：升级窗口内不重复回信
+  const legacy = appendMessage(home, "legacy", { from: "w", text: "旧回信", kind: "mail-response", kindLegacyKept: true, replyTo: 7 });
+  assert.equal("kind" in legacy, false, "写侧不再产生 kind（11 号票形态改造）");
 });
 
 // ---------- 抽取遗留缺陷回归（statSync 等导入缺失，2026-09-04 抽取引入） ----------

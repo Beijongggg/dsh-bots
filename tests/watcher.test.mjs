@@ -5,14 +5,23 @@
  * 经 handleIncoming 错误路径恰好写一行 [bot error]——成功回合路径由
  * reply-route.test.mjs 的假 RPC 覆盖，这里只测游标语义。
  * 场景：追加触发恰一次 / 撕裂行跨读不处理补全后恰一次 / 截断重置存量跳过。
+ *
+ * 11 号票（`V-A4.4`）：watcher 的投递与消费记账经 **host 中继**落盘——本测试挂
+ * 真实中继（`createMailRelay` ＋ `createMailHttpApi`）到本地 HTTP 服务器，bot 侧
+ * 用真实 `createMailClient`：outbox 行由 host 写、游标与 receipt 也由 host 落，
+ * bot 进程只读 inbox 文件（读不收窄）。
  */
 import assert from "node:assert/strict";
 import net from "node:net";
+import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 
 const { internals } = await import("../lib/index.js");
+const { createMailHttpApi, createMailRelay } = await import("../lib/org/mail-relay.js");
+const { createMailClient } = await import("../lib/org/mail-client.js");
+const { readMaxReceiptSeq } = await import("../lib/mail-plane.js");
 
 const home = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-watcher-"));
 const inboxDir = path.join(home, "bots", "inbox", "w");
@@ -26,9 +35,36 @@ await new Promise((r) => probe.listen(0, "127.0.0.1", r));
 const deadPort = probe.address().port;
 await new Promise((r) => probe.close(() => r()));
 
-fs.writeFileSync(path.join(home, "bots", "bots.json"), JSON.stringify({
+const registry = {
   w: { id: "w", name: "观察对象", role: "干活", modelProvider: "", model: "", port: deadPort, createdAt: new Date().toISOString() }
-}));
+};
+fs.writeFileSync(path.join(home, "bots", "bots.json"), JSON.stringify(registry));
+
+// —— host 侧中继（真实件）：CSRF 引导 + `_mail` 面 ——
+const json = (res, status, value) => {
+  res.writeHead(status, { "content-type": "application/json" });
+  res.end(JSON.stringify(value));
+};
+const readBody = (req) => new Promise((resolve, reject) => {
+  let raw = "";
+  req.on("data", (chunk) => { raw += chunk; });
+  req.on("end", () => {
+    if (raw === "") return resolve(null);
+    try { resolve(JSON.parse(raw)); } catch (error) { reject(error); }
+  });
+});
+const routeSegments = (req) => new URL(req.url, "http://dsh.local").pathname.split("/").filter(Boolean);
+const handleMailApi = createMailHttpApi({ json, readBody, routeSegments });
+const relay = createMailRelay({ dshHome: home, readRegistry: () => registry });
+const mailServer = http.createServer((req, res) => {
+  const { pathname } = new URL(req.url, "http://dsh.local");
+  if (pathname === "/api/bots/_csrf") return json(res, 200, { token: "t-watcher" });
+  return handleMailApi(req, res, { mailRelay: relay });
+});
+await new Promise((r) => mailServer.listen(0, "127.0.0.1", r));
+const mail = createMailClient({
+  origin: `http://127.0.0.1:${mailServer.address().port}`, botId: "w"
+});
 
 const line = (seq) => JSON.stringify({ seq, from: "user", text: "m" + seq, at: "2026-08-22T01:00:00.000Z" });
 const append = (s) => fs.appendFileSync(inboxFile, s, "utf8");
@@ -39,11 +75,12 @@ const settle = (ms = 1400) => new Promise((r) => setTimeout(r, ms));
 // 存量 seq=1 先落盘，再启动 watcher：初始化语义应为 offset=size、lastSeq=1，存量不回放。
 fs.writeFileSync(inboxFile, line(1) + "\n", "utf8");
 const ctx = { logger: { info() {}, warn() {}, error() {} } };
-const dispose = internals.startInboxWatcher(ctx, { dshHome: home }, "w");
+const dispose = internals.startInboxWatcher(ctx, { dshHome: home }, "w", mail);
 
 try {
   await settle();
   assert.equal(outboxCount(), 0, "启动存量（seq=1）不应被回放");
+  assert.equal(readMaxReceiptSeq(home, "w"), 1, "旧数据迁移基线由 host 落（存量水位＝1）");
 
   // 1) 追加触发：新行恰被消费一次，重复 tick 不重放。
   append(line(2) + "\n");
@@ -70,10 +107,12 @@ try {
   append(line(10) + "\n");
   await settle();
   assert.equal(outboxCount(), 3, "截断重置后新增 seq=10 应正常消费一次");
+  assert.equal(readMaxReceiptSeq(home, "w"), 10, "消费水位由 host 落盘（receipts 面）");
 } finally {
   dispose();
+  await new Promise((r) => mailServer.close(() => r()));
   fs.rmSync(home, { recursive: true, force: true });
 }
 
-console.log("✓ inbox watcher 增量游标（追加恰一次/撕裂行跨读/截断重置存量跳过）");
+console.log("✓ inbox watcher 增量游标（追加恰一次/撕裂行跨读/截断重置存量跳过；投递与水位经 host 中继）");
 process.exit(0);
