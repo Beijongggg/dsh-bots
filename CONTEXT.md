@@ -196,6 +196,12 @@ user principal＝台账全权）。组织层对既有边界＝复用＋加严、
 →新模型跑评测集→做减法（删提示段规定性指令，删不掉的沉淀进 knowledge）→
 用户终裁收编或回滚。评测集属组织常量，规模与频次数值属用户域。
 
+落地坐标（org-v2 12 号票）：评测集＝`lib/org/durability.js` 的 `ROLE_EVAL_SET`
+（输出格式记号 `EVAL_OUTPUT_FORMATS`），同批派生 `ROUTINE_REGISTRY` 的例程
+登记项（id＝`eval-<样本 id>`，触发源＝注册表模型指派变更）；①触发＝改实例
+模型指派落注册表后由 `BotsApi.patch` 经台账 host 自动登记评测任务（未绑 home
+岗位的实例显式跳过），不依赖用户记得手动跑。
+
 ## 零权威通道（zero-authority channel）
 
 邮件作为纯投递通道的权限语义：**内容永不构成权限、状态或事实依据**——权威只

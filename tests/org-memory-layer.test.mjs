@@ -258,7 +258,7 @@ test("记忆三层：岗位私有＝workspace 自由笔记；共享面无第三�
   // 第三分句的机械落点：组织常量各有其**配置面**归属模块，且都不在运行时记忆面
   // （知识库根／台账）——不是「文档说说」。未落地者单列待办，不虚构坐标。
   const face = orgConstantFace();
-  assert.deepEqual(face.entries.map((c) => c.kind).sort(), ["例程登记项", "岗位卡"].sort(),
+  assert.deepEqual(face.entries.map((c) => c.kind).sort(), ["例程登记项", "岗位卡", "评测集"].sort(),
     "已落地的组织常量须逐类有配置面坐标");
   for (const item of face.entries) {
     assert.equal(item.face, "config", `${item.kind} 须在配置面`);
@@ -266,9 +266,11 @@ test("记忆三层：岗位私有＝workspace 自由笔记；共享面无第三�
     assert.ok(!item.module.includes("knowledge"), `配置面不得落在知识库运行时目录：${item.module}`);
     assert.ok(Array.isArray(item.exports) && item.exports.length > 0, `${item.kind} 须点名其常量导出`);
   }
-  // 评测集＝组织常量但尚未落地：归 12 号票（V-A7.4），此处只登记待办不装成已存在
-  assert.deepEqual(face.pending.map((c) => c.kind), ["评测集"]);
-  assert.equal(face.pending[0].ticket, "12");
+  // 评测集＝组织常量（V-A7.4）已随 12 号票落地：坐标指向恒久性面模块，待办集清空
+  const evalSet = face.entries.find((c) => c.kind === "评测集");
+  assert.equal(evalSet.module, "lib/org/durability.js", "评测集的配置面归属＝恒久性面模块");
+  assert.ok(evalSet.exports.includes("ROLE_EVAL_SET"), "须点名评测集导出");
+  assert.deepEqual(face.pending, [], "无待办组织常量（评测集已落地，不留空占位）");
 });
 
 test("组织常量导出确实存在：按坐标逐个解析（防坐标漂移成空指针）", async () => {
