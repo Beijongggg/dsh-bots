@@ -90,3 +90,19 @@
    该文件 `sweep({ at: Date.now() })` 的真实时刻构成**定时炸弹**（真实时刻漂过租约窗口即 7 条
    转红；基线与双轴复审各在干净 HEAD 独立复现）；修法＝锚定 `Date.now()`。非本票范围，如判定
    应走独立票可单点回退。
+
+### 2026-09-20 收口（用户裁定「忽略并行版本，按你的版本对票 10 收口」）
+
+- **洁面两处**（纯命名/注释面，行为零变化）：①`lib/org/memory-layer.js` 尾部残留测试运行器
+  标记 `// ---------- 运行 ----------` 删除（该标记属测试件体例，堕入 lib 模块系复制粘贴残留）；
+  ②`lib/index.js` internals 的 `buildRegisterDescriptionForTest: buildRegisterDescription`
+  别名改直列 `buildRegisterDescription,`（internals 既有体例＝纯函数名直列，`…ForTest` 后缀把
+  测试性写进生产导出名且冒号别名不合体例；测试侧同步改引用）。
+- **收口核对三项，均无需改动**：①票板——10 已 `resolved`，14 号票 `Blocked by` 仍含未 resolved
+  的 11／13，**不得**改板；②门态——PLAN 门态收口段属 v1/v3 工程轨（org-v2 语义面在
+  `.scratch/org-v2/spec.md`），org-v2 工单完成不改 PLAN；③地图——README §2 只列文档面，本次
+  新增为代码件（`lib/org/*.js`／`tests/*.mjs`），不触发地图同步；`CONTEXT.md`「知识库」词条
+  已于实施批同步。
+- **并行版本**：用户 2026-09-20 明示 `.scratch/org-v2-build/attachments/` 属**项目外测试用例**，
+  按裁定忽略（不并入正式文件、不引用其内容、不进提交）。
+- **收口批验证**：`TMPDIR=/dev/shm npm test` **53/53** ✅；preflight 四门 **exit 0**；冻结面零改动。
