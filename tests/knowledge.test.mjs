@@ -442,7 +442,7 @@ test("registerKnowledgeTools：**只**注册读取工具 knowledge_search（写�
 test("F-R4-1（命令化后的延续形态）：knowledge.register 描述经 describeOp 现读嵌入 REPORT_TEMPLATE.md；模板缺失降级", async () => {
   const { deriveToolFace } = await import("../lib/org/op-set.js");
   const { internals: idx } = await import("../lib/index.js");
-  const describeFor = idx.buildRegisterDescriptionForTest;
+  const describeFor = idx.buildRegisterDescription;
   assert.equal(typeof describeFor, "function", "描述构造面须可测（导出供只读断言）");
 
   // 有模板：描述含现读模板结构节 + 基础句保留
