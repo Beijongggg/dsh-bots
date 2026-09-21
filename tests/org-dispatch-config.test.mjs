@@ -16,7 +16,10 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  PROBE_FAILURE_ROUTINE_ID,
+  PROBE_FAILURE_TRIGGER_SOURCE,
   ROUTINE_REGISTRY,
+  checkProbeFailureRoutineTrigger,
   expandRoutine,
   matchIntakeRule,
   validateDispatchConfig
@@ -74,5 +77,19 @@ test("收单规则匹配：命中返回规则、未命中返回 null（语义判
   assert.deepEqual(
     matchIntakeRule({ source: "event", kind: "standup", payload: {} }, rules)?.id,
     "rule-daily-standup"
+  );
+});
+
+test("探针失效例程的触发源核验：在册即过；缺位／非事件型／来源不符各按其道拒（V-A6.7 承重声明）", () => {
+  const entry = ROUTINE_REGISTRY.find((item) => item.routineId === PROBE_FAILURE_ROUTINE_ID);
+  assert.deepEqual(checkProbeFailureRoutineTrigger(entry), { ok: true }, "在册登记项须过核验");
+  assert.equal(checkProbeFailureRoutineTrigger(undefined).code, "probe-failure-routine-missing");
+  assert.equal(
+    checkProbeFailureRoutineTrigger({ trigger: { kind: "cron", source: PROBE_FAILURE_TRIGGER_SOURCE } }).code,
+    "probe-failure-trigger-mismatch"
+  );
+  assert.equal(
+    checkProbeFailureRoutineTrigger({ trigger: { kind: "event", source: "别的来源" } }).code,
+    "probe-failure-trigger-mismatch"
   );
 });

@@ -164,3 +164,35 @@ test("statusLint：历史豁免基线不报警", () => {
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+/**
+ * 门序（org-v2 14 号票加固 `V-A6.5`）：宿主契约门必须挂在**冻结面门之后**。
+ * 此前该判据只有「脚本实读＋运行输出」形态（recon 记为可加固项）——本用例把
+ * 四道门的挂载顺序变成可断言的机械事实：源码里 ① 回归 → ② 冻结面 → ③ status-lint
+ * → ④ 宿主契约 的**结论文本行压入顺序**即门序（结论行按门序 push，最后一行是
+ * `preflight: PASS/FAIL` 的 AND 合并）。门序被人换过即红——冻结面复验先于宿主
+ * 探针的意义是：冻结面（证据链）坏了就不必再探宿主面。
+ */
+test("门序（V-A6.5）：宿主契约门挂在冻结面门之后——四道门结论行压入顺序即门序", () => {
+  const source = readFileSync(new URL("../scripts/preflight.mjs", import.meta.url), "utf8");
+  const order = [
+    ["① 全量回归", "preflight ①回归:"],
+    ["② 冻结面", "preflight ②冻结面"],
+    ["③ status-lint", "preflight ③status-lint:"],
+    ["④ 宿主契约", "preflight ④宿主契约:"]
+  ];
+  const positions = order.map(([label, marker]) => {
+    const at = source.indexOf(marker);
+    assert.ok(at >= 0, `门 ${label} 的结论行不在 preflight 源码内（门被摘掉了）`);
+    return { label, at };
+  });
+  for (let i = 1; i < positions.length; i += 1) {
+    assert.ok(
+      positions[i - 1].at < positions[i].at,
+      `门序错位：${positions[i - 1].label} 必须在 ${positions[i].label} 之前`
+    );
+  }
+  assert.match(source, /spawnSync\(process\.execPath, \[join\(repoRoot, "scripts", "host-contract-probe\.mjs"\)\]/,
+    "④ 门须以独立探针脚本子进程执行（不并入测试套件）");
+  assert.match(source, /preflight: \$\{pass \? "PASS" : "FAIL"\}/, "四门 AND 单出口");
+});

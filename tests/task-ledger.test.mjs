@@ -26,6 +26,8 @@ import { join } from "node:path";
 
 import { VALID_BRIEF } from "./helpers/brief-fixture.mjs";
 
+import { registerReport } from "../lib/knowledge.js";
+
 import {
   BYPASS_STATES,
   CLOSED_STATES,
@@ -34,6 +36,7 @@ import {
   MAIN_FLOW,
   TASK_STATES,
   STATE_RESPONSIBILITY,
+  closePrecondition,
   createTaskLedger,
   eventsFile,
   isTaskId,
@@ -291,6 +294,12 @@ test("关闭不可重开、归档不删档；改动用 supersedesTaskId 开新�
     const clock = clockAt();
     const ledger = createTaskLedger({ dshHome: home, now: clock.now });
     toRunning(ledger, "TK-00000015");
+    // 关闭前置（§B；14 号票）：产出须先按「谁产出谁登记」登记——本用例只关「关闭不可
+    // 重开」，故先把登记门满足掉（归属者＝本条链的产出方 implementer）
+    registerReport({
+      dshHome: home, botId: "implementer",
+      input: { title: "TK-00000015 产出", summary: "s", body: "b", task: "TK-00000015" }
+    });
     for (const [op, from] of [["task.report", "running"], ["task.deliver", "produced"], ["task.settle", "delivered"], ["task.close", "settled"]]) {
       const actor = (op === "task.settle" || op === "task.close") ? HOST : POST("implementer");
       assert.equal(ledger.command({ op, taskId: "TK-00000015", actor, ...cas(ledger, "TK-00000015"), idempotencyKey: `TK-00000015-${op}`, payload: {} }).ok, true, op);
@@ -1799,6 +1808,189 @@ test("19⑤ needs-user 挂起的恢复回路：user 补可执行判据（amend�
       idempotencyKey: "p104b", payload: { brief: { ...VALID_BRIEF, goal: "用户改写的可执行判据目标" } }
     });
     assert.equal(planned.ok, true, "判据补齐后立项照常");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+// ---------------- 关闭前置（规格 §B；org-v2 14 号票） ----------------
+
+/**
+ * 建一张 settled 态任务（关闭前置的被审对象）。`cls`＝任务类别（duty 例程任务的
+ * 承载面是台账本身，不适用产出登记门）；`closeReviews`＝是否把简报冻结点复核闭合。
+ */
+function walkToSettled(ledger, taskId, {
+  cls = "project", brief = REVIEW_BRIEF, botId = "implementer", closeReviews = true
+} = {}) {
+  assert.equal(openTask(ledger, taskId, { class: cls, brief }).ok, true);
+  for (const [op, actor, payload, key] of [
+    ["task.triage", HOST, { decision: "立项" }, "triage"],
+    ["task.plan", HOST, {}, "plan"],
+    ["task.assign", HOST, { assignee: botId }, "assign"],
+    ["task.accept", POST(botId), {}, "accept"],
+    ["task.start", POST(botId), {}, "start"],
+    ["task.report", POST(botId), {}, "report"]
+  ]) {
+    assert.equal(ledger.command({
+      op, taskId, actor, ...cas(ledger, taskId), idempotencyKey: `${taskId}-${key}`, payload
+    }).ok, true, op);
+  }
+  if (closeReviews) {
+    for (const point of brief.reviewPoints ?? []) {
+      assert.equal(ledger.command({
+        op: "review.request", taskId, actor: HOST, ...cas(ledger, taskId),
+        idempotencyKey: `${taskId}-rv-${point}`, payload: { point, reviewer: "bot-reviewer" }
+      }).ok, true);
+      assert.equal(ledger.recordReviewReport({
+        taskId, reviewer: "bot-reviewer", report: { ...CLOSED_REPORT, subject: point },
+        idempotencyKey: `${taskId}-rr-${point}`
+      }).ok, true);
+    }
+  }
+  assert.equal(ledger.command({
+    op: "task.deliver", taskId, actor: POST(botId), ...cas(ledger, taskId),
+    idempotencyKey: `${taskId}-deliver`, payload: {}
+  }).ok, true);
+  assert.equal(ledger.command({
+    op: "task.settle", taskId, actor: HOST, ...cas(ledger, taskId),
+    idempotencyKey: `${taskId}-settle`, payload: {}
+  }).ok, true);
+}
+
+const close = (ledger, taskId, key, actor = HOST) => ledger.command({
+  op: "task.close", taskId, actor, ...cas(ledger, taskId), idempotencyKey: key, payload: {}
+});
+
+test("关闭前置（§B；V-A2.7／V-A2.9，14 号票）：产出未按「谁产出谁登记」登记即拒；本人登记本任务产出后放行", () => {
+  const home = mkHome();
+  try {
+    const ledger = createTaskLedger({ dshHome: home, now: clockAt().now });
+    walkToSettled(ledger, "TK-00000095", { brief: { ...VALID_BRIEF, reviewPoints: [] } });
+
+    const blocked = close(ledger, "TK-00000095", "c95-blocked");
+    assert.equal(blocked.ok, false);
+    assert.equal(blocked.code, "artifact-not-registered");
+    assert.equal(ledger.task("TK-00000095").status, "settled", "拒绝不得改状态");
+    assert.ok(
+      ledger.events({ taskId: "TK-00000095" }).some((e) => e.type === "command-rejected" && e.op === "task.close"),
+      "拒绝落账（command-rejected 在案）"
+    );
+
+    // 他人登记的产出不算「谁产出谁登记」（登记方＝产出方，不是随便谁）
+    registerReport({
+      dshHome: home, botId: "someone-else",
+      input: { title: "他产", summary: "s", body: "b", task: "TK-00000095" }
+    });
+    assert.equal(close(ledger, "TK-00000095", "c95-other").code, "artifact-not-registered");
+
+    // 登记方＝产出方但未锚本任务 → 同样不认（产出＝本任务产出，不是该实例任意产出）
+    registerReport({
+      dshHome: home, botId: "implementer",
+      input: { title: "别任务产出", summary: "s", body: "b", task: "TK-00000099" }
+    });
+    assert.equal(close(ledger, "TK-00000095", "c95-unanchored").code, "artifact-not-registered");
+
+    // 产出方本人、锚本任务 → 放行
+    registerReport({
+      dshHome: home, botId: "implementer",
+      input: { title: "本任务产出", summary: "s", body: "b", task: "TK-00000095" }
+    });
+    const closed = close(ledger, "TK-00000095", "c95-ok");
+    assert.equal(closed.ok, true, closed.reason);
+    assert.equal(closed.status, "closed");
+    assert.equal(ledger.task("TK-00000095").status, "closed");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("关闭前置（§B；V-A2.7，14 号票）：命中必审点未闭合即拒——交付门不得在关闭处被绕过", () => {
+  const home = mkHome();
+  try {
+    const ledger = createTaskLedger({ dshHome: home, now: clockAt().now });
+    walkToSettled(ledger, "TK-00000096");
+    registerReport({
+      dshHome: home, botId: "implementer",
+      input: { title: "本任务产出", summary: "s", body: "b", task: "TK-00000096" }
+    });
+    // 交付后加审（强制、带归因）：新必审点未闭合 → 关闭被拒，不得凭交付时的旧结论关掉
+    assert.equal(ledger.command({
+      op: "review.request", taskId: "TK-00000096", actor: HOST, ...cas(ledger, "TK-00000096"),
+      idempotencyKey: "rv96-add",
+      payload: { point: "before-irreversible-write", mandatory: true, attribution: "关闭前补审", reviewer: "bot-reviewer" }
+    }).ok, true);
+    const blocked = close(ledger, "TK-00000096", "c96-blocked");
+    assert.equal(blocked.ok, false);
+    assert.equal(blocked.code, "review-gaps-open");
+    assert.ok(blocked.reason.includes("before-irreversible-write"));
+
+    // 闭合该点后放行
+    assert.equal(ledger.recordReviewReport({
+      taskId: "TK-00000096", reviewer: "bot-reviewer",
+      report: { ...CLOSED_REPORT, subject: "before-irreversible-write" },
+      idempotencyKey: "rr96-add"
+    }).ok, true);
+    assert.equal(close(ledger, "TK-00000096", "c96-ok").ok, true);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("关闭前置（§B；V-A2.9，14 号票）：duty 例程任务不适用产出登记门（承载面＝台账本身）", () => {
+  const home = mkHome();
+  try {
+    const ledger = createTaskLedger({ dshHome: home, now: clockAt().now });
+    walkToSettled(ledger, "TK-00000097", {
+      cls: "duty", brief: { ...VALID_BRIEF, reviewPoints: [] }
+    });
+    const closed = close(ledger, "TK-00000097", "c97-ok");
+    assert.equal(closed.ok, true, "例程任务无知识库产出可登记，不得被登记门锁死");
+    assert.equal(closed.status, "closed");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("关闭前置（§B；V-A2.7，14 号票）：产出登记面不可读＝fail closed；注入面同样受「锚定＋产出方」两件判定", () => {
+  const home = mkHome();
+  try {
+    // 读面抛错 → 关闭被拒、状态不变（不把「读不到」当成「不需要登记」）
+    const throwing = createTaskLedger({
+      dshHome: home, now: clockAt().now,
+      artifactsFor: () => { throw new Error("索引不可读"); }
+    });
+    walkToSettled(throwing, "TK-00000098", { brief: { ...VALID_BRIEF, reviewPoints: [] } });
+    const blocked = close(throwing, "TK-00000098", "c98-unreadable");
+    assert.equal(blocked.ok, false);
+    assert.equal(blocked.code, "artifact-registry-unreadable");
+    assert.equal(throwing.task("TK-00000098").status, "settled", "fail closed：状态不变");
+
+    // 注入面（负例测试与别的接线走这条）：锚定与登记方两件都在谓词内判定——
+    // 「他登记的」与「他任务的」都不算「谁产出谁登记」
+    const task = throwing.task("TK-00000098");
+    const events = throwing.events({ taskId: "TK-00000098" });
+    assert.equal(
+      closePrecondition({ task, events, artifacts: [{ task: "TK-00000098", botId: "someone-else" }] }).code,
+      "artifact-not-registered", "登记方≠产出方即拒"
+    );
+    assert.equal(
+      closePrecondition({ task, events, artifacts: [{ task: "TK-00000099", botId: "implementer" }] }).code,
+      "artifact-not-registered", "未锚本任务即拒"
+    );
+    assert.equal(
+      closePrecondition({ task, events, artifacts: [{ task: "TK-00000098", botId: "implementer" }] }).ok,
+      true, "登记方＝产出方且锚本任务 → 过"
+    );
+    // duty 例程任务：承载面＝台账本身，登记门不适用（两件判定都跳过）
+    const duty = walkToSettled(throwing, "TK-00000100", {
+      cls: "duty", brief: { ...VALID_BRIEF, reviewPoints: [] }
+    });
+    void duty;
+    assert.equal(
+      closePrecondition({
+        task: throwing.task("TK-00000100"), events: throwing.events({ taskId: "TK-00000100" }), artifacts: []
+      }).ok, true, "duty 任务不受产出登记门约束"
+    );
   } finally {
     rmSync(home, { recursive: true, force: true });
   }

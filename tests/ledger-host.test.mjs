@@ -25,7 +25,7 @@ import { createCapabilityIssuer } from "../lib/org/capability-issue.js";
 import { instanceRegistryFile } from "../lib/org/capability-base.js";
 import { createReviewFaceGate } from "../lib/org/review-kit.js";
 import { createLedgerAccessKit } from "../lib/org/permissions.js";
-import { createTaskLedger, eventsFile, ledgerDir } from "../lib/org/task-ledger.js";
+import { createTaskLedger, eventsFile, ledgerDir, EVENT_TYPES } from "../lib/org/task-ledger.js";
 import { BOOTSTRAP_ANCHOR_POST } from "../lib/org/role-cards.js";
 import { deprecateReport, readIndex, registerReport, reportsDirFor } from "../lib/knowledge.js";
 
@@ -733,6 +733,54 @@ test("知识命令面未接线 → 503 fail closed（不得跳过鉴权直落盘
       payload: { title: "t", summary: "s", body: "b" }
     });
     assert.equal(res2.status, 503, "缺鉴权面不得放行（fail-open 即共享面裸写）");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+// ---------------- 探针失效承载（org-v2 14 号票 V-A6.7；规格 §H） ----------------
+
+test("探针失效以 class=duty 例程任务落台账承载：不新增事件类型、随投影告知、重复失效不另开任务（V-A6.7）", () => {
+  const home = mkHome();
+  try {
+    const { ledger, host } = mkHost(home);
+    const failure = { probeId: "P-CLIENT-SLOTS", face: "HF-CLIENT-SLOTS", reason: "槽名在 layout bundle 不在位" };
+    const raised = host.registerProbeFailure(failure);
+    assert.equal(raised.ok, true, raised.reason);
+    // 承载面＝class=duty 例程任务（§B：例程任务的判据可由健康探针或回归结果自动生成）
+    const task = ledger.task(raised.taskId);
+    assert.equal(task.class, "duty");
+    assert.equal(task.routineId, "duty-probe-failure");
+    assert.equal(task.status, "intake", "登记不改状态：处置任务立在待分诊处");
+    // 失效本体＝既有异常事件（四类之内），不新增台账事件类型
+    const events = ledger.events({ taskId: raised.taskId });
+    const exception = events.find((event) => event.type === "exception");
+    assert.ok(exception !== undefined, "失效本体落 exception 事件");
+    assert.equal(exception.kind, "waiting-external", "宿主面失效＝等待外部依赖（异常四类之内）");
+    assert.equal(exception.detail.probeId, failure.probeId);
+    for (const event of ledger.events()) {
+      assert.ok(EVENT_TYPES.includes(event.type), `${event.type} 不在封闭事件词表内（不得新增事件类型）`);
+    }
+    // 人间接口告知：通知＝事件投影（exception → user）
+    assert.ok(
+      ledger.notificationsAfter(0).notifications.some((note) => note.type === "exception" && note.to === "user"),
+      "失效须按人间接口告知（投影可见）"
+    );
+    // 幂等：同一探针持续失效只开一张处置任务、同因重复只留一条异常
+    const again = host.registerProbeFailure(failure);
+    assert.equal(again.taskId, raised.taskId);
+    assert.equal(again.exceptionReplayed, true, "同因重复登记＝幂等重放");
+    assert.equal(ledger.tasks().filter((entry) => entry.routineId === "duty-probe-failure").length, 1);
+    // 换因（同一探针再次以不同原因失效）→ 同一处置任务上追加异常，不另开任务
+    const other = host.registerProbeFailure({ ...failure, reason: "令牌未注入" });
+    assert.equal(other.taskId, raised.taskId);
+    assert.equal(other.exceptionReplayed, false, "不同因＝新异常条目（非重放）");
+    assert.equal(ledger.events({ taskId: raised.taskId }).filter((event) => event.type === "exception").length, 2);
+    // 输入 fail closed：缺探针 id／缺面 id 即拒，不落任何事件
+    const before = ledger.events().length;
+    assert.equal(host.registerProbeFailure({ face: "HF-X" }).code, "probe-failure-args");
+    assert.equal(host.registerProbeFailure({ probeId: "P-X" }).code, "probe-failure-args");
+    assert.equal(ledger.events().length, before, "参数不合法＝零写入");
   } finally {
     rmSync(home, { recursive: true, force: true });
   }

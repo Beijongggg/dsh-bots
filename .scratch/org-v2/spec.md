@@ -755,96 +755,96 @@ Status: ready-for-agent
 
 | # | 判据 | 执行坐标 | 证据落点 | 级别 |
 |---|---|---|---|---|
-| `V-A1.1` | 五类角色类别各有岗位卡、八字段齐备、「放大机制」字段非空 | 岗位卡校验测试模块 | 回归记录 | 常驻 |
-| `V-A1.2` | 岗位 slug 英文契约主键稳定：改显示名后工具与权限命名空间不变 | 岗位卡校验模块（负例：改显示名） | 回归记录 | 常驻 |
-| `V-A1.3` | 复核者按需召集，注册表无常驻复核席位；复核帽由当次空闲实例佩戴 | 注册表检查 + 台账查询 | 回归记录／台账事件 | 常驻 |
-| `V-A1.4` | 一实例一 home 岗位、可被项目线借用；借用期可用组织命令集＝home op ∪ 当次签发 op **【挂标：设计推理（无直接文献）】** | 权限面测试模块 | 回归记录 | 常驻 |
+| `V-A1.1` | 五类角色类别各有岗位卡、八字段齐备、「放大机制」字段非空 | tests/role-cards.test.mjs::V-A1.1a＋tests/role-cards.test.mjs::V-A1.1b | 回归记录 | 常驻 |
+| `V-A1.2` | 岗位 slug 英文契约主键稳定：改显示名后工具与权限命名空间不变 | tests/role-cards.test.mjs::V-A1.2 改显示名后工具与权限命名空间不变＋tests/role-cards.test.mjs::V-A1.2 命名空间漂移即报＋scripts/role-card-drift-check.mjs | 回归记录 | 常驻 |
+| `V-A1.3` | 复核者按需召集，注册表无常驻复核席位；复核帽由当次空闲实例佩戴 | tests/role-cards.test.mjs::home 岗位只许常设岗＋tests/org-review-kit.test.mjs::帽选择：台账查询腿＋tests/anchor-bootstrap.test.mjs::起步编制契约＋查询:ledger.holdingsFor(instanceId) | 回归记录／台账事件 | 常驻 |
+| `V-A1.4` | 一实例一 home 岗位、可被项目线借用；借用期可用组织命令集＝home op ∪ 当次签发 op **【挂标：设计推理（无直接文献）】** | tests/org-permissions.test.mjs::权限装配件工厂＋tests/org-op-set.test.mjs::动态工具面不变量＋tests/org-op-set.test.mjs::bootstrap 锚点席位＋tests/org-capability-issue.test.mjs::角色能力：taskId 为空 | 回归记录 | 常驻 |
 
 #### `V-A2` 协议与任务生命周期（源：协作协议与任务生命周期＋复核形式裁定）
 
 | # | 判据 | 执行坐标 | 证据落点 | 级别 |
 |---|---|---|---|---|
-| `V-A2.1` | 台账＝host 侧 append-only 事件日志、单一写者；bot 无台账文件直写通道 | 台账测试模块 | 回归记录 | 常驻 |
-| `V-A2.2` | 状态为事件投影：清空内存态重启 host 后可从未闭合队列的事件重建 | 实验期台账重建演练 | 台账事件／增量包 | 实验期一次 |
-| `V-A2.3` | 主干十态＋四旁路齐备，每态可回答「下一步谁负责、超时怎么办」；非法转移被确定性层拒绝（含 CAS 期望状态不符即拒） | 台账状态机测试模块 | 回归记录 | 常驻 |
-| `V-A2.4` | 四要素简报四非空、验收判据非空且可执行；派出即冻，改动只经 amend 事件并显式通知承接方 | 简报校验模块 | 回归记录 | 常驻 |
-| `V-A2.5` | 派单租约：逾期未接自动释放回队列并通知派单方；租约到期回收，重派封顶后上浮 | 实验期租约演练 | 台账事件 | 实验期一次 |
-| `V-A2.6` | 一实例同时只持一个进行中任务，第二次归属被机械拒绝 | 台账并发测试模块 | 回归记录 | 常驻 |
-| `V-A2.7` | 必审清单拦截有效：gaps 未闭合时交付转移被拒 | 复核件套测试模块 | 回归记录 | 常驻 |
-| `V-A2.8` | `waiting-user` 不占租约、不烧 token，且可恢复 | 实验期挂起演练 | 台账事件／用量统计 | 实验期一次 |
-| `V-A2.9` | 关闭不可重开、归档不删档，改动用 `supersedesTaskId` 开新任务 | 台账测试模块 | 回归记录 | 常驻 |
-| `V-A2.10` | 值守例程按「例程 id＋时间窗」幂等，重复触发不产生第二任务 | 例程测试模块 | 回归记录 | 常驻 |
-| `V-A2.11` | 异常四类统一走台账、无静默丢失；v1 两处静默丢失（队列超限截断、回合失败不重试）在 v2 不再存在 | 扫描类测试模块（对 v1 反例坐标） | 回归记录 | 常驻 |
-| `V-A2.12` | 通知＝台账事件投影，无事件不通知 | 通知投影测试模块 | 回归记录 | 常驻 |
-| `V-A2.13` | mail 退为投递通道：投递层保至少一次与幂等，mail 内容不承载任务状态 | mail 测试模块 | 回归记录 | 常驻 |
+| `V-A2.1` | 台账＝host 侧 append-only 事件日志、单一写者；bot 无台账文件直写通道 | tests/task-ledger.test.mjs::单一写者＋tests/ledger-host.test.mjs::HTTP 命令面是唯一写入口 | 回归记录 | 常驻 |
+| `V-A2.2` | 状态为事件投影：清空内存态重启 host 后可从未闭合队列的事件重建 | tests/task-ledger.test.mjs::状态是事件投影＋查询:ledger.openQueue()＋演练:drill-ledger-rebuild | 台账事件／增量包 | 实验期一次 |
+| `V-A2.3` | 主干十态＋四旁路齐备，每态可回答「下一步谁负责、超时怎么办」；非法转移被确定性层拒绝（含 CAS 期望状态不符即拒） | tests/task-ledger.test.mjs::状态表：主干十态＋tests/task-ledger.test.mjs::主干转移＋tests/task-ledger.test.mjs::非法转移被确定性层拒绝＋tests/task-ledger.test.mjs::CAS：期望状态不符即拒 | 回归记录 | 常驻 |
+| `V-A2.4` | 四要素简报四非空、验收判据非空且可执行；派出即冻，改动只经 amend 事件并显式通知承接方 | tests/org-brief.test.mjs::四要素各非空＋tests/task-ledger.test.mjs::派出即冻结＋tests/task-ledger.test.mjs::amend：追加事件并通知 | 回归记录 | 常驻 |
+| `V-A2.5` | 派单租约：逾期未接自动释放回队列并通知派单方；租约到期回收，重派封顶后上浮 | tests/task-ledger.test.mjs::派单租约＋tests/task-ledger.test.mjs::重派达封顶则上浮用户＋tests/ledger-host.test.mjs::值守轮询＋演练:drill-lease-reclaim | 台账事件 | 实验期一次 |
+| `V-A2.6` | 一实例同时只持一个进行中任务，第二次归属被机械拒绝 | tests/task-ledger.test.mjs::一实例同时只持一个进行中任务 | 回归记录 | 常驻 |
+| `V-A2.7` | 必审清单拦截有效：gaps 未闭合时交付转移被拒 | tests/task-ledger.test.mjs::必审拦截＋tests/org-review-kit.test.mjs::状态折叠 | 回归记录 | 常驻 |
+| `V-A2.8` | `waiting-user` 不占租约、不烧 token，且可恢复 | tests/task-ledger.test.mjs::挂起语义＋查询:lib/stats.js tokenUsage＋演练:drill-waiting-user | 台账事件／用量统计 | 实验期一次 |
+| `V-A2.9` | 关闭不可重开、归档不删档，改动用 `supersedesTaskId` 开新任务 | tests/task-ledger.test.mjs::关闭不可重开 | 回归记录 | 常驻 |
+| `V-A2.10` | 值守例程按「例程 id＋时间窗」幂等，重复触发不产生第二任务 | tests/task-ledger.test.mjs::值守例程幂等键＋tests/org-durability.test.mjs::V-A7.4 端到端 | 回归记录 | 常驻 |
+| `V-A2.11` | 异常四类统一走台账、无静默丢失；v1 两处静默丢失（队列超限截断、回合失败不重试）在 v2 不再存在 | tests/task-ledger.test.mjs::异常四类统一走台账＋tests/ledger-host.test.mjs::异常汇入：收单积压截断与回合失败不再静默＋tests/task-ledger.test.mjs::轮询处置的异常登记失败响亮可核 | 回归记录 | 常驻 |
+| `V-A2.12` | 通知＝台账事件投影，无事件不通知 | tests/task-ledger.test.mjs::通知＝台账事件投影＋tests/ledger-host.test.mjs::值守轮询＋查询:ledger.notificationsAfter(cursor) | 回归记录 | 常驻 |
+| `V-A2.13` | mail 退为投递通道：投递层保至少一次与幂等，mail 内容不承载任务状态 | tests/mail-at-least-once.test.mjs::appendOutbox 幂等＋tests/org-mail-shared-face.test.mjs::内容键封闭＋tests/org-mail-shared-face.test.mjs::邮件键与台账状态 | 回归记录 | 常驻 |
 
 #### `V-A3` 权限四层（源：权限模型裁定）
 
 | # | 判据 | 执行坐标 | 证据落点 | 级别 |
 |---|---|---|---|---|
-| `V-A3.1` | L1 文件面：bot 直写仅限自身 workspace，`~/.dsh` 全域与共享面零直写 | 文件面测试模块（负例） | 回归记录 | 常驻 |
-| `V-A3.2` | L2 组织命令经认证 host 通道；台账命令鉴权三元组各有可执行负例 | 权限测试模块 | 回归记录 | 常驻 |
-| `V-A3.3` | op-set 岗位表与实际签发对账一致，含 `ledger.read` 四常设岗有、复核帽无 | 对账脚本 | 回归记录 | 常驻 |
-| `V-A3.4` | 复核帽不含任何写 op（机械检查，不靠约定） | 权限测试模块 | 回归记录 | 常驻 |
-| `V-A3.5` | capability 由 host 在台账转移点签发（bot 不能自请）、单次消费、短 TTL 加心跳续签、任务域绑定、租约回收与关闭时自动吊销 | 实验期签发吊销演练 | 台账事件 | 实验期一次 |
-| `V-A3.6` | 拒绝 fail closed，且拒绝本身记台账事件并回错误回执 | 权限测试模块 | 回归记录 | 常驻 |
-| `V-A3.7` | 邮件零权威：capability 递送不经 mail；伪造 mail 不改变任何状态或权限 | 权限测试模块（负例） | 回归记录 | 常驻 |
-| `V-A3.8` | 无岗位以 danger-full-access 为履约前提，每岗在 workspace-write 下可履约 | 岗位卡扫描 + 权限测试 | 回归记录 | 常驻 |
-| `V-A3.9` | 实例基底与任务域正交叠加取严，不得以实例 sandbox 模式替代任务域授权 | 权限测试模块 | 回归记录 | 常驻 |
-| `V-A3.10` | user principal 持有台账全权，岗位实例不持有 user principal | 权限测试模块 | 回归记录 | 常驻 |
+| `V-A3.1` | L1 文件面：bot 直写仅限自身 workspace，`~/.dsh` 全域与共享面零直写 | tests/org-permissions.test.mjs::L1：自身 workspace 内可写＋tests/org-permissions.test.mjs::L1 负例：~/.dsh 全域＋tests/org-permissions.test.mjs::L1 负例：知识库容器协议＋tests/org-permissions.test.mjs::L1 负例：投递面 | 回归记录 | 常驻 |
+| `V-A3.2` | L2 组织命令经认证 host 通道；台账命令鉴权三元组各有可执行负例 | tests/org-ledger-authz.test.mjs::腿一负例：岗位命令无信封即拒＋tests/org-ledger-authz.test.mjs::腿一负例：伪造签名＋tests/org-ledger-authz.test.mjs::腿二负例＋tests/org-ledger-authz.test.mjs::腿三负例 | 回归记录 | 常驻 |
+| `V-A3.3` | op-set 岗位表与实际签发对账一致，含 `ledger.read` 四常设岗有、复核帽无 | scripts/capability-issued-audit.mjs＋tests/capability-issued-audit.test.mjs::对账脚本：签发笔笔在岗位表内即绿＋tests/org-op-set.test.mjs::ledger.read 四常设岗有 | 回归记录 | 常驻 |
+| `V-A3.4` | 复核帽不含任何写 op（机械检查，不靠约定） | tests/org-op-set.test.mjs::复核帽不含任何写 op＋tests/org-op-set.test.mjs::共享面写者（V-A3.4 的本义） | 回归记录 | 常驻 |
+| `V-A3.5` | capability 由 host 在台账转移点签发（bot 不能自请）、单次消费、短 TTL 加心跳续签、任务域绑定、租约回收与关闭时自动吊销 | tests/org-capability-issue.test.mjs::任务能力：assign 转移点签发＋tests/org-ledger-authz.test.mjs::签发联动＋tests/org-ledger-authz.test.mjs::链式能力＋演练:drill-capability-issue-revoke | 台账事件 | 实验期一次 |
+| `V-A3.6` | 拒绝 fail closed，且拒绝本身记台账事件并回错误回执 | tests/org-ledger-authz.test.mjs::腿一负例：岗位命令无信封即拒＋tests/org-ledger-authz.test.mjs::拒绝幂等 | 回归记录 | 常驻 |
+| `V-A3.7` | 邮件零权威：capability 递送不经 mail；伪造 mail 不改变任何状态或权限 | tests/org-ledger-authz.test.mjs::越权投递面负例＋tests/org-capability-issue.test.mjs::递送不经 mail＋tests/org-mail-relay.test.mjs::mail.send：host 唯一写者 | 回归记录 | 常驻 |
+| `V-A3.8` | 无岗位以 danger-full-access 为履约前提，每岗在 workspace-write 下可履约 | tests/org-permissions.test.mjs::V-A3.8 | 回归记录 | 常驻 |
+| `V-A3.9` | 实例基底与任务域正交叠加取严，不得以实例 sandbox 模式替代任务域授权 | tests/org-permissions.test.mjs::V-A3.9 正交（基底侧）＋tests/org-permissions.test.mjs::V-A3.9 正交（能力侧） | 回归记录 | 常驻 |
+| `V-A3.10` | user principal 持有台账全权，岗位实例不持有 user principal | tests/org-ledger-authz.test.mjs::user principal 台账全权＋tests/ledger-host.test.mjs::HTTP 命令面拒绝缺 actor＋tests/org-human-inbox.test.mjs::终裁只能由 user 行使 | 回归记录 | 常驻 |
 
 #### `V-A4` 工具面（源：岗位工具配置裁定）
 
 | # | 判据 | 执行坐标 | 证据落点 | 级别 |
 |---|---|---|---|---|
-| `V-A4.1` | 工具按岗位卡派生注册，一 op 一工具、工具名即 op 名；工具清单与 op-set 表逐项一致 | 工具面测试模块 | 回归记录 | 常驻 |
-| `V-A4.2` | 岗位卡是唯一源、提示段是派生物；构建期漂移校验在漂移时失败 | 漂移校验脚本（门内） | 回归记录 | 常驻 |
-| `V-A4.3` | 简报与 capability 信封经接单响应携带，不进系统提示段 | 工具面测试模块 | 回归记录 | 常驻 |
-| `V-A4.4` | mail 收口 host 中继：bot 侧无 inbox/outbox 直写路径，host 是唯一写者 | 扫描类测试模块 | 回归记录 | 常驻 |
-| `V-A4.5` | knowledge 登记命令化；读取面照旧 | 工具面测试模块 | 回归记录 | 常驻 |
-| `V-A4.6` | 可执行检查的判据取台账简报的验收预登记；白名单存在且 fail closed，含逐字一致校验 | 探针测试模块 | 回归记录 | 常驻 |
-| `V-A4.7` | 工具失效三分支各按其道，无文件直写降级路径 | 工具面测试模块（含扫描） | 回归记录 | 常驻 |
-| `V-A4.8` | v2 词表无 skill，无运行时 skill 装载机制 | 扫描类测试模块 | 回归记录 | 常驻 |
-| `V-A4.9` | 复核帽注册集不含写工具（不是「注册了但拒绝」） | 工具面测试模块 | 回归记录 | 常驻 |
+| `V-A4.1` | 工具按岗位卡派生注册，一 op 一工具、工具名即 op 名；工具清单与 op-set 表逐项一致 | tests/org-op-set.test.mjs::工具面派生＋tests/org-op-set.test.mjs::执行面工具派生＋tests/org-op-set.test.mjs::registerPostTools＋tests/org-permissions.test.mjs::组织命令面零路径工具 | 回归记录 | 常驻 |
+| `V-A4.2` | 岗位卡是唯一源、提示段是派生物；构建期漂移校验在漂移时失败 | scripts/role-card-drift-check.mjs＋tests/role-cards.test.mjs::V-A4.2 构建期漂移校验＋tests/role-cards.test.mjs::V-A4.2 卡面不合规时拒绝生成基准 | 回归记录 | 常驻 |
+| `V-A4.3` | 简报与 capability 信封经接单响应携带，不进系统提示段 | tests/org-op-set.test.mjs::简报不进系统提示段＋tests/org-post-channel.test.mjs::接单即得契约＋tests/org-post-channel.test.mjs::链式能力持有＋tests/task-ledger.test.mjs::接单响应携带简报 | 回归记录 | 常驻 |
+| `V-A4.4` | mail 收口 host 中继：bot 侧无 inbox/outbox 直写路径，host 是唯一写者 | tests/org-mail-shared-face.test.mjs::投递面写者名单闭合＋tests/org-mail-shared-face.test.mjs::负例可辨①＋tests/watcher.test.mjs | 回归记录 | 常驻 |
+| `V-A4.5` | knowledge 登记命令化；读取面照旧 | tests/ledger-host.test.mjs::knowledge.register 命令化＋tests/org-op-set.test.mjs::knowledge.register 升表＋tests/knowledge.test.mjs::registerKnowledgeTools＋tests/knowledge-shared-face.test.mjs::登记写者名单闭合 | 回归记录 | 常驻 |
+| `V-A4.6` | 可执行检查的判据取台账简报的验收预登记；白名单存在且 fail closed，含逐字一致校验 | tests/org-probe.test.mjs::白名单是封闭枚举＋tests/org-probe.test.mjs::runCriterion：参数键逐字一致＋tests/org-probe.test.mjs::criterionMatches＋tests/org-post-channel.test.mjs::探针路由 fail closed | 回归记录 | 常驻 |
+| `V-A4.7` | 工具失效三分支各按其道，无文件直写降级路径 | tests/org-mail-client.test.mjs::通道不可用＋tests/org-mail-relay.test.mjs::语义失败各按其道＋tests/org-mail-relay.test.mjs::鉴权拒绝留痕＋tests/org-mail-shared-face.test.mjs::负例可辨③ | 回归记录 | 常驻 |
+| `V-A4.8` | v2 词表无 skill，无运行时 skill 装载机制 | tests/org-vocabulary-face.test.mjs::真实仓库＋tests/org-vocabulary-face.test.mjs::负例可辨①＋tests/org-vocabulary-face.test.mjs::负例可辨② | 回归记录 | 常驻 |
+| `V-A4.9` | 复核帽注册集不含写工具（不是「注册了但拒绝」） | tests/org-op-set.test.mjs::复核帽注册集不含写工具＋tests/org-op-set.test.mjs::registerPostTools＋tests/org-op-set.test.mjs::knowledge.register 升表 | 回归记录 | 常驻 |
 
 #### `V-A5` 人间接口（源：人间接口规格裁定）
 
 | # | 判据 | 执行坐标 | 证据落点 | 级别 |
 |---|---|---|---|---|
-| `V-A5.1` | 只有三类裁定进 `waiting-user`，其余到人事件纯告知不挂起 | 人间接口测试模块 | 回归记录 | 常驻 |
-| `V-A5.2` | 投递面＝台账事件投影的人间收件箱、内嵌裁定操作；mail 回文永不构成裁定 | 实验期收件箱演练 | 台账事件／增量包 | 实验期一次 |
-| `V-A5.3` | `waiting-user` 无超时自动动作；业务截止时间到期只投影「已过期」，不自动取消 | 实验期挂起演练 | 台账事件 | 实验期一次 |
-| `V-A5.4` | 初审代理边界：必审产出只整理裁定包；初审拒绝或两轮未闭合强制上浮；模型指派、越权处置、冲突仲裁永不可代 | 初审边界测试模块 | 回归记录 | 常驻 |
-| `V-A5.5` | 终裁＝台账命令的特化视图，继承幂等键、CAS 与事件审计，不另起命令面 | 人间接口测试模块 | 回归记录 | 常驻 |
-| `V-A5.6` | 裁定包五件齐备（冻结简报、判据事实、双方立场加轨迹指针、动作清单、模型身份） | 裁定包测试模块 | 回归记录 | 常驻 |
+| `V-A5.1` | 只有三类裁定进 `waiting-user`，其余到人事件纯告知不挂起 | tests/org-human-inbox.test.mjs::只有三类裁定可进 waiting-user＋tests/org-human-inbox.test.mjs::上浮原因＝封闭枚举＋tests/org-human-inbox.test.mjs::告知投影＋tests/task-ledger.test.mjs::只有三类裁定进 waiting-user | 回归记录 | 常驻 |
+| `V-A5.2` | 投递面＝台账事件投影的人间收件箱、内嵌裁定操作；mail 回文永不构成裁定 | tests/org-human-inbox.test.mjs::收件箱＝台账事件投影＋tests/ledger-host.test.mjs::人间收件箱投递面＋tests/org-human-inbox.test.mjs::终裁只能由 user 行使＋演练:drill-human-inbox | 台账事件／增量包 | 实验期一次 |
+| `V-A5.3` | `waiting-user` 无超时自动动作；业务截止时间到期只投影「已过期」，不自动取消 | tests/task-ledger.test.mjs::挂起语义＋tests/task-ledger.test.mjs::结算/关闭超时＋tests/org-human-inbox.test.mjs::业务截止时间到期只投影＋演练:drill-waiting-user | 台账事件 | 实验期一次 |
+| `V-A5.4` | 初审代理边界：必审产出只整理裁定包；初审拒绝或两轮未闭合强制上浮；模型指派、越权处置、冲突仲裁永不可代 | tests/org-human-inbox.test.mjs::初审代理边界＋tests/org-human-inbox.test.mjs::初审拒绝或判据两轮未闭合＋tests/task-ledger.test.mjs::永不可代三项＋tests/task-ledger.test.mjs::初审裁决执行面 | 回归记录 | 常驻 |
+| `V-A5.5` | 终裁＝台账命令的特化视图，继承幂等键、CAS 与事件审计，不另起命令面 | tests/org-human-inbox.test.mjs::终裁四式＋tests/org-human-inbox.test.mjs::终裁缺幂等键＋tests/task-ledger.test.mjs::终裁＝台账命令特化视图 | 回归记录 | 常驻 |
+| `V-A5.6` | 裁定包五件齐备（冻结简报、判据事实、双方立场加轨迹指针、动作清单、模型身份） | tests/org-human-inbox.test.mjs::裁定包五件齐备＋tests/org-human-inbox.test.mjs::裁定包缺件即拒＋tests/org-human-inbox.test.mjs::立场补齐句带机械事实标注 | 回归记录 | 常驻 |
 
 #### `V-A6` 宿主适配面（源：宿主／插件面更迭裁定）
 
 | # | 判据 | 执行坐标 | 证据落点 | 级别 |
 |---|---|---|---|---|
-| `V-A6.1` | 适配面登记表存在、字段集齐（面 id／宿主坐标／读取方式／类别／适配层模块／探针 id／失效表现／末次结果指针）；C 类面显式列出并标排除理由 | 宿主契约门 | 回归记录 | 常驻 |
-| `V-A6.2` | A 类面经可替换适配层，形状收敛到单一坐标，改名只动一处 | 宿主契约门 + 扫描 | 回归记录 | 常驻 |
-| `V-A6.3` | 探针三态，跳过分列计数可见；运行面与部署面跳过视同失败；既有假绿守卫已修 | 宿主契约门 | 回归记录 | 常驻 |
-| `V-A6.4` | 门只由行为断言把守，宿主版本号仅作诊断字段 | 宿主契约门 | 回归记录 | 常驻 |
-| `V-A6.5` | 宿主契约探针脚本在位，作为 preflight 第 4 道门挂在冻结面门之后 | 门清单检查 | 回归记录 | 常驻 |
-| `V-A6.6` | 失败默认面级降级；整层拒载仅限组织层身份面 | 门测试模块 | 回归记录 | 常驻 |
-| `V-A6.7` | 探针失败以 class=duty 例程任务落台账承载，不新增台账事件类型 | 实验期失效演练 | 台账事件 | 实验期一次 |
-| `V-A6.8` | 前端只依赖宿主显式注册面；已知越界项已改造；槽装载探针在位；一次人工目视功能清单已执行；不设视觉回归 | 槽装载探针（常驻）＋人工目视清单（实验期一次，列明核验人） | 回归记录／人工件 | 探针常驻、目视实验期一次 |
+| `V-A6.1` | 适配面登记表存在、字段集齐（面 id／宿主坐标／读取方式／类别／适配层模块／探针 id／失效表现／末次结果指针）；C 类面显式列出并标排除理由 | 门④＋tests/host-contract-gate.test.mjs::V-A6.1：登记表在位＋tests/host-contract-gate.test.mjs::V-A6.1：字段集齐备＋lib/host-faces.js | 回归记录 | 常驻 |
+| `V-A6.2` | A 类面经可替换适配层，形状收敛到单一坐标，改名只动一处 | 门④＋tests/host-contract-gate.test.mjs::登记表↔门一致性＋tests/host-contract-gate.test.mjs::pending 面清零＋lib/host-faces.js | 回归记录 | 常驻 |
+| `V-A6.3` | 探针三态，跳过分列计数可见；运行面与部署面跳过视同失败；既有假绿守卫已修 | 门④＋tests/host-contract-gate.test.mjs::V-A6.3：三态汇总＋tests/host-contract-gate.test.mjs::假绿修法 | 回归记录 | 常驻 |
+| `V-A6.4` | 门只由行为断言把守，宿主版本号仅作诊断字段 | 门④＋tests/host-contract-gate.test.mjs::V-A6.4：版本仅诊断＋tests/host-contract-gate.test.mjs::18号票 P-CTX-SERVICES 行为化 | 回归记录 | 常驻 |
+| `V-A6.5` | 宿主契约探针脚本在位，作为 preflight 第 4 道门挂在冻结面门之后 | 门②＋门④＋scripts/host-contract-probe.mjs＋tests/preflight.test.mjs::门序（V-A6.5） | 回归记录 | 常驻 |
+| `V-A6.6` | 失败默认面级降级；整层拒载仅限组织层身份面 | tests/host-contract-gate.test.mjs::V-A6.6：整层拒载仅限组织层身份面＋lib/host-faces.js | 回归记录 | 常驻 |
+| `V-A6.7` | 探针失败以 class=duty 例程任务落台账承载，不新增台账事件类型 | tests/ledger-host.test.mjs::探针失效以 class=duty 例程任务落台账承载＋tests/org-dispatch-config.test.mjs::探针失效例程的触发源核验＋演练:drill-probe-failure | 台账事件 | 实验期一次 |
+| `V-A6.8` | 前端只依赖宿主显式注册面；已知越界项已改造；槽装载探针在位；一次人工目视功能清单已执行；不设视觉回归 | 门④＋探针:P-CLIENT-SLOTS＋tests/host-contract-gate.test.mjs::18号票 P-CLIENT-SLOTS 行为化＋人工:human-visual-checklist | 回归记录／人工件 | 探针常驻、目视实验期一次 |
 
 #### `V-A7` 组织恒久性与记忆／知识层（源：组织恒久性判据＋团队记忆与知识层裁定）
 
 | # | 判据 | 执行坐标 | 证据落点 | 级别 |
 |---|---|---|---|---|
-| `V-A7.1` | 组织层件白名单封闭枚举齐备（协议、台账、复核件套、权限四层、岗位卡 1–6/8 字段、知识库容器协议、宿主适配面登记表），逐条过换模型试金石 | 白名单扫描模块 | 回归记录 | 常驻 |
-| `V-A7.2` | 岗位细节只住三处；组织层件内无模型特定假设，可由扫描检查 | 扫描类测试模块 | 回归记录 | 常驻 |
-| `V-A7.3` | D1–D11 在规格中逐条有对应表述；被覆写的 D5／D8 注明出处 | 文档扫描模块 | 回归记录 | 常驻 |
-| `V-A7.4` | 升级例程四步可执行：改指派后台账自动登记 class=duty 评测任务、新模型跑岗位评测集、做减法、用户终裁；每岗至少一可执行评测项 | 实验期升级演练 | 台账事件／增量包 | 实验期一次 |
-| `V-A7.5` | 记忆三层边界成立：岗位私有＝workspace 自由笔记；共享侧无第三面（任务事实进台账、可复用结论进知识库）；组织常量在配置面 | 记忆分层测试模块 | 回归记录 | 常驻 |
-| `V-A7.6` | 写入分流三问可判；推理过程不进任何面 | 记忆分层测试模块 | 回归记录 | 常驻 |
-| `V-A7.7` | 晋升门槛三条可查；强制性由简报输出格式预声明 | 知识库测试模块 | 回归记录 | 常驻 |
-| `V-A7.8` | 失效唯一机制是显式取代／废弃；无自动失效、无访问热字段 | 知识库测试模块（含扫描） | 回归记录 | 常驻 |
-| `V-A7.9` | 冲突裁决：知识与台账冲突时台账胜，知识与岗位卡冲突时岗位卡胜 | 知识库测试模块 | 回归记录 | 常驻 |
-| `V-A7.10` | 移交只传指针、接手方拉取；工件归档不删档、无保留期上限 | 记忆分层测试模块 | 回归记录 | 常驻 |
+| `V-A7.1` | 组织层件白名单封闭枚举齐备（协议、台账、复核件套、权限四层、岗位卡 1–6/8 字段、知识库容器协议、宿主适配面登记表），逐条过换模型试金石 | tests/org-durability.test.mjs::V-A7.1 白名单封闭枚举齐备＋tests/org-durability.test.mjs::V-A7.1 逐条过换模型试金石＋lib/org/durability.js | 回归记录 | 常驻 |
+| `V-A7.2` | 岗位细节只住三处；组织层件内无模型特定假设，可由扫描检查 | tests/org-durability.test.mjs::V-A7.2 模型假设扫描可判＋tests/org-durability.test.mjs::V-A7.2 岗位细节三处封闭枚举齐备＋lib/org/durability.js | 回归记录 | 常驻 |
+| `V-A7.3` | D1–D11 在规格中逐条有对应表述；被覆写的 D5／D8 注明出处 | tests/org-durability.test.mjs::V-A7.3 文档扫描：＋tests/org-durability.test.mjs::V-A7.3 判据坐标可解析带负例＋lib/org/durability.js | 回归记录 | 常驻 |
+| `V-A7.4` | 升级例程四步可执行：改指派后台账自动登记 class=duty 评测任务、新模型跑岗位评测集、做减法、用户终裁；每岗至少一可执行评测项 | tests/org-durability.test.mjs::升级例程四步在案＋tests/org-durability.test.mjs::V-A7.4 端到端＋tests/org-durability.test.mjs::V-A7.4 触发源声明是承重的＋演练:drill-model-upgrade | 台账事件／增量包 | 实验期一次 |
+| `V-A7.5` | 记忆三层边界成立：岗位私有＝workspace 自由笔记；共享侧无第三面（任务事实进台账、可复用结论进知识库）；组织常量在配置面 | tests/org-memory-layer.test.mjs::记忆三层＋tests/org-memory-layer.test.mjs::组织常量导出确实存在＋tests/knowledge-shared-face.test.mjs::知识库根：长出第三面＋tests/org-permissions.test.mjs::L1 负例：知识库容器协议 | 回归记录 | 常驻 |
+| `V-A7.6` | 写入分流三问可判；推理过程不进任何面 | tests/org-memory-layer.test.mjs::三问分流：本任务历史事实＋tests/org-memory-layer.test.mjs::推理过程任何面都不进＋tests/org-memory-layer.test.mjs::路由值域封闭 | 回归记录 | 常驻 |
+| `V-A7.7` | 晋升门槛三条可查；强制性由简报输出格式预声明 | tests/org-memory-layer.test.mjs::晋升门槛三条齐备即通过＋tests/org-memory-layer.test.mjs::晋升门槛：任一不过＋tests/org-memory-layer.test.mjs::晋升强制性读面＋tests/org-brief.test.mjs::promotion | 回归记录 | 常驻 |
+| `V-A7.8` | 失效唯一机制是显式取代／废弃；无自动失效、无访问热字段 | tests/org-memory-layer.test.mjs::失效动作值域封闭＋tests/org-memory-layer.test.mjs::自动失效形态一律拒＋tests/org-memory-layer.test.mjs::无访问热字段＋tests/knowledge.test.mjs::deprecateReport：显式废弃登记 | 回归记录 | 常驻 |
+| `V-A7.9` | 冲突裁决：知识与台账冲突时台账胜，知识与岗位卡冲突时岗位卡胜 | tests/org-memory-layer.test.mjs::知识与台账冲突＋tests/org-memory-layer.test.mjs::知识与岗位卡冲突＋tests/org-memory-layer.test.mjs::规格未定义的冲突对 | 回归记录 | 常驻 |
+| `V-A7.10` | 移交只传指针、接手方拉取；工件归档不删档、无保留期上限 | tests/org-memory-layer.test.mjs::移交件＝三件指针＋tests/org-memory-layer.test.mjs::移交只传指针：坐标条目夹带正文＋tests/org-memory-layer.test.mjs::工件归档不删档 | 回归记录 | 常驻 |
 
 ### B 组：能力放大（`V-B1`–`V-B6`，验收实验；全部实验期一次）
 
