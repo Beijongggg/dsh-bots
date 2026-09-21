@@ -133,6 +133,23 @@ test("V-A7.2 模型假设扫描可判：注入模型名即报违例、注释行�
   assert.ok(MODEL_ASSUMPTION_TOKENS.length > 0, "禁记号表不得为空");
 });
 
+test("V-A7.2 词元表覆盖国产模型族名（doubao／ernie／hunyuan／minimax 及中文通称）", () => {
+  const injected = scanModelAssumptions([
+    {
+      path: "lib/org/fake-domestic.js",
+      text: [
+        "const a = \"doubao\";",
+        "const b = \"ernie\";",
+        "const c = \"hunyuan\";",
+        "const d = \"minimax\";",
+        "const e = \"通义\";"
+      ].join("\n")
+    }
+  ]);
+  assert.equal(injected.ok, false, "国产模型族名写进组织层件必须转红");
+  assert.equal(injected.violations.length, 5, `五行各一违例：${JSON.stringify(injected.violations)}`);
+});
+
 test("V-A7.1 宿主适配面只扫**容器协议**区（条目内容＝运行时资产，模型 pin 不属假设）", () => {
   const entry = ORG_LAYER_WHITELIST.find((item) => item.id === "host-face-registry-container");
   assert.ok(entry, "宿主适配面登记表容器协议须在白名单内");
@@ -143,6 +160,15 @@ test("V-A7.1 宿主适配面只扫**容器协议**区（条目内容＝运行时
     !sources[0].text.includes("HF-CONFIG-IDS"),
     "容器协议区不得包含条目内容（HOST_FACES 条目在标记之后被截断）"
   );
+});
+
+test("V-A7.1 知识库容器协议扫描面含共享面写者审计件（D6 判据坐标已点名）", () => {
+  const entry = ORG_LAYER_WHITELIST.find((item) => item.id === "knowledge-container");
+  assert.ok(entry, "知识库容器协议条目须在白名单内");
+  assert.ok(entry.modules.includes("lib/org/knowledge-shared-face.js"),
+    "knowledge-shared-face.js（共享面写者审计）是知识库容器协议的组织层件之一，须入白名单与扫描面");
+  assert.ok(collectOrgLayerSources(repoRoot).some((source) => source.path === "lib/org/knowledge-shared-face.js"),
+    "扫描采集面须实际覆盖该件");
 });
 
 // ===================== 缝① 岗位细节只住三处（V-A7.2） =====================
@@ -434,6 +460,23 @@ test("①触发负例：未绑岗位／目标指派为空／缺实例 id 一律�
   assert.equal(unknownPost.action, "skip", "未知岗位无评测样本（fail closed，不静默登记）");
 });
 
+test("V-A7.4 ④用户终裁必审钩：评测样本简报 reviewPoints 含 before-external-visibility", () => {
+  for (const sample of ROLE_EVAL_SET) {
+    assert.deepEqual(sample.brief.reviewPoints, ["before-external-visibility"],
+      `样本 ${sample.id}：评测结论在投递用户终裁（对外可见）前必须经复核件套——reviewPoints 不得为空`);
+  }
+});
+
+test("plan 跳过理由逐前提列名：多前提同缺不合并成单条（reasons 全列、reason 取首条兼容）", () => {
+  const multi = planModelUpgradeEval({ botId: "", post: "", before: BEFORE, after: AFTER });
+  assert.equal(multi.action, "skip");
+  assert.ok(Array.isArray(multi.reasons), "跳过结论须携带 reasons 全列");
+  assert.ok(multi.reasons.length >= 2, `缺实例 id＋未绑岗位两前提同缺须逐一列名：${JSON.stringify(multi.reasons)}`);
+  assert.ok(multi.reasons.some((item) => item.includes("实例 id")));
+  assert.ok(multi.reasons.some((item) => item.includes("home 岗位")));
+  assert.equal(multi.reason, multi.reasons[0], "reason＝首条（日志摘要兼容面）");
+});
+
 test("①触发：host 登记腿把评测任务落成 class=duty 任务；同窗重放不产生第二张（V-A2.10 幂等）", async () => {
   const home = mkHome("dsh-durability-host-");
   try {
@@ -462,6 +505,21 @@ test("①触发：host 登记腿把评测任务落成 class=duty 任务；同窗
     const other = await host.registerModelUpgradeEval({ botId: "bot-a", post: "researcher", before: AFTER, after: { provider: "样例厂商", model: "样例模型三", reasoningEffort: "" } });
     assert.equal(ledger.tasks().length, 2, "换目标指派＝新窗，另开一张评测任务");
     assert.equal(other.registered[0].replayed, false);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("①触发：登记失败也广播投影——失败留痕不等下一拍（人间收件箱即时可见）", async () => {
+  const home = mkHome("dsh-durability-broadcast-");
+  try {
+    const real = createTaskLedger({ dshHome: home });
+    const failing = { ...real, triggerRoutine: () => ({ ok: false, code: "injected-failure", reason: "注入的登记失败" }) };
+    let broadcasts = 0;
+    const host = createLedgerHost({ ledger: failing, broadcast: () => { broadcasts += 1; }, logger: { warn() {} } });
+    const result = await host.registerModelUpgradeEval({ botId: "bot-a", post: "researcher", before: BEFORE, after: AFTER });
+    assert.equal(result.registered[0].ok, false, "注入的失败须如实回传");
+    assert.equal(broadcasts, 1, "登记失败（前置门通过、落台账失败）也须广播投影——人间收件箱不等下一拍");
   } finally {
     rmSync(home, { recursive: true, force: true });
   }

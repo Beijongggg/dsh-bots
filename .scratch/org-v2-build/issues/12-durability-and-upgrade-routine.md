@@ -97,3 +97,12 @@
     新增加固 11 项，均为「判据可解析/闭包可判」的负例）；全量 `TMPDIR=/dev/shm npm test`
     **58/58** ✅；preflight 四门 **exit 0**（①58/58 ②冻结面 0009 包 7/7 ③0 违例扫
     69 md ④11 PASS / 0 FAIL / 0 SKIP）；真实运行面零写入（夹具全在临时 DSH_HOME）。
+
+### 2026-09-20 就地反哺优化批（用户点名「行反哺优化」——结合并行实现中的较优部件）
+
+五缝 TDD 先红后绿（详文见 CHANGELOG 顶部条目）：①登记失败也广播投影（此前只在有成功项时
+广播，拒绝路径留痕要等下一拍）；②六评测样本 reviewPoints 空→`["before-external-visibility"]`
+（④用户终裁升为简报契约面必审 subject）；③跳过理由收集式全列 `reasons[]`（多前提同缺不合并，
+`reason`＝首条兼容）；④词元表补 `family-domestic`（doubao/ernie/hunyuan/minimax＋中文通称，
+当前树零命中无误报）；⑤扫描面补 `knowledge-shared-face.js`（D6 坐标已点名而扫描面漏扫）。
+验证：scoped org-durability 38/38＋全量 59/59＋preflight 四门 exit 0。

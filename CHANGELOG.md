@@ -7,6 +7,31 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 **12 号票就地反哺优化批**——用户点名「行反哺优化」＝授权（结合并行实现中的较优部件）；
+  五项缺陷修复/加固，TDD 各缝先红后绿；**5 文件（2 lib＋1 测试＋CHANGELOG＋票面）**）：
+  - **范围**：本条目＋票面 Comments 优化批注记；机械面＝`lib/org/{durability,ledger-host}.js`＋
+    `tests/org-durability.test.mjs`。
+  - **变化（五缝）**：
+    **① 登记失败也广播投影**——`registerModelUpgradeEval` 此前只在「有成功项」时 `broadcastProjection`，
+    前置门拒／落台账失败只留日志不广播（拒绝路径的台账留痕要等下一拍才到人间收件箱）；改＝登记尝试后
+    **无条件广播**（注入失败件回归锁：`broadcasts===1`）。
+    **② 评测样本 reviewPoints 必审钩（V-A7.4 ④）**——六样本简报 `reviewPoints` 由空数组改
+    `["before-external-visibility"]`：评测结论在投递用户终裁（对外可见）前必须经复核件套——④「用户终裁」
+    从文案坐标升为简报契约面的必审 subject。
+    **③ 跳过理由逐前提列名**——`planModelUpgradeEval` 此前首中即返单条 `reason`；改＝四种缺席前提
+    （缺实例 id／目标指派为空／未绑 home 岗位／岗位无样本）**收集式全列** `reasons[]`（`reason`＝首条
+    兼容日志摘要），多前提同缺不合并。
+    **④ 词元表补国产模型族名**——`MODEL_ASSUMPTION_TOKENS` 新增 `family-domestic`
+    （doubao／ernie／hunyuan／minimax＋文心／通义／千问／混元／豆包／深度求索）：此前国产族名写进
+    组织层件扫描器不认（封闭枚举盲区）；当前树该组词元零命中（无误报风险，正例扫描仍零违例）。
+    **⑤ 扫描面补 knowledge-shared-face**——白名单 `knowledge-container` 条目 `modules` 此前只列
+    `lib/knowledge.js`，共享面写者审计件（`lib/org/knowledge-shared-face.js`，D6 判据坐标已点名）漏出
+    扫描面；补入后扫描采集面实际覆盖（正例零违例＝该件本就无模型假设）。
+  - **验证结果**：TDD 五缝各自先红后绿（38 项：新 5 项全红→绿）；scoped `org-durability` 38/38；
+    全量 `TMPDIR=/dev/shm npm test` **59/59** ✅；preflight 四门 **exit 0**（①59/59 ②冻结面 0009 包
+    7/7 ③0 违例扫 71 md ④11 PASS / 0 FAIL / 0 SKIP）；冻结面零改动。
+  - **授权依据**：2026-09-20 用户点名「行反哺优化」（票 12 两版横向对比后的反哺清单执行）。
+
 - ✅ 本轮（org-v2 **13 号票：锚点泛化与双席起步编制**——用户点名 `/implement 13` ＝授权；范围经
   两问裁定：**只做票面 checklist**（06/08/09/21 票面「role-cap 首张出渠／召集接线／初审结论提交面」
   留界链原样在案）＋锚点席位权限档**保持 read-only**；TDD 四缝先红后绿；**8 文件（3 lib＋1 新测试
