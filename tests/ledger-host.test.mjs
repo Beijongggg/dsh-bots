@@ -32,6 +32,10 @@ import { deprecateReport, readIndex, registerReport, reportsDirFor } from "../li
 const ledgerDirExists = (home) => existsSync(ledgerDir(home));
 import { receiptsDirFor } from "../lib/mail-plane.js";
 import { VALID_BRIEF } from "./helpers/brief-fixture.mjs";
+import { ACCEPTANCE_RUNNER, criterionInjection } from "./helpers/criterion-fixture.mjs";
+
+/** 已有夹具的判据执行面：本组用例测的不是判据门，显式声明「判据面已接线」（25 号票）。 */
+const CRITERION_INJECTION = Object.freeze(criterionInjection(ACCEPTANCE_RUNNER));
 
 const { handleApi, createLedgerHost: createHostViaInternals, createTaskLedger: createLedgerViaInternals } = internals;
 
@@ -66,15 +70,15 @@ const AT = "2026-09-16T10:05:00.000Z";
 const NOW = Date.parse(AT);
 
 /** 开一张最简任务（非 CAS 路径，仅供锁/读写语义用例）。 */
-function openTaskViaLedger(ledger, taskId) {
-  return ledger.command({
+async function openTaskViaLedger(ledger, taskId) {
+  return await ledger.command({
     op: "task.intake", taskId, actor: { kind: "host", id: "web" },
     idempotencyKey: `${taskId}-intake`, payload: { class: "project", brief: { ...VALID_BRIEF } }
   });
 }
 
 function mkHost(home, { botIds = ["researcher"], alive = true, broadcast = () => {} } = {}) {
-  const ledger = createTaskLedger({ dshHome: home, now: () => NOW });
+  const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: () => NOW });
   const host = createLedgerHost({
     ledger,
     now: () => NOW,
@@ -86,14 +90,14 @@ function mkHost(home, { botIds = ["researcher"], alive = true, broadcast = () =>
   return { ledger, host };
 }
 
-test("异常汇入：收单积压截断与回合失败不再静默——处置任务＋异常事件＋用户通知（V-A2.11）", () => {
+test("异常汇入：收单积压截断与回合失败不再静默——处置任务＋异常事件＋用户通知（V-A2.11）", async () => {
   const home = mkHome();
   try {
     writeStaleReceipt(home, "researcher", { messageId: "researcher-1-a", seq: 7, at: AT });
     writeStaleReceipt(home, "researcher", { messageId: "researcher-1-b", seq: 8, at: AT });
     writeErrorReply(home, "researcher", { id: "researcher-out-1", at: AT });
     const { ledger, host } = mkHost(home);
-    const result = host.tick();
+    const result = await host.tick();
     assert.equal(result.anomalies.length, 2, "两类异常各归一次账");
     const sources = result.anomalies.map((a) => a.source).sort();
     assert.deepEqual(sources, ["inbox-backlog", "turn-failure"]);
@@ -113,7 +117,7 @@ test("异常汇入：收单积压截断与回合失败不再静默——处置�
     assert.equal(notes.length, 2);
     assert.ok(notes.every((n) => n.to === "user"), "异常告警的收件人＝用户");
     // 幂等：同一条目重复汇入不产生第二条异常事件
-    const again = host.ingestAnomalies(NOW);
+    const again = await host.ingestAnomalies(NOW);
     assert.deepEqual(again, []);
     const total = ledger.tasks().reduce((sum, task) => sum + ledger.events({ taskId: task.taskId }).filter((e) => e.type === "exception").length, 0);
     assert.equal(total, 2);
@@ -124,17 +128,17 @@ test("异常汇入：收单积压截断与回合失败不再静默——处置�
   }
 });
 
-test("异常汇入只报本窗新增：旧条目（上一时间窗）不重复告警", () => {
+test("异常汇入只报本窗新增：旧条目（上一时间窗）不重复告警", async () => {
   const home = mkHome();
   try {
     const oldWindow = windowKeyFor(NOW - 60 * 60 * 1000);
     writeStaleReceipt(home, "researcher", { messageId: "researcher-old", seq: 3, at: oldWindow });
     const { ledger, host } = mkHost(home);
-    assert.deepEqual(host.ingestAnomalies(NOW), [], "上个时间窗的旧条目不入账");
+    assert.deepEqual(await host.ingestAnomalies(NOW), [], "上个时间窗的旧条目不入账");
     assert.equal(ledger.tasks().length, 0);
     // 本窗新增条目 → 入账
     writeStaleReceipt(home, "researcher", { messageId: "researcher-new", seq: 9, at: AT });
-    const fresh = host.ingestAnomalies(NOW);
+    const fresh = await host.ingestAnomalies(NOW);
     assert.equal(fresh.length, 1);
     assert.equal(fresh[0].source, "inbox-backlog");
   } finally {
@@ -142,18 +146,18 @@ test("异常汇入只报本窗新增：旧条目（上一时间窗）不重复�
   }
 });
 
-test("值守轮询：实例死亡回收租约并广播台账投影，无变化不广播（V-A2.5／V-A2.12）", () => {
+test("值守轮询：实例死亡回收租约并广播台账投影，无变化不广播（V-A2.5／V-A2.12）", async () => {
   const home = mkHome();
   try {
     const frames = [];
     const { ledger, host } = mkHost(home, { alive: false, broadcast: (type, data) => frames.push({ type, data }) });
     // 一张在手任务（承接者已死）
-    ledger.command({ op: "task.intake", taskId: "TK-00000050", actor: { kind: "host", id: "web" }, idempotencyKey: "a", payload: { class: "project", brief: { ...VALID_BRIEF } } });
-    ledger.command({ op: "task.triage", taskId: "TK-00000050", actor: { kind: "host", id: "web" }, ...cas(ledger, "TK-00000050"), idempotencyKey: "b", payload: { decision: "立项" } });
-    ledger.command({ op: "task.plan", taskId: "TK-00000050", actor: { kind: "host", id: "web" }, ...cas(ledger, "TK-00000050"), idempotencyKey: "c", payload: {} });
-    ledger.command({ op: "task.assign", taskId: "TK-00000050", actor: { kind: "host", id: "web" }, ...cas(ledger, "TK-00000050"), idempotencyKey: "d", payload: { assignee: "researcher", dispatcher: "project-lead" } });
+    await ledger.command({ op: "task.intake", taskId: "TK-00000050", actor: { kind: "host", id: "web" }, idempotencyKey: "a", payload: { class: "project", brief: { ...VALID_BRIEF } } });
+    await ledger.command({ op: "task.triage", taskId: "TK-00000050", actor: { kind: "host", id: "web" }, ...cas(ledger, "TK-00000050"), idempotencyKey: "b", payload: { decision: "立项" } });
+    await ledger.command({ op: "task.plan", taskId: "TK-00000050", actor: { kind: "host", id: "web" }, ...cas(ledger, "TK-00000050"), idempotencyKey: "c", payload: {} });
+    await ledger.command({ op: "task.assign", taskId: "TK-00000050", actor: { kind: "host", id: "web" }, ...cas(ledger, "TK-00000050"), idempotencyKey: "d", payload: { assignee: "researcher", dispatcher: "project-lead" } });
     frames.length = 0; // 只观察值守轮的广播
-    const first = host.tick();
+    const first = await host.tick();
     assert.equal(first.released.length, 1);
     assert.equal(first.released[0].cause, "instance-death");
     assert.equal(ledger.task("TK-00000050").status, "planned");
@@ -162,7 +166,7 @@ test("值守轮询：实例死亡回收租约并广播台账投影，无变化�
     assert.equal(typeof frames[0].data.lastSeq, "number");
     assert.ok(Array.isArray(frames[0].data.tasks), "载荷＝台账投影（tasks）");
     // 第二拍：无变化 → 由接线层按 changed 决定不广播（此处直接核 changed 标志）
-    assert.equal(host.tick().changed, false);
+    assert.equal((await host.tick()).changed, false);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
@@ -256,30 +260,30 @@ test("人间收件箱投递面：待裁项带裁定包与终裁动作、告知�
     const { ledger, host } = mkHost(home);
     const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
     // 一张挂起任务（业务截止时间已过）＋一张走完交付的任务（告知项来路）
-    const open = (taskId, brief = { ...VALID_BRIEF }) => ledger.command({
+    const open = async (taskId, brief = { ...VALID_BRIEF }) => await ledger.command({
       op: "task.intake", taskId, actor: { kind: "host", id: "web" },
       idempotencyKey: `${taskId}-intake`, payload: { class: "project", brief }
     });
-    const step = (taskId, op, actor, payload) => ledger.command({
+    const step = async (taskId, op, actor, payload) => await ledger.command({
       op, taskId, actor, ...cas(ledger, taskId), idempotencyKey: `${taskId}-${op}`, payload
     });
-    assert.equal(open("TK-00000095", { ...VALID_BRIEF, dueAt: "2026-09-15T00:00:00.000Z" }).ok, true);
-    assert.equal(step("TK-00000095", "task.triage", { kind: "host", id: "web" }, { decision: "立项" }).ok, true);
-    assert.equal(step("TK-00000095", "task.plan", { kind: "host", id: "web" }, {}).ok, true);
-    assert.equal(step("TK-00000095", "task.assign", { kind: "host", id: "web" }, { assignee: "researcher" }).ok, true);
-    assert.equal(step("TK-00000095", "task.accept", { kind: "post", id: "researcher" }, {}).ok, true);
-    assert.equal(step("TK-00000095", "task.start", { kind: "post", id: "researcher" }, {}).ok, true);
-    assert.equal(step("TK-00000095", "task.wait-user", { kind: "post", id: "researcher" }, {
+    assert.equal((await open("TK-00000095", { ...VALID_BRIEF, dueAt: "2026-09-15T00:00:00.000Z" })).ok, true);
+    assert.equal((await step("TK-00000095", "task.triage", { kind: "host", id: "web" }, { decision: "立项" })).ok, true);
+    assert.equal((await step("TK-00000095", "task.plan", { kind: "host", id: "web" }, {})).ok, true);
+    assert.equal((await step("TK-00000095", "task.assign", { kind: "host", id: "web" }, { assignee: "researcher" })).ok, true);
+    assert.equal((await step("TK-00000095", "task.accept", { kind: "post", id: "researcher" }, {})).ok, true);
+    assert.equal((await step("TK-00000095", "task.start", { kind: "post", id: "researcher" }, {})).ok, true);
+    assert.equal((await step("TK-00000095", "task.wait-user", { kind: "post", id: "researcher" }, {
       class: "irreversible-write", reason: "改真实运行面前请放行"
-    }).ok, true);
-    assert.equal(open("TK-00000096").ok, true);
-    assert.equal(step("TK-00000096", "task.triage", { kind: "host", id: "web" }, { decision: "立项" }).ok, true);
-    assert.equal(step("TK-00000096", "task.plan", { kind: "host", id: "web" }, {}).ok, true);
-    assert.equal(step("TK-00000096", "task.assign", { kind: "host", id: "web" }, { assignee: "researcher" }).ok, true);
-    assert.equal(step("TK-00000096", "task.accept", { kind: "post", id: "researcher" }, {}).ok, true);
-    assert.equal(step("TK-00000096", "task.start", { kind: "post", id: "researcher" }, {}).ok, true);
-    assert.equal(step("TK-00000096", "task.report", { kind: "post", id: "researcher" }, { deliverable: "坐标：docs/x.md" }).ok, true);
-    assert.equal(step("TK-00000096", "task.deliver", { kind: "post", id: "researcher" }, {}).ok, true);
+    })).ok, true);
+    assert.equal((await open("TK-00000096")).ok, true);
+    assert.equal((await step("TK-00000096", "task.triage", { kind: "host", id: "web" }, { decision: "立项" })).ok, true);
+    assert.equal((await step("TK-00000096", "task.plan", { kind: "host", id: "web" }, {})).ok, true);
+    assert.equal((await step("TK-00000096", "task.assign", { kind: "host", id: "web" }, { assignee: "researcher" })).ok, true);
+    assert.equal((await step("TK-00000096", "task.accept", { kind: "post", id: "researcher" }, {})).ok, true);
+    assert.equal((await step("TK-00000096", "task.start", { kind: "post", id: "researcher" }, {})).ok, true);
+    assert.equal((await step("TK-00000096", "task.report", { kind: "post", id: "researcher" }, { deliverable: "坐标：docs/x.md" })).ok, true);
+    assert.equal((await step("TK-00000096", "task.deliver", { kind: "post", id: "researcher" }, {})).ok, true);
 
     const before = ledger.events().length;
     const inbox = await call(api, "GET", "/api/bots/_ledger/inbox?cursor=0");
@@ -419,18 +423,18 @@ test("HTTP 命令面经 dispatchCommand 出手并透传 capability 信封（06 �
   }
 });
 
-test("值守 disposer 释放台账写锁（宿主停机/热重载不留悬空写锁）", () => {
+test("值守 disposer 释放台账写锁（宿主停机/热重载不留悬空写锁）", async () => {
   const home = mkHome();
   try {
     const { ledger, host } = mkHost(home);
-    openTaskViaLedger(ledger, "TK-00000081");
+    await openTaskViaLedger(ledger, "TK-00000081");
     assert.equal(ledger.holdsWriterLock(), true);
     const dispose = startLedgerTicker({ host, intervalMs: 60_000, logger: { warn() {} } });
     dispose();
     assert.equal(ledger.holdsWriterLock(), false, "disposer 须释放写锁");
     // 释放后新宿主可直接取得写锁（重启语义）
-    const restarted = createTaskLedger({ dshHome: home, now: () => NOW, lockSpinMs: 0 });
-    assert.equal(openTaskViaLedger(restarted, "TK-00000082").ok, true);
+    const restarted = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: () => NOW, lockSpinMs: 0 });
+    assert.equal((await openTaskViaLedger(restarted, "TK-00000082")).ok, true);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
@@ -448,7 +452,7 @@ test("复核面 HTTP：移交件读与报告提交经帽信封门；未携帽 40
     };
     mkdirSync(join(home, "bots", "started"), { recursive: true });
     writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
-    const ledger = createTaskLedger({ dshHome: home, now: () => NOW });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: () => NOW });
     const issuer = createCapabilityIssuer({ dshHome: home, ledger, now: () => NOW });
     const reviewGate = createReviewFaceGate({ issuer, ledger });
     const host = createLedgerHost({
@@ -527,7 +531,7 @@ test("复核面续签（21 号票 ①）：报告被台账拒绝（review-not-re
     };
     mkdirSync(join(home, "bots", "started"), { recursive: true });
     writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
-    const ledger = createTaskLedger({ dshHome: home, now: () => NOW });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: () => NOW });
     const issuer = createCapabilityIssuer({ dshHome: home, ledger, now: () => NOW });
     const reviewGate = createReviewFaceGate({ issuer, ledger });
     const host = createLedgerHost({
@@ -594,7 +598,7 @@ test("knowledge.register 命令化：授权过的岗位实例经 host 执行登�
     };
     mkdirSync(join(home, "bots", "started"), { recursive: true });
     writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
-    const ledger = createTaskLedger({ dshHome: home, now: () => NOW });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: () => NOW });
     const issuer = createCapabilityIssuer({ dshHome: home, ledger, now: () => NOW });
     const access = createLedgerAccessKit({ issuer, postForBot: (botId) => (botId === "bot-researcher" ? "researcher" : null) });
     const host = createLedgerHost({
@@ -658,7 +662,7 @@ test("knowledge.deprecate：命令化废弃腿——授权后走 host 执行，�
     };
     mkdirSync(join(home, "bots", "started"), { recursive: true });
     writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
-    const ledger = createTaskLedger({ dshHome: home, now: () => NOW });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: () => NOW });
     const issuer = createCapabilityIssuer({ dshHome: home, ledger, now: () => NOW });
     const access = createLedgerAccessKit({ issuer, postForBot: (botId) => (botId === "bot-researcher" ? "researcher" : null) });
     const host = createLedgerHost({
@@ -706,7 +710,7 @@ test("knowledge.deprecate：命令化废弃腿——授权后走 host 执行，�
 test("知识命令面未接线 → 503 fail closed（不得跳过鉴权直落盘）", async () => {
   const home = mkHome();
   try {
-    const ledger = createTaskLedger({ dshHome: home, now: () => NOW });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: () => NOW });
     const host = createLedgerHost({
       ledger, now: () => NOW, readBotIds: () => [], isAlive: () => true, broadcast: () => {},
       logger: { warn() {}, info() {} }
@@ -740,12 +744,12 @@ test("知识命令面未接线 → 503 fail closed（不得跳过鉴权直落盘
 
 // ---------------- 探针失效承载（org-v2 14 号票 V-A6.7；规格 §H） ----------------
 
-test("探针失效以 class=duty 例程任务落台账承载：不新增事件类型、随投影告知、重复失效不另开任务（V-A6.7）", () => {
+test("探针失效以 class=duty 例程任务落台账承载：不新增事件类型、随投影告知、重复失效不另开任务（V-A6.7）", async () => {
   const home = mkHome();
   try {
     const { ledger, host } = mkHost(home);
     const failure = { probeId: "P-CLIENT-SLOTS", face: "HF-CLIENT-SLOTS", reason: "槽名在 layout bundle 不在位" };
-    const raised = host.registerProbeFailure(failure);
+    const raised = await host.registerProbeFailure(failure);
     assert.equal(raised.ok, true, raised.reason);
     // 承载面＝class=duty 例程任务（§B：例程任务的判据可由健康探针或回归结果自动生成）
     const task = ledger.task(raised.taskId);
@@ -767,19 +771,19 @@ test("探针失效以 class=duty 例程任务落台账承载：不新增事件�
       "失效须按人间接口告知（投影可见）"
     );
     // 幂等：同一探针持续失效只开一张处置任务、同因重复只留一条异常
-    const again = host.registerProbeFailure(failure);
+    const again = await host.registerProbeFailure(failure);
     assert.equal(again.taskId, raised.taskId);
     assert.equal(again.exceptionReplayed, true, "同因重复登记＝幂等重放");
     assert.equal(ledger.tasks().filter((entry) => entry.routineId === "duty-probe-failure").length, 1);
     // 换因（同一探针再次以不同原因失效）→ 同一处置任务上追加异常，不另开任务
-    const other = host.registerProbeFailure({ ...failure, reason: "令牌未注入" });
+    const other = await host.registerProbeFailure({ ...failure, reason: "令牌未注入" });
     assert.equal(other.taskId, raised.taskId);
     assert.equal(other.exceptionReplayed, false, "不同因＝新异常条目（非重放）");
     assert.equal(ledger.events({ taskId: raised.taskId }).filter((event) => event.type === "exception").length, 2);
     // 输入 fail closed：缺探针 id／缺面 id 即拒，不落任何事件
     const before = ledger.events().length;
-    assert.equal(host.registerProbeFailure({ face: "HF-X" }).code, "probe-failure-args");
-    assert.equal(host.registerProbeFailure({ probeId: "P-X" }).code, "probe-failure-args");
+    assert.equal((await host.registerProbeFailure({ face: "HF-X" })).code, "probe-failure-args");
+    assert.equal((await host.registerProbeFailure({ probeId: "P-X" })).code, "probe-failure-args");
     assert.equal(ledger.events().length, before, "参数不合法＝零写入");
   } finally {
     rmSync(home, { recursive: true, force: true });

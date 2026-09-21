@@ -101,10 +101,13 @@ test("接单即得契约＋判据真源：accept 响应携带简报，探针按�
   await dispatch("task.accept", { taskId: "TK-00000090", idempotencyKey: "acc-1", expectedStatus: "assigned", expectedSeq: 3, payload: {} });
   const probe = await dispatch("evidence.probe", { taskId: "TK-00000090", index: 0 });
   const artifact = "示例产出已落坐标";
+  const digest = createHash("sha256").update(artifact, "utf8").digest("hex");
   assert.deepEqual(probe, {
     ok: true,
     output: "命中（docs/x.md）",
-    snapshot: { location: "docs/x.md", sha256: createHash("sha256").update(artifact, "utf8").digest("hex"), bytes: Buffer.byteLength(artifact, "utf8") }
+    snapshot: { location: "docs/x.md", sha256: digest, bytes: Buffer.byteLength(artifact, "utf8") },
+    // 25 号票：结论顶层补 snapshotSha256（消费方不必自解各命令的快照键形状）
+    snapshotSha256: digest
   }, "判据（fs.contains docs/x.md ⊇ 示例）按预登记执行且通过，结论绑定快照原样透传");
 });
 

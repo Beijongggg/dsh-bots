@@ -7,6 +7,60 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 **25 号票：关闭前置第三条——验收判据的通过记录（关闸现跑）**——用户点名
+  `/implement 25`＝授权；**21 件（7 lib／1 script／13 测试件，含新件 3 个）＋票面／本条目**，TDD 先红后绿）：
+  - **范围**：`lib/org/task-ledger.js`（关闭前置＋注入缝）、`lib/org/probe.js`（超时单列＋结论摘要）、
+    `lib/org/criterion-runner.js`（新：判据执行面装配件）、`lib/index.js`（宿主接线）、
+    `lib/org/{ledger-host,permissions,human-inbox}.js`（命令面 async 化的 await 传播）、
+    `scripts/host-contract-probe.mjs`（两个台账探针随命令面 async 化）、
+    `tests/acceptance-records.test.mjs`（新 11 条）＋`tests/helpers/criterion-fixture.mjs`（新：夹具注入面）
+    ＋`tests/org-probe.test.mjs`（2 条新用例）＋既有 6 个测试件（夹具注入判据面／await 化）
+    ＋`tests/org-closed-loop-smoke.test.mjs`（夹具判据改「任务自己产出的坐标」）＋本条目＋票面。
+  - **① 关闸现跑（用户授权自选的既定做法，票面 Comments 先定五条口径）**——`closePrecondition` 变 async，
+    新增 `acceptanceReadiness`：`task.close` 时由确定性层按**任务投影里的冻结简报**逐条执行判据
+    （复用 `probe.js::runCriterion`：白名单封闭、参数键逐字一致、沙箱快照、隔离子进程，机械面零放宽），
+    **全过才准关闭**；任一条不过即拒，拒绝码 `acceptance-check-failed`，回执点名 **index／命令／原因**
+    并带该次快照摘要（`snapshotSha256`，`node.tests` 取树级、坐标类取 sha256、采集未生＝null）。
+    **不新增台账事件类型**（`EVENT_TYPES` 30 条零扩条，有断言）——拒绝沿用既有 `command-rejected`，
+    理由串本身在账上可读；复验锚只入回执与幂等预留（照 21 号票① `extraResult` 先例，事件 schema 键封闭）。
+    与 `evidence.probe` 的分工不变：那条是承接方干活时的自检，这条是边界上的复核，**不采信自报**。
+  - **② 注入缝＝照 `artifactsFor` 先例**——`createTaskLedger({ criterionRunnerFor, criterionRunCtx })`：
+    台账本体不 import 探针与数据根；`dshHome` 由台账本体补（与产出登记面同一数据根，免两处漂移）。
+    未接线＝fail closed（`acceptance-check-unwired`——「跑不了」不等于「过了」）；`criterionRunCtx` 只带
+    非 dshHome 上下文（`cwd`／`timeoutMs`／`tmpdir`／`listMailAnomalies`）。接线件＝`lib/org/criterion-runner.js`，
+    **宿主与烟测同一工厂**（不停两份接线）。遍历顺序＝便宜的先判：复核点 → 判据现跑 → 产出登记
+    （判据可能很重，排在两道纯投影判定之后）。
+  - **③ 超时口径与结论摘要**——`node.tests` 的 SIGKILL 超时在探针层单列 `code: "probe-timeout"`
+    （与「测试真跑红」区分，理由串归因「超时＝不过（不是跳过）」）；`runCriterion` 结论顶层一律补
+    `snapshotSha256`（消费方不必自解各命令的快照键形状即可复验／转述）。
+  - **④ 适用范围（票面第二条按 §B 复核）**——判据门：`project` 适用；**无判据的 `duty` 例程任务豁免**
+    （§B 例程判据「可由健康探针或回归结果自动生成」，生成机制不在本票内，故不发明判据）；
+    **自带判据的 `duty` 任务照跑**（判据存在即须有通过记录——对「自产判据」豁免＝放行无通过记录的关闭路径）。
+    登记门不变（`duty` 仍豁免）。另：无判据的**非例程**任务在收单门即拒（简报判据非空不变量），
+    故判据门不必为「进来但没判据」留豁免——两道 fail closed 是同一口径的两端。
+  - **⑤ 烟测夹具（票面第四条）**——`org-closed-loop-smoke` 的简报判据由指向空气的 `docs/x.md`
+    改为**任务自己产出的坐标**（知识登记落盘的报告文件，判据查的是报告**全文**），ledger 门面接真执行面；
+    `closeBlocked` 那一步的拒绝码随之从 `artifact-not-registered` 变为 `acceptance-check-failed`
+    （判据门排在登记门之前，该步产出坐标尚未落盘）——门仍是活的，断言同步改并点名 index／坐标。
+  - **验证结果**：TDD 先红后绿（`org-probe` 2 条新例；`acceptance-records` 11 条用例：判据全过放行／
+    不过即拒且点名第几条／快照摘要可复算且幂等重放保留／未接线 fail closed／超时＝不过／运行时负例
+    带树级摘要／适用范围四路／逐条短路／负载键封闭拒自带判据／**执行面抛错不逃逸且落账**（工厂／
+    执行体两路）／**执行根单源**；`org-ledger-authz` 新增 1 条：关闭前置拒绝仍带 `authorized`
+    （21 号票①机械证据面，A/B 实测旧行为红）；烟测 2 条既有断言随门序调整）；
+    **全量回归 62/62**；**preflight 四门 PASS**（①62/62 ②冻结面 0009 包 7/7 ③0 违例 ④11 PASS/0 FAIL/0 SKIP）。
+    冻结面（`artifacts/packages/`／`docs/TEMP-guidance-*`／`docs/CLOSURE-*`）零改动；运行面零写入。
+  - **独立复核（`verifier-25`）与就地修复**：3 条硬违例已修（机械改造误致的恒真断言／执行面抛错
+    逃逸致「拒绝无账＋500」／`rejectHere` 顶掉 `authorized` 标记）＋1 条存疑项已修（`dshHome`
+    展开顺序致执行根可被 ctx 覆盖），另按建议加异步 `tick` 的 in-flight 守卫、如实标注两条
+    今日不可达的判据分支、校正件数。**未改实现的存疑项**：Testing Decisions「通过记录进台账」
+    字面未满足（通过路径 `close` 事件负载为空，只有拒绝留账）——已授权口径偏离，若要贴字面须
+    点名授权扩 `close` 事件负载或改规格措辞；登记在票面 Comments。
+  - **留界**：`recordPreScreen`／`recordNeedsUser` 的「挂起时不落被判据的通过记录」语义不变（本票只把
+    关闭前置的第三项补上）；判据执行面上的 `listMailAnomalies` 缺省仍走投递面本体（未接线的
+    `ledger.no-anomalies` 判据会 fail closed，与未接线口径一致）。
+  - **授权依据**：2026-09-21 用户点名 `/implement 25`（票面「选定做法＝关闸时现跑」已于同日由用户
+    授权「第一条你自选」定案）。
+
 - ✅ 本轮（org-v2 **14 号票就地反哺优化批**——用户点名「反哺优化或更优替换」＝授权（采纳并行实现中的
   较优守卫面，保留入库版形态为主体、局部更优替换）；五项守卫增强，TDD 各缝先红后绿；**3 文件
   （1 lib＋1 测试＋本条目/票面注记）**）：

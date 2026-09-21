@@ -216,24 +216,24 @@ const denyAuthorize = ({ capability }) => {
 };
 
 /** 开档→立项→简报→派单（dispatcher 记录在任务上，通知投影由此可路由）。 */
-function dispatchTask(ledger, { taskId, botId, dispatcher = "project-lead" }) {
+async function dispatchTask(ledger, { taskId, botId, dispatcher = "project-lead" }) {
   const host = { kind: "host", id: "web" };
-  let result = ledger.command({ op: "task.intake", taskId, actor: host, idempotencyKey: `intake:${taskId}`, payload: { class: "duty" } });
+  let result = await ledger.command({ op: "task.intake", taskId, actor: host, idempotencyKey: `intake:${taskId}`, payload: { class: "duty" } });
   assert.equal(result.ok, true, result.reason);
   const afterIntake = ledger.task(taskId);
-  result = ledger.command({
+  result = await ledger.command({
     op: "task.triage", taskId, actor: host, idempotencyKey: `triage:${taskId}`,
     expectedStatus: afterIntake.status, expectedSeq: afterIntake.lastSeq, payload: { decision: "立项" }
   });
   assert.equal(result.ok, true, result.reason);
   const afterTriage = ledger.task(taskId);
-  result = ledger.command({
+  result = await ledger.command({
     op: "task.plan", taskId, actor: host, idempotencyKey: `plan:${taskId}`,
     expectedStatus: afterTriage.status, expectedSeq: afterTriage.lastSeq, payload: { brief: { ...VALID_BRIEF } }
   });
   assert.equal(result.ok, true, result.reason);
   const afterPlan = ledger.task(taskId);
-  result = ledger.command({
+  result = await ledger.command({
     op: "task.assign", taskId, actor: host, idempotencyKey: `assign:${taskId}`,
     expectedStatus: afterPlan.status, expectedSeq: afterPlan.lastSeq,
     payload: { assignee: botId, dispatcher }
@@ -242,31 +242,33 @@ function dispatchTask(ledger, { taskId, botId, dispatcher = "project-lead" }) {
 }
 
 /** 一次带 `deny:<code>` 能力标记的命令（注入式鉴权以该码拒绝并落回执）。 */
-function attempt(ledger, { taskId, botId, code, index, op = "task.report" }) {
-  return ledger.command({
+async function attempt(ledger, { taskId, botId, code, index, op = "task.report" }) {
+  return await ledger.command({
     op, taskId, actor: { kind: "post", id: botId },
     capability: `deny:${code}`, idempotencyKey: `try:${botId}:${op}:${code}:${index}`
   });
 }
 
-function withLedger(body, ledgerOptions = {}) {
+async function withLedger(body, ledgerOptions = {}) {
   const home = mkdtempSync(join(tmpdir(), "dsh-unauthorized-count-"));
   try {
-    return body(createTaskLedger({ dshHome: home, now: clockAt().now, authorize: denyAuthorize, ...ledgerOptions }), home);
+    // `body` 自 25 号票起可能是 async（命令面 async）：异步体要在**清理前**完成，
+    // 否则 finally 会在体内命令落盘之前删掉数据根
+    return await body(createTaskLedger({ dshHome: home, now: clockAt().now, authorize: denyAuthorize, ...ledgerOptions }), home);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
 }
 
-test("缝③ 达阈上浮：sweep 落 escalated（cause=out-of-bounds）入 waiting-user、越权处置永不可代；通知派单方投影随 sweep 结果", () => {
-  withLedger((ledger) => {
-    dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
+test("缝③ 达阈上浮：sweep 落 escalated（cause=out-of-bounds）入 waiting-user、越权处置永不可代；通知派单方投影随 sweep 结果", async () => {
+  await withLedger(async (ledger) => {
+    await dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
     for (let index = 1; index <= 3; index += 1) {
-      const denied = attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index });
+      const denied = await attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index });
       assert.equal(denied.ok, false);
       assert.equal(denied.code, "op-not-in-opset");
     }
-    const swept = ledger.sweep({ at: Date.now() });
+    const swept = await ledger.sweep({ at: Date.now() });
     assert.equal(swept.unauthorized.length, 1);
     const [entry] = swept.unauthorized;
     assert.equal(entry.actor, "bot-a");
@@ -292,16 +294,16 @@ test("缝③ 达阈上浮：sweep 落 escalated（cause=out-of-bounds）入 wait
   });
 });
 
-test("缝③ 每越权串至多一次：二次 sweep 与续犯（同串内继续越权）都不重复上浮、不重复通知", () => {
-  withLedger((ledger) => {
-    dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
+test("缝③ 每越权串至多一次：二次 sweep 与续犯（同串内继续越权）都不重复上浮、不重复通知", async () => {
+  await withLedger(async (ledger) => {
+    await dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
     for (let index = 1; index <= 3; index += 1) {
-      attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index });
+      await attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index });
     }
-    assert.equal(ledger.sweep({ at: Date.now() }).unauthorized.length, 1);
-    assert.deepEqual(ledger.sweep({ at: Date.now() }).unauthorized, []);
-    attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index: 4 });
-    assert.deepEqual(ledger.sweep({ at: Date.now() }).unauthorized, []);
+    assert.equal((await ledger.sweep({ at: Date.now() })).unauthorized.length, 1);
+    assert.deepEqual((await ledger.sweep({ at: Date.now() })).unauthorized, []);
+    await attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index: 4 });
+    assert.deepEqual((await ledger.sweep({ at: Date.now() })).unauthorized, []);
     assert.equal(
       ledger.events({ taskId: "TK-aaaa0001" }).filter((event) => event.type === "escalated").length, 1,
       "同串只落一次上浮事件"
@@ -309,13 +311,13 @@ test("缝③ 每越权串至多一次：二次 sweep 与续犯（同串内继续
   });
 });
 
-test("缝③ 无在手任务的越权串：只通知派单方不上浮（拒绝本就 fail closed、不改他人任务状态）", () => {
-  withLedger((ledger) => {
-    dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
+test("缝③ 无在手任务的越权串：只通知派单方不上浮（拒绝本就 fail closed、不改他人任务状态）", async () => {
+  await withLedger(async (ledger) => {
+    await dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
     for (let index = 1; index <= 3; index += 1) {
-      attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-b", code: "task-domain-mismatch", index });
+      await attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-b", code: "task-domain-mismatch", index });
     }
-    const swept = ledger.sweep({ at: Date.now() });
+    const swept = await ledger.sweep({ at: Date.now() });
     assert.equal(swept.unauthorized.length, 1);
     const [entry] = swept.unauthorized;
     assert.equal(entry.actor, "bot-b");
@@ -327,50 +329,50 @@ test("缝③ 无在手任务的越权串：只通知派单方不上浮（拒绝�
       "无在手任务＝零上浮事件"
     );
     // 通知锚点在幂等预留（无事件路径的唯一跨拍锚点）：同串下一拍不重发
-    assert.deepEqual(ledger.sweep({ at: Date.now() }).unauthorized, [], "同串已通知——下一拍不重发");
+    assert.deepEqual((await ledger.sweep({ at: Date.now() })).unauthorized, [], "同串已通知——下一拍不重发");
   });
 });
 
-test("缝③ 运维性码不计数不洗链（台账级）：过期信封夹在越权串中不 reset、单独运维性串不上浮", () => {
-  withLedger((ledger) => {
-    dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
-    attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "capability-expired", index: 1 });
-    attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index: 2 });
-    attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "capability-replayed", index: 3 });
-    attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index: 4 });
-    const swept = ledger.sweep({ at: Date.now() });
+test("缝③ 运维性码不计数不洗链（台账级）：过期信封夹在越权串中不 reset、单独运维性串不上浮", async () => {
+  await withLedger(async (ledger) => {
+    await dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
+    await attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "capability-expired", index: 1 });
+    await attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index: 2 });
+    await attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "capability-replayed", index: 3 });
+    await attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index: 4 });
+    const swept = await ledger.sweep({ at: Date.now() });
     assert.equal(swept.unauthorized.length, 0, "计数 2 未达缺省阈值 3——运维性码夹带不洗链也不计数");
     assert.equal(ledger.task("TK-aaaa0001").status, "assigned");
-    attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index: 5 });
-    assert.equal(ledger.sweep({ at: Date.now() }).unauthorized[0].escalatedTaskId, "TK-aaaa0001");
+    await attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index: 5 });
+    assert.equal((await ledger.sweep({ at: Date.now() })).unauthorized[0].escalatedTaskId, "TK-aaaa0001");
   });
 });
 
-test("缝③ 合法操作打断重计（台账级）：本人合法心跳清零越权串", () => {
-  withLedger((ledger) => {
-    dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
-    attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index: 1 });
-    attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index: 2 });
-    const beat = ledger.command({
+test("缝③ 合法操作打断重计（台账级）：本人合法心跳清零越权串", async () => {
+  await withLedger(async (ledger) => {
+    await dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
+    await attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index: 1 });
+    await attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index: 2 });
+    const beat = await ledger.command({
       op: "task.heartbeat", taskId: "TK-aaaa0001", actor: { kind: "post", id: "bot-a" }, idempotencyKey: "hb:1"
     });
     assert.equal(beat.ok, true, beat.reason);
-    attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index: 3 });
-    const swept = ledger.sweep({ at: Date.now() });
+    await attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index: 3 });
+    const swept = await ledger.sweep({ at: Date.now() });
     assert.deepEqual(swept.unauthorized, [], "打断后计数 1 未达阈值");
     assert.equal(ledger.task("TK-aaaa0001").status, "assigned");
   });
 });
 
-test("缝③ 阈值＝用户域缝：LEASE_DEFAULTS 缺省在案，lease.unauthorizedThreshold 覆盖注入生效", () => {
-  withLedger((ledger) => {
+test("缝③ 阈值＝用户域缝：LEASE_DEFAULTS 缺省在案，lease.unauthorizedThreshold 覆盖注入生效", async () => {
+  await withLedger(async (ledger) => {
     assert.equal(ledger.leaseOptions.unauthorizedThreshold, DEFAULT_UNAUTHORIZED_THRESHOLD);
   });
-  withLedger((ledger) => {
+  await withLedger(async (ledger) => {
     assert.equal(ledger.leaseOptions.unauthorizedThreshold, 1);
-    dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
-    attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index: 1 });
-    const swept = ledger.sweep({ at: Date.now() });
+    await dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
+    await attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index: 1 });
+    const swept = await ledger.sweep({ at: Date.now() });
     assert.equal(swept.unauthorized[0].escalatedTaskId, "TK-aaaa0001");
     assert.equal(ledger.task("TK-aaaa0001").status, "waiting-user");
   }, { lease: { unauthorizedThreshold: 1 } });
@@ -378,13 +380,13 @@ test("缝③ 阈值＝用户域缝：LEASE_DEFAULTS 缺省在案，lease.unautho
 
 // ---- 缝⑤ 通知事件投影（24 号票①：§B「通知＝台账事件投影，无事件不通知」） ----
 
-test("缝⑤ 达阈通知落台账事件：每被越权任务一条 unauthorized-notified（非状态事件），通知投影经 NOTIFY_TO 可达派单方", () => {
-  withLedger((ledger) => {
-    dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
+test("缝⑤ 达阈通知落台账事件：每被越权任务一条 unauthorized-notified（非状态事件），通知投影经 NOTIFY_TO 可达派单方", async () => {
+  await withLedger(async (ledger) => {
+    await dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
     for (let index = 1; index <= 3; index += 1) {
-      attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index });
+      await attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index });
     }
-    const swept = ledger.sweep({ at: Date.now() });
+    const swept = await ledger.sweep({ at: Date.now() });
     assert.equal(swept.unauthorized.length, 1);
     assert.equal(swept.unauthorized[0].notices.length, 1);
     assert.ok(Number.isInteger(swept.unauthorized[0].notices[0].seq), "随 sweep 结果回报通知事件 seq");
@@ -406,19 +408,19 @@ test("缝⑤ 达阈通知落台账事件：每被越权任务一条 unauthorized
   });
 });
 
-test("缝⑤ 无在手任务路径的事件落点：只通知不上浮但也有事件；同串下一拍不重发（锚点＝事件本体，跨拍稳定）", () => {
-  withLedger((ledger) => {
-    dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
+test("缝⑤ 无在手任务路径的事件落点：只通知不上浮但也有事件；同串下一拍不重发（锚点＝事件本体，跨拍稳定）", async () => {
+  await withLedger(async (ledger) => {
+    await dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
     for (let index = 1; index <= 3; index += 1) {
-      attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-b", code: "task-domain-mismatch", index });
+      await attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-b", code: "task-domain-mismatch", index });
     }
-    const swept = ledger.sweep({ at: Date.now() });
+    const swept = await ledger.sweep({ at: Date.now() });
     assert.equal(swept.unauthorized[0].escalatedTaskId, null);
     const notifiedEvents = ledger.events().filter((event) => event.type === "unauthorized-notified");
     assert.equal(notifiedEvents.length, 1, "零事件路径补齐：通知事件锚在被越权任务上");
     assert.equal(notifiedEvents[0].instanceId, "bot-b");
 
-    assert.deepEqual(ledger.sweep({ at: Date.now() }).unauthorized, [], "同串已通知（事件锚点）——下一拍不重发");
+    assert.deepEqual((await ledger.sweep({ at: Date.now() })).unauthorized, [], "同串已通知（事件锚点）——下一拍不重发");
     assert.equal(ledger.events().filter((event) => event.type === "unauthorized-notified").length, 1);
   });
 });
@@ -443,28 +445,28 @@ test("缝⑤ 纯函数面：通知事件锚定本串（instanceId＋seq ≥ firs
 
 // ---- 缝④ ledger-host tick 接线 ----
 
-test("缝④ 宿主 tick：达阈串进结果与广播载荷、changed 计入；同串已处置后零变化（广播由值守 ticker 触发）", () => {
-  withLedger((ledger) => {
-    dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
+test("缝④ 宿主 tick：达阈串进结果与广播载荷、changed 计入；同串已处置后零变化（广播由值守 ticker 触发）", async () => {
+  await withLedger(async (ledger) => {
+    await dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
     for (let index = 1; index <= 3; index += 1) {
-      attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index });
+      await attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index });
     }
     const host = createLedgerHost({ ledger });
-    const result = host.tick();
+    const result = await host.tick();
     assert.equal(result.unauthorized.length, 1);
     assert.equal(result.view.swept.unauthorized, 1);
     assert.equal(result.changed, true);
-    const second = host.tick();
+    const second = await host.tick();
     assert.deepEqual(second.unauthorized, []);
     assert.equal(second.changed, false, "同串已处置——下一拍零变化不广播");
   });
 });
 
-test("缝④ 值守 ticker：changed 拍广播投影并回报达阈日志；disposer 释放台账写锁", () => {
-  withLedger((ledger) => {
-    dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
+test("缝④ 值守 ticker：changed 拍广播投影并回报达阈日志；disposer 释放台账写锁", async () => {
+  await withLedger(async (ledger) => {
+    await dispatchTask(ledger, { taskId: "TK-aaaa0001", botId: "bot-a" });
     for (let index = 1; index <= 3; index += 1) {
-      attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index });
+      await attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index });
     }
     const seen = [];
     const logs = [];
@@ -472,7 +474,10 @@ test("缝④ 值守 ticker：changed 拍广播投影并回报达阈日志；disp
     const disposer = startLedgerTicker({
       host, intervalMs: 60_000, logger: { warn: (line) => logs.push(line) }
     });
-    disposer(); // 只跑启动拍（同步），随后 clearInterval＋释放写锁
+    disposer(); // 只跑启动拍，随后 clearInterval＋释放写锁
+    // 25 号票起 `tick` 是异步的（关闭前置要现跑判据）：给启动拍一次微任务让结论落地，
+    // 再断言「changed 拍广播投影」——启动拍的**语义**不变（仍是改变即有帧）
+    await new Promise((resolve) => setImmediate(resolve));
     assert.deepEqual(seen, ["ledger"]);
     assert.ok(
       logs.some((line) => line.includes("连续越权达阈") && line.includes("bot-a") && line.includes("上浮用户终裁")),

@@ -239,6 +239,48 @@ test("ledger.no-anomalies：结论绑定快照——sha256 与结论引用的捕
   });
 });
 
+test("结论携带顶层 snapshotSha256：接受方不必自解 snapshot 形状即可复验／转述（25 号票：关闭前置的通过记录带摘要）", async () => {
+  const dshHome = tempRoot();
+  const content = "结论 OK\n";
+  writeFileSync(join(dshHome, "report.md"), content, "utf8");
+  const hit = await runCriterion(
+    { probe: "fs.contains", args: { location: "report.md", text: "结论 OK" } },
+    { dshHome }
+  );
+  assert.equal(hit.snapshotSha256, hit.snapshot.sha256, "坐标级检查＝坐标内容摘要");
+  const listMailAnomalies = () => [];
+  const anomalies = await runCriterion(
+    { probe: "ledger.no-anomalies", args: { botId: "bot-b", source: "inbox-backlog" } },
+    { dshHome, listMailAnomalies }
+  );
+  assert.equal(anomalies.snapshotSha256, anomalies.snapshot.sha256, "异常清单检查＝捕获清单摘要");
+  // 采集未发生的拒绝（白名单外／参数不合／ctx 缺）不带摘要：null＝无快照可复验
+  const whitelist = await runCriterion({ probe: "shell.exec", args: {} }, { dshHome });
+  assert.equal(whitelist.snapshotSha256, null);
+  assert.equal(whitelist.snapshot, undefined);
+});
+
+test("node.tests：超时单列（probe-timeout，超时≠测试真跑红），且结论摘要＝树级摘要", async () => {
+  const cwd = tempRoot();
+  const source = materializeTestFile(cwd, "slow-probe.test.mjs", [
+    "import { test } from \"node:test\";",
+    "test(\"slow\", async () => { await new Promise((resolve) => setTimeout(resolve, 30000)); });"
+  ]);
+  const timedOut = await runCriterion(
+    { probe: "node.tests", args: { file: "slow-probe.test.mjs" } },
+    { dshHome: cwd, cwd, timeoutMs: 250 }
+  );
+  assert.equal(timedOut.ok, false);
+  assert.equal(timedOut.code, "probe-timeout", "超时＝不过且可归因（不是「测试判红」那一类）");
+  assert.match(timedOut.reason, /超时/, "理由串点名超时");
+  const fileDigest = createHash("sha256").update(source, "utf8").digest("hex");
+  assert.equal(
+    timedOut.snapshotSha256,
+    createHash("sha256").update(canonicalJson({ "tests/slow-probe.test.mjs": fileDigest }), "utf8").digest("hex"),
+    "摘要取树级（被执行的是整树副本），与独立重算一致"
+  );
+});
+
 test("criterionMatches：判据 canonical JSON 相等即逐字同一；键序差异不算差异", () => {
   assert.equal(criterionMatches(
     { probe: "fs.contains", args: { location: "a", text: "t" } },

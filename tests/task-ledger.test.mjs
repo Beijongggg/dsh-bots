@@ -78,8 +78,8 @@ const POST = (id) => ({ kind: "post", id });
 // 合法基线简报（07 号票契约）＝测试共用件（tests/helpers/brief-fixture.mjs）
 
 /** 建一张 intake 态任务的最小命令序列（idempotencyKey 逐条唯一）。 */
-function openTask(ledger, taskId, extra = {}) {
-  const result = ledger.command({
+async function openTask(ledger, taskId, extra = {}) {
+  return await ledger.command({
     op: "task.intake",
     taskId,
     actor: HOST,
@@ -90,31 +90,30 @@ function openTask(ledger, taskId, extra = {}) {
       ...extra
     }
   });
-  return result;
 }
 
-function toRunning(ledger, taskId, botId = "implementer") {
-  assert.equal(openTask(ledger, taskId).ok, true);
-  assert.equal(ledger.command({
+async function toRunning(ledger, taskId, botId = "implementer") {
+  assert.equal((await openTask(ledger, taskId)).ok, true);
+  assert.equal((await ledger.command({
     op: "task.triage", taskId, actor: HOST, ...cas(ledger, taskId),
     idempotencyKey: `${taskId}-triage`, payload: { decision: "立项" }
-  }).ok, true);
-  assert.equal(ledger.command({
+  })).ok, true);
+  assert.equal((await ledger.command({
     op: "task.plan", taskId, actor: HOST, ...cas(ledger, taskId),
     idempotencyKey: `${taskId}-plan`, payload: {}
-  }).ok, true);
-  assert.equal(ledger.command({
+  })).ok, true);
+  assert.equal((await ledger.command({
     op: "task.assign", taskId, actor: HOST, ...cas(ledger, taskId),
     idempotencyKey: `${taskId}-assign`, payload: { assignee: botId }
-  }).ok, true);
-  assert.equal(ledger.command({
+  })).ok, true);
+  assert.equal((await ledger.command({
     op: "task.accept", taskId, actor: POST(botId), ...cas(ledger, taskId),
     idempotencyKey: `${taskId}-accept`, payload: {}
-  }).ok, true);
-  assert.equal(ledger.command({
+  })).ok, true);
+  assert.equal((await ledger.command({
     op: "task.start", taskId, actor: POST(botId), ...cas(ledger, taskId),
     idempotencyKey: `${taskId}-start`, payload: {}
-  }).ok, true);
+  })).ok, true);
 }
 
 test("状态表：主干十态＋四旁路齐备，每态答「下一步谁负责、超时怎么办」", () => {
@@ -148,12 +147,12 @@ test("台账文件坐标：落在 dshHome 台账域内；taskId 校验拒绝旧�
   }
 });
 
-test("主干转移：intake→triaged→planned→assigned→accepted→running 状态为事件投影", () => {
+test("主干转移：intake→triaged→planned→assigned→accepted→running 状态为事件投影", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    toRunning(ledger, "TK-00000001");
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await toRunning(ledger, "TK-00000001");
     const task = ledger.task("TK-00000001");
     assert.equal(task.status, "running");
     assert.equal(task.owner, "implementer");
@@ -169,14 +168,14 @@ test("主干转移：intake→triaged→planned→assigned→accepted→running 
   }
 });
 
-test("非法转移被确定性层拒绝且 fail closed：状态不变、拒绝留痕", () => {
+test("非法转移被确定性层拒绝且 fail closed：状态不变、拒绝留痕", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    openTask(ledger, "TK-00000002");
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await openTask(ledger, "TK-00000002");
     // intake 不能直接 deliver
-    const illegal = ledger.command({
+    const illegal = await ledger.command({
       op: "task.deliver", taskId: "TK-00000002", actor: HOST,
       ...cas(ledger, "TK-00000002"), idempotencyKey: "k-illegal", payload: {}
     });
@@ -192,13 +191,13 @@ test("非法转移被确定性层拒绝且 fail closed：状态不变、拒绝�
   }
 });
 
-test("CAS：期望状态不符即拒（并发写者不得盲写）", () => {
+test("CAS：期望状态不符即拒（并发写者不得盲写）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    openTask(ledger, "TK-00000003");
-    const stale = ledger.command({
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await openTask(ledger, "TK-00000003");
+    const stale = await ledger.command({
       op: "task.triage", taskId: "TK-00000003", actor: HOST,
       expectedStatus: "planned", expectedSeq: 99, idempotencyKey: "k-cas", payload: { decision: "立项" }
     });
@@ -206,7 +205,7 @@ test("CAS：期望状态不符即拒（并发写者不得盲写）", () => {
     assert.equal(stale.code, "cas-mismatch");
     assert.equal(ledger.task("TK-00000003").status, "intake");
     // 期望状态缺省亦拒（状态改写类命令必须带 CAS）
-    const noCas = ledger.command({
+    const noCas = await ledger.command({
       op: "task.triage", taskId: "TK-00000003", actor: HOST,
       idempotencyKey: "k-nocas", payload: { decision: "立项" }
     });
@@ -217,43 +216,43 @@ test("CAS：期望状态不符即拒（并发写者不得盲写）", () => {
   }
 });
 
-test("命令自带幂等键：重复提交返回首次结论且不再落事件", () => {
+test("命令自带幂等键：重复提交返回首次结论且不再落事件", async () => {
   const home = mkHome();
   try {
-    const ledger = createTaskLedger({ dshHome: home, now: clockAt().now });
-    const first = openTask(ledger, "TK-00000010");
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clockAt().now });
+    const first = await openTask(ledger, "TK-00000010");
     assert.equal(first.ok, true);
-    const again = openTask(ledger, "TK-00000010");
+    const again = await openTask(ledger, "TK-00000010");
     assert.equal(again.ok, true);
     assert.equal(again.replayed, true);
     assert.equal(again.status, "intake");
     assert.equal(ledger.events({ taskId: "TK-00000010" }).length, 1, "重复提交不得产生第二条事件");
     // 拒绝也幂等：同一键重放不再落第二条拒绝事件
     const illegal = { op: "task.deliver", taskId: "TK-00000010", actor: HOST, ...cas(ledger, "TK-00000010"), idempotencyKey: "k-idem" };
-    assert.equal(ledger.command(illegal).ok, false);
-    assert.equal(ledger.command(illegal).replayed, true);
+    assert.equal((await ledger.command(illegal)).ok, false);
+    assert.equal((await ledger.command(illegal)).replayed, true);
     assert.equal(ledger.events({ taskId: "TK-00000010" }).filter((e) => e.type === "command-rejected").length, 1);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
 });
 
-test("状态是事件投影：清空内存态重启后从未闭合队列重建（V-A2.2）", () => {
+test("状态是事件投影：清空内存态重启后从未闭合队列重建（V-A2.2）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const first = createTaskLedger({ dshHome: home, now: clock.now });
-    toRunning(first, "TK-00000011");
-    openTask(first, "TK-00000012");
+    const first = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await toRunning(first, "TK-00000011");
+    await openTask(first, "TK-00000012");
     assert.equal(first.openQueue().length, 2);
     first.close(); // 模拟宿主停机：内存态清零，写锁释放
-    const second = createTaskLedger({ dshHome: home, now: clock.now });
+    const second = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
     const rebuilt = second.openQueue();
     assert.deepEqual(rebuilt.map((t) => t.taskId).sort(), ["TK-00000011", "TK-00000012"]);
     assert.equal(second.task("TK-00000011").status, "running");
     assert.equal(second.task("TK-00000011").owner, "implementer");
     // 重建后继续在旧序列上推进（seq 不重置）
-    const next = second.command({
+    const next = await second.command({
       op: "task.report", taskId: "TK-00000011", actor: POST("implementer"),
       ...cas(second, "TK-00000011"), idempotencyKey: "TK-00000011-report", payload: {}
     });
@@ -264,15 +263,15 @@ test("状态是事件投影：清空内存态重启后从未闭合队列重建�
   }
 });
 
-test("单一写者：宿主持有台账写锁时，第二个写者被拒（bot 无直写通道，V-A2.1）", () => {
+test("单一写者：宿主持有台账写锁时，第二个写者被拒（bot 无直写通道，V-A2.1）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const host = createTaskLedger({ dshHome: home, now: clock.now, lockSpinMs: 0 });
-    openTask(host, "TK-00000013");
+    const host = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now, lockSpinMs: 0 });
+    await openTask(host, "TK-00000013");
     assert.equal(host.holdsWriterLock(), true);
-    const bot = createTaskLedger({ dshHome: home, now: clock.now, lockSpinMs: 0 });
-    const blocked = bot.command({
+    const bot = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now, lockSpinMs: 0 });
+    const blocked = await bot.command({
       op: "task.intake", taskId: "TK-00000014", actor: HOST,
       idempotencyKey: "bot-write", payload: { class: "project", brief: { ...VALID_BRIEF } }
     });
@@ -281,19 +280,19 @@ test("单一写者：宿主持有台账写锁时，第二个写者被拒（bot �
     assert.equal(host.events({ taskId: "TK-00000014" }).length, 0, "第二写者不得落任何事件");
     host.close();
     // 宿主释放后（重启语义）同一数据根可再次写入
-    const restarted = createTaskLedger({ dshHome: home, now: clock.now, lockSpinMs: 0 });
-    assert.equal(openTask(restarted, "TK-00000014").ok, true);
+    const restarted = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now, lockSpinMs: 0 });
+    assert.equal((await openTask(restarted, "TK-00000014")).ok, true);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
 });
 
-test("关闭不可重开、归档不删档；改动用 supersedesTaskId 开新任务（V-A2.9）", () => {
+test("关闭不可重开、归档不删档；改动用 supersedesTaskId 开新任务（V-A2.9）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    toRunning(ledger, "TK-00000015");
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await toRunning(ledger, "TK-00000015");
     // 关闭前置（§B；14 号票）：产出须先按「谁产出谁登记」登记——本用例只关「关闭不可
     // 重开」，故先把登记门满足掉（归属者＝本条链的产出方 implementer）
     registerReport({
@@ -302,11 +301,12 @@ test("关闭不可重开、归档不删档；改动用 supersedesTaskId 开新�
     });
     for (const [op, from] of [["task.report", "running"], ["task.deliver", "produced"], ["task.settle", "delivered"], ["task.close", "settled"]]) {
       const actor = (op === "task.settle" || op === "task.close") ? HOST : POST("implementer");
-      assert.equal(ledger.command({ op, taskId: "TK-00000015", actor, ...cas(ledger, "TK-00000015"), idempotencyKey: `TK-00000015-${op}`, payload: {} }).ok, true, op);
+      const step = await ledger.command({ op, taskId: "TK-00000015", actor, ...cas(ledger, "TK-00000015"), idempotencyKey: `TK-00000015-${op}`, payload: {} });
+      assert.equal(step.ok, true, `${op}: ${step.code} ${step.reason}`);
     }
     assert.equal(ledger.task("TK-00000015").status, "closed");
     // 终态不可重开：任何状态事件都拒（归档不删档＝事件与投影仍在）
-    const reopen = ledger.command({
+    const reopen = await ledger.command({
       op: "task.requeue", taskId: "TK-00000015", actor: HOST, ...cas(ledger, "TK-00000015"),
       idempotencyKey: "TK-00000015-reopen", payload: {}
     });
@@ -317,11 +317,11 @@ test("关闭不可重开、归档不删档；改动用 supersedesTaskId 开新�
     assert.ok(ledger.events({ taskId: "TK-00000015" }).length > 0, "归档不删档：事件仍在事实源内");
     assert.equal(ledger.openQueue().some((t) => t.taskId === "TK-00000015"), false, "已闭合任务不在未闭合队列");
     // 改动用新任务引用旧 id
-    const amend = openTask(ledger, "TK-00000016", { supersedesTaskId: "TK-00000015" });
+    const amend = await openTask(ledger, "TK-00000016", { supersedesTaskId: "TK-00000015" });
     assert.equal(amend.ok, true);
     assert.equal(ledger.task("TK-00000016").supersedesTaskId, "TK-00000015");
     // 引用未闭合任务＝拒
-    const bad = openTask(ledger, "TK-00000017", { supersedesTaskId: "TK-00000016" });
+    const bad = await openTask(ledger, "TK-00000017", { supersedesTaskId: "TK-00000016" });
     assert.equal(bad.ok, false);
     assert.equal(bad.code, "supersedes-not-closed");
   } finally {
@@ -329,16 +329,16 @@ test("关闭不可重开、归档不删档；改动用 supersedesTaskId 开新�
   }
 });
 
-test("一实例同时只持一个进行中任务：第二次归属机械拒绝（V-A2.6）", () => {
+test("一实例同时只持一个进行中任务：第二次归属机械拒绝（V-A2.6）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    toRunning(ledger, "TK-00000020", "implementer");
-    openTask(ledger, "TK-00000021");
-    ledger.command({ op: "task.triage", taskId: "TK-00000021", actor: HOST, ...cas(ledger, "TK-00000021"), idempotencyKey: "TK-00000021-triage", payload: { decision: "立项" } });
-    ledger.command({ op: "task.plan", taskId: "TK-00000021", actor: HOST, ...cas(ledger, "TK-00000021"), idempotencyKey: "TK-00000021-plan", payload: {} });
-    const second = ledger.command({
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await toRunning(ledger, "TK-00000020", "implementer");
+    await openTask(ledger, "TK-00000021");
+    await ledger.command({ op: "task.triage", taskId: "TK-00000021", actor: HOST, ...cas(ledger, "TK-00000021"), idempotencyKey: "TK-00000021-triage", payload: { decision: "立项" } });
+    await ledger.command({ op: "task.plan", taskId: "TK-00000021", actor: HOST, ...cas(ledger, "TK-00000021"), idempotencyKey: "TK-00000021-plan", payload: {} });
+    const second = await ledger.command({
       op: "task.assign", taskId: "TK-00000021", actor: HOST, ...cas(ledger, "TK-00000021"),
       idempotencyKey: "TK-00000021-assign", payload: { assignee: "implementer" }
     });
@@ -351,25 +351,25 @@ test("一实例同时只持一个进行中任务：第二次归属机械拒绝�
   }
 });
 
-test("派单租约：逾期未接释放回队列并通知派单方；租约到期回收；实例死亡回收（V-A2.5）", () => {
+test("派单租约：逾期未接释放回队列并通知派单方；租约到期回收；实例死亡回收（V-A2.5）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION,
       dshHome: home, now: clock.now,
       lease: { acceptMs: 1000, leaseMs: 2000, redispatchCap: 5 }
     });
     // ① 逾期未接：释放回队列 + 通知派单方 + 记 task-stalled 异常
-    openTask(ledger, "TK-00000030");
-    ledger.command({ op: "task.triage", taskId: "TK-00000030", actor: HOST, ...cas(ledger, "TK-00000030"), idempotencyKey: "t30-triage", payload: { decision: "立项" } });
-    ledger.command({ op: "task.plan", taskId: "TK-00000030", actor: HOST, ...cas(ledger, "TK-00000030"), idempotencyKey: "t30-plan", payload: {} });
-    ledger.command({
+    await openTask(ledger, "TK-00000030");
+    await ledger.command({ op: "task.triage", taskId: "TK-00000030", actor: HOST, ...cas(ledger, "TK-00000030"), idempotencyKey: "t30-triage", payload: { decision: "立项" } });
+    await ledger.command({ op: "task.plan", taskId: "TK-00000030", actor: HOST, ...cas(ledger, "TK-00000030"), idempotencyKey: "t30-plan", payload: {} });
+    await ledger.command({
       op: "task.assign", taskId: "TK-00000030", actor: HOST, ...cas(ledger, "TK-00000030"),
       idempotencyKey: "t30-assign", payload: { assignee: "researcher", dispatcher: "project-lead" }
     });
     assert.equal(ledger.task("TK-00000030").status, "assigned");
     clock.advance(1500);
-    const swept = ledger.sweep({});
+    const swept = await ledger.sweep({});
     assert.deepEqual(swept.released.map((r) => r.cause), ["accept-timeout"]);
     assert.equal(ledger.task("TK-00000030").status, "planned", "逾期未接＝释放回队列");
     assert.equal(ledger.task("TK-00000030").owner, null);
@@ -378,22 +378,22 @@ test("派单租约：逾期未接释放回队列并通知派单方；租约到�
       "释放须通知派单方");
     assert.ok(ledger.events({ taskId: "TK-00000030" }).some((e) => e.type === "exception" && e.kind === "task-stalled"));
     // ② 租约到期（已接单、心跳缺失）→ 回收回队列
-    ledger.command({
+    await ledger.command({
       op: "task.assign", taskId: "TK-00000030", actor: HOST, ...cas(ledger, "TK-00000030"),
       idempotencyKey: "t30-assign-2", payload: { assignee: "researcher", dispatcher: "project-lead" }
     });
-    ledger.command({ op: "task.accept", taskId: "TK-00000030", actor: POST("researcher"), ...cas(ledger, "TK-00000030"), idempotencyKey: "t30-accept", payload: {} });
+    await ledger.command({ op: "task.accept", taskId: "TK-00000030", actor: POST("researcher"), ...cas(ledger, "TK-00000030"), idempotencyKey: "t30-accept", payload: {} });
     clock.advance(5000);
-    const swept2 = ledger.sweep({});
+    const swept2 = await ledger.sweep({});
     assert.deepEqual(swept2.released.map((r) => r.cause), ["lease-expired"]);
     assert.equal(ledger.task("TK-00000030").status, "planned");
     // ③ 实例死亡 → 立即回收（不等租约到期）
-    ledger.command({
+    await ledger.command({
       op: "task.assign", taskId: "TK-00000030", actor: HOST, ...cas(ledger, "TK-00000030"),
       idempotencyKey: "t30-assign-3", payload: { assignee: "researcher", dispatcher: "project-lead" }
     });
-    ledger.command({ op: "task.accept", taskId: "TK-00000030", actor: POST("researcher"), ...cas(ledger, "TK-00000030"), idempotencyKey: "t30-accept-2", payload: {} });
-    const swept3 = ledger.sweep({ isInstanceAlive: () => false });
+    await ledger.command({ op: "task.accept", taskId: "TK-00000030", actor: POST("researcher"), ...cas(ledger, "TK-00000030"), idempotencyKey: "t30-accept-2", payload: {} });
+    const swept3 = await ledger.sweep({ isInstanceAlive: () => false });
     assert.deepEqual(swept3.released.map((r) => r.cause), ["instance-death"]);
     assert.ok(ledger.events({ taskId: "TK-00000030" }).some((e) => e.type === "exception" && e.kind === "instance-death"));
     assert.equal(ledger.task("TK-00000030").status, "planned");
@@ -402,31 +402,31 @@ test("派单租约：逾期未接释放回队列并通知派单方；租约到�
   }
 });
 
-test("重派达封顶则上浮用户（waiting-user）且异常不丢（V-A2.5／V-A2.11）", () => {
+test("重派达封顶则上浮用户（waiting-user）且异常不丢（V-A2.5／V-A2.11）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION,
       dshHome: home, now: clock.now, lease: { acceptMs: 1000, leaseMs: 2000, redispatchCap: 2 }
     });
-    openTask(ledger, "TK-00000031");
-    ledger.command({ op: "task.triage", taskId: "TK-00000031", actor: HOST, ...cas(ledger, "TK-00000031"), idempotencyKey: "t31-triage", payload: { decision: "立项" } });
-    ledger.command({ op: "task.plan", taskId: "TK-00000031", actor: HOST, ...cas(ledger, "TK-00000031"), idempotencyKey: "t31-plan", payload: {} });
+    await openTask(ledger, "TK-00000031");
+    await ledger.command({ op: "task.triage", taskId: "TK-00000031", actor: HOST, ...cas(ledger, "TK-00000031"), idempotencyKey: "t31-triage", payload: { decision: "立项" } });
+    await ledger.command({ op: "task.plan", taskId: "TK-00000031", actor: HOST, ...cas(ledger, "TK-00000031"), idempotencyKey: "t31-plan", payload: {} });
     // 第 1 次派单逾期未接：1 < cap(2) → 释放回队列
-    ledger.command({
+    await ledger.command({
       op: "task.assign", taskId: "TK-00000031", actor: HOST, ...cas(ledger, "TK-00000031"),
       idempotencyKey: "t31-assign-1", payload: { assignee: "researcher", dispatcher: "project-lead" }
     });
     clock.advance(1500);
-    assert.deepEqual(ledger.sweep({}).released.map((r) => r.cause), ["accept-timeout"]);
+    assert.deepEqual((await ledger.sweep({})).released.map((r) => r.cause), ["accept-timeout"]);
     assert.equal(ledger.task("TK-00000031").status, "planned");
     // 第 2 次派单逾期未接：2 >= cap(2) → 不再重派，上浮用户
-    ledger.command({
+    await ledger.command({
       op: "task.assign", taskId: "TK-00000031", actor: HOST, ...cas(ledger, "TK-00000031"),
       idempotencyKey: "t31-assign-2", payload: { assignee: "researcher", dispatcher: "project-lead" }
     });
     clock.advance(1500);
-    const swept = ledger.sweep({});
+    const swept = await ledger.sweep({});
     assert.equal(ledger.task("TK-00000031").dispatchCount, 2);
     assert.deepEqual(swept.escalated.map((e) => e.taskId), ["TK-00000031"]);
     assert.equal(ledger.task("TK-00000031").status, "waiting-user", "重派封顶＝上浮用户终裁");
@@ -437,15 +437,15 @@ test("重派达封顶则上浮用户（waiting-user）且异常不丢（V-A2.5�
   }
 });
 
-test("心跳续签：租约按心跳延长，未超时的任务不被回收", () => {
+test("心跳续签：租约按心跳延长，未超时的任务不被回收", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now, lease: { acceptMs: 1000, leaseMs: 2000, redispatchCap: 5 } });
-    toRunning(ledger, "TK-00000032", "implementer");
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now, lease: { acceptMs: 1000, leaseMs: 2000, redispatchCap: 5 } });
+    await toRunning(ledger, "TK-00000032", "implementer");
     const before = ledger.task("TK-00000032").lease.expiresAt;
     clock.advance(1500);
-    const beat = ledger.command({
+    const beat = await ledger.command({
       op: "task.heartbeat", taskId: "TK-00000032", actor: POST("implementer"),
       idempotencyKey: "t32-beat", payload: { progress: "半程" }
     });
@@ -455,44 +455,44 @@ test("心跳续签：租约按心跳延长，未超时的任务不被回收", ()
     assert.equal(after.lease.heartbeats, 1);
     assert.equal(Date.parse(after.lease.expiresAt), Date.parse(before) + 2000);
     clock.advance(1500);
-    assert.deepEqual(ledger.sweep({}).released, [], "心跳后续签未到期＝不回收");
+    assert.deepEqual((await ledger.sweep({})).released, [], "心跳后续签未到期＝不回收");
     clock.advance(2500);
-    assert.equal(ledger.sweep({}).released.length, 1, "续签窗口用尽＝回收");
+    assert.equal((await ledger.sweep({})).released.length, 1, "续签窗口用尽＝回收");
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
 });
 
-test("值守例程幂等键＝例程 id＋时间窗：同窗重复触发不产生第二个任务（V-A2.10）", () => {
+test("值守例程幂等键＝例程 id＋时间窗：同窗重复触发不产生第二个任务（V-A2.10）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    const first = ledger.triggerRoutine({ routineId: "duty-scan", window: "2026-09-16T10:00Z", brief: { ...VALID_BRIEF, goal: "常态巡检" } });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    const first = await ledger.triggerRoutine({ routineId: "duty-scan", window: "2026-09-16T10:00Z", brief: { ...VALID_BRIEF, goal: "常态巡检" } });
     assert.equal(first.ok, true);
     assert.equal(ledger.task(first.taskId).class, "duty");
-    const again = ledger.triggerRoutine({ routineId: "duty-scan", window: "2026-09-16T10:00Z", brief: { ...VALID_BRIEF, goal: "常态巡检" } });
+    const again = await ledger.triggerRoutine({ routineId: "duty-scan", window: "2026-09-16T10:00Z", brief: { ...VALID_BRIEF, goal: "常态巡检" } });
     assert.equal(again.replayed, true);
     assert.equal(again.taskId, first.taskId);
     assert.equal(ledger.tasks().length, 1, "同窗重复触发不得产生第二个任务");
-    const nextWindow = ledger.triggerRoutine({ routineId: "duty-scan", window: "2026-09-16T10:05Z", brief: { ...VALID_BRIEF, goal: "常态巡检" } });
+    const nextWindow = await ledger.triggerRoutine({ routineId: "duty-scan", window: "2026-09-16T10:05Z", brief: { ...VALID_BRIEF, goal: "常态巡检" } });
     assert.equal(nextWindow.ok, true);
     assert.notEqual(nextWindow.taskId, first.taskId);
     assert.equal(ledger.tasks().length, 2);
     // 窗口必填（幂等键的构成项不得缺省）
-    assert.equal(ledger.triggerRoutine({ routineId: "duty-scan" }).code, "invalid-window");
+    assert.equal((await ledger.triggerRoutine({ routineId: "duty-scan" })).code, "invalid-window");
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
 });
 
-test("LLM 岗位只提交判断输入：judgement 不改状态；管理类转移的角色类粗门放行 post（细分白名单归 06 号票鉴权器）", () => {
+test("LLM 岗位只提交判断输入：judgement 不改状态；管理类转移的角色类粗门放行 post（细分白名单归 06 号票鉴权器）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    openTask(ledger, "TK-00000040");
-    const judged = ledger.judgement({
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await openTask(ledger, "TK-00000040");
+    const judged = await ledger.judgement({
       taskId: "TK-00000040", actor: POST("duty-coordinator"), intent: "triage-proposal",
       input: { decision: "立项" }, idempotencyKey: "t40-judge"
     });
@@ -501,16 +501,16 @@ test("LLM 岗位只提交判断输入：judgement 不改状态；管理类转移
     assert.equal(ledger.events({ taskId: "TK-00000040" }).filter((e) => e.type === "judgement").length, 1);
     // 管理类转移（06 号票起）：确定性层只守角色类粗门——post 放行；岗位细分
     // 白名单（谁可以 triage）在鉴权器，负例见 tests/org-ledger-authz.test.mjs
-    const posted = ledger.command({
+    const posted = await ledger.command({
       op: "task.triage", taskId: "TK-00000040", actor: POST("duty-coordinator"),
       ...cas(ledger, "TK-00000040"), idempotencyKey: "t40-triage", payload: { decision: "立项" }
     });
     assert.equal(posted.ok, true, posted.reason);
     assert.equal(ledger.task("TK-00000040").status, "triaged");
     // 承接类转移只许当前归属者（ownerOnly 语义不变）
-    ledger.command({ op: "task.plan", taskId: "TK-00000040", actor: HOST, ...cas(ledger, "TK-00000040"), idempotencyKey: "t40-plan", payload: {} });
-    ledger.command({ op: "task.assign", taskId: "TK-00000040", actor: HOST, ...cas(ledger, "TK-00000040"), idempotencyKey: "t40-assign", payload: { assignee: "researcher" } });
-    const notOwner = ledger.command({
+    await ledger.command({ op: "task.plan", taskId: "TK-00000040", actor: HOST, ...cas(ledger, "TK-00000040"), idempotencyKey: "t40-plan", payload: {} });
+    await ledger.command({ op: "task.assign", taskId: "TK-00000040", actor: HOST, ...cas(ledger, "TK-00000040"), idempotencyKey: "t40-assign", payload: { assignee: "researcher" } });
+    const notOwner = await ledger.command({
       op: "task.accept", taskId: "TK-00000040", actor: POST("implementer"),
       ...cas(ledger, "TK-00000040"), idempotencyKey: "t40-accept", payload: {}
     });
@@ -518,22 +518,22 @@ test("LLM 岗位只提交判断输入：judgement 不改状态；管理类转移
     assert.equal(notOwner.code, "not-owner");
     assert.equal(ledger.task("TK-00000040").status, "assigned");
     // 终态任务的判断输入同样拒（不写只读面）
-    const closed = ledger.command({ op: "task.cancel", taskId: "TK-00000040", actor: USER, ...cas(ledger, "TK-00000040"), idempotencyKey: "t40-cancel", payload: { reason: "用户终裁" } });
+    const closed = await ledger.command({ op: "task.cancel", taskId: "TK-00000040", actor: USER, ...cas(ledger, "TK-00000040"), idempotencyKey: "t40-cancel", payload: { reason: "用户终裁" } });
     assert.equal(closed.ok, true);
-    assert.equal(ledger.judgement({ taskId: "TK-00000040", actor: POST("researcher"), intent: "x", idempotencyKey: "t40-judge2" }).code, "task-closed");
+    assert.equal((await ledger.judgement({ taskId: "TK-00000040", actor: POST("researcher"), intent: "x", idempotencyKey: "t40-judge2" })).code, "task-closed");
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
 });
 
-test("wait-user 挂起：host／user 上浮裁定放行，post 触发须归属者本人（postOwnerOnly）", () => {
+test("wait-user 挂起：host／user 上浮裁定放行，post 触发须归属者本人（postOwnerOnly）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    toRunning(ledger, "TK-00000080");
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await toRunning(ledger, "TK-00000080");
     // 非归属 post 不得把他人任务挂起——waiting-user 无超时自动动作，任由挂起＝无限期冻结
-    const notOwner = ledger.command({
+    const notOwner = await ledger.command({
       op: "task.wait-user", taskId: "TK-00000080", actor: POST("intruder"),
       ...cas(ledger, "TK-00000080"), idempotencyKey: "t80-wait-intruder",
       payload: { class: "irreversible-write", reason: "越权挂起" }
@@ -543,18 +543,18 @@ test("wait-user 挂起：host／user 上浮裁定放行，post 触发须归属�
     assert.equal(ledger.task("TK-00000080").status, "running", "越权挂起不得改变状态");
     assert.equal(ledger.events({ taskId: "TK-00000080" }).filter((e) => e.type === "command-rejected").length, 1);
     // 归属者 post（不可逆写入放行请求）与 host（上浮终裁）／user（用户域裁定）三类触发均放行（规格 §F）
-    const ownerWait = ledger.command({
+    const ownerWait = await ledger.command({
       op: "task.wait-user", taskId: "TK-00000080", actor: POST("implementer"),
       ...cas(ledger, "TK-00000080"), idempotencyKey: "t80-wait-owner",
       payload: { class: "irreversible-write", reason: "不可逆写入放行" }
     });
     assert.equal(ownerWait.ok, true);
     for (const [actor, cls, key] of [[HOST, "escalation", "t80-wait-host"], [USER, "user-domain", "t80-wait-user"]]) {
-      assert.equal(ledger.command({
+      assert.equal((await ledger.command({
         op: "task.resume", taskId: "TK-00000080", actor: HOST, ...cas(ledger, "TK-00000080"),
         idempotencyKey: `t80-resume-${key}`, payload: { resumeTo: "running" }
-      }).ok, true);
-      const waited = ledger.command({
+      })).ok, true);
+      const waited = await ledger.command({
         op: "task.wait-user", taskId: "TK-00000080", actor,
         ...cas(ledger, "TK-00000080"), idempotencyKey: key, payload: { class: cls, reason: "上浮终裁" }
       });
@@ -566,14 +566,14 @@ test("wait-user 挂起：host／user 上浮裁定放行，post 触发须归属�
   }
 });
 
-test("只有三类裁定进 waiting-user：class 必填且封闭，缺省／枚举外即拒（V-A5.1）", () => {
+test("只有三类裁定进 waiting-user：class 必填且封闭，缺省／枚举外即拒（V-A5.1）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    toRunning(ledger, "TK-00000081");
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await toRunning(ledger, "TK-00000081");
     // 缺省 class：拒——裁定类不得由「触发方是谁」反推（不静默降级）
-    const missing = ledger.command({
+    const missing = await ledger.command({
       op: "task.wait-user", taskId: "TK-00000081", actor: POST("implementer"),
       ...cas(ledger, "TK-00000081"), idempotencyKey: "t81-wait-missing", payload: { reason: "无裁定类" }
     });
@@ -582,7 +582,7 @@ test("只有三类裁定进 waiting-user：class 必填且封闭，缺省／枚�
     assert.equal(ledger.task("TK-00000081").status, "running", "拒绝不得改状态");
     // 枚举外（含近形大写、空串、非字符串）：一律拒
     for (const [index, bad] of ["闲聊", "", "ESCALATION", 1, null, "escalation "].entries()) {
-      const verdict = ledger.command({
+      const verdict = await ledger.command({
         op: "task.wait-user", taskId: "TK-00000081", actor: HOST, ...cas(ledger, "TK-00000081"),
         idempotencyKey: `t81-bad-${String(index)}`, payload: { class: bad, reason: "枚举外" }
       });
@@ -591,43 +591,43 @@ test("只有三类裁定进 waiting-user：class 必填且封闭，缺省／枚�
     }
     assert.equal(ledger.task("TK-00000081").status, "running");
     // 三类各自放行：投影记住裁定类，恢复后清空（状态＝事件投影，重建可复现）
-    RULING_CLASS_IDS.forEach((cls, index) => {
-      const waited = ledger.command({
+    for (const [index, cls] of RULING_CLASS_IDS.entries()) {
+      const waited = await ledger.command({
         op: "task.wait-user", taskId: "TK-00000081", actor: HOST, ...cas(ledger, "TK-00000081"),
         idempotencyKey: `t81-wait-${String(index)}`, payload: { class: cls, reason: "三类之一" }
       });
       assert.equal(waited.ok, true, `${cls} 应放行`);
       assert.equal(ledger.task("TK-00000081").waitingClass, cls, "投影须记住裁定类");
-      const resumed = ledger.command({
+      const resumed = await ledger.command({
         op: "task.resume", taskId: "TK-00000081", actor: USER, ...cas(ledger, "TK-00000081"),
         idempotencyKey: `t81-resume-${String(index)}`, payload: { resumeTo: "running" }
       });
       assert.equal(resumed.ok, true);
       assert.equal(ledger.task("TK-00000081").waitingClass, null, "恢复后裁定类清空");
-    });
+    }
     // 重建投影：裁定类随事件重放复现（不依赖内存态）
-    const rebuilt = createTaskLedger({ dshHome: home, now: clock.now });
+    const rebuilt = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
     assert.equal(rebuilt.task("TK-00000081").waitingClass, null);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
 });
 
-test("异常四类统一走台账：非法类别拒、四类均可登记且不改状态（V-A2.11）", () => {
+test("异常四类统一走台账：非法类别拒、四类均可登记且不改状态（V-A2.11）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    openTask(ledger, "TK-00000041");
-    const bad = ledger.raiseException({ taskId: "TK-00000041", kind: "mystery", idempotencyKey: "e-bad" });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await openTask(ledger, "TK-00000041");
+    const bad = await ledger.raiseException({ taskId: "TK-00000041", kind: "mystery", idempotencyKey: "e-bad" });
     assert.equal(bad.ok, false);
     assert.equal(bad.code, "invalid-exception-kind");
     for (const kind of EXCEPTION_KINDS) {
-      const raised = ledger.raiseException({
+      const raised = await ledger.raiseException({
         taskId: "TK-00000041", kind, detail: { note: kind }, idempotencyKey: `exc-${kind}`
       });
       assert.equal(raised.ok, true, kind);
-      assert.equal(ledger.raiseException({ taskId: "TK-00000041", kind, idempotencyKey: `exc-${kind}` }).replayed, true, "同源异常只留一条");
+      assert.equal((await ledger.raiseException({ taskId: "TK-00000041", kind, idempotencyKey: `exc-${kind}` })).replayed, true, "同源异常只留一条");
     }
     assert.equal(ledger.task("TK-00000041").status, "intake", "异常是告警事件，不改状态");
     assert.deepEqual(
@@ -639,13 +639,13 @@ test("异常四类统一走台账：非法类别拒、四类均可登记且不�
   }
 });
 
-test("通知＝台账事件投影：无事件不通知、无事件不产生新通知（V-A2.12）", () => {
+test("通知＝台账事件投影：无事件不通知、无事件不产生新通知（V-A2.12）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
     assert.deepEqual(ledger.notificationsAfter(0).notifications, [], "空台账无通知");
-    toRunning(ledger, "TK-00000042", "implementer");
+    await toRunning(ledger, "TK-00000042", "implementer");
     const first = ledger.notificationsAfter(0);
     assert.deepEqual(first.notifications.map((n) => n.type), ["assign", "accept"], "通知严格来自事件序列");
     // 游标之后无新事件 → 不产生新通知
@@ -661,12 +661,12 @@ test("通知＝台账事件投影：无事件不通知、无事件不产生新�
   }
 });
 
-test("事件链防改动：事实源被篡改后读侧 fail closed", () => {
+test("事件链防改动：事实源被篡改后读侧 fail closed", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    openTask(ledger, "TK-00000043");
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await openTask(ledger, "TK-00000043");
     ledger.close();
     const file = eventsFile(home);
     const lines = readFileSync(file, "utf8").trim().split("\n");
@@ -674,9 +674,9 @@ test("事件链防改动：事实源被篡改后读侧 fail closed", () => {
     tampered.class = "duty";
     lines[0] = JSON.stringify(tampered);
     writeFileSync(file, lines.join("\n") + "\n");
-    const reader = createTaskLedger({ dshHome: home, now: clock.now, lockSpinMs: 0 });
+    const reader = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now, lockSpinMs: 0 });
     // 事实源已损坏：不得用 cas() 读投影（读侧 fail closed 会抛），显式给 CAS 两件
-    const result = reader.command({
+    const result = await reader.command({
       op: "task.triage", taskId: "TK-00000043", actor: HOST,
       expectedStatus: "intake", expectedSeq: 1, idempotencyKey: "tamper", payload: { decision: "立项" }
     });
@@ -687,20 +687,20 @@ test("事件链防改动：事实源被篡改后读侧 fail closed", () => {
   }
 });
 
-test("写入前校验：缺 actor／未定义键的事件不得入事实源，台账保持可读", () => {
+test("写入前校验：缺 actor／未定义键的事件不得入事实源，台账保持可读", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    openTask(ledger, "TK-00000070");
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await openTask(ledger, "TK-00000070");
     // 判断输入缺 actor：拒（不写半截事件——否则读侧会永久判损坏）
-    const noActor = ledger.command({
+    const noActor = await ledger.command({
       op: "task.judge", taskId: "TK-00000070", idempotencyKey: "no-actor", payload: { intent: "x" }
     });
     assert.equal(noActor.ok, false);
     assert.equal(noActor.code, "invalid-actor");
     // 未定义负载键：拒（不静默丢弃调用方以为记下的字段）
-    const unknownKey = ledger.command({
+    const unknownKey = await ledger.command({
       op: "task.judge", taskId: "TK-00000070", actor: POST("researcher"),
       idempotencyKey: "unknown-key", payload: { intent: "x", mystery: 1 }
     });
@@ -713,13 +713,13 @@ test("写入前校验：缺 actor／未定义键的事件不得入事实源，�
   }
 });
 
-test("CAS 序号必填：只有期望状态同样拒（§D 期望状态与序号两件）", () => {
+test("CAS 序号必填：只有期望状态同样拒（§D 期望状态与序号两件）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    openTask(ledger, "TK-00000071");
-    const statusOnly = ledger.command({
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await openTask(ledger, "TK-00000071");
+    const statusOnly = await ledger.command({
       op: "task.triage", taskId: "TK-00000071", actor: HOST,
       expectedStatus: "intake", idempotencyKey: "status-only", payload: { decision: "立项" }
     });
@@ -731,24 +731,24 @@ test("CAS 序号必填：只有期望状态同样拒（§D 期望状态与序号
   }
 });
 
-test("分诊四值：直办／立项／澄清／拒收各落确定状态，未知取值即拒（§B）", () => {
+test("分诊四值：直办／立项／澄清／拒收各落确定状态，未知取值即拒（§B）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
     const cases = [["TK-00000072", "直办", "triaged"], ["TK-00000073", "立项", "triaged"],
       ["TK-00000074", "澄清", "waiting-user"], ["TK-00000075", "拒收", "cancelled"]];
     for (const [taskId, decision, expected] of cases) {
-      openTask(ledger, taskId);
-      const result = ledger.command({
+      await openTask(ledger, taskId);
+      const result = await ledger.command({
         op: "task.triage", taskId, actor: HOST, ...cas(ledger, taskId),
         idempotencyKey: `${taskId}-triage`, payload: { decision }
       });
       assert.equal(result.ok, true, `${decision} 应被接受`);
       assert.equal(ledger.task(taskId).status, expected, `${decision} → ${expected}`);
     }
-    openTask(ledger, "TK-00000076");
-    const unknown = ledger.command({
+    await openTask(ledger, "TK-00000076");
+    const unknown = await ledger.command({
       op: "task.triage", taskId: "TK-00000076", actor: HOST, ...cas(ledger, "TK-00000076"),
       idempotencyKey: "TK-00000076-triage", payload: { decision: "随便" }
     });
@@ -760,13 +760,13 @@ test("分诊四值：直办／立项／澄清／拒收各落确定状态，未�
   }
 });
 
-test("amend：追加事件并通知**承接方**（不是修改人），简报冻结语义归 07", () => {
+test("amend：追加事件并通知**承接方**（不是修改人），简报冻结语义归 07", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    toRunning(ledger, "TK-00000077", "implementer");
-    const amended = ledger.command({
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await toRunning(ledger, "TK-00000077", "implementer");
+    const amended = await ledger.command({
       op: "task.amend", taskId: "TK-00000077", actor: { kind: "host", id: "project-lead" },
       ...cas(ledger, "TK-00000077"), idempotencyKey: "TK-00000077-amend",
       payload: { brief: { ...VALID_BRIEF, goal: "改后的目标" } }
@@ -784,12 +784,12 @@ test("amend：追加事件并通知**承接方**（不是修改人），简报�
 
 // ---------------- 07 号票：四要素简报契约与派单租约链 ----------------
 
-test("intake：简报在场即必须合法（fail closed，零事件落账）；简报缺席合法（立项时经 plan 补）", () => {
+test("intake：简报在场即必须合法（fail closed，零事件落账）；简报缺席合法（立项时经 plan 补）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    const invalid = ledger.command({
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    const invalid = await ledger.command({
       op: "task.intake", taskId: "TK-00000080", actor: HOST, idempotencyKey: "i80",
       payload: { class: "project", brief: { ...VALID_BRIEF, goal: "" } }
     });
@@ -797,7 +797,7 @@ test("intake：简报在场即必须合法（fail closed，零事件落账）；
     assert.equal(invalid.code, "invalid-brief");
     assert.equal(ledger.events({ taskId: "TK-00000080" }).some((event) => event.type === "intake"), false,
       "非法简报不得开档（拒绝本身落 command-rejected 事件，状态事件零落）");
-    const absent = ledger.command({
+    const absent = await ledger.command({
       op: "task.intake", taskId: "TK-00000081", actor: HOST, idempotencyKey: "i81",
       payload: { class: "project" }
     });
@@ -808,21 +808,21 @@ test("intake：简报在场即必须合法（fail closed，零事件落账）；
   }
 });
 
-test("plan 携带简报（立项产出四要素简报）；简报随事件入投影", () => {
+test("plan 携带简报（立项产出四要素简报）；简报随事件入投影", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    ledger.command({ op: "task.intake", taskId: "TK-00000082", actor: HOST, idempotencyKey: "i82", payload: { class: "project" } });
-    ledger.command({ op: "task.triage", taskId: "TK-00000082", actor: HOST, ...cas(ledger, "TK-00000082"), idempotencyKey: "t82", payload: { decision: "立项" } });
-    const planned = ledger.command({
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await ledger.command({ op: "task.intake", taskId: "TK-00000082", actor: HOST, idempotencyKey: "i82", payload: { class: "project" } });
+    await ledger.command({ op: "task.triage", taskId: "TK-00000082", actor: HOST, ...cas(ledger, "TK-00000082"), idempotencyKey: "t82", payload: { decision: "立项" } });
+    const planned = await ledger.command({
       op: "task.plan", taskId: "TK-00000082", actor: HOST, ...cas(ledger, "TK-00000082"),
       idempotencyKey: "p82", payload: { brief: { ...VALID_BRIEF, goal: "立项产出的目标" } }
     });
     assert.equal(planned.ok, true);
     assert.equal(ledger.task("TK-00000082").status, "planned");
     assert.equal(ledger.task("TK-00000082").brief.goal, "立项产出的目标");
-    const invalid = ledger.command({
+    const invalid = await ledger.command({
       op: "task.intake", taskId: "TK-00000083", actor: HOST, idempotencyKey: "i83",
       payload: { class: "project", brief: { ...VALID_BRIEF, acceptance: ["散文判据不可执行"] } }
     });
@@ -834,15 +834,15 @@ test("plan 携带简报（立项产出四要素简报）；简报随事件入投
   }
 });
 
-test("派出即冻结：assign 时简报必须已在且合法；无简报派单即拒（V-A2.4）", () => {
+test("派出即冻结：assign 时简报必须已在且合法；无简报派单即拒（V-A2.4）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    ledger.command({ op: "task.intake", taskId: "TK-00000084", actor: HOST, idempotencyKey: "i84", payload: { class: "project" } });
-    ledger.command({ op: "task.triage", taskId: "TK-00000084", actor: HOST, ...cas(ledger, "TK-00000084"), idempotencyKey: "t84", payload: { decision: "立项" } });
-    ledger.command({ op: "task.plan", taskId: "TK-00000084", actor: HOST, ...cas(ledger, "TK-00000084"), idempotencyKey: "p84", payload: {} });
-    const missing = ledger.command({
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await ledger.command({ op: "task.intake", taskId: "TK-00000084", actor: HOST, idempotencyKey: "i84", payload: { class: "project" } });
+    await ledger.command({ op: "task.triage", taskId: "TK-00000084", actor: HOST, ...cas(ledger, "TK-00000084"), idempotencyKey: "t84", payload: { decision: "立项" } });
+    await ledger.command({ op: "task.plan", taskId: "TK-00000084", actor: HOST, ...cas(ledger, "TK-00000084"), idempotencyKey: "p84", payload: {} });
+    const missing = await ledger.command({
       op: "task.assign", taskId: "TK-00000084", actor: HOST, ...cas(ledger, "TK-00000084"),
       idempotencyKey: "a84", payload: { assignee: "implementer" }
     });
@@ -850,12 +850,12 @@ test("派出即冻结：assign 时简报必须已在且合法；无简报派单�
     assert.equal(missing.code, "brief-missing");
     assert.equal(ledger.task("TK-00000084").status, "planned", "冻结前置不满足不得派单");
     // 补上简报后同一派单成功（冻结件在场）
-    ledger.command({
+    await ledger.command({
       op: "task.amend", taskId: "TK-00000084", actor: HOST, ...cas(ledger, "TK-00000084"),
       idempotencyKey: "am84", payload: { brief: { ...VALID_BRIEF } }
     });
     // amend 走了 planned 态（非终态即可改）——回到可派单前置
-    const assigned = ledger.command({
+    const assigned = await ledger.command({
       op: "task.assign", taskId: "TK-00000084", actor: HOST, ...cas(ledger, "TK-00000084"),
       idempotencyKey: "a84b", payload: { assignee: "implementer" }
     });
@@ -866,18 +866,18 @@ test("派出即冻结：assign 时简报必须已在且合法；无简报派单�
   }
 });
 
-test("接单响应携带简报（V-A4.3）：task.accept 成功结论内含冻结简报本体", () => {
+test("接单响应携带简报（V-A4.3）：task.accept 成功结论内含冻结简报本体", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    openTask(ledger, "TK-00000085");
-    ledger.command({ op: "task.triage", taskId: "TK-00000085", actor: HOST, ...cas(ledger, "TK-00000085"), idempotencyKey: "t85", payload: { decision: "立项" } });
-    ledger.command({ op: "task.plan", taskId: "TK-00000085", actor: HOST, ...cas(ledger, "TK-00000085"), idempotencyKey: "p85", payload: {} });
-    ledger.command({ op: "task.assign", taskId: "TK-00000085", actor: HOST, ...cas(ledger, "TK-00000085"), idempotencyKey: "a85", payload: { assignee: "implementer" } });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await openTask(ledger, "TK-00000085");
+    await ledger.command({ op: "task.triage", taskId: "TK-00000085", actor: HOST, ...cas(ledger, "TK-00000085"), idempotencyKey: "t85", payload: { decision: "立项" } });
+    await ledger.command({ op: "task.plan", taskId: "TK-00000085", actor: HOST, ...cas(ledger, "TK-00000085"), idempotencyKey: "p85", payload: {} });
+    await ledger.command({ op: "task.assign", taskId: "TK-00000085", actor: HOST, ...cas(ledger, "TK-00000085"), idempotencyKey: "a85", payload: { assignee: "implementer" } });
     // 从 intake 事件取登记简报（独立真源）比对响应携带件
     const registered = ledger.events({ taskId: "TK-00000085" }).find((event) => event.type === "intake").brief;
-    const accepted = ledger.command({
+    const accepted = await ledger.command({
       op: "task.accept", taskId: "TK-00000085", actor: POST("implementer"), ...cas(ledger, "TK-00000085"),
       idempotencyKey: "acc85", payload: {}
     });
@@ -888,14 +888,14 @@ test("接单响应携带简报（V-A4.3）：task.accept 成功结论内含冻�
   }
 });
 
-test("amend 只收合法简报：非法替换件即拒（冻结件只允许被合法件置换）", () => {
+test("amend 只收合法简报：非法替换件即拒（冻结件只允许被合法件置换）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    toRunning(ledger, "TK-00000086");
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await toRunning(ledger, "TK-00000086");
     const before = ledger.task("TK-00000086").brief;
-    const rejected = ledger.command({
+    const rejected = await ledger.command({
       op: "task.amend", taskId: "TK-00000086", actor: HOST, ...cas(ledger, "TK-00000086"),
       idempotencyKey: "am86", payload: { brief: { goal: "只有目标的不完整件" } }
     });
@@ -907,22 +907,22 @@ test("amend 只收合法简报：非法替换件即拒（冻结件只允许被�
   }
 });
 
-test("带理由拒收：assigned→planned 归队、清除归属、通知派单方；理由可选但给出须非空（规格 §B「可带理由拒收」）", () => {
+test("带理由拒收：assigned→planned 归队、清除归属、通知派单方；理由可选但给出须非空（规格 §B「可带理由拒收」）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    openTask(ledger, "TK-00000087");
-    ledger.command({ op: "task.triage", taskId: "TK-00000087", actor: HOST, ...cas(ledger, "TK-00000087"), idempotencyKey: "t87", payload: { decision: "立项" } });
-    ledger.command({ op: "task.plan", taskId: "TK-00000087", actor: HOST, ...cas(ledger, "TK-00000087"), idempotencyKey: "p87", payload: {} });
-    ledger.command({ op: "task.assign", taskId: "TK-00000087", actor: HOST, ...cas(ledger, "TK-00000087"), idempotencyKey: "a87", payload: { assignee: "researcher" } });
-    const badReason = ledger.command({
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await openTask(ledger, "TK-00000087");
+    await ledger.command({ op: "task.triage", taskId: "TK-00000087", actor: HOST, ...cas(ledger, "TK-00000087"), idempotencyKey: "t87", payload: { decision: "立项" } });
+    await ledger.command({ op: "task.plan", taskId: "TK-00000087", actor: HOST, ...cas(ledger, "TK-00000087"), idempotencyKey: "p87", payload: {} });
+    await ledger.command({ op: "task.assign", taskId: "TK-00000087", actor: HOST, ...cas(ledger, "TK-00000087"), idempotencyKey: "a87", payload: { assignee: "researcher" } });
+    const badReason = await ledger.command({
       op: "task.decline", taskId: "TK-00000087", actor: POST("researcher"), ...cas(ledger, "TK-00000087"),
       idempotencyKey: "d87a", payload: { reason: "   " }
     });
     assert.equal(badReason.ok, false);
     assert.equal(badReason.code, "decline-reason-required");
-    const declined = ledger.command({
+    const declined = await ledger.command({
       op: "task.decline", taskId: "TK-00000087", actor: POST("researcher"), ...cas(ledger, "TK-00000087"),
       idempotencyKey: "d87b", payload: { reason: "边界要求改代码，越出研究员岗位边界" }
     });
@@ -937,22 +937,22 @@ test("带理由拒收：assigned→planned 归队、清除归属、通知派单�
     assert.equal(notes.length, 1);
     assert.equal(notes[0].to, "web", "拒收通知派单方（派单动作的发起者）");
     // 无理由拒收同样合法（可带理由＝可选；归队/通知链不变）
-    openTask(ledger, "TK-00000089");
-    ledger.command({ op: "task.triage", taskId: "TK-00000089", actor: HOST, ...cas(ledger, "TK-00000089"), idempotencyKey: "t89", payload: { decision: "立项" } });
-    ledger.command({ op: "task.plan", taskId: "TK-00000089", actor: HOST, ...cas(ledger, "TK-00000089"), idempotencyKey: "p89", payload: {} });
-    ledger.command({ op: "task.assign", taskId: "TK-00000089", actor: HOST, ...cas(ledger, "TK-00000089"), idempotencyKey: "a89", payload: { assignee: "researcher" } });
-    const silent = ledger.command({
+    await openTask(ledger, "TK-00000089");
+    await ledger.command({ op: "task.triage", taskId: "TK-00000089", actor: HOST, ...cas(ledger, "TK-00000089"), idempotencyKey: "t89", payload: { decision: "立项" } });
+    await ledger.command({ op: "task.plan", taskId: "TK-00000089", actor: HOST, ...cas(ledger, "TK-00000089"), idempotencyKey: "p89", payload: {} });
+    await ledger.command({ op: "task.assign", taskId: "TK-00000089", actor: HOST, ...cas(ledger, "TK-00000089"), idempotencyKey: "a89", payload: { assignee: "researcher" } });
+    const silent = await ledger.command({
       op: "task.decline", taskId: "TK-00000089", actor: POST("researcher"), ...cas(ledger, "TK-00000089"),
       idempotencyKey: "d89", payload: {}
     });
     assert.equal(silent.ok, true, "无理由拒收合法（可带理由）");
     assert.equal(ledger.task("TK-00000089").status, "planned");
     // 非归属者不得代拒收（ownerOnly 粗门）
-    openTask(ledger, "TK-00000088");
-    ledger.command({ op: "task.triage", taskId: "TK-00000088", actor: HOST, ...cas(ledger, "TK-00000088"), idempotencyKey: "t88", payload: { decision: "立项" } });
-    ledger.command({ op: "task.plan", taskId: "TK-00000088", actor: HOST, ...cas(ledger, "TK-00000088"), idempotencyKey: "p88", payload: {} });
-    ledger.command({ op: "task.assign", taskId: "TK-00000088", actor: HOST, ...cas(ledger, "TK-00000088"), idempotencyKey: "a88", payload: { assignee: "researcher" } });
-    const stranger = ledger.command({
+    await openTask(ledger, "TK-00000088");
+    await ledger.command({ op: "task.triage", taskId: "TK-00000088", actor: HOST, ...cas(ledger, "TK-00000088"), idempotencyKey: "t88", payload: { decision: "立项" } });
+    await ledger.command({ op: "task.plan", taskId: "TK-00000088", actor: HOST, ...cas(ledger, "TK-00000088"), idempotencyKey: "p88", payload: {} });
+    await ledger.command({ op: "task.assign", taskId: "TK-00000088", actor: HOST, ...cas(ledger, "TK-00000088"), idempotencyKey: "a88", payload: { assignee: "researcher" } });
+    const stranger = await ledger.command({
       op: "task.decline", taskId: "TK-00000088", actor: POST("implementer"), ...cas(ledger, "TK-00000088"),
       idempotencyKey: "d88", payload: { reason: "路人拒收" }
     });
@@ -963,22 +963,22 @@ test("带理由拒收：assigned→planned 归队、清除归属、通知派单�
   }
 });
 
-test("队列滞留超时：intake 上浮用户／triaged 退回分诊／planned 上浮，时限 stallMs 属用户域缝（05 留界 #7 执行面）", () => {
+test("队列滞留超时：intake 上浮用户／triaged 退回分诊／planned 上浮，时限 stallMs 属用户域缝（05 留界 #7 执行面）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now, lease: { stallMs: 1000 } });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now, lease: { stallMs: 1000 } });
     // intake 滞留 → wait-user（上浮用户）
-    openTask(ledger, "TK-00000090");
+    await openTask(ledger, "TK-00000090");
     clock.advance(1500);
-    let swept = ledger.sweep({ at: clock.now() });
+    let swept = await ledger.sweep({ at: clock.now() });
     assert.deepEqual(swept.stalled, [{ taskId: "TK-00000090", from: "intake", action: "wait-user" }]);
     assert.equal(ledger.task("TK-00000090").status, "waiting-user");
     // triaged 滞留 → return（退回分诊，通知值班统筹）
-    openTask(ledger, "TK-00000091");
-    ledger.command({ op: "task.triage", taskId: "TK-00000091", actor: HOST, ...cas(ledger, "TK-00000091"), idempotencyKey: "t91", payload: { decision: "立项" } });
+    await openTask(ledger, "TK-00000091");
+    await ledger.command({ op: "task.triage", taskId: "TK-00000091", actor: HOST, ...cas(ledger, "TK-00000091"), idempotencyKey: "t91", payload: { decision: "立项" } });
     clock.advance(1500);
-    swept = ledger.sweep({ at: clock.now() });
+    swept = await ledger.sweep({ at: clock.now() });
     assert.deepEqual(swept.stalled, [{ taskId: "TK-00000091", from: "triaged", action: "return" }]);
     assert.equal(ledger.task("TK-00000091").status, "intake", "退回分诊＝回 intake 队列");
     const returnNotes = ledger.notificationsAfter(0).notifications.filter((n) => n.type === "return");
@@ -986,11 +986,11 @@ test("队列滞留超时：intake 上浮用户／triaged 退回分诊／planned 
     assert.equal(returnNotes[0].to, "duty-coordinator", "退回通知值班统筹（收单责任人）");
     // planned 滞留 → escalated（按派单封顶规则上浮用户）；注意 TK-00000091 已退回
     // intake，同拍会再次滞留——各按其态处置（互不干扰）
-    openTask(ledger, "TK-00000092");
-    ledger.command({ op: "task.triage", taskId: "TK-00000092", actor: HOST, ...cas(ledger, "TK-00000092"), idempotencyKey: "t92", payload: { decision: "立项" } });
-    ledger.command({ op: "task.plan", taskId: "TK-00000092", actor: HOST, ...cas(ledger, "TK-00000092"), idempotencyKey: "p92", payload: {} });
+    await openTask(ledger, "TK-00000092");
+    await ledger.command({ op: "task.triage", taskId: "TK-00000092", actor: HOST, ...cas(ledger, "TK-00000092"), idempotencyKey: "t92", payload: { decision: "立项" } });
+    await ledger.command({ op: "task.plan", taskId: "TK-00000092", actor: HOST, ...cas(ledger, "TK-00000092"), idempotencyKey: "p92", payload: {} });
     clock.advance(1500);
-    swept = ledger.sweep({ at: clock.now() });
+    swept = await ledger.sweep({ at: clock.now() });
     assert.equal(swept.stalled.length, 2);
     assert.deepEqual(
       swept.stalled.find((entry) => entry.taskId === "TK-00000092"),
@@ -998,9 +998,9 @@ test("队列滞留超时：intake 上浮用户／triaged 退回分诊／planned 
     );
     assert.equal(ledger.task("TK-00000092").status, "waiting-user", "队列滞留上浮＝waiting-user");
     // 未超时限不动；waiting-user 态不在滞留表内（等用户终裁，无自动动作）
-    openTask(ledger, "TK-00000093");
+    await openTask(ledger, "TK-00000093");
     clock.advance(100);
-    swept = ledger.sweep({ at: clock.now() });
+    swept = await ledger.sweep({ at: clock.now() });
     assert.deepEqual(swept.stalled, [], "未超时限不处置");
     assert.equal(ledger.task("TK-00000090").status, "waiting-user", "waiting-user 无超时自动动作");
   } finally {
@@ -1008,17 +1008,17 @@ test("队列滞留超时：intake 上浮用户／triaged 退回分诊／planned 
   }
 });
 
-test("上浮终裁原因封闭：escalated 的 cause 与 wait-user 的 class 同受 schema 把守（V-A5.1）", () => {
+test("上浮终裁原因封闭：escalated 的 cause 与 wait-user 的 class 同受 schema 把守（V-A5.1）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now, lease: { stallMs: 1000 } });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now, lease: { stallMs: 1000 } });
     // planned 滞留 → sweep 上浮（cause=queue-stall）；投影归入「上浮终裁」类
-    openTask(ledger, "TK-00000082");
-    ledger.command({ op: "task.triage", taskId: "TK-00000082", actor: HOST, ...cas(ledger, "TK-00000082"), idempotencyKey: "t82", payload: { decision: "立项" } });
-    ledger.command({ op: "task.plan", taskId: "TK-00000082", actor: HOST, ...cas(ledger, "TK-00000082"), idempotencyKey: "p82", payload: {} });
+    await openTask(ledger, "TK-00000082");
+    await ledger.command({ op: "task.triage", taskId: "TK-00000082", actor: HOST, ...cas(ledger, "TK-00000082"), idempotencyKey: "t82", payload: { decision: "立项" } });
+    await ledger.command({ op: "task.plan", taskId: "TK-00000082", actor: HOST, ...cas(ledger, "TK-00000082"), idempotencyKey: "p82", payload: {} });
     clock.advance(1500);
-    ledger.sweep({ at: clock.now() });
+    await ledger.sweep({ at: clock.now() });
     const escalated = ledger.events({ taskId: "TK-00000082" }).find((event) => event.type === "escalated");
     assert.ok(ESCALATION_CAUSE_IDS.includes(escalated.cause), "在位事件原因须在枚举内");
     assert.equal(ledger.task("TK-00000082").waitingClass, "escalation", "上浮＝上浮终裁类（投影随事件）");
@@ -1031,9 +1031,9 @@ test("上浮终裁原因封闭：escalated 的 cause 与 wait-user 的 class 同
       assert.ok(tampered.reason.includes("cause"), "拒绝理由须点名 cause");
     }
     // wait-user 的裁定类在 schema 层同样封闭（重放/外部写入路径）
-    openTask(ledger, "TK-00000083");
+    await openTask(ledger, "TK-00000083");
     clock.advance(1500);
-    ledger.sweep({ at: clock.now() });
+    await ledger.sweep({ at: clock.now() });
     const waited = ledger.events({ taskId: "TK-00000083" }).find((event) => event.type === "wait-user");
     assert.equal(waited.class, "escalation", "队列滞留上浮＝上浮终裁类");
     assert.equal(validateEventRecord(waited, waited.seq - 1).ok, true);
@@ -1045,20 +1045,20 @@ test("上浮终裁原因封闭：escalated 的 cause 与 wait-user 的 class 同
   }
 });
 
-test("永不可代三项：用户域挂起点只许 user 终裁——post／host 代裁（含取消）一律拒（V-A5.4）", () => {
+test("永不可代三项：用户域挂起点只许 user 终裁——post／host 代裁（含取消）一律拒（V-A5.4）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    toRunning(ledger, "TK-00000084");
-    assert.equal(ledger.command({
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await toRunning(ledger, "TK-00000084");
+    assert.equal((await ledger.command({
       op: "task.wait-user", taskId: "TK-00000084", actor: HOST, ...cas(ledger, "TK-00000084"),
       idempotencyKey: "t84-wait", payload: { class: "user-domain", reason: "模型指派与预算待用户定" }
-    }).ok, true);
+    })).ok, true);
     assert.equal(ledger.task("TK-00000084").waitingClass, "user-domain");
     // 代理（post，无论是否原归属者）与确定性层（host）都不得代行用户域裁定
     for (const [actor, key] of [[POST("implementer"), "t84-resume-post"], [HOST, "t84-resume-host"]]) {
-      const verdict = ledger.command({
+      const verdict = await ledger.command({
         op: "task.resume", taskId: "TK-00000084", actor, ...cas(ledger, "TK-00000084"),
         idempotencyKey: key, payload: { resumeTo: "running" }
       });
@@ -1067,64 +1067,64 @@ test("永不可代三项：用户域挂起点只许 user 终裁——post／host
       assert.equal(ledger.task("TK-00000084").status, "waiting-user", "拒绝不得改状态");
     }
     // 连「取消」都不许代（永不可代＝处置本身也不可代）
-    const cancelByLead = ledger.command({
+    const cancelByLead = await ledger.command({
       op: "task.cancel", taskId: "TK-00000084", actor: POST("project-lead"), ...cas(ledger, "TK-00000084"),
       idempotencyKey: "t84-cancel", payload: { reason: "代裁取消", attribution: "越权代裁" }
     });
     assert.equal(cancelByLead.ok, false);
     assert.equal(cancelByLead.code, "ruling-not-delegable");
     // user 终裁放行（裁定不走新命令面：仍是既有 resume）
-    assert.equal(ledger.command({
+    assert.equal((await ledger.command({
       op: "task.resume", taskId: "TK-00000084", actor: USER, ...cas(ledger, "TK-00000084"),
       idempotencyKey: "t84-resume-user", payload: { resumeTo: "running" }
-    }).ok, true);
+    })).ok, true);
     assert.equal(ledger.task("TK-00000084").status, "running");
     assert.equal(ledger.task("TK-00000084").waitingClass, null);
     // 非永不可代挂起点不误伤：上浮终裁（复习两轮未闭合类）仍按既有语义由 host 恢复
-    assert.equal(ledger.command({
+    assert.equal((await ledger.command({
       op: "task.wait-user", taskId: "TK-00000084", actor: HOST, ...cas(ledger, "TK-00000084"),
       idempotencyKey: "t84-wait-2", payload: { class: "escalation", reason: "复核两轮未闭合" }
-    }).ok, true);
-    assert.equal(ledger.command({
+    })).ok, true);
+    assert.equal((await ledger.command({
       op: "task.resume", taskId: "TK-00000084", actor: HOST, ...cas(ledger, "TK-00000084"),
       idempotencyKey: "t84-resume-2", payload: { resumeTo: "running" }
-    }).ok, true, "非永不可代挂起点保持既有恢复语义");
+    })).ok, true, "非永不可代挂起点保持既有恢复语义");
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
 });
 
-test("挂起语义：waiting-user 不占租约、无超时自动动作、可原样恢复（V-A5.3）", () => {
+test("挂起语义：waiting-user 不占租约、无超时自动动作、可原样恢复（V-A5.3）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now, lease: { stallMs: 1000 } });
-    toRunning(ledger, "TK-00000085", "implementer");
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now, lease: { stallMs: 1000 } });
+    await toRunning(ledger, "TK-00000085", "implementer");
     // 挂起前：该实例持进行中任务——第二张派单机械拒绝（一实例一进行中任务）
-    openTask(ledger, "TK-00000086");
-    ledger.command({ op: "task.triage", taskId: "TK-00000086", actor: HOST, ...cas(ledger, "TK-00000086"), idempotencyKey: "t86-triage", payload: { decision: "立项" } });
-    ledger.command({ op: "task.plan", taskId: "TK-00000086", actor: HOST, ...cas(ledger, "TK-00000086"), idempotencyKey: "t86-plan", payload: {} });
-    const held = ledger.command({
+    await openTask(ledger, "TK-00000086");
+    await ledger.command({ op: "task.triage", taskId: "TK-00000086", actor: HOST, ...cas(ledger, "TK-00000086"), idempotencyKey: "t86-triage", payload: { decision: "立项" } });
+    await ledger.command({ op: "task.plan", taskId: "TK-00000086", actor: HOST, ...cas(ledger, "TK-00000086"), idempotencyKey: "t86-plan", payload: {} });
+    const held = await ledger.command({
       op: "task.assign", taskId: "TK-00000086", actor: HOST, ...cas(ledger, "TK-00000086"),
       idempotencyKey: "t86-assign", payload: { assignee: "implementer" }
     });
     assert.equal(held.ok, false);
     assert.equal(held.code, "assignee-holding");
     // 挂起（归属者触发不可逆写入放行）→ 不再占租约：同一实例随即可以接别的任务
-    assert.equal(ledger.command({
+    assert.equal((await ledger.command({
       op: "task.wait-user", taskId: "TK-00000085", actor: POST("implementer"), ...cas(ledger, "TK-00000085"),
       idempotencyKey: "t85-wait", payload: { class: "irreversible-write", reason: "改真实运行面的写入待放行" }
-    }).ok, true);
-    assert.equal(ledger.command({
+    })).ok, true);
+    assert.equal((await ledger.command({
       op: "task.assign", taskId: "TK-00000086", actor: HOST, ...cas(ledger, "TK-00000086"),
       idempotencyKey: "t86-assign-2", payload: { assignee: "implementer" }
-    }).ok, true, "挂起不占租约：同实例可接第二张（对比挂起前的机械拒绝）");
+    })).ok, true, "挂起不占租约：同实例可接第二张（对比挂起前的机械拒绝）");
     // 无超时自动动作：时间推进远超所有时限，sweep 对该任务零动作、零事件、通知不重复
     const before = ledger.events({ taskId: "TK-00000085" }).length;
     const notesFor = (taskId) => ledger.notificationsAfter(0).notifications.filter((n) => n.taskId === taskId).length;
     const notesBefore = notesFor("TK-00000085");
     clock.advance(24 * 60 * 60 * 1000);
-    const swept = ledger.sweep({ at: clock.now() });
+    const swept = await ledger.sweep({ at: clock.now() });
     assert.equal(swept.released.filter((entry) => entry.taskId === "TK-00000085").length, 0);
     assert.equal(swept.escalated.filter((entry) => entry.taskId === "TK-00000085").length, 0);
     assert.equal(swept.stalled.filter((entry) => entry.taskId === "TK-00000085").length, 0);
@@ -1135,36 +1135,36 @@ test("挂起语义：waiting-user 不占租约、无超时自动动作、可原�
     const task = ledger.task("TK-00000085");
     assert.equal(task.resumeFrom, "running");
     assert.equal(task.owner, "implementer");
-    assert.equal(ledger.command({
+    assert.equal((await ledger.command({
       op: "task.resume", taskId: "TK-00000085", actor: USER, ...cas(ledger, "TK-00000085"),
       idempotencyKey: "t85-resume", payload: { resumeTo: task.resumeFrom }
-    }).ok, true);
+    })).ok, true);
     assert.equal(ledger.task("TK-00000085").status, "running");
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
 });
 
-test("结算/关闭超时：delivered／settled 滞留＝登记异常并上浮用户，绝不自动结算/自动关闭（V-A5.3）", () => {
+test("结算/关闭超时：delivered／settled 滞留＝登记异常并上浮用户，绝不自动结算/自动关闭（V-A5.3）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now, lease: { stallMs: 1000 } });
-    const toDelivered = (taskId) => {
-      toRunning(ledger, taskId);
-      assert.equal(ledger.command({
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now, lease: { stallMs: 1000 } });
+    const toDelivered = async (taskId) => {
+      await toRunning(ledger, taskId);
+      assert.equal((await ledger.command({
         op: "task.report", taskId, actor: POST("implementer"), ...cas(ledger, taskId),
         idempotencyKey: `${taskId}-report`, payload: { deliverable: "坐标：docs/x.md" }
-      }).ok, true);
-      assert.equal(ledger.command({
+      })).ok, true);
+      assert.equal((await ledger.command({
         op: "task.deliver", taskId, actor: POST("implementer"), ...cas(ledger, taskId),
         idempotencyKey: `${taskId}-deliver`, payload: {}
-      }).ok, true, "无必审点冻结的简报：交付即放行");
+      })).ok, true, "无必审点冻结的简报：交付即放行");
     };
     // delivered 滞留 → settle-timeout：登记异常（task-stalled）＋上浮用户
-    toDelivered("TK-00000087");
+    await toDelivered("TK-00000087");
     clock.advance(1500);
-    let swept = ledger.sweep({ at: clock.now() });
+    let swept = await ledger.sweep({ at: clock.now() });
     assert.deepEqual(
       swept.stalled.find((entry) => entry.taskId === "TK-00000087"),
       { taskId: "TK-00000087", from: "delivered", action: "escalated" }
@@ -1181,13 +1181,13 @@ test("结算/关闭超时：delivered／settled 滞留＝登记异常并上浮�
       (note) => note.type === "escalated" && note.to === "user" && note.taskId === "TK-00000087"
     ));
     // settled 滞留 → close-timeout（同样上浮，不自动关闭）
-    toDelivered("TK-00000088");
-    assert.equal(ledger.command({
+    await toDelivered("TK-00000088");
+    assert.equal((await ledger.command({
       op: "task.settle", taskId: "TK-00000088", actor: HOST, ...cas(ledger, "TK-00000088"),
       idempotencyKey: "TK-00000088-settle", payload: {}
-    }).ok, true);
+    })).ok, true);
     clock.advance(1500);
-    swept = ledger.sweep({ at: clock.now() });
+    swept = await ledger.sweep({ at: clock.now() });
     assert.deepEqual(
       swept.stalled.find((entry) => entry.taskId === "TK-00000088"),
       { taskId: "TK-00000088", from: "settled", action: "escalated" }
@@ -1197,7 +1197,7 @@ test("结算/关闭超时：delivered／settled 滞留＝登记异常并上浮�
     assert.equal(task.escalationCause, "close-timeout");
     // 再拍不动（已挂起＝不在滞留表内；挂起无限期）
     clock.advance(10 * 60 * 60 * 1000);
-    swept = ledger.sweep({ at: clock.now() });
+    swept = await ledger.sweep({ at: clock.now() });
     assert.equal(swept.stalled.filter((entry) => entry.taskId === "TK-00000088").length, 0);
     assert.equal(ledger.task("TK-00000088").status, "waiting-user");
   } finally {
@@ -1205,15 +1205,15 @@ test("结算/关闭超时：delivered／settled 滞留＝登记异常并上浮�
   }
 });
 
-test("终裁＝台账命令特化视图：接单／驳回／授权修复落既有命令，幂等键、CAS 与审计随台账继承（V-A5.5）", () => {
+test("终裁＝台账命令特化视图：接单／驳回／授权修复落既有命令，幂等键、CAS 与审计随台账继承（V-A5.5）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
     const taskId = "TK-00000089";
-    const suspend = (key, cls = "irreversible-write") => {
+    const suspend = async (key, cls = "irreversible-write") => {
       const current = ledger.task(taskId);
-      const waited = ledger.command({
+      const waited = await ledger.command({
         op: "task.wait-user", taskId, actor: POST("implementer"),
         expectedStatus: current.status, expectedSeq: current.lastSeq,
         idempotencyKey: key, payload: { class: cls, reason: "待用户放行" }
@@ -1221,10 +1221,10 @@ test("终裁＝台账命令特化视图：接单／驳回／授权修复落既�
       assert.equal(waited.ok, true, `${key} 应可挂起`);
       return ledger.task(taskId);
     };
-    toRunning(ledger, taskId);
+    await toRunning(ledger, taskId);
     // 接单（放行）→ task.resume（唯一命令；不另起命令面）
-    let waiting = suspend("t89-wait-1");
-    const accepted = applyRuling({
+    let waiting = await suspend("t89-wait-1");
+    const accepted = await applyRuling({
       ledger, action: "accept", taskId, idempotencyKey: "ruling-accept-1",
       expectedStatus: waiting.status, expectedSeq: waiting.lastSeq, resumeTo: "running"
     });
@@ -1232,7 +1232,7 @@ test("终裁＝台账命令特化视图：接单／驳回／授权修复落既�
     assert.deepEqual(accepted.results.map((entry) => entry.op), ["task.resume"]);
     assert.equal(ledger.task(taskId).status, "running");
     // 同键重放＝台账重放语义（不重复落事件）
-    const replayed = applyRuling({
+    const replayed = await applyRuling({
       ledger, action: "accept", taskId, idempotencyKey: "ruling-accept-1",
       expectedStatus: waiting.status, expectedSeq: waiting.lastSeq, resumeTo: "running"
     });
@@ -1240,8 +1240,8 @@ test("终裁＝台账命令特化视图：接单／驳回／授权修复落既�
     assert.equal(replayed.results[0].replayed, true);
     assert.equal(ledger.events({ taskId }).filter((event) => event.type === "resume").length, 1, "重放不重复落事件");
     // CAS 错值：台账照旧拒绝（终裁不绕过 CAS），且回报失败步
-    waiting = suspend("t89-wait-2");
-    const stale = applyRuling({
+    waiting = await suspend("t89-wait-2");
+    const stale = await applyRuling({
       ledger, action: "accept", taskId, idempotencyKey: "ruling-accept-2",
       expectedStatus: waiting.status, expectedSeq: waiting.lastSeq - 1, resumeTo: "running"
     });
@@ -1251,7 +1251,7 @@ test("终裁＝台账命令特化视图：接单／驳回／授权修复落既�
     assert.equal(ledger.task(taskId).status, "waiting-user", "CAS 拒绝＝状态不变");
     // 授权修复 → amend（完整合法简报置换冻结件）＋ resume（复合：第二步自动取新 CAS）
     const current = ledger.task(taskId); // 拒绝也落 command-rejected 事件：CAS 须取当刻投影
-    const repaired = applyRuling({
+    const repaired = await applyRuling({
       ledger, action: "authorize-repair", taskId, idempotencyKey: "ruling-repair",
       expectedStatus: current.status, expectedSeq: current.lastSeq,
       resumeTo: "running", brief: { ...VALID_BRIEF, goal: "按用户授权范围修复后的目标" }
@@ -1261,8 +1261,8 @@ test("终裁＝台账命令特化视图：接单／驳回／授权修复落既�
     assert.equal(ledger.task(taskId).brief.goal, "按用户授权范围修复后的目标", "授权范围写进简报");
     assert.equal(ledger.task(taskId).status, "running");
     // 驳回（终止）→ task.cancel：终态，归档不删档；审计：终裁动作 actor 均为 user
-    waiting = suspend("t89-wait-3");
-    const rejected = applyRuling({
+    waiting = await suspend("t89-wait-3");
+    const rejected = await applyRuling({
       ledger, action: "reject", taskId, idempotencyKey: "ruling-reject",
       expectedStatus: waiting.status, expectedSeq: waiting.lastSeq, reason: "用户终裁驳回"
     });
@@ -1279,6 +1279,10 @@ test("终裁＝台账命令特化视图：接单／驳回／授权修复落既�
 // ---------------- 复核件套台账面（org-v2 08 号票；V-A2.7／规格 §C） ----------------
 
 import { REVIEW_BOUNDARY_IDS } from "../lib/org/review-kit.js";
+import { ACCEPTANCE_RUNNER, criterionInjection } from "./helpers/criterion-fixture.mjs";
+
+/** 已有夹具的判据执行面：本组用例测的不是判据门，显式声明「判据面已接线」（25 号票）。 */
+const CRITERION_INJECTION = Object.freeze(criterionInjection(ACCEPTANCE_RUNNER));
 
 const REVIEW_BRIEF = Object.freeze({
   ...VALID_BRIEF,
@@ -1286,32 +1290,32 @@ const REVIEW_BRIEF = Object.freeze({
 });
 
 /** 建一张 produced 态任务（复核流的被审对象）。 */
-function toProduced(ledger, taskId, botId = "implementer", brief = REVIEW_BRIEF) {
-  assert.equal(openTask(ledger, taskId, { brief }).ok, true);
-  assert.equal(ledger.command({
+async function toProduced(ledger, taskId, botId = "implementer", brief = REVIEW_BRIEF) {
+  assert.equal((await openTask(ledger, taskId, { brief })).ok, true);
+  assert.equal((await ledger.command({
     op: "task.triage", taskId, actor: HOST, ...cas(ledger, taskId),
     idempotencyKey: `${taskId}-triage`, payload: { decision: "立项" }
-  }).ok, true);
-  assert.equal(ledger.command({
+  })).ok, true);
+  assert.equal((await ledger.command({
     op: "task.plan", taskId, actor: HOST, ...cas(ledger, taskId),
     idempotencyKey: `${taskId}-plan`, payload: {}
-  }).ok, true);
-  assert.equal(ledger.command({
+  })).ok, true);
+  assert.equal((await ledger.command({
     op: "task.assign", taskId, actor: HOST, ...cas(ledger, taskId),
     idempotencyKey: `${taskId}-assign`, payload: { assignee: botId }
-  }).ok, true);
-  assert.equal(ledger.command({
+  })).ok, true);
+  assert.equal((await ledger.command({
     op: "task.accept", taskId, actor: POST(botId), ...cas(ledger, taskId),
     idempotencyKey: `${taskId}-accept`, payload: {}
-  }).ok, true);
-  assert.equal(ledger.command({
+  })).ok, true);
+  assert.equal((await ledger.command({
     op: "task.start", taskId, actor: POST(botId), ...cas(ledger, taskId),
     idempotencyKey: `${taskId}-start`, payload: {}
-  }).ok, true);
-  assert.equal(ledger.command({
+  })).ok, true);
+  assert.equal((await ledger.command({
     op: "task.report", taskId, actor: POST(botId), ...cas(ledger, taskId),
     idempotencyKey: `${taskId}-report`, payload: { deliverable: "patch 已落坐标" }
-  }).ok, true);
+  })).ok, true);
 }
 
 const CLOSED_REPORT = Object.freeze({
@@ -1321,68 +1325,68 @@ const CLOSED_REPORT = Object.freeze({
   modelIdentity: "glm-5.3-flash（复核实例）"
 });
 
-test("review.request：点须在必审枚举；简报点降级（免审）即拒；加审须归因", () => {
-  const ledger = createTaskLedger({ dshHome: mkHome(), now: clockAt().now });
-  toProduced(ledger, "TK-00000090");
+test("review.request：点须在必审枚举；简报点降级（免审）即拒；加审须归因", async () => {
+  const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: mkHome(), now: clockAt().now });
+  await toProduced(ledger, "TK-00000090");
   // 枚举外 point 拒（fail closed，不当作咨询主题）
-  const bad = ledger.command({
+  const bad = await ledger.command({
     op: "review.request", taskId: "TK-00000090", actor: HOST, ...cas(ledger, "TK-00000090"),
     idempotencyKey: "rv-bad-point", payload: { point: "交付前看一眼", reviewer: "bot-reviewer" }
   });
   assert.equal(bad.ok, false);
   assert.equal(bad.code, "invalid-review-point");
   // 简报冻结点不可降级为咨询（可加审不可免审）
-  const exempt = ledger.command({
+  const exempt = await ledger.command({
     op: "review.request", taskId: "TK-00000090", actor: HOST, ...cas(ledger, "TK-00000090"),
     idempotencyKey: "rv-exempt", payload: { point: "before-external-visibility", mandatory: false, reviewer: "bot-reviewer" }
   });
   assert.equal(exempt.ok, false);
   assert.equal(exempt.code, "review-exemption-forbidden");
   // 加审（枚举点 ∉ 简报）无归因即拒
-  const noAttribution = ledger.command({
+  const noAttribution = await ledger.command({
     op: "review.request", taskId: "TK-00000090", actor: HOST, ...cas(ledger, "TK-00000090"),
     idempotencyKey: "rv-no-attr", payload: { point: "before-irreversible-write", mandatory: true, reviewer: "bot-reviewer" }
   });
   assert.equal(noAttribution.ok, false);
   assert.equal(noAttribution.code, "review-attribution-required");
   // 咨询性请求（topic）合法
-  const advisory = ledger.command({
+  const advisory = await ledger.command({
     op: "review.request", taskId: "TK-00000090", actor: HOST, ...cas(ledger, "TK-00000090"),
     idempotencyKey: "rv-advisory", payload: { topic: "文档口径", reviewer: "bot-reviewer" }
   });
   assert.equal(advisory.ok, true);
 });
 
-test("review.request：排除产出方与不空闲实例（复核帽＝当次空闲、非产出方）", () => {
-  const ledger = createTaskLedger({ dshHome: mkHome(), now: clockAt().now });
-  toProduced(ledger, "TK-00000091");
+test("review.request：排除产出方与不空闲实例（复核帽＝当次空闲、非产出方）", async () => {
+  const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: mkHome(), now: clockAt().now });
+  await toProduced(ledger, "TK-00000091");
   // 产出方自任复核者 → 拒
-  const self = ledger.command({
+  const self = await ledger.command({
     op: "review.request", taskId: "TK-00000091", actor: HOST, ...cas(ledger, "TK-00000091"),
     idempotencyKey: "rv-self", payload: { topic: "咨询", reviewer: "implementer" }
   });
   assert.equal(self.ok, false);
   assert.equal(self.code, "reviewer-is-producer");
   // 在手任务实例不空闲：researcher 持有 TK-00000092（produced 属在手态）→ 拒
-  toProduced(ledger, "TK-00000092", "researcher");
-  const busy = ledger.command({
+  await toProduced(ledger, "TK-00000092", "researcher");
+  const busy = await ledger.command({
     op: "review.request", taskId: "TK-00000091", actor: HOST, ...cas(ledger, "TK-00000091"),
     idempotencyKey: "rv-busy", payload: { topic: "咨询", reviewer: "researcher" }
   });
   assert.equal(busy.ok, false);
   assert.equal(busy.code, "reviewer-not-idle");
   // 空闲且非产出方 → 放行
-  const ok = ledger.command({
+  const ok = await ledger.command({
     op: "review.request", taskId: "TK-00000091", actor: HOST, ...cas(ledger, "TK-00000091"),
     idempotencyKey: "rv-ok", payload: { topic: "咨询", reviewer: "bot-reviewer" }
   });
   assert.equal(ok.ok, true);
 });
 
-test("必审拦截（V-A2.7）：简报点未闭合时交付转移被拒；闭合后放行", () => {
-  const ledger = createTaskLedger({ dshHome: mkHome(), now: clockAt().now });
-  toProduced(ledger, "TK-00000093");
-  const blocked = ledger.command({
+test("必审拦截（V-A2.7）：简报点未闭合时交付转移被拒；闭合后放行", async () => {
+  const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: mkHome(), now: clockAt().now });
+  await toProduced(ledger, "TK-00000093");
+  const blocked = await ledger.command({
     op: "task.deliver", taskId: "TK-00000093", actor: POST("implementer"), ...cas(ledger, "TK-00000093"),
     idempotencyKey: "dl-blocked", payload: {}
   });
@@ -1392,14 +1396,14 @@ test("必审拦截（V-A2.7）：简报点未闭合时交付转移被拒；闭�
   // 拒绝落账（command-rejected 在案）
   assert.ok(ledger.events({ taskId: "TK-00000093" }).some((e) => e.type === "command-rejected" && e.op === "task.deliver"));
   // 召集复核并闭合 → 放行
-  assert.equal(ledger.command({
+  assert.equal((await ledger.command({
     op: "review.request", taskId: "TK-00000093", actor: HOST, ...cas(ledger, "TK-00000093"),
     idempotencyKey: "rv-open", payload: { point: "before-external-visibility", reviewer: "bot-reviewer" }
-  }).ok, true);
-  assert.equal(ledger.recordReviewReport({
+  })).ok, true);
+  assert.equal((await ledger.recordReviewReport({
     taskId: "TK-00000093", reviewer: "bot-reviewer", report: CLOSED_REPORT, idempotencyKey: "rr-closed"
-  }).ok, true);
-  const delivered = ledger.command({
+  })).ok, true);
+  const delivered = await ledger.command({
     op: "task.deliver", taskId: "TK-00000093", actor: POST("implementer"), ...cas(ledger, "TK-00000093"),
     idempotencyKey: "dl-ok", payload: {}
   });
@@ -1407,52 +1411,52 @@ test("必审拦截（V-A2.7）：简报点未闭合时交付转移被拒；闭�
   assert.equal(delivered.status, "delivered");
 });
 
-test("清单外咨询性不阻断交付：gaps-open 报告在案 deliver 照常通过", () => {
-  const ledger = createTaskLedger({ dshHome: mkHome(), now: clockAt().now });
-  toProduced(ledger, "TK-00000094", "implementer", { ...VALID_BRIEF, reviewPoints: [] });
-  assert.equal(ledger.command({
+test("清单外咨询性不阻断交付：gaps-open 报告在案 deliver 照常通过", async () => {
+  const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: mkHome(), now: clockAt().now });
+  await toProduced(ledger, "TK-00000094", "implementer", { ...VALID_BRIEF, reviewPoints: [] });
+  assert.equal((await ledger.command({
     op: "review.request", taskId: "TK-00000094", actor: HOST, ...cas(ledger, "TK-00000094"),
     idempotencyKey: "rv-adv", payload: { topic: "文档口径", reviewer: "bot-reviewer" }
-  }).ok, true);
-  const advisoryOpen = ledger.recordReviewReport({
+  })).ok, true);
+  const advisoryOpen = await ledger.recordReviewReport({
     taskId: "TK-00000094", reviewer: "bot-reviewer",
     report: { subject: "文档口径", verdict: "gaps-open", gaps: [{ severity: "minor", summary: "s", evidence: "e" }], modelIdentity: "m" },
     idempotencyKey: "rr-adv"
   });
   assert.equal(advisoryOpen.ok, true);
   assert.equal(advisoryOpen.escalated, false);
-  const delivered = ledger.command({
+  const delivered = await ledger.command({
     op: "task.deliver", taskId: "TK-00000094", actor: POST("implementer"), ...cas(ledger, "TK-00000094"),
     idempotencyKey: "dl-adv", payload: {}
   });
   assert.equal(delivered.ok, true);
 });
 
-test("recordReviewReport：形状不符／未被指定／产出方自任／未请求的 subject 即拒", () => {
-  const ledger = createTaskLedger({ dshHome: mkHome(), now: clockAt().now });
-  toProduced(ledger, "TK-00000095");
-  assert.equal(ledger.command({
+test("recordReviewReport：形状不符／未被指定／产出方自任／未请求的 subject 即拒", async () => {
+  const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: mkHome(), now: clockAt().now });
+  await toProduced(ledger, "TK-00000095");
+  assert.equal((await ledger.command({
     op: "review.request", taskId: "TK-00000095", actor: HOST, ...cas(ledger, "TK-00000095"),
     idempotencyKey: "rv-req", payload: { point: "before-external-visibility", reviewer: "bot-reviewer" }
-  }).ok, true);
-  const malformed = ledger.recordReviewReport({
+  })).ok, true);
+  const malformed = await ledger.recordReviewReport({
     taskId: "TK-00000095", reviewer: "bot-reviewer",
     report: { subject: "before-external-visibility", verdict: "passed", gaps: [] },
     idempotencyKey: "rr-bad"
   });
   assert.equal(malformed.ok, false);
   assert.equal(malformed.code, "invalid-review-report");
-  const stranger = ledger.recordReviewReport({
+  const stranger = await ledger.recordReviewReport({
     taskId: "TK-00000095", reviewer: "bot-stranger", report: CLOSED_REPORT, idempotencyKey: "rr-stranger"
   });
   assert.equal(stranger.ok, false);
   assert.equal(stranger.code, "not-designated-reviewer");
-  const producer = ledger.recordReviewReport({
+  const producer = await ledger.recordReviewReport({
     taskId: "TK-00000095", reviewer: "implementer", report: CLOSED_REPORT, idempotencyKey: "rr-producer"
   });
   assert.equal(producer.ok, false);
   assert.equal(producer.code, "reviewer-is-producer");
-  const unrequested = ledger.recordReviewReport({
+  const unrequested = await ledger.recordReviewReport({
     taskId: "TK-00000095", reviewer: "bot-reviewer",
     report: { ...CLOSED_REPORT, subject: "before-irreversible-write" }, idempotencyKey: "rr-unreq"
   });
@@ -1460,27 +1464,27 @@ test("recordReviewReport：形状不符／未被指定／产出方自任／未�
   assert.equal(unrequested.code, "review-not-requested");
 });
 
-test("连续两轮未闭合上浮用户终裁：第二轮 gaps-open 自动 escalated（waiting-user、清归属、通知 user）", () => {
-  const ledger = createTaskLedger({ dshHome: mkHome(), now: clockAt().now });
-  toProduced(ledger, "TK-00000096");
-  assert.equal(ledger.command({
+test("连续两轮未闭合上浮用户终裁：第二轮 gaps-open 自动 escalated（waiting-user、清归属、通知 user）", async () => {
+  const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: mkHome(), now: clockAt().now });
+  await toProduced(ledger, "TK-00000096");
+  assert.equal((await ledger.command({
     op: "review.request", taskId: "TK-00000096", actor: HOST, ...cas(ledger, "TK-00000096"),
     idempotencyKey: "rv-req", payload: { point: "before-external-visibility", reviewer: "bot-reviewer" }
-  }).ok, true);
+  })).ok, true);
   const gap = (summary) => ({
     subject: "before-external-visibility",
     verdict: "gaps-open",
     gaps: [{ severity: "major", summary, evidence: `coord:${summary}` }],
     modelIdentity: "m"
   });
-  const round1 = ledger.recordReviewReport({
+  const round1 = await ledger.recordReviewReport({
     taskId: "TK-00000096", reviewer: "bot-reviewer", report: gap("round-1"), idempotencyKey: "rr-r1"
   });
   assert.equal(round1.ok, true);
   assert.equal(round1.consecutiveUnclosed, 1);
   assert.equal(round1.escalated, false);
   assert.equal(ledger.task("TK-00000096").status, "produced");
-  const round2 = ledger.recordReviewReport({
+  const round2 = await ledger.recordReviewReport({
     taskId: "TK-00000096", reviewer: "bot-reviewer", report: gap("round-2"), idempotencyKey: "rr-r2"
   });
   assert.equal(round2.ok, true);
@@ -1493,23 +1497,23 @@ test("连续两轮未闭合上浮用户终裁：第二轮 gaps-open 自动 escal
   assert.ok(notifications.some((n) => n.type === "review-requested" && n.to === "bot-reviewer"));
   assert.ok(notifications.some((n) => n.type === "escalated" && n.to === "user"));
   // 已挂起后再报不重复上浮
-  const round3 = ledger.recordReviewReport({
+  const round3 = await ledger.recordReviewReport({
     taskId: "TK-00000096", reviewer: "bot-reviewer", report: gap("round-3"), idempotencyKey: "rr-r3"
   });
   assert.equal(round3.ok, true);
   assert.equal(round3.escalated, false);
 });
 
-test("复核事件入事实源且可重建：事件 schema 校验通过、投影不串状态", () => {
-  const ledger = createTaskLedger({ dshHome: mkHome(), now: clockAt().now });
-  toProduced(ledger, "TK-00000097");
-  assert.equal(ledger.command({
+test("复核事件入事实源且可重建：事件 schema 校验通过、投影不串状态", async () => {
+  const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: mkHome(), now: clockAt().now });
+  await toProduced(ledger, "TK-00000097");
+  assert.equal((await ledger.command({
     op: "review.request", taskId: "TK-00000097", actor: HOST, ...cas(ledger, "TK-00000097"),
     idempotencyKey: "rv-req", payload: { point: "before-external-visibility", reviewer: "bot-reviewer" }
-  }).ok, true);
-  assert.equal(ledger.recordReviewReport({
+  })).ok, true);
+  assert.equal((await ledger.recordReviewReport({
     taskId: "TK-00000097", reviewer: "bot-reviewer", report: CLOSED_REPORT, idempotencyKey: "rr-closed"
-  }).ok, true);
+  })).ok, true);
   const events = ledger.events({ taskId: "TK-00000097" });
   const requested = events.find((e) => e.type === "review-requested");
   const reported = events.find((e) => e.type === "review-reported");
@@ -1523,14 +1527,14 @@ test("复核事件入事实源且可重建：事件 schema 校验通过、投影
 
 // ---------------- 人间接口台账面（org-v2 09 号票；V-A5.4／V-A5.5） ----------------
 
-test("初审裁决执行面：命中必审清单不可处置；通过＝只留痕；初审拒绝＝强制上浮（V-A5.4）", () => {
+test("初审裁决执行面：命中必审清单不可处置；通过＝只留痕；初审拒绝＝强制上浮（V-A5.4）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
     // 命中必审清单（简报冻结点未闭合）：初审只可整理裁定包，处置被拒
-    toProduced(ledger, "TK-00000101"); // REVIEW_BRIEF：reviewPoints=before-external-visibility
-    const forbidden = ledger.recordPreScreen({
+    await toProduced(ledger, "TK-00000101"); // REVIEW_BRIEF：reviewPoints=before-external-visibility
+    const forbidden = await ledger.recordPreScreen({
       taskId: "TK-00000101", reviewer: "bot-prescreen", disposition: "approve", idempotencyKey: "ps-101"
     });
     assert.equal(forbidden.ok, false);
@@ -1541,8 +1545,8 @@ test("初审裁决执行面：命中必审清单不可处置；通过＝只留�
       "被拒的处置不得留判断痕（未处置即未发生）"
     );
     // 未命中必审清单：通过＝只落判断事实（非状态），不改状态、不上浮
-    toProduced(ledger, "TK-00000102", "researcher", { ...VALID_BRIEF });
-    const approved = ledger.recordPreScreen({
+    await toProduced(ledger, "TK-00000102", "researcher", { ...VALID_BRIEF });
+    const approved = await ledger.recordPreScreen({
       taskId: "TK-00000102", reviewer: "bot-prescreen", disposition: "approve", note: "产出与判据相符", idempotencyKey: "ps-102"
     });
     assert.equal(approved.ok, true);
@@ -1553,14 +1557,14 @@ test("初审裁决执行面：命中必审清单不可处置；通过＝只留�
     assert.equal(fact.input.disposition, "approve");
     assert.equal(fact.input.reviewer, "bot-prescreen");
     // 同键重放：结论一致、不重复落事件
-    const replayed = ledger.recordPreScreen({
+    const replayed = await ledger.recordPreScreen({
       taskId: "TK-00000102", reviewer: "bot-prescreen", disposition: "approve", note: "产出与判据相符", idempotencyKey: "ps-102"
     });
     assert.equal(replayed.ok, true);
     assert.equal(replayed.replayed, true);
     assert.equal(ledger.events({ taskId: "TK-00000102" }).filter((event) => event.type === "judgement").length, 1);
     // 初审拒绝（回笼）＝强制上浮用户终裁：escalated(pre-screen-rejected) → waiting-user
-    const bounced = ledger.recordPreScreen({
+    const bounced = await ledger.recordPreScreen({
       taskId: "TK-00000102", reviewer: "bot-prescreen", disposition: "return", note: "与判据不符，退回承接方", idempotencyKey: "ps-102-return"
     });
     assert.equal(bounced.ok, true);
@@ -1575,12 +1579,12 @@ test("初审裁决执行面：命中必审清单不可处置；通过＝只留�
       (note) => note.type === "escalated" && note.to === "user" && note.taskId === "TK-00000102"
     ));
     // 已挂起不重复上浮；未知处置即拒（fail closed）
-    const again = ledger.recordPreScreen({
+    const again = await ledger.recordPreScreen({
       taskId: "TK-00000102", reviewer: "bot-prescreen", disposition: "return", note: "再来一次", idempotencyKey: "ps-102-return-2"
     });
     assert.equal(again.ok, true);
     assert.equal(again.escalated, false, "已挂起＝不重复上浮");
-    const unknown = ledger.recordPreScreen({
+    const unknown = await ledger.recordPreScreen({
       taskId: "TK-00000101", reviewer: "bot-prescreen", disposition: "闲聊", idempotencyKey: "ps-101-bad"
     });
     assert.equal(unknown.ok, false);
@@ -1590,24 +1594,24 @@ test("初审裁决执行面：命中必审清单不可处置；通过＝只留�
   }
 });
 
-test("轮询处置的异常登记失败响亮可核：sweep 回报 exceptionFailures，不静默（V-A2.11 同口径）", () => {
+test("轮询处置的异常登记失败响亮可核：sweep 回报 exceptionFailures，不静默（V-A2.11 同口径）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now, lease: { stallMs: 1000 } });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now, lease: { stallMs: 1000 } });
     // 造一张 delivered 滞留任务，但把异常处置的幂等键占掉：异常登记重放为……不占用则不可能失败，
     // 故此处以「异常登记返回值必须可核」为断言面——正常路径下 exceptionFailures 为空数组（字段在位）
-    toRunning(ledger, "TK-00000103");
-    assert.equal(ledger.command({
+    await toRunning(ledger, "TK-00000103");
+    assert.equal((await ledger.command({
       op: "task.report", taskId: "TK-00000103", actor: POST("implementer"), ...cas(ledger, "TK-00000103"),
       idempotencyKey: "TK-00000103-report", payload: { deliverable: "坐标：docs/x.md" }
-    }).ok, true);
-    assert.equal(ledger.command({
+    })).ok, true);
+    assert.equal((await ledger.command({
       op: "task.deliver", taskId: "TK-00000103", actor: POST("implementer"), ...cas(ledger, "TK-00000103"),
       idempotencyKey: "TK-00000103-deliver", payload: {}
-    }).ok, true);
+    })).ok, true);
     clock.advance(1500);
-    const swept = ledger.sweep({ at: clock.now() });
+    const swept = await ledger.sweep({ at: clock.now() });
     assert.deepEqual(swept.exceptionFailures, [], "正常路径：无异常登记失败");
     assert.equal(swept.stalled.length, 1, "结算超时仍按滞留处置上浮");
     assert.equal(ledger.events({ taskId: "TK-00000103" }).filter((event) => event.type === "exception").length, 1);
@@ -1618,15 +1622,15 @@ test("轮询处置的异常登记失败响亮可核：sweep 回报 exceptionFail
 
 // ---------------- 19 号票：简报契约边界完整性 ----------------
 
-test("19① amend 置换件删减已冻结 reviewPoints 即拒（可加审不可免审在 amend 通道兑现）；整体省略＝删全部同拒，加审放行", () => {
+test("19① amend 置换件删减已冻结 reviewPoints 即拒（可加审不可免审在 amend 通道兑现）；整体省略＝删全部同拒，加审放行", async () => {
   const home = mkHome();
   try {
-    const ledger = createTaskLedger({ dshHome: home, now: clockAt().now });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clockAt().now });
     const frozen = { ...VALID_BRIEF, reviewPoints: ["before-external-visibility", "before-irreversible-write"] };
-    assert.equal(ledger.command({
+    assert.equal((await ledger.command({
       op: "task.intake", taskId: "TK-00000100", actor: HOST, idempotencyKey: "i100",
       payload: { class: "project", brief: frozen }
-    }).ok, true);
+    })).ok, true);
     for (const [op, key, payload] of [
       ["task.triage", "t100", { decision: "立项" }],
       ["task.plan", "p100", {}],
@@ -1634,13 +1638,13 @@ test("19① amend 置换件删减已冻结 reviewPoints 即拒（可加审不可
       ["task.accept", "acc100", {}],
       ["task.start", "s100", {}]
     ]) {
-      assert.equal(ledger.command({
+      assert.equal((await ledger.command({
         op, taskId: "TK-00000100", actor: op === "task.accept" || op === "task.start" ? POST("implementer") : HOST,
         ...cas(ledger, "TK-00000100"), idempotencyKey: key, payload
-      }).ok, true, `${op} 前置步`);
+      })).ok, true, `${op} 前置步`);
     }
     // 部分删减：两点删一点
-    const dropped = ledger.command({
+    const dropped = await ledger.command({
       op: "task.amend", taskId: "TK-00000100", actor: HOST, ...cas(ledger, "TK-00000100"),
       idempotencyKey: "am100a", payload: { brief: { ...frozen, reviewPoints: ["before-external-visibility"] } }
     });
@@ -1648,7 +1652,7 @@ test("19① amend 置换件删减已冻结 reviewPoints 即拒（可加审不可
     assert.equal(dropped.code, "review-exemption-forbidden", "免审禁在 amend 通道兑现（08 号票已在 review.request 通道把守）");
     assert.ok(dropped.reason.includes("before-irreversible-write"), "拒绝回执可归因到被删的点");
     // 整体省略＝删全部
-    const omitted = ledger.command({
+    const omitted = await ledger.command({
       op: "task.amend", taskId: "TK-00000100", actor: HOST, ...cas(ledger, "TK-00000100"),
       idempotencyKey: "am100b", payload: { brief: { ...VALID_BRIEF, goal: "省略 reviewPoints 的置换件" } }
     });
@@ -1657,7 +1661,7 @@ test("19① amend 置换件删减已冻结 reviewPoints 即拒（可加审不可
     // 两次拒绝后冻结件原样
     assert.deepEqual(ledger.task("TK-00000100").brief, frozen, "拒绝 fail closed：冻结件不被置换");
     // 加审（保留原有点＋新增）放行
-    const added = ledger.command({
+    const added = await ledger.command({
       op: "task.amend", taskId: "TK-00000100", actor: HOST, ...cas(ledger, "TK-00000100"),
       idempotencyKey: "am100c", payload: {
         brief: { ...frozen, goal: "改后的目标", reviewPoints: [...frozen.reviewPoints, "before-cross-instance-handoff"] }
@@ -1674,14 +1678,14 @@ test("19① amend 置换件删减已冻结 reviewPoints 即拒（可加审不可
   }
 });
 
-test("19④ 判据缺口与结构违规分码：gap-only＝criteria-gap、结构违规＝invalid-brief，两类同时在案时结构优先但缺口原因仍可见", () => {
+test("19④ 判据缺口与结构违规分码：gap-only＝criteria-gap、结构违规＝invalid-brief，两类同时在案时结构优先但缺口原因仍可见", async () => {
   const home = mkHome();
   try {
-    const ledger = createTaskLedger({ dshHome: home, now: clockAt().now });
-    assert.equal(ledger.command({ op: "task.intake", taskId: "TK-00000101", actor: HOST, idempotencyKey: "i101", payload: { class: "project" } }).ok, true);
-    ledger.command({ op: "task.triage", taskId: "TK-00000101", actor: HOST, ...cas(ledger, "TK-00000101"), idempotencyKey: "t101", payload: { decision: "立项" } });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clockAt().now });
+    assert.equal((await ledger.command({ op: "task.intake", taskId: "TK-00000101", actor: HOST, idempotencyKey: "i101", payload: { class: "project" } })).ok, true);
+    await ledger.command({ op: "task.triage", taskId: "TK-00000101", actor: HOST, ...cas(ledger, "TK-00000101"), idempotencyKey: "t101", payload: { decision: "立项" } });
     // gap-only（四要素齐备、判据在但不可执行）→ criteria-gap
-    const gapOnly = ledger.command({
+    const gapOnly = await ledger.command({
       op: "task.plan", taskId: "TK-00000101", actor: HOST, ...cas(ledger, "TK-00000101"),
       idempotencyKey: "p101a", payload: { brief: { ...VALID_BRIEF, acceptance: [{ probe: "fs.contains", args: { path: "错形", keyword: "参数" } }] } }
     });
@@ -1689,14 +1693,14 @@ test("19④ 判据缺口与结构违规分码：gap-only＝criteria-gap、结构
     assert.equal(gapOnly.code, "criteria-gap", "立项期同口径分码（plan 通道）");
     assert.ok(gapOnly.reason.includes("逐字一致"), "缺口原因随拒绝回执可见");
     // 结构违规（四要素残缺）→ invalid-brief
-    const structural = ledger.command({
+    const structural = await ledger.command({
       op: "task.plan", taskId: "TK-00000101", actor: HOST, ...cas(ledger, "TK-00000101"),
       idempotencyKey: "p101b", payload: { brief: { goal: "只有目标" } }
     });
     assert.equal(structural.ok, false);
     assert.equal(structural.code, "invalid-brief", "结构违规维持原码（07 号票口径不变）");
     // 两类同时在案：结构优先，缺口原因仍随理由可见
-    const both = ledger.command({
+    const both = await ledger.command({
       op: "task.plan", taskId: "TK-00000101", actor: HOST, ...cas(ledger, "TK-00000101"),
       idempotencyKey: "p101c", payload: { brief: { goal: "", acceptance: ["散文判据不可执行"] } }
     });
@@ -1705,8 +1709,8 @@ test("19④ 判据缺口与结构违规分码：gap-only＝criteria-gap、结构
     assert.ok(both.reason.includes("不可执行"), "缺口原因不因结构优先而不可见");
     // amend 通道分码补断言（assign 冻结前置复用同一 briefReject，其 invalid 分支
     // 由「派出即冻结」既有用例覆盖；本例走 amend 通道锁 criteria-gap）
-    ledger.command({ op: "task.plan", taskId: "TK-00000101", actor: HOST, ...cas(ledger, "TK-00000101"), idempotencyKey: "p101d", payload: {} });
-    const assignGap = ledger.command({
+    await ledger.command({ op: "task.plan", taskId: "TK-00000101", actor: HOST, ...cas(ledger, "TK-00000101"), idempotencyKey: "p101d", payload: {} });
+    const assignGap = await ledger.command({
       op: "task.amend", taskId: "TK-00000101", actor: HOST, ...cas(ledger, "TK-00000101"),
       idempotencyKey: "am101", payload: { brief: { ...VALID_BRIEF, acceptance: ["散文判据不可执行"] } }
     });
@@ -1717,20 +1721,20 @@ test("19④ 判据缺口与结构违规分码：gap-only＝criteria-gap、结构
   }
 });
 
-test("19⑤ recordNeedsUser：判据缺口分解不出上浮 waiting-user（cause=needs-user、judgement 留痕、通知 user；triaged 来态新腿）", () => {
+test("19⑤ recordNeedsUser：判据缺口分解不出上浮 waiting-user（cause=needs-user、judgement 留痕、通知 user；triaged 来态新腿）", async () => {
   const home = mkHome();
   try {
     const clock = clockAt();
-    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
-    assert.equal(ledger.command({ op: "task.intake", taskId: "TK-00000102", actor: HOST, idempotencyKey: "i102", payload: { class: "project" } }).ok, true);
-    ledger.command({ op: "task.triage", taskId: "TK-00000102", actor: HOST, ...cas(ledger, "TK-00000102"), idempotencyKey: "t102", payload: { decision: "立项" } });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    assert.equal((await ledger.command({ op: "task.intake", taskId: "TK-00000102", actor: HOST, idempotencyKey: "i102", payload: { class: "project" } })).ok, true);
+    await ledger.command({ op: "task.triage", taskId: "TK-00000102", actor: HOST, ...cas(ledger, "TK-00000102"), idempotencyKey: "t102", payload: { decision: "立项" } });
     // 立项期判据缺口被拒（上浮的机械锚）
-    const gap = ledger.command({
+    const gap = await ledger.command({
       op: "task.plan", taskId: "TK-00000102", actor: HOST, ...cas(ledger, "TK-00000102"),
       idempotencyKey: "p102", payload: { brief: { ...VALID_BRIEF, acceptance: ["散文判据不可执行"] } }
     });
     assert.equal(gap.code, "criteria-gap");
-    const esc = ledger.recordNeedsUser({ taskId: "TK-00000102", reason: "两条判据均无法分解为可观测项", idempotencyKey: "nu102" });
+    const esc = await ledger.recordNeedsUser({ taskId: "TK-00000102", reason: "两条判据均无法分解为可观测项", idempotencyKey: "nu102" });
     assert.equal(esc.ok, true);
     assert.equal(esc.escalated, true);
     assert.equal(esc.cause, "needs-user");
@@ -1752,27 +1756,27 @@ test("19⑤ recordNeedsUser：判据缺口分解不出上浮 waiting-user（caus
   }
 });
 
-test("19⑤ recordNeedsUser 机械锚与幂等：无在案 criteria-gap 拒绝即拒；已挂起不重复上浮", () => {
+test("19⑤ recordNeedsUser 机械锚与幂等：无在案 criteria-gap 拒绝即拒；已挂起不重复上浮", async () => {
   const home = mkHome();
   try {
-    const ledger = createTaskLedger({ dshHome: home, now: clockAt().now });
-    assert.equal(ledger.command({ op: "task.intake", taskId: "TK-00000103", actor: HOST, idempotencyKey: "i103", payload: { class: "project" } }).ok, true);
-    ledger.command({ op: "task.triage", taskId: "TK-00000103", actor: HOST, ...cas(ledger, "TK-00000103"), idempotencyKey: "t103", payload: { decision: "立项" } });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clockAt().now });
+    assert.equal((await ledger.command({ op: "task.intake", taskId: "TK-00000103", actor: HOST, idempotencyKey: "i103", payload: { class: "project" } })).ok, true);
+    await ledger.command({ op: "task.triage", taskId: "TK-00000103", actor: HOST, ...cas(ledger, "TK-00000103"), idempotencyKey: "t103", payload: { decision: "立项" } });
     // 无锚：最近拒绝不是 criteria-gap（本例无任何拒绝）→ 拒，状态不动
-    const noAnchor = ledger.recordNeedsUser({ taskId: "TK-00000103", reason: "想挂起", idempotencyKey: "nu103a" });
+    const noAnchor = await ledger.recordNeedsUser({ taskId: "TK-00000103", reason: "想挂起", idempotencyKey: "nu103a" });
     assert.equal(noAnchor.ok, false);
     assert.equal(noAnchor.code, "criteria-gap-anchor-missing", "上浮主张必须紧跟真实判据缺口拒绝——不得作通用挂起旁路");
     assert.equal(ledger.task("TK-00000103").status, "triaged");
     // 造锚：plan 被缺口拒绝
-    ledger.command({
+    await ledger.command({
       op: "task.plan", taskId: "TK-00000103", actor: HOST, ...cas(ledger, "TK-00000103"),
       idempotencyKey: "p103", payload: { brief: { ...VALID_BRIEF, acceptance: ["散文判据不可执行"] } }
     });
-    const first = ledger.recordNeedsUser({ taskId: "TK-00000103", reason: "分解不出来", idempotencyKey: "nu103b" });
+    const first = await ledger.recordNeedsUser({ taskId: "TK-00000103", reason: "分解不出来", idempotencyKey: "nu103b" });
     assert.equal(first.escalated, true);
     // 已挂起：换新幂等键再调不重复上浮（零新事件）
     const eventsBefore = ledger.events({ taskId: "TK-00000103" }).length;
-    const second = ledger.recordNeedsUser({ taskId: "TK-00000103", reason: "分解不出来", idempotencyKey: "nu103c" });
+    const second = await ledger.recordNeedsUser({ taskId: "TK-00000103", reason: "分解不出来", idempotencyKey: "nu103c" });
     assert.equal(second.ok, true);
     assert.equal(second.escalated, false, "已挂起不重复上浮");
     assert.equal(ledger.events({ taskId: "TK-00000103" }).length, eventsBefore, "重复上浮零事件");
@@ -1781,29 +1785,29 @@ test("19⑤ recordNeedsUser 机械锚与幂等：无在案 criteria-gap 拒绝�
   }
 });
 
-test("19⑤ needs-user 挂起的恢复回路：user 补可执行判据（amend）→ resume 回 triaged → plan 成功", () => {
+test("19⑤ needs-user 挂起的恢复回路：user 补可执行判据（amend）→ resume 回 triaged → plan 成功", async () => {
   const home = mkHome();
   try {
-    const ledger = createTaskLedger({ dshHome: home, now: clockAt().now });
-    assert.equal(ledger.command({ op: "task.intake", taskId: "TK-00000104", actor: HOST, idempotencyKey: "i104", payload: { class: "project" } }).ok, true);
-    ledger.command({ op: "task.triage", taskId: "TK-00000104", actor: HOST, ...cas(ledger, "TK-00000104"), idempotencyKey: "t104", payload: { decision: "立项" } });
-    ledger.command({
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clockAt().now });
+    assert.equal((await ledger.command({ op: "task.intake", taskId: "TK-00000104", actor: HOST, idempotencyKey: "i104", payload: { class: "project" } })).ok, true);
+    await ledger.command({ op: "task.triage", taskId: "TK-00000104", actor: HOST, ...cas(ledger, "TK-00000104"), idempotencyKey: "t104", payload: { decision: "立项" } });
+    await ledger.command({
       op: "task.plan", taskId: "TK-00000104", actor: HOST, ...cas(ledger, "TK-00000104"),
       idempotencyKey: "p104", payload: { brief: { ...VALID_BRIEF, acceptance: ["散文判据不可执行"] } }
     });
-    assert.equal(ledger.recordNeedsUser({ taskId: "TK-00000104", reason: "分解不出来", idempotencyKey: "nu104" }).escalated, true);
+    assert.equal((await ledger.recordNeedsUser({ taskId: "TK-00000104", reason: "分解不出来", idempotencyKey: "nu104" })).escalated, true);
     // user 在挂起点补可执行判据（简报置换走 amend）并复归
-    const amended = ledger.command({
+    const amended = await ledger.command({
       op: "task.amend", taskId: "TK-00000104", actor: USER, ...cas(ledger, "TK-00000104"),
       idempotencyKey: "am104", payload: { brief: { ...VALID_BRIEF, goal: "用户改写的可执行判据目标" } }
     });
     assert.equal(amended.ok, true, "needs-user 不在永不可代表内：user 终裁照常，简报经 amend 补齐");
-    const resumed = ledger.command({
+    const resumed = await ledger.command({
       op: "task.resume", taskId: "TK-00000104", actor: USER, ...cas(ledger, "TK-00000104"),
       idempotencyKey: "r104", payload: { resumeTo: "triaged" }
     });
     assert.equal(resumed.ok, true);
-    const planned = ledger.command({
+    const planned = await ledger.command({
       op: "task.plan", taskId: "TK-00000104", actor: HOST, ...cas(ledger, "TK-00000104"),
       idempotencyKey: "p104b", payload: { brief: { ...VALID_BRIEF, goal: "用户改写的可执行判据目标" } }
     });
@@ -1819,10 +1823,10 @@ test("19⑤ needs-user 挂起的恢复回路：user 补可执行判据（amend�
  * 建一张 settled 态任务（关闭前置的被审对象）。`cls`＝任务类别（duty 例程任务的
  * 承载面是台账本身，不适用产出登记门）；`closeReviews`＝是否把简报冻结点复核闭合。
  */
-function walkToSettled(ledger, taskId, {
+async function walkToSettled(ledger, taskId, {
   cls = "project", brief = REVIEW_BRIEF, botId = "implementer", closeReviews = true
 } = {}) {
-  assert.equal(openTask(ledger, taskId, { class: cls, brief }).ok, true);
+  assert.equal((await openTask(ledger, taskId, { class: cls, brief })).ok, true);
   for (const [op, actor, payload, key] of [
     ["task.triage", HOST, { decision: "立项" }, "triage"],
     ["task.plan", HOST, {}, "plan"],
@@ -1831,43 +1835,43 @@ function walkToSettled(ledger, taskId, {
     ["task.start", POST(botId), {}, "start"],
     ["task.report", POST(botId), {}, "report"]
   ]) {
-    assert.equal(ledger.command({
+    assert.equal((await ledger.command({
       op, taskId, actor, ...cas(ledger, taskId), idempotencyKey: `${taskId}-${key}`, payload
-    }).ok, true, op);
+    })).ok, true, op);
   }
   if (closeReviews) {
     for (const point of brief.reviewPoints ?? []) {
-      assert.equal(ledger.command({
+      assert.equal((await ledger.command({
         op: "review.request", taskId, actor: HOST, ...cas(ledger, taskId),
         idempotencyKey: `${taskId}-rv-${point}`, payload: { point, reviewer: "bot-reviewer" }
-      }).ok, true);
-      assert.equal(ledger.recordReviewReport({
+      })).ok, true);
+      assert.equal((await ledger.recordReviewReport({
         taskId, reviewer: "bot-reviewer", report: { ...CLOSED_REPORT, subject: point },
         idempotencyKey: `${taskId}-rr-${point}`
-      }).ok, true);
+      })).ok, true);
     }
   }
-  assert.equal(ledger.command({
+  assert.equal((await ledger.command({
     op: "task.deliver", taskId, actor: POST(botId), ...cas(ledger, taskId),
     idempotencyKey: `${taskId}-deliver`, payload: {}
-  }).ok, true);
-  assert.equal(ledger.command({
+  })).ok, true);
+  assert.equal((await ledger.command({
     op: "task.settle", taskId, actor: HOST, ...cas(ledger, taskId),
     idempotencyKey: `${taskId}-settle`, payload: {}
-  }).ok, true);
+  })).ok, true);
 }
 
-const close = (ledger, taskId, key, actor = HOST) => ledger.command({
+const close = async (ledger, taskId, key, actor = HOST) => await ledger.command({
   op: "task.close", taskId, actor, ...cas(ledger, taskId), idempotencyKey: key, payload: {}
 });
 
-test("关闭前置（§B；V-A2.7／V-A2.9，14 号票）：产出未按「谁产出谁登记」登记即拒；本人登记本任务产出后放行", () => {
+test("关闭前置（§B；V-A2.7／V-A2.9，14 号票）：产出未按「谁产出谁登记」登记即拒；本人登记本任务产出后放行", async () => {
   const home = mkHome();
   try {
-    const ledger = createTaskLedger({ dshHome: home, now: clockAt().now });
-    walkToSettled(ledger, "TK-00000095", { brief: { ...VALID_BRIEF, reviewPoints: [] } });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clockAt().now });
+    await walkToSettled(ledger, "TK-00000095", { brief: { ...VALID_BRIEF, reviewPoints: [] } });
 
-    const blocked = close(ledger, "TK-00000095", "c95-blocked");
+    const blocked = await close(ledger, "TK-00000095", "c95-blocked");
     assert.equal(blocked.ok, false);
     assert.equal(blocked.code, "artifact-not-registered");
     assert.equal(ledger.task("TK-00000095").status, "settled", "拒绝不得改状态");
@@ -1881,21 +1885,21 @@ test("关闭前置（§B；V-A2.7／V-A2.9，14 号票）：产出未按「谁�
       dshHome: home, botId: "someone-else",
       input: { title: "他产", summary: "s", body: "b", task: "TK-00000095" }
     });
-    assert.equal(close(ledger, "TK-00000095", "c95-other").code, "artifact-not-registered");
+    assert.equal((await close(ledger, "TK-00000095", "c95-other")).code, "artifact-not-registered");
 
     // 登记方＝产出方但未锚本任务 → 同样不认（产出＝本任务产出，不是该实例任意产出）
     registerReport({
       dshHome: home, botId: "implementer",
       input: { title: "别任务产出", summary: "s", body: "b", task: "TK-00000099" }
     });
-    assert.equal(close(ledger, "TK-00000095", "c95-unanchored").code, "artifact-not-registered");
+    assert.equal((await close(ledger, "TK-00000095", "c95-unanchored")).code, "artifact-not-registered");
 
     // 产出方本人、锚本任务 → 放行
     registerReport({
       dshHome: home, botId: "implementer",
       input: { title: "本任务产出", summary: "s", body: "b", task: "TK-00000095" }
     });
-    const closed = close(ledger, "TK-00000095", "c95-ok");
+    const closed = await close(ledger, "TK-00000095", "c95-ok");
     assert.equal(closed.ok, true, closed.reason);
     assert.equal(closed.status, "closed");
     assert.equal(ledger.task("TK-00000095").status, "closed");
@@ -1904,46 +1908,46 @@ test("关闭前置（§B；V-A2.7／V-A2.9，14 号票）：产出未按「谁�
   }
 });
 
-test("关闭前置（§B；V-A2.7，14 号票）：命中必审点未闭合即拒——交付门不得在关闭处被绕过", () => {
+test("关闭前置（§B；V-A2.7，14 号票）：命中必审点未闭合即拒——交付门不得在关闭处被绕过", async () => {
   const home = mkHome();
   try {
-    const ledger = createTaskLedger({ dshHome: home, now: clockAt().now });
-    walkToSettled(ledger, "TK-00000096");
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clockAt().now });
+    await walkToSettled(ledger, "TK-00000096");
     registerReport({
       dshHome: home, botId: "implementer",
       input: { title: "本任务产出", summary: "s", body: "b", task: "TK-00000096" }
     });
     // 交付后加审（强制、带归因）：新必审点未闭合 → 关闭被拒，不得凭交付时的旧结论关掉
-    assert.equal(ledger.command({
+    assert.equal((await ledger.command({
       op: "review.request", taskId: "TK-00000096", actor: HOST, ...cas(ledger, "TK-00000096"),
       idempotencyKey: "rv96-add",
       payload: { point: "before-irreversible-write", mandatory: true, attribution: "关闭前补审", reviewer: "bot-reviewer" }
-    }).ok, true);
-    const blocked = close(ledger, "TK-00000096", "c96-blocked");
+    })).ok, true);
+    const blocked = await close(ledger, "TK-00000096", "c96-blocked");
     assert.equal(blocked.ok, false);
     assert.equal(blocked.code, "review-gaps-open");
     assert.ok(blocked.reason.includes("before-irreversible-write"));
 
     // 闭合该点后放行
-    assert.equal(ledger.recordReviewReport({
+    assert.equal((await ledger.recordReviewReport({
       taskId: "TK-00000096", reviewer: "bot-reviewer",
       report: { ...CLOSED_REPORT, subject: "before-irreversible-write" },
       idempotencyKey: "rr96-add"
-    }).ok, true);
-    assert.equal(close(ledger, "TK-00000096", "c96-ok").ok, true);
+    })).ok, true);
+    assert.equal((await close(ledger, "TK-00000096", "c96-ok")).ok, true);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
 });
 
-test("关闭前置（§B；V-A2.9，14 号票）：duty 例程任务不适用产出登记门（承载面＝台账本身）", () => {
+test("关闭前置（§B；V-A2.9，14 号票）：duty 例程任务不适用产出登记门（承载面＝台账本身）", async () => {
   const home = mkHome();
   try {
-    const ledger = createTaskLedger({ dshHome: home, now: clockAt().now });
-    walkToSettled(ledger, "TK-00000097", {
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clockAt().now });
+    await walkToSettled(ledger, "TK-00000097", {
       cls: "duty", brief: { ...VALID_BRIEF, reviewPoints: [] }
     });
-    const closed = close(ledger, "TK-00000097", "c97-ok");
+    const closed = await close(ledger, "TK-00000097", "c97-ok");
     assert.equal(closed.ok, true, "例程任务无知识库产出可登记，不得被登记门锁死");
     assert.equal(closed.status, "closed");
   } finally {
@@ -1951,16 +1955,16 @@ test("关闭前置（§B；V-A2.9，14 号票）：duty 例程任务不适用产
   }
 });
 
-test("关闭前置（§B；V-A2.7，14 号票）：产出登记面不可读＝fail closed；注入面同样受「锚定＋产出方」两件判定", () => {
+test("关闭前置（§B；V-A2.7，14 号票）：产出登记面不可读＝fail closed；注入面同样受「锚定＋产出方」两件判定", async () => {
   const home = mkHome();
   try {
     // 读面抛错 → 关闭被拒、状态不变（不把「读不到」当成「不需要登记」）
-    const throwing = createTaskLedger({
+    const throwing = createTaskLedger({ ...CRITERION_INJECTION,
       dshHome: home, now: clockAt().now,
       artifactsFor: () => { throw new Error("索引不可读"); }
     });
-    walkToSettled(throwing, "TK-00000098", { brief: { ...VALID_BRIEF, reviewPoints: [] } });
-    const blocked = close(throwing, "TK-00000098", "c98-unreadable");
+    await walkToSettled(throwing, "TK-00000098", { brief: { ...VALID_BRIEF, reviewPoints: [] } });
+    const blocked = await close(throwing, "TK-00000098", "c98-unreadable");
     assert.equal(blocked.ok, false);
     assert.equal(blocked.code, "artifact-registry-unreadable");
     assert.equal(throwing.task("TK-00000098").status, "settled", "fail closed：状态不变");
@@ -1970,26 +1974,27 @@ test("关闭前置（§B；V-A2.7，14 号票）：产出登记面不可读＝fa
     const task = throwing.task("TK-00000098");
     const events = throwing.events({ taskId: "TK-00000098" });
     assert.equal(
-      closePrecondition({ task, events, artifacts: [{ task: "TK-00000098", botId: "someone-else" }] }).code,
+      (await closePrecondition({ task, events, artifacts: [{ task: "TK-00000098", botId: "someone-else" }], criterionRunner: ACCEPTANCE_RUNNER })).code,
       "artifact-not-registered", "登记方≠产出方即拒"
     );
     assert.equal(
-      closePrecondition({ task, events, artifacts: [{ task: "TK-00000099", botId: "implementer" }] }).code,
+      (await closePrecondition({ task, events, artifacts: [{ task: "TK-00000099", botId: "implementer" }], criterionRunner: ACCEPTANCE_RUNNER })).code,
       "artifact-not-registered", "未锚本任务即拒"
     );
     assert.equal(
-      closePrecondition({ task, events, artifacts: [{ task: "TK-00000098", botId: "implementer" }] }).ok,
+      (await closePrecondition({ task, events, artifacts: [{ task: "TK-00000098", botId: "implementer" }], criterionRunner: ACCEPTANCE_RUNNER })).ok,
       true, "登记方＝产出方且锚本任务 → 过"
     );
     // duty 例程任务：承载面＝台账本身，登记门不适用（两件判定都跳过）
-    const duty = walkToSettled(throwing, "TK-00000100", {
+    const duty = await walkToSettled(throwing, "TK-00000100", {
       cls: "duty", brief: { ...VALID_BRIEF, reviewPoints: [] }
     });
     void duty;
     assert.equal(
-      closePrecondition({
-        task: throwing.task("TK-00000100"), events: throwing.events({ taskId: "TK-00000100" }), artifacts: []
-      }).ok, true, "duty 任务不受产出登记门约束"
+      (await closePrecondition({
+        task: throwing.task("TK-00000100"), events: throwing.events({ taskId: "TK-00000100" }), artifacts: [],
+        criterionRunner: ACCEPTANCE_RUNNER
+      })).ok, true, "duty 任务不受产出登记门约束"
     );
   } finally {
     rmSync(home, { recursive: true, force: true });

@@ -809,11 +809,11 @@ export const HOST_CONTRACT_PROBES = [
     id: "P-V2-LEDGER-FORMAT",
     face: "HF-V2-LEDGER-FORMAT",
     describe: "v2 台账落盘格式：events.jsonl 行级 append-only＋事件 schema/hash 链可复算＋投影可从盘重建",
-    run() {
+    async run() {
       const home = mkdtempSync(join(tmpdir(), "dsh-probe-ledger-"));
       try {
         const ledger = createTaskLedger({ dshHome: home });
-        const created = ledger.command({
+        const created = await ledger.command({
           op: "task.intake", taskId: "TK-probe0001", actor: { kind: "host", id: "web" },
           idempotencyKey: "probe-intake", payload: { class: "duty", brief: PROBE_BRIEF }
         });
@@ -858,7 +858,7 @@ export const HOST_CONTRACT_PROBES = [
     id: "P-LEDGER-COMMANDS",
     face: "HF-LEDGER-COMMANDS",
     describe: "v2 台账命令面：host 路由在位＋命令信封与拒绝形状（fail closed）＋bot 无台账直写通道",
-    run() {
+    async run() {
       const repoRoot = new URL("..", import.meta.url);
       const indexPath = new URL("lib/index.js", repoRoot);
       let index = "";
@@ -890,14 +890,14 @@ export const HOST_CONTRACT_PROBES = [
       const home = mkdtempSync(join(tmpdir(), "dsh-probe-ledger-cmd-"));
       try {
         const ledger = createTaskLedger({ dshHome: home });
-        const created = ledger.command({
+        const created = await ledger.command({
           op: "task.intake", taskId: "TK-probe0002", actor: { kind: "host", id: "web" },
           idempotencyKey: "probe-cmd-intake", payload: { class: "duty", brief: PROBE_BRIEF }
         });
         if (!created.ok || created.status !== "intake" || !Number.isInteger(created.seq)) {
           return { state: "FAIL", reason: `命令面成功形状不符（{ok,taskId,status,seq}）：${JSON.stringify(created)}`, coordinate: "lib/org/ledger-host.js" };
         }
-        const rejected = ledger.command({
+        const rejected = await ledger.command({
           op: "task.close", taskId: "TK-probe0002", actor: { kind: "host", id: "web" },
           expectedStatus: "intake", expectedSeq: 1, idempotencyKey: "probe-cmd-close", payload: {}
         });

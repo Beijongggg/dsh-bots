@@ -23,6 +23,10 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { ACCEPTANCE_RUNNER, criterionInjection } from "./helpers/criterion-fixture.mjs";
+
+/** 已有夹具的判据执行面：本组用例测的不是判据门，显式声明「判据面已接线」（25 号票）。 */
+const CRITERION_INJECTION = Object.freeze(criterionInjection(ACCEPTANCE_RUNNER));
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -480,7 +484,7 @@ test("plan 跳过理由逐前提列名：多前提同缺不合并成单条（rea
 test("①触发：host 登记腿把评测任务落成 class=duty 任务；同窗重放不产生第二张（V-A2.10 幂等）", async () => {
   const home = mkHome("dsh-durability-host-");
   try {
-    const ledger = createTaskLedger({ dshHome: home });
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home });
     const host = createLedgerHost({ ledger, logger: { warn() {} } });
     const first = await host.registerModelUpgradeEval({ botId: "bot-a", post: "researcher", before: BEFORE, after: AFTER });
     assert.equal(first.action, "register");
@@ -513,7 +517,7 @@ test("①触发：host 登记腿把评测任务落成 class=duty 任务；同窗
 test("①触发：登记失败也广播投影——失败留痕不等下一拍（人间收件箱即时可见）", async () => {
   const home = mkHome("dsh-durability-broadcast-");
   try {
-    const real = createTaskLedger({ dshHome: home });
+    const real = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home });
     const failing = { ...real, triggerRoutine: () => ({ ok: false, code: "injected-failure", reason: "注入的登记失败" }) };
     let broadcasts = 0;
     const host = createLedgerHost({ ledger: failing, broadcast: () => { broadcasts += 1; }, logger: { warn() {} } });
@@ -542,7 +546,7 @@ test("V-A7.4 端到端：patch 改实例模型指派 → 台账自动登记 duty
     });
     const api = new internals.BotsApi({ logger: { warn() {}, info() {} } }, home, null);
     api.ledgerHost = internals.createLedgerHost({
-      ledger: internals.createTaskLedger({ dshHome: home }),
+      ledger: internals.createTaskLedger({ ...CRITERION_INJECTION, dshHome: home }),
       logger: { warn() {} }
     });
 

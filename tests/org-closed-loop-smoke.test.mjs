@@ -24,7 +24,7 @@ import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 import { internals } from "../lib/index.js";
 import { createTaskLedger, eventsFile, MAIN_FLOW, EVENT_TYPES, projectEvents } from "../lib/org/task-ledger.js";
@@ -32,7 +32,8 @@ import { createCapabilityIssuer } from "../lib/org/capability-issue.js";
 import { createLedgerAccessKit, createLedgerCommandDispatcher } from "../lib/org/permissions.js";
 import { createLedgerHost } from "../lib/org/ledger-host.js";
 import { createReviewFaceGate, selectReviewer } from "../lib/org/review-kit.js";
-import { registerReport } from "../lib/knowledge.js";
+import { criterionRunnerInjection } from "../lib/org/criterion-runner.js";
+import { registerReport, reportsDirFor } from "../lib/knowledge.js";
 import { clockAt, writeInstanceRow } from "./helpers/capability-fixture.mjs";
 import { VALID_BRIEF } from "./helpers/brief-fixture.mjs";
 
@@ -84,7 +85,18 @@ async function call(api, method, url, body = null, headers = {}) {
 // ---------------- 装具：真台账＋真签发＋真 dispatch＋真复核帽门 ----------------
 
 const TASK_ID = "TK-00000014";
-const BRIEF = Object.freeze({ ...VALID_BRIEF, reviewPoints: ["before-external-visibility"] });
+/**
+ * 夹具简报：交付坐标＝知识登记落盘的报告文件（**任务自己产出的坐标**），验收判据就
+ * 检查该坐标含报告正文——25 号票起关闭前置会在关闸时**真跑**这条判据，故夹具必须
+ * 给出真能跑过的坐标（旧夹具指向 `docs/x.md`，那是永远跑不过的死判据）。
+ */
+const PRODUCED_LOCATION = "bots/knowledge/reports/R-2026-001.md";
+const BRIEF = Object.freeze({
+  ...VALID_BRIEF,
+  deliverables: [{ format: "markdown", location: PRODUCED_LOCATION }],
+  acceptance: [{ probe: "fs.contains", args: { location: PRODUCED_LOCATION, text: "闭环跑通" } }],
+  reviewPoints: ["before-external-visibility"]
+});
 const POSTS = Object.freeze({ implementer: "implementer", "project-lead": "project-lead", verifier: "verifier" });
 
 function mkRig() {
@@ -95,7 +107,10 @@ function mkRig() {
   const postForBot = (botId) => POSTS[botId] ?? null;
   const issuer = createCapabilityIssuer({ dshHome: home, now: clock.now });
   const access = createLedgerAccessKit({ issuer, postForBot, logger });
-  const ledger = createTaskLedger({ dshHome: home, now: clock.now, authorize: access.authorize });
+  const ledger = createTaskLedger({
+    dshHome: home, now: clock.now, authorize: access.authorize,
+    ...criterionRunnerInjection({ cwd: join(dirname(new URL(import.meta.url).pathname), "..") })
+  });
   issuer.bindLedger(ledger); // 吊销投影腿绑同一门面（构造顺序解耦）
   const dispatcher = createLedgerCommandDispatcher({ ledger, issuer, postForBot, logger });
   const frames = [];
@@ -250,7 +265,7 @@ async function runClosedLoop() {
   steps.register = await call(api, "POST", "/api/bots/_ledger/commands", {
     op: "knowledge.register", actor: POST("implementer"), idempotencyKey: "loop-register",
     capability: roleCap(issuer, "implementer"),
-    payload: { title: "闭环烟测产出", summary: "闭环跑通的结论", body: "# 结论", task: TASK_ID }
+    payload: { title: "闭环烟测产出", summary: "闭环跑通", body: "# 闭环跑通的结论", task: TASK_ID }
   });
   steps.close = await call(api, "POST", "/api/bots/_ledger/commands", {
     op: "task.close", taskId: TASK_ID, actor: POST("project-lead"), idempotencyKey: "loop-close",
@@ -364,7 +379,11 @@ test("闭环烟测 ⑤：实施段持真能力链——单次消费＋链式续�
 test("闭环烟测 ⑥：关闭前置成立且终态只读——产出登记锚本任务，重开被拒（§B／V-A2.9）", () => {
   // 关闭前置是活门：产出未登记时那次关闭尝试被拒（链上真的发生过）
   assert.equal(steps.closeBlocked.status, 409);
-  assert.equal(steps.closeBlocked.body.code, "artifact-not-registered");
+  // 关闭前置第三条（25 号票）在产出登记之前先跑判据：那次尝试的产出坐标还没落盘，
+  // 故先撞上判据门（`acceptance-check-failed`）；登记之后判据与登记两门同过。
+  assert.equal(steps.closeBlocked.body.code, "acceptance-check-failed");
+  assert.equal(steps.closeBlocked.body.failedIndex, 0, "回执点名第几条判据");
+  assert.match(steps.closeBlocked.body.reason, /闭环烟测产出|R-2026-001\.md/, "回执点名坐标");
   assert.equal(steps.close.status, 200);
   assert.equal(steps.close.body.status, "closed");
   assert.equal(steps.reopen.status, 409);

@@ -21,6 +21,10 @@ import { createCapabilityIssuer, capabilityDir } from "../lib/org/capability-iss
 import { createTaskLedger } from "../lib/org/task-ledger.js";
 import { clockAt, writeInstanceRow } from "./helpers/capability-fixture.mjs";
 import { VALID_BRIEF } from "./helpers/brief-fixture.mjs";
+import { ACCEPTANCE_RUNNER, criterionInjection } from "./helpers/criterion-fixture.mjs";
+
+/** 已有夹具的判据执行面：本组用例测的不是判据门，显式声明「判据面已接线」（25 号票）。 */
+const CRITERION_INJECTION = Object.freeze(criterionInjection(ACCEPTANCE_RUNNER));
 
 function mkHome() {
   return mkdtempSync(join(tmpdir(), "dsh-cap-issue-"));
@@ -31,22 +35,22 @@ process.on("exit", () => {
 const HOMES = [];
 
 /** 建一张派到 bot-a 的在办任务（assign 转移点之后的台账事实）。 */
-function assignedTask(home, clock, { botId = "bot-a" } = {}) {
-  const ledger = createTaskLedger({ dshHome: home, now: clock.now });
+async function assignedTask(home, clock, { botId = "bot-a" } = {}) {
+  const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
   const taskId = `TK-${Math.random().toString(16).slice(2, 12)}`;
-  ledger.command({
+  await ledger.command({
     op: "task.intake", taskId, actor: { kind: "host", id: "web" },
     idempotencyKey: `intake:${taskId}`, payload: { class: "project", brief: { ...VALID_BRIEF } }
   });
-  ledger.command({
+  await ledger.command({
     op: "task.triage", taskId, actor: { kind: "host", id: "web" },
     idempotencyKey: `triage:${taskId}`, expectedStatus: "intake", expectedSeq: 1, payload: { decision: "立项" }
   });
-  ledger.command({
+  await ledger.command({
     op: "task.plan", taskId, actor: { kind: "host", id: "web" },
     idempotencyKey: `plan:${taskId}`, expectedStatus: "triaged", expectedSeq: 2, payload: {}
   });
-  ledger.command({
+  await ledger.command({
     op: "task.assign", taskId, actor: { kind: "host", id: "web" },
     idempotencyKey: `assign:${taskId}`, expectedStatus: "planned", expectedSeq: 3,
     payload: { assignee: botId, dispatcher: "project-lead" }
@@ -58,11 +62,11 @@ function mkIssuer(home, clock, overrides = {}) {
   return createCapabilityIssuer({ dshHome: home, ledger: overrides.ledger, now: clock.now, ...overrides });
 }
 
-test("任务能力：assign 转移点签发——信封形状、短 TTL、任务域绑定、op 为承接执行集（V-A3.5）", () => {
+test("任务能力：assign 转移点签发——信封形状、短 TTL、任务域绑定、op 为承接执行集（V-A3.5）", async () => {
   const home = mkHome(); HOMES.push(home);
   const clock = clockAt();
   writeInstanceRow(home, "bot-a");
-  const { ledger, taskId } = assignedTask(home, clock);
+  const { ledger, taskId } = await assignedTask(home, clock);
   const issuer = mkIssuer(home, clock, { ledger, ttlMs: 60_000 });
 
   const issued = issuer.issueTaskCapability({ taskId, botId: "bot-a", post: "researcher" });
@@ -81,11 +85,11 @@ test("任务能力：assign 转移点签发——信封形状、短 TTL、任务
   assert.equal(verdict.ok, true, verdict.reason);
 });
 
-test("单次消费：同一信封第二次验签即拒（重放无效，V-A3.5）", () => {
+test("单次消费：同一信封第二次验签即拒（重放无效，V-A3.5）", async () => {
   const home = mkHome(); HOMES.push(home);
   const clock = clockAt();
   writeInstanceRow(home, "bot-a");
-  const { ledger, taskId } = assignedTask(home, clock);
+  const { ledger, taskId } = await assignedTask(home, clock);
   const issuer = mkIssuer(home, clock, { ledger });
   const issued = issuer.issueTaskCapability({ taskId, botId: "bot-a", post: "researcher" });
 
@@ -95,11 +99,11 @@ test("单次消费：同一信封第二次验签即拒（重放无效，V-A3.5�
   assert.equal(replay.code, "capability-replayed");
 });
 
-test("短 TTL 过期：时钟推过 exp 即拒，且过期判定先于 nonce 消费（V-A3.5）", () => {
+test("短 TTL 过期：时钟推过 exp 即拒，且过期判定先于 nonce 消费（V-A3.5）", async () => {
   const home = mkHome(); HOMES.push(home);
   const clock = clockAt();
   writeInstanceRow(home, "bot-a");
-  const { ledger, taskId } = assignedTask(home, clock);
+  const { ledger, taskId } = await assignedTask(home, clock);
   const issuer = mkIssuer(home, clock, { ledger, ttlMs: 1_000 });
   const issued = issuer.issueTaskCapability({ taskId, botId: "bot-a", post: "researcher" });
 
@@ -112,11 +116,11 @@ test("短 TTL 过期：时钟推过 exp 即拒，且过期判定先于 nonce 消
   assert.equal(again.code, "capability-expired");
 });
 
-test("任务域绑定：能力绑定 TK-A 不得用于 TK-B（V-A3.5）", () => {
+test("任务域绑定：能力绑定 TK-A 不得用于 TK-B（V-A3.5）", async () => {
   const home = mkHome(); HOMES.push(home);
   const clock = clockAt();
   writeInstanceRow(home, "bot-a");
-  const { ledger, taskId } = assignedTask(home, clock);
+  const { ledger, taskId } = await assignedTask(home, clock);
   const issuer = mkIssuer(home, clock, { ledger });
   const issued = issuer.issueTaskCapability({ taskId, botId: "bot-a", post: "researcher" });
 
@@ -125,11 +129,11 @@ test("任务域绑定：能力绑定 TK-A 不得用于 TK-B（V-A3.5）", () => 
   assert.equal(other.code, "task-domain-mismatch");
 });
 
-test("实例绑定：冒用（payload.botId ≠ 请求者）与代际轮换（注册表换代）即拒（V-A3.5）", () => {
+test("实例绑定：冒用（payload.botId ≠ 请求者）与代际轮换（注册表换代）即拒（V-A3.5）", async () => {
   const home = mkHome(); HOMES.push(home);
   const clock = clockAt();
   writeInstanceRow(home, "bot-a");
-  const { ledger, taskId } = assignedTask(home, clock);
+  const { ledger, taskId } = await assignedTask(home, clock);
   const issuer = mkIssuer(home, clock, { ledger });
   const issued = issuer.issueTaskCapability({ taskId, botId: "bot-a", post: "researcher" });
 
@@ -143,11 +147,11 @@ test("实例绑定：冒用（payload.botId ≠ 请求者）与代际轮换（�
   assert.equal(rotated.code, "capability-generation");
 });
 
-test("实例活态：注册表最新行 pid 已死即拒（V-A3.5 活态槽比对）", () => {
+test("实例活态：注册表最新行 pid 已死即拒（V-A3.5 活态槽比对）", async () => {
   const home = mkHome(); HOMES.push(home);
   const clock = clockAt();
   writeInstanceRow(home, "bot-a", { alive: false });
-  const { ledger, taskId } = assignedTask(home, clock);
+  const { ledger, taskId } = await assignedTask(home, clock);
   const issuer = mkIssuer(home, clock, { ledger });
   const issued = issuer.issueTaskCapability({ taskId, botId: "bot-a", post: "researcher" });
 
@@ -156,38 +160,38 @@ test("实例活态：注册表最新行 pid 已死即拒（V-A3.5 活态槽比�
   assert.equal(verdict.code, "instance-not-alive");
 });
 
-test("自动吊销（生命周期联动）：租约回收／交付后能力即死，不靠显式吊销动作（V-A3.5）", () => {
+test("自动吊销（生命周期联动）：租约回收／交付后能力即死，不靠显式吊销动作（V-A3.5）", async () => {
   const home = mkHome(); HOMES.push(home);
   const clock = clockAt();
   writeInstanceRow(home, "bot-a");
-  const { ledger, taskId } = assignedTask(home, clock);
+  const { ledger, taskId } = await assignedTask(home, clock);
   const issuer = mkIssuer(home, clock, { ledger, ttlMs: 2 * 60 * 60 * 1000 });
   const issued = issuer.issueTaskCapability({ taskId, botId: "bot-a", post: "researcher" });
 
   // 租约回收：逾期未接 → owner 清空 → 能力失效（长 TTL 下排除过期腿，单证吊销腿）
-  const swept = ledger.sweep({ at: clock.advance(60 * 60 * 1000) });
+  const swept = await ledger.sweep({ at: clock.advance(60 * 60 * 1000) });
   assert.equal(swept.released.length, 1, "演练前置：任务应被回收");
   const revoked = issuer.verify({ envelope: issued.envelope, botId: "bot-a", taskId, op: "task.accept" });
   assert.equal(revoked.ok, false);
   assert.equal(revoked.code, "capability-revoked");
 });
 
-test("自动吊销（交付）：accept→start→report→deliver 后能力失效（V-A3.5）", () => {
+test("自动吊销（交付）：accept→start→report→deliver 后能力失效（V-A3.5）", async () => {
   const home = mkHome(); HOMES.push(home);
   const clock = clockAt();
   writeInstanceRow(home, "bot-a");
-  const { ledger, taskId } = assignedTask(home, clock);
+  const { ledger, taskId } = await assignedTask(home, clock);
   const issuer = mkIssuer(home, clock, { ledger });
   const issued = issuer.issueTaskCapability({ taskId, botId: "bot-a", post: "researcher" });
   let seq = 4;
   for (const [op, from] of [["task.accept", "assigned"], ["task.start", "accepted"], ["task.report", "running"]]) {
-    ledger.command({
+    await ledger.command({
       op, taskId, actor: { kind: "post", id: "bot-a" }, idempotencyKey: `${op}:${taskId}`,
       expectedStatus: from, expectedSeq: seq, payload: op === "task.report" ? { deliverable: "report.md" } : {}
     });
     seq += 1;
   }
-  ledger.command({
+  await ledger.command({
     op: "task.deliver", taskId, actor: { kind: "post", id: "bot-a" },
     idempotencyKey: `deliver:${taskId}`, expectedStatus: "produced", expectedSeq: seq, payload: {}
   });
@@ -200,7 +204,7 @@ test("角色能力：taskId 为空、只携岗位表内组织运营 op；不得�
   const home = mkHome(); HOMES.push(home);
   const clock = clockAt();
   writeInstanceRow(home, "bot-lead");
-  const ledger = createTaskLedger({ dshHome: home, now: clock.now });
+  const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
   const issuer = mkIssuer(home, clock, { ledger });
 
   const role = issuer.issueRoleCapability({ botId: "bot-lead", post: "project-lead" });
@@ -230,7 +234,7 @@ test("越表签发 fail closed：op 越出岗位表／给复核帽签发任何 o
   const clock = clockAt();
   writeInstanceRow(home, "bot-a");
   writeInstanceRow(home, "bot-v");
-  const ledger = createTaskLedger({ dshHome: home, now: clock.now });
+  const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
   const issuer = mkIssuer(home, clock, { ledger });
 
   const over = issuer.issueRoleCapability({ botId: "bot-a", post: "researcher", ops: ["task.assign"] });
@@ -248,11 +252,11 @@ test("越表签发 fail closed：op 越出岗位表／给复核帽签发任何 o
   assert.equal(reservedVerifier.ok, false, "复核帽保留 op（裁定包读面）不得签发（未升表）");
 });
 
-test("续签＝重签：旧信封 nonce 已消费、新信封独立有效；审计链逐笔在案（V-A3.5 心跳续签）", () => {
+test("续签＝重签：旧信封 nonce 已消费、新信封独立有效；审计链逐笔在案（V-A3.5 心跳续签）", async () => {
   const home = mkHome(); HOMES.push(home);
   const clock = clockAt();
   writeInstanceRow(home, "bot-a");
-  const { ledger, taskId } = assignedTask(home, clock);
+  const { ledger, taskId } = await assignedTask(home, clock);
   const issuer = mkIssuer(home, clock, { ledger });
   const first = issuer.issueTaskCapability({ taskId, botId: "bot-a", post: "researcher" });
   assert.equal(issuer.verify({ envelope: first.envelope, botId: "bot-a", taskId, op: "task.heartbeat" }).ok, true);
@@ -270,11 +274,11 @@ test("续签＝重签：旧信封 nonce 已消费、新信封独立有效；审�
   assert.equal(audit[0].taskId, taskId);
 });
 
-test("递送不经 mail（结构面）：签发只触 capability 目录，投递面零痕迹（V-A3.7 前提）", () => {
+test("递送不经 mail（结构面）：签发只触 capability 目录，投递面零痕迹（V-A3.7 前提）", async () => {
   const home = mkHome(); HOMES.push(home);
   const clock = clockAt();
   writeInstanceRow(home, "bot-a");
-  const { ledger, taskId } = assignedTask(home, clock);
+  const { ledger, taskId } = await assignedTask(home, clock);
   const treeBefore = dirTree(home);
   const issuer = mkIssuer(home, clock, { ledger });
   issuer.issueTaskCapability({ taskId, botId: "bot-a", post: "researcher" });

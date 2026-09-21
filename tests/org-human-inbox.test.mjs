@@ -179,43 +179,43 @@ test("终裁四式＝台账命令的特化视图：命令全部落在台账命�
   assert.deepEqual(RULING_ACTOR, { kind: "user", id: "user" }, "终裁身份＝user principal（V-A3.10）");
 });
 
-test("终裁只能由 user 行使；mail 回文之类的来路不构成裁定（V-A5.2／V-A5.5）", () => {
+test("终裁只能由 user 行使；mail 回文之类的来路不构成裁定（V-A5.2／V-A5.5）", async () => {
   const calls = [];
   const stub = { command: (input) => { calls.push(input); return { ok: true }; } };
   for (const actor of [{ kind: "post", id: "mail-reply" }, { kind: "host", id: "web" }]) {
-    const verdict = applyRuling({
+    const verdict = await applyRuling({
       ledger: stub, action: "accept", taskId: "TK-00000099", actor, idempotencyKey: "k", resumeTo: "running"
     });
     assert.equal(verdict.ok, false, `${actor.kind} 不得行使终裁`);
     assert.equal(verdict.code, "ruling-actor-required");
   }
   assert.deepEqual(calls, [], "拒绝须在触达台账前发生（无写入）");
-  const unknown = applyRuling({ ledger: stub, action: "闲聊", taskId: "TK-00000099", idempotencyKey: "k" });
+  const unknown = await applyRuling({ ledger: stub, action: "闲聊", taskId: "TK-00000099", idempotencyKey: "k" });
   assert.equal(unknown.ok, false);
   assert.equal(unknown.code, "unknown-ruling-action");
   assert.deepEqual(calls, []);
 });
 
-test("终裁缺幂等键或必填输入即拒；幂等键带 taskId 分量，不跨任务串键（V-A5.5）", () => {
+test("终裁缺幂等键或必填输入即拒；幂等键带 taskId 分量，不跨任务串键（V-A5.5）", async () => {
   const calls = [];
   const stub = {
     command: (input) => { calls.push(input); return { ok: true }; },
     task: () => ({ status: "running", lastSeq: 1 })
   };
-  const noKey = applyRuling({ ledger: stub, action: "accept", taskId: "TK-00000099", resumeTo: "running" });
+  const noKey = await applyRuling({ ledger: stub, action: "accept", taskId: "TK-00000099", resumeTo: "running" });
   assert.equal(noKey.ok, false);
   assert.equal(noKey.code, "idempotency-key-required", "缺键即拒（与台账同口径，不拼出 undefined:op 假键）");
-  const noInput = applyRuling({ ledger: stub, action: "accept", taskId: "TK-00000099", idempotencyKey: "k1" });
+  const noInput = await applyRuling({ ledger: stub, action: "accept", taskId: "TK-00000099", idempotencyKey: "k1" });
   assert.equal(noInput.ok, false);
   assert.equal(noInput.code, "ruling-payload-required", "requires 声明的输入缺一即拒（不把 undefined 传进台账）");
-  const noReason = applyRuling({ ledger: stub, action: "reject", taskId: "TK-00000099", idempotencyKey: "k2" });
+  const noReason = await applyRuling({ ledger: stub, action: "reject", taskId: "TK-00000099", idempotencyKey: "k2" });
   assert.equal(noReason.code, "ruling-payload-required");
   assert.deepEqual(calls, [], "拒绝全部发生在触达台账之前");
   // 同键跨任务：命令面的幂等键含 taskId 分量，两次裁定互不重放
-  const first = applyRuling({
+  const first = await applyRuling({
     ledger: stub, action: "accept", taskId: "TK-00000098", idempotencyKey: "same-key", resumeTo: "running"
   });
-  const second = applyRuling({
+  const second = await applyRuling({
     ledger: stub, action: "accept", taskId: "TK-00000099", idempotencyKey: "same-key", resumeTo: "running"
   });
   assert.equal(first.ok && second.ok, true);
@@ -224,10 +224,10 @@ test("终裁缺幂等键或必填输入即拒；幂等键带 taskId 分量，不
   assert.ok(keys.every((key) => key.startsWith("same-key:")), "幂等键＝<裁定键>:<taskId>:<op>");
 });
 
-test("推迟＝零台账事件：不改状态、不触台账（V-A5.5 与规格 §F 节律口径）", () => {
+test("推迟＝零台账事件：不改状态、不触台账（V-A5.5 与规格 §F 节律口径）", async () => {
   const calls = [];
   const stub = { command: (input) => { calls.push(input); return { ok: true }; } };
-  const verdict = applyRuling({ ledger: stub, action: "defer", taskId: "TK-00000099", idempotencyKey: "defer-1" });
+  const verdict = await applyRuling({ ledger: stub, action: "defer", taskId: "TK-00000099", idempotencyKey: "defer-1" });
   assert.equal(verdict.ok, true);
   assert.equal(verdict.deferred, true);
   assert.deepEqual(verdict.results, []);

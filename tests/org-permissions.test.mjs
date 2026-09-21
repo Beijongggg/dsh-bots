@@ -176,7 +176,7 @@ test("V-A3.9 正交（能力侧）：真 capability 扩不出文件面——共�
     "L1 不因任何任务域授权而放宽");
 });
 
-test("权限装配件工厂（23 号票③）：{issuer, postForBot, logger} 一处装配——authorize 直通鉴权器、createDispatcher 成套取出 dispatcher", () => {
+test("权限装配件工厂（23 号票③）：{issuer, postForBot, logger} 一处装配——authorize 直通鉴权器、createDispatcher 成套取出 dispatcher", async () => {
   const home = mkdtempSync(join(tmpdir(), "dsh-perm-kit-"));
   process.on("exit", () => rmSync(home, { recursive: true, force: true }));
   mkdirSync(join(home, "bots", "started"), { recursive: true });
@@ -202,7 +202,7 @@ test("权限装配件工厂（23 号票③）：{issuer, postForBot, logger} 一
   });
   assert.equal(typeof dispatch, "function", "createDispatcher 返回 dispatch 函数");
   assert.deepEqual(
-    dispatch({ op: "task.accept", taskId: "TK-00000001", actor: { kind: "host", id: "web" } }),
+    await dispatch({ op: "task.accept", taskId: "TK-00000001", actor: { kind: "host", id: "web" } }),
     { ok: true, taskId: "TK-00000001" }
   );
 });
