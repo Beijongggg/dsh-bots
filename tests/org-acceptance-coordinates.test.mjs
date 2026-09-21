@@ -193,3 +193,58 @@ test("回写脚本（门内坐标，子进程取退出码）：在册同拍即 0
     rmSync(work, { recursive: true, force: true });
   }
 });
+
+// ---------- 反哺优化批（2026-09-21）：语义冻结／登记对账／判级不变量／门号实读／符号词边界 ----------
+
+test("判据语义摘要冻结：改判据一字即红、坐标列改动不进摘要、基线形状非法即红", () => {
+  const parsed = parseCriteriaTable(specText);
+  const first = parsed.find((row) => row.id === "V-A1.1");
+  const tampered = specText.replace(first.criterion, `${first.criterion}X`);
+  const tamperedVerdict = scanAcceptanceSpec(tampered);
+  assert.equal(tamperedVerdict.ok, false, "判据列被改动必须红");
+  assert.ok(tamperedVerdict.violations.some((item) => item.includes("判据语义摘要不符")),
+    `违例须点名语义摘要：${JSON.stringify(tamperedVerdict.violations)}`);
+
+  const coordOnly = specText.replace(first.coordinate, "tests/role-cards.test.mjs");
+  const coordVerdict = scanAcceptanceSpec(coordOnly);
+  assert.ok(!coordVerdict.violations.some((item) => item.includes("判据语义摘要不符")),
+    "坐标列改动不进语义摘要（该场景由双向锁定报坐标不一致，不重复报）");
+
+  const badBaseline = scanAcceptanceSpec(specText, A_GROUP_COORDINATES, "TBD");
+  assert.equal(badBaseline.ok, false, "基线非 64 位十六进制即红（防占位/清空旁路）");
+  assert.ok(badBaseline.violations.some((item) => item.includes("基线形状非法")));
+});
+
+test("演练登记↔判据行双向对账：登记在册但无判据行引用＝登记表漂移即红", () => {
+  const ghostDrills = DRILL_WINDOWS.concat([{
+    id: "ghost-drill", name: "幽灵演练", window: "切换批", carrier: "无人", evidenceLanding: "无",
+    criterionIds: ["V-A1.1"]
+  }]);
+  const verdict = validateAcceptanceCoordinates({ drills: ghostDrills });
+  assert.equal(verdict.ok, false);
+  assert.ok(verdict.violations.some((item) => item.includes("ghost-drill") && item.includes("无任何判据行引用")),
+    `违例须点名登记表漂移：${JSON.stringify(verdict.violations)}`);
+});
+
+test("判级不变量：常驻判据坐标须含测试模块（tests/…），只有门号即空缺", () => {
+  const rows = A_GROUP_COORDINATES.map((row) =>
+    row.id === "V-A1.1" ? { ...row, coordinate: "门①" } : row
+  );
+  const verdict = validateAcceptanceCoordinates({ rows });
+  assert.equal(verdict.ok, false);
+  assert.ok(verdict.violations.some((item) => item.includes("V-A1.1") && item.includes("常驻判据坐标须含")),
+    `违例须点名判级缺口：${JSON.stringify(verdict.violations)}`);
+});
+
+test("门号实读验证：preflight 源内无对应门结论行模板即红（不靠本地常量自觉）", () => {
+  assert.equal(resolveCoordinateToken("门①", { repoRoot }).ok, true, "真实源四门齐全即绿");
+  const missing = resolveCoordinateToken("门①", { repoRoot: "/tmp/dsh-bots-no-such-repo" });
+  assert.equal(missing.ok, false, "preflight 源缺失或无门标记即红");
+  assert.ok(missing.reason.includes("preflight.mjs"));
+});
+
+test("模块符号验证收紧：子串命中不算命中（词边界），假符号即红", () => {
+  const verdict = resolveCoordinateToken("查询:lib/org/task-ledger.js exis", { repoRoot });
+  assert.equal(verdict.ok, false, "「exis」只是 existsSync 的子串，不得算符号命中");
+  assert.ok(verdict.reason.includes("无符号"));
+});
