@@ -769,7 +769,7 @@ Status: ready-for-agent
 | `V-A2.3` | 主干十态＋四旁路齐备，每态可回答「下一步谁负责、超时怎么办」；非法转移被确定性层拒绝（含 CAS 期望状态不符即拒） | tests/task-ledger.test.mjs::状态表：主干十态＋tests/task-ledger.test.mjs::主干转移＋tests/task-ledger.test.mjs::非法转移被确定性层拒绝＋tests/task-ledger.test.mjs::CAS：期望状态不符即拒 | 回归记录 | 常驻 |
 | `V-A2.4` | 四要素简报四非空、验收判据非空且可执行；派出即冻，改动只经 amend 事件并显式通知承接方 | tests/org-brief.test.mjs::四要素各非空＋tests/task-ledger.test.mjs::派出即冻结＋tests/task-ledger.test.mjs::amend：追加事件并通知 | 回归记录 | 常驻 |
 | `V-A2.5` | 派单租约：逾期未接自动释放回队列并通知派单方；租约到期回收，重派封顶后上浮 | tests/task-ledger.test.mjs::派单租约＋tests/task-ledger.test.mjs::重派达封顶则上浮用户＋tests/ledger-host.test.mjs::值守轮询＋演练:drill-lease-reclaim | 台账事件 | 实验期一次 |
-| `V-A2.6` | 一实例同时只持一个进行中任务，第二次归属被机械拒绝 | tests/task-ledger.test.mjs::一实例同时只持一个进行中任务 | 回归记录 | 常驻 |
+| `V-A2.6` | 一实例同时只持一个进行中任务，第二次归属被机械拒绝 | tests/task-ledger.test.mjs::一实例同时只持一个进行中任务＋tests/org-dispatch-decision.test.mjs::派单决策：空闲且可承接者首中 | 回归记录 | 常驻 |
 | `V-A2.7` | 必审清单拦截有效：gaps 未闭合时交付转移被拒 | tests/task-ledger.test.mjs::必审拦截＋tests/org-review-kit.test.mjs::状态折叠 | 回归记录 | 常驻 |
 | `V-A2.8` | `waiting-user` 不占租约、不烧 token，且可恢复 | tests/task-ledger.test.mjs::挂起语义＋查询:lib/stats.js tokenUsage＋演练:drill-waiting-user | 台账事件／用量统计 | 实验期一次 |
 | `V-A2.9` | 关闭不可重开、归档不删档，改动用 `supersedesTaskId` 开新任务 | tests/task-ledger.test.mjs::关闭不可重开 | 回归记录 | 常驻 |

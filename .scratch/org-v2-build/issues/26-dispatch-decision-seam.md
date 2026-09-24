@@ -30,11 +30,55 @@
 
 **Blocked by:** 无
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] 派单决策纯函数：候选＋在手＋编制缺口 → 选中者＋可核理由；无可派对象返回 null
-- [ ] 承接能力与岗位卡／op-set 同源，不另抄名单
-- [ ] 不编规则条目：`INTAKE_RULES` 保持现状或在票面说明增补依据
-- [ ] 宿主接线（若做）与未接线路径都在票面写清
-- [ ] 常驻测试模块＋附录 A 坐标回写
-- [ ] 全量回归与 preflight 四道门 PASS
+## Comments
+
+### 开工前定死（2026-09-24 `/implement 26`，形态建议 1–4 落地口径）
+
+1. **纯函数形态**：`lib/org/dispatch-decision.js::selectAssignee({ candidates, holdingsFor, rosterState, table })`
+   → `{ botId, post, reason } | null`。`candidates`＝注册表行数组（`{ botId|id, post }` 双兼容：
+   注册表现实 `id`、既有选择器先例 `botId`，两者任一在场即认）；`holdingsFor` 必填（缺即抛，
+   照 `selectReviewer` 先例）；`rosterState` 可选（`minimalRosterState` 产物，仅进理由陈述编制缺口，
+   **不参与排序**——不发明优先级规则，机制先行）；`table` 可选注入（缺省 `OP_SET`）。
+   输入序即优先级（注册表序确定性首中，照 `selectReviewer` 先例）；无可派返回 bare `null`
+   （调用方 fail closed，不静默指派）。
+2. **承接能力同源**：可承接＝`table[post]` 含 `task.accept`（派单→接单握手的最小代表；
+   今日即 researcher／implementer，两岗 `DELIVERY_POST_OPS` 同源）。不另抄名单、不硬编码岗名；
+   岗表增减承接岗时本面同拍（对账以 `OP_SET` 为准，口径与 `tableOpsForKind`／签发对账同源）。
+3. **不编规则条目**：`INTAKE_RULES` 保持空集（现状如实），本票加锁定测试防误填。
+4. **接线**：本票**不接宿主**——保持现状（调用方给 `assignee`，台账 `assignee-holding` 权威门不变）；
+   本面只提供可复用决策供宿主在 `assign` 前调用。已接线路径：无。未接线路径：全部现存 `task.assign`
+   调用（含烟测手写 `assignee: "implementer"`）。将来接线时宿主读注册表＋`holdingsFor`＋
+   `minimalRosterState` 调本函数即可，届时另票写明。
+5. **复审处置补记（2026-09-24 `/code-review` 双轴，见本票 Comments 下节）**：
+   - 辅助导出 `ASSIGN_ELIGIBLE_OP`／`isDispatchEligible` 为本缝授权实现面（op 名单一源＋共享谓词，
+     非票外行为；Standards 轴已确认非 Middle Man）。
+   - `botId`／`id` 并存冲突口径：`botId` 胜出（选择器先例口径；已落代码注）。
+   - `V-A1.4` 不动理由：本面读 home `post`（即 `V-A1.4` 契约主键），借用不变量（`availableOps`）
+     属 op-set／capability 域，不在派单选择内；故坐标只挂 `V-A2.6`。
+   - `V-A2.6` 挂载理由：决策时敬让（选空闲）与台账门权威（`assignee-holding` 拒绝）是同一不变量
+     的两道 enforcement；纯选择器＋注入 `holdingsFor` 作坐标有 `V-A1.3` 先例
+     （`帽选择：台账查询腿`同型），生产接线时 `holdingsFor` 即 `ledger.holdingsFor` 同源。
+   - 同源链：`ROLE_CARDS`→`OP_SET`→本面（`OP_SET` 已由 `validateOpSet` 以岗位卡为源校验；
+     本面直引 `ROLE_CARDS` 属重复派生）。默认表下未知 slug 即不可派（有测试锁定）。
+
+- [x] 派单决策纯函数：候选＋在手＋编制缺口 → 选中者＋可核理由；无可派对象返回 null
+- [x] 承接能力与岗位卡／op-set 同源，不另抄名单
+- [x] 不编规则条目：`INTAKE_RULES` 保持现状或在票面说明增补依据
+- [x] 宿主接线（若做）与未接线路径都在票面写清
+- [x] 常驻测试模块＋附录 A 坐标回写
+- [x] 全量回归与 preflight 四道门 PASS
+
+### 实施与验证（2026-09-24 `/implement 26` 收口）
+
+- **实现**：`lib/org/dispatch-decision.js`（`selectAssignee`＋`ASSIGN_ELIGIBLE_OP`／
+  `isDispatchEligible`）＋`tests/org-dispatch-decision.test.mjs`（5 条）；
+  `V-A2.6` 坐标扩一项并经 `scripts/acceptance-coordinates-sync.mjs --write` 回写规格附录 A
+  （60/60 同拍；判据文本／证据／级别零改动，语义摘要基线不受影响）。
+- **验证**：TDD 首用例先红（`ERR_MODULE_NOT_FOUND`）后绿；单文件 5/5；全量 63/63；
+  preflight 四门 PASS（①63/63 ②0009 包 7/7 ③0 违例 ④11 PASS/0 FAIL/0 SKIP）。
+  冻结面零改动；运行面零写入（隔离子进程执行：`tests/run.mjs` 逐文件 spawn＋preflight 内 spawn）。
+- **复审**：`/code-review` 双轴（固定点 `4b57d3e`）——Standards 无硬违例／judgement 2
+  （1 修 1 留）；Spec 缺失 1／越权 1／不符 3（2 修 4 留，理由见本票 Comments ⑤）。
+  凭据见 CHANGELOG 顶部 26 号票条目。

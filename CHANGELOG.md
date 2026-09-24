@@ -7,6 +7,39 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 **26 号票：派单决策缝**——用户两问裁定「领 26＋测试缝同意」＝授权；
+  **2 新件＋2 改件＋票面／规格坐标回写／本条目**，TDD 先红后绿）：
+  - **范围**：`lib/org/dispatch-decision.js`（新：`selectAssignee` 纯函数＋`ASSIGN_ELIGIBLE_OP`／
+    `isDispatchEligible` 辅助导出）＋`tests/org-dispatch-decision.test.mjs`（新 5 条）＋
+    `lib/org/acceptance-coordinates.js`（`V-A2.6` 坐标扩一项）＋`.scratch/org-v2/spec.md`
+    （附录 A `V-A2.6` 坐标格一格回写，判据文本／证据／级别零改动）＋票面＋本条目。
+  - **① 纯函数**——`selectAssignee({ candidates, holdingsFor, rosterState, table })` →
+    `{ botId, post, reason } | null`（照 `selectReviewer` 先例）：候选注册表行（`botId|id` 双兼容，
+    并存冲突时 `botId` 胜出）＋在手查询（必填，缺即抛）＋编制缺口（仅进理由陈述，不参与排序，
+    不发明优先级规则）；输入序即优先级（注册表序确定性首中）；无可派返回 bare `null`
+    （调用方 fail closed）。
+  - **② 同源**——可承接＝`table[post]` 含 `task.accept`（缺省表 `OP_SET`，对账以表为准；
+    同源链 `ROLE_CARDS`→`OP_SET`→本面，直引卡面属重复派生）：今日即 researcher／implementer；
+    双向注入测试锁定（拿掉即不可派、加上即变可派）。
+  - **③ 不编规则**——`INTAKE_RULES` 保持空集（机制先行、无虚条目），锁定测试在案。
+  - **④ 未接宿主**——本票不接宿主接线（调用方继续给 `assignee`，台账 `assignee-holding`
+    权威门不变）；已接线路径无，未接线路径为全部现存 `task.assign` 调用。
+  - **验证结果**：TDD 首用例先红（模块缺失）后绿，其余四缝锁定；单文件 5/5；
+    坐标 `acceptance-coordinates-sync` 60/60 同拍；**全量回归 63/63**；
+    **preflight 四门 PASS**（①63/63 ②0009 包 7/7 ③0 违例扫 85 md ④11 PASS/0 FAIL/0 SKIP）。
+    冻结面（`artifacts/packages/`／`docs/TEMP-guidance-*`／`docs/CLOSURE-*`）零改动；运行面零写入。
+  - **独立复核（`/code-review` 双轴，固定点 `4b57d3e` 工作树 diff）与处置**：
+    Standards 无硬违例＋judgement 2（测试 `idleRoster` 字面量重复——已抽常量修；
+    `gap`／`table` 命名——留：`table` 为票面 API 名，`gap` 为局部量，理由在案；
+    思辨通用性／原始物执念经论证驳回）；Spec 缺失 1（回归证据——本条目即凭据）＋
+    越权 1（辅助导出——已补票面授权记名）＋不符 3（`V-A2.6` 挂载——留：决策时敬让与门权威
+    同一不变量两道 enforcement，有 `V-A1.3` 帽选择坐标先例；op-set 单源——留：同源链如上，
+    默认表未知 slug 即不可派有锁定；`botId`／`id` 冲突——已落代码注修）。
+    另 `V-A1.4` 不动（借用不变量属 op-set／capability 域，理由已落票面）。
+  - **留界**：宿主接线（读注册表＋`holdingsFor`＋`minimalRosterState` 调本函数）归将来另票；
+    烟测手写 `assignee` 保持现状。
+  - **授权依据**：2026-09-24 用户两问裁定（领 26 号票＋测试缝「同意」）。
+
 - ✅ 本轮（org-v2 **25 号票：关闭前置第三条——验收判据的通过记录（关闸现跑）**——用户点名
   `/implement 25`＝授权；**21 件（7 lib／1 script／13 测试件，含新件 3 个）＋票面／本条目**，TDD 先红后绿）：
   - **范围**：`lib/org/task-ledger.js`（关闭前置＋注入缝）、`lib/org/probe.js`（超时单列＋结论摘要）、
