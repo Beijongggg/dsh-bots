@@ -109,6 +109,8 @@ function mkRig() {
   const access = createLedgerAccessKit({ issuer, postForBot, logger });
   const ledger = createTaskLedger({
     dshHome: home, now: clock.now, authorize: access.authorize,
+    // 复核报告的帽验签（27 号票）：台账腿＝权威门＋唯一消费点（烟测须真持帽提交）
+    reviewHat: issuer,
     ...criterionRunnerInjection({ cwd: join(dirname(new URL(import.meta.url).pathname), "..") })
   });
   issuer.bindLedger(ledger); // 吊销投影腿绑同一门面（构造顺序解耦）

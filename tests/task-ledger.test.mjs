@@ -1279,7 +1279,9 @@ test("终裁＝台账命令特化视图：接单／驳回／授权修复落既�
 // ---------------- 复核件套台账面（org-v2 08 号票；V-A2.7／规格 §C） ----------------
 
 import { REVIEW_BOUNDARY_IDS } from "../lib/org/review-kit.js";
+import { createCapabilityIssuer } from "../lib/org/capability-issue.js";
 import { ACCEPTANCE_RUNNER, criterionInjection } from "./helpers/criterion-fixture.mjs";
+import { wireReviewHat, writeInstanceRow } from "./helpers/capability-fixture.mjs";
 
 /** 已有夹具的判据执行面：本组用例测的不是判据门，显式声明「判据面已接线」（25 号票）。 */
 const CRITERION_INJECTION = Object.freeze(criterionInjection(ACCEPTANCE_RUNNER));
@@ -1324,6 +1326,35 @@ const CLOSED_REPORT = Object.freeze({
   gaps: [],
   modelIdentity: "glm-5.3-flash（复核实例）"
 });
+
+/**
+ * 复核帽装具（27 号票）：复核报告的落账面**只认帽**——台账腿是权威门（唯一写者
+ * 门口），通道只是入口预筛。用例三件：①实例注册表活行（信封的活态／代际腿）
+ * ②真签发面（帽由 host 签、只读 role 能力，bot 不能自请自签）③`reviewHat` 注入
+ * 台账（未接线＝fail closed，另有专门用例）。
+ */
+function reviewRig(home, clock = clockAt()) {
+  for (const botId of ["bot-reviewer", "bot-other", "implementer"]) writeInstanceRow(home, botId);
+  const { issuer, ledger } = wireReviewHat({ home, now: clock.now, ledgerOptions: { ...CRITERION_INJECTION } });
+  return {
+    issuer,
+    ledger,
+    /** 签一张帽（缺省 post=verifier）；可点名 post／ops 造「非复核帽」「帽缺 op」负例。 */
+    hat(botId = "bot-reviewer", { post = "verifier", ops } = {}) {
+      const issued = issuer.issueRoleCapability({ botId, post, ...(ops === undefined ? {} : { ops }) });
+      assert.equal(issued.ok, true, issued.reason);
+      return issued.envelope;
+    }
+  };
+}
+
+/** 登记复核请求（指名 reviewer）。 */
+async function requestReview(ledger, taskId, point, reviewer, key = `${taskId}-rv`) {
+  assert.equal((await ledger.command({
+    op: "review.request", taskId, actor: HOST, ...cas(ledger, taskId),
+    idempotencyKey: key, payload: { point, reviewer }
+  })).ok, true);
+}
 
 test("review.request：点须在必审枚举；简报点降级（免审）即拒；加审须归因", async () => {
   const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: mkHome(), now: clockAt().now });
@@ -1384,7 +1415,7 @@ test("review.request：排除产出方与不空闲实例（复核帽＝当次空
 });
 
 test("必审拦截（V-A2.7）：简报点未闭合时交付转移被拒；闭合后放行", async () => {
-  const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: mkHome(), now: clockAt().now });
+  const { ledger, hat } = reviewRig(mkHome());
   await toProduced(ledger, "TK-00000093");
   const blocked = await ledger.command({
     op: "task.deliver", taskId: "TK-00000093", actor: POST("implementer"), ...cas(ledger, "TK-00000093"),
@@ -1395,13 +1426,14 @@ test("必审拦截（V-A2.7）：简报点未闭合时交付转移被拒；闭�
   assert.ok(blocked.reason.includes("before-external-visibility"));
   // 拒绝落账（command-rejected 在案）
   assert.ok(ledger.events({ taskId: "TK-00000093" }).some((e) => e.type === "command-rejected" && e.op === "task.deliver"));
-  // 召集复核并闭合 → 放行
+  // 召集复核并闭合 → 放行（报告须持帽入账：27 号票台账腿权威门）
   assert.equal((await ledger.command({
     op: "review.request", taskId: "TK-00000093", actor: HOST, ...cas(ledger, "TK-00000093"),
     idempotencyKey: "rv-open", payload: { point: "before-external-visibility", reviewer: "bot-reviewer" }
   })).ok, true);
   assert.equal((await ledger.recordReviewReport({
-    taskId: "TK-00000093", reviewer: "bot-reviewer", report: CLOSED_REPORT, idempotencyKey: "rr-closed"
+    taskId: "TK-00000093", reviewer: "bot-reviewer", report: CLOSED_REPORT,
+    capability: hat(), idempotencyKey: "rr-closed"
   })).ok, true);
   const delivered = await ledger.command({
     op: "task.deliver", taskId: "TK-00000093", actor: POST("implementer"), ...cas(ledger, "TK-00000093"),
@@ -1412,7 +1444,7 @@ test("必审拦截（V-A2.7）：简报点未闭合时交付转移被拒；闭�
 });
 
 test("清单外咨询性不阻断交付：gaps-open 报告在案 deliver 照常通过", async () => {
-  const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: mkHome(), now: clockAt().now });
+  const { ledger, hat } = reviewRig(mkHome());
   await toProduced(ledger, "TK-00000094", "implementer", { ...VALID_BRIEF, reviewPoints: [] });
   assert.equal((await ledger.command({
     op: "review.request", taskId: "TK-00000094", actor: HOST, ...cas(ledger, "TK-00000094"),
@@ -1421,7 +1453,7 @@ test("清单外咨询性不阻断交付：gaps-open 报告在案 deliver 照常�
   const advisoryOpen = await ledger.recordReviewReport({
     taskId: "TK-00000094", reviewer: "bot-reviewer",
     report: { subject: "文档口径", verdict: "gaps-open", gaps: [{ severity: "minor", summary: "s", evidence: "e" }], modelIdentity: "m" },
-    idempotencyKey: "rr-adv"
+    capability: hat(), idempotencyKey: "rr-adv"
   });
   assert.equal(advisoryOpen.ok, true);
   assert.equal(advisoryOpen.escalated, false);
@@ -1432,40 +1464,46 @@ test("清单外咨询性不阻断交付：gaps-open 报告在案 deliver 照常�
   assert.equal(delivered.ok, true);
 });
 
-test("recordReviewReport：形状不符／未被指定／产出方自任／未请求的 subject 即拒", async () => {
-  const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: mkHome(), now: clockAt().now });
+test("recordReviewReport：形状不符／未被指定／产出方自任／未请求的 subject 即拒（均持帽）", async () => {
+  const { ledger, hat } = reviewRig(mkHome());
   await toProduced(ledger, "TK-00000095");
   assert.equal((await ledger.command({
     op: "review.request", taskId: "TK-00000095", actor: HOST, ...cas(ledger, "TK-00000095"),
     idempotencyKey: "rv-req", payload: { point: "before-external-visibility", reviewer: "bot-reviewer" }
   })).ok, true);
+  // 帽腿之后的实体拒绝：一律持真帽（HAT 每张单次消费，逐条新签）
   const malformed = await ledger.recordReviewReport({
     taskId: "TK-00000095", reviewer: "bot-reviewer",
     report: { subject: "before-external-visibility", verdict: "passed", gaps: [] },
-    idempotencyKey: "rr-bad"
+    capability: hat(), idempotencyKey: "rr-bad"
   });
   assert.equal(malformed.ok, false);
   assert.equal(malformed.code, "invalid-review-report");
+  // 未被指定：帽有效（另一空闲实例当次佩戴）但本任务指定的是别人
   const stranger = await ledger.recordReviewReport({
-    taskId: "TK-00000095", reviewer: "bot-stranger", report: CLOSED_REPORT, idempotencyKey: "rr-stranger"
+    taskId: "TK-00000095", reviewer: "bot-other", report: CLOSED_REPORT,
+    capability: hat("bot-other"), idempotencyKey: "rr-stranger"
   });
   assert.equal(stranger.ok, false);
   assert.equal(stranger.code, "not-designated-reviewer");
+  // 产出方自任：产出方即便持帽也不得自任（独立性硬要求）
   const producer = await ledger.recordReviewReport({
-    taskId: "TK-00000095", reviewer: "implementer", report: CLOSED_REPORT, idempotencyKey: "rr-producer"
+    taskId: "TK-00000095", reviewer: "implementer", report: CLOSED_REPORT,
+    capability: hat("implementer"), idempotencyKey: "rr-producer"
   });
   assert.equal(producer.ok, false);
   assert.equal(producer.code, "reviewer-is-producer");
   const unrequested = await ledger.recordReviewReport({
     taskId: "TK-00000095", reviewer: "bot-reviewer",
-    report: { ...CLOSED_REPORT, subject: "before-irreversible-write" }, idempotencyKey: "rr-unreq"
+    report: { ...CLOSED_REPORT, subject: "before-irreversible-write" },
+    capability: hat(), idempotencyKey: "rr-unreq"
   });
   assert.equal(unrequested.ok, false);
   assert.equal(unrequested.code, "review-not-requested");
 });
 
 test("连续两轮未闭合上浮用户终裁：第二轮 gaps-open 自动 escalated（waiting-user、清归属、通知 user）", async () => {
-  const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: mkHome(), now: clockAt().now });
+  const { ledger, hat } = reviewRig(mkHome());
   await toProduced(ledger, "TK-00000096");
   assert.equal((await ledger.command({
     op: "review.request", taskId: "TK-00000096", actor: HOST, ...cas(ledger, "TK-00000096"),
@@ -1478,14 +1516,16 @@ test("连续两轮未闭合上浮用户终裁：第二轮 gaps-open 自动 escal
     modelIdentity: "m"
   });
   const round1 = await ledger.recordReviewReport({
-    taskId: "TK-00000096", reviewer: "bot-reviewer", report: gap("round-1"), idempotencyKey: "rr-r1"
+    taskId: "TK-00000096", reviewer: "bot-reviewer", report: gap("round-1"),
+    capability: hat(), idempotencyKey: "rr-r1"
   });
   assert.equal(round1.ok, true);
   assert.equal(round1.consecutiveUnclosed, 1);
   assert.equal(round1.escalated, false);
   assert.equal(ledger.task("TK-00000096").status, "produced");
   const round2 = await ledger.recordReviewReport({
-    taskId: "TK-00000096", reviewer: "bot-reviewer", report: gap("round-2"), idempotencyKey: "rr-r2"
+    taskId: "TK-00000096", reviewer: "bot-reviewer", report: gap("round-2"),
+    capability: hat(), idempotencyKey: "rr-r2"
   });
   assert.equal(round2.ok, true);
   assert.equal(round2.escalated, true);
@@ -1498,21 +1538,23 @@ test("连续两轮未闭合上浮用户终裁：第二轮 gaps-open 自动 escal
   assert.ok(notifications.some((n) => n.type === "escalated" && n.to === "user"));
   // 已挂起后再报不重复上浮
   const round3 = await ledger.recordReviewReport({
-    taskId: "TK-00000096", reviewer: "bot-reviewer", report: gap("round-3"), idempotencyKey: "rr-r3"
+    taskId: "TK-00000096", reviewer: "bot-reviewer", report: gap("round-3"),
+    capability: hat(), idempotencyKey: "rr-r3"
   });
   assert.equal(round3.ok, true);
   assert.equal(round3.escalated, false);
 });
 
 test("复核事件入事实源且可重建：事件 schema 校验通过、投影不串状态", async () => {
-  const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: mkHome(), now: clockAt().now });
+  const { ledger, hat } = reviewRig(mkHome());
   await toProduced(ledger, "TK-00000097");
   assert.equal((await ledger.command({
     op: "review.request", taskId: "TK-00000097", actor: HOST, ...cas(ledger, "TK-00000097"),
     idempotencyKey: "rv-req", payload: { point: "before-external-visibility", reviewer: "bot-reviewer" }
   })).ok, true);
   assert.equal((await ledger.recordReviewReport({
-    taskId: "TK-00000097", reviewer: "bot-reviewer", report: CLOSED_REPORT, idempotencyKey: "rr-closed"
+    taskId: "TK-00000097", reviewer: "bot-reviewer", report: CLOSED_REPORT,
+    capability: hat(), idempotencyKey: "rr-closed"
   })).ok, true);
   const events = ledger.events({ taskId: "TK-00000097" });
   const requested = events.find((e) => e.type === "review-requested");
@@ -1523,6 +1565,155 @@ test("复核事件入事实源且可重建：事件 schema 校验通过、投影
   assert.equal(reported.verdict, "closed");
   assert.equal(reported.modelIdentity, "glm-5.3-flash（复核实例）");
   assert.equal(ledger.task("TK-00000097").status, "produced");
+});
+
+// ---------------- 复核帽的台账腿（org-v2 27 号票；V-A3.2／规格 §C·§D L2） ----------------
+
+test("复核报告入账验帽（27 号票台账腿权威门）：无帽／他人帽／非复核帽／帽缺 op／非指定即拒，帽腿拒即不烧帽", async () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const { ledger, hat } = reviewRig(home, clock);
+    await toProduced(ledger, "TK-00000110");
+    await requestReview(ledger, "TK-00000110", "before-external-visibility", "bot-reviewer", "rv-27-req");
+
+    // ① 无帽即拒：报告是事实源里的事件一条，凭据不得省——这正是本票的洞
+    const naked = await ledger.recordReviewReport({
+      taskId: "TK-00000110", reviewer: "bot-reviewer", report: CLOSED_REPORT, idempotencyKey: "rr-27-naked"
+    });
+    assert.equal(naked.ok, false);
+    assert.equal(naked.code, "capability-malformed");
+
+    // ② 他人帽即拒：信封属 bot-other，不得为 bot-reviewer 所用（且**不烧**该帽——见末段）
+    const othersHat = hat("bot-other");
+    const impostor = await ledger.recordReviewReport({
+      taskId: "TK-00000110", reviewer: "bot-reviewer", report: CLOSED_REPORT,
+      capability: othersHat, idempotencyKey: "rr-27-impostor"
+    });
+    assert.equal(impostor.ok, false);
+    assert.equal(impostor.code, "capability-bot-mismatch");
+
+    // ③ 非复核帽即拒：角色能力不是复核帽（post≠verifier）
+    const notHat = await ledger.recordReviewReport({
+      taskId: "TK-00000110", reviewer: "bot-other", report: CLOSED_REPORT,
+      capability: hat("bot-other", { post: "project-lead" }), idempotencyKey: "rr-27-noth"
+    });
+    assert.equal(notHat.ok, false);
+    assert.equal(notHat.code, "review-hat-required");
+
+    // ④ 帽缺 review.report 即拒：持复核帽但帽内无本面 op
+    const missingOp = await ledger.recordReviewReport({
+      taskId: "TK-00000110", reviewer: "bot-other", report: CLOSED_REPORT,
+      capability: hat("bot-other", { ops: ["artifact.read"] }), idempotencyKey: "rr-27-missing-op"
+    });
+    assert.equal(missingOp.ok, false);
+    assert.equal(missingOp.code, "review-hat-op-missing");
+
+    // ⑤ 帽有效但非本任务指明者即拒：指定关系在台账腿复验（bot-other 未被指派）
+    const stranger = await ledger.recordReviewReport({
+      taskId: "TK-00000110", reviewer: "bot-other", report: CLOSED_REPORT,
+      capability: hat("bot-other"), idempotencyKey: "rr-27-stranger"
+    });
+    assert.equal(stranger.ok, false);
+    assert.equal(stranger.code, "not-designated-reviewer");
+
+    // ② 的反驳面：那张被 bot-mismatch 拒掉的帽**未被烧**——换回信封主人身份再提交，
+    // 走到的是「非指定复核者」而不是「nonce 已消费」（帽腿之前的拒绝不消费）
+    const notBurned = await ledger.recordReviewReport({
+      taskId: "TK-00000110", reviewer: "bot-other", report: CLOSED_REPORT,
+      capability: othersHat, idempotencyKey: "rr-27-not-burned"
+    });
+    assert.equal(notBurned.ok, false);
+    assert.equal(notBurned.code, "not-designated-reviewer", "帽腿之前的拒绝不得消费帽");
+
+    // 续签判据的机械面（27 号票 alignment 命令面）：帽腿之前的拒绝**不带** authorized
+    // （未获授权的提交不换新信封）；帽腿之后的拒绝带 authorized（授权有效且信封已消费）。
+    for (const denied of [naked, impostor, notHat, missingOp]) {
+      assert.equal(denied.authorized, undefined, `${denied.code}：帽腿之前的拒绝不得带 authorized`);
+    }
+    for (const denied of [stranger, notBurned]) {
+      assert.equal(denied.authorized, true, `${denied.code}：帽腿之后（已消费）的拒绝须带 authorized`);
+    }
+
+    // 一路被拒：事实源里一条复核报告也不该有
+    assert.equal(ledger.events({ taskId: "TK-00000110" }).filter((e) => e.type === "review-reported").length, 0);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("复核报告入账：帽验签面未接线即拒（fail closed——不做「没接线就跳过验帽」的降级）", async () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    const result = await ledger.recordReviewReport({
+      taskId: "TK-00000111", reviewer: "bot-reviewer", report: CLOSED_REPORT,
+      capability: { payload: {}, sig: "s" }, idempotencyKey: "rr-27-unwired"
+    });
+    assert.equal(result.ok, false);
+    assert.equal(result.code, "review-hat-unwired");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("复核报告入账单次消费（27 号票）：一次提交恰好消费一次——帽腿通过即消费，已消费帽重放即拒", async () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const { ledger, hat } = reviewRig(home, clock);
+    await toProduced(ledger, "TK-00000112");
+    await requestReview(ledger, "TK-00000112", "before-external-visibility", "bot-reviewer", "rv-27-c");
+
+    // 入账一次＝消费一次：同一信封二次提交必「nonce 已消费」
+    const envelope = hat();
+    const first = await ledger.recordReviewReport({
+      taskId: "TK-00000112", reviewer: "bot-reviewer", report: CLOSED_REPORT,
+      capability: envelope, idempotencyKey: "rr-27-first"
+    });
+    assert.equal(first.ok, true, first.reason);
+    const replay = await ledger.recordReviewReport({
+      taskId: "TK-00000112", reviewer: "bot-reviewer", report: CLOSED_REPORT,
+      capability: envelope, idempotencyKey: "rr-27-replay"
+    });
+    assert.equal(replay.ok, false);
+    assert.equal(replay.code, "capability-replayed");
+
+    // 幂等键重放走**帽腿之前**的结构前置：不消费新帽（命令面同序）
+    const fresh = hat();
+    const keyReplay = await ledger.recordReviewReport({
+      taskId: "TK-00000112", reviewer: "bot-reviewer", report: CLOSED_REPORT,
+      capability: fresh, idempotencyKey: "rr-27-first"
+    });
+    assert.equal(keyReplay.replayed, true);
+    const afterKeyReplay = await ledger.recordReviewReport({
+      taskId: "TK-00000112", reviewer: "bot-reviewer", report: CLOSED_REPORT,
+      capability: fresh, idempotencyKey: "rr-27-after-key-replay"
+    });
+    assert.equal(afterKeyReplay.ok, true, "幂等重放不消费帽——同一信封随后仍可用");
+
+    // 帽腿通过后的实体拒绝**同样消费**（与命令面「授权通过而命令被拒也消费信封」同口径）：
+    // 未登记的 subject 被拒后，同一信封不能再用
+    const envelope2 = hat();
+    const unrequested = await ledger.recordReviewReport({
+      taskId: "TK-00000112", reviewer: "bot-reviewer",
+      report: { ...CLOSED_REPORT, subject: "before-irreversible-write" },
+      capability: envelope2, idempotencyKey: "rr-27-unrequested"
+    });
+    assert.equal(unrequested.ok, false);
+    assert.equal(unrequested.code, "review-not-requested");
+    assert.equal(unrequested.authorized, true, "帽腿通过之后的拒绝带 authorized——host 据此续签");
+    const afterReject = await ledger.recordReviewReport({
+      taskId: "TK-00000112", reviewer: "bot-reviewer", report: CLOSED_REPORT,
+      capability: envelope2, idempotencyKey: "rr-27-after-reject"
+    });
+    assert.equal(afterReject.ok, false);
+    assert.equal(afterReject.code, "capability-replayed", "帽腿通过即消费：实体拒绝不回滚消费");
+    assert.equal(afterReject.authorized, undefined, "消费点拒（重放）不带 authorized——host 不续签");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
 });
 
 // ---------------- 人间接口台账面（org-v2 09 号票；V-A5.4／V-A5.5） ----------------
@@ -1821,10 +2012,11 @@ test("19⑤ needs-user 挂起的恢复回路：user 补可执行判据（amend�
 
 /**
  * 建一张 settled 态任务（关闭前置的被审对象）。`cls`＝任务类别（duty 例程任务的
- * 承载面是台账本身，不适用产出登记门）；`closeReviews`＝是否把简报冻结点复核闭合。
+ * 承载面是台账本身，不适用产出登记门）；`closeReviews`＝是否把简报冻结点复核闭合
+ * （闭合须逐点持帽——`issueHat` 由用例给，照 27 号票台账腿权威门）。
  */
 async function walkToSettled(ledger, taskId, {
-  cls = "project", brief = REVIEW_BRIEF, botId = "implementer", closeReviews = true
+  cls = "project", brief = REVIEW_BRIEF, botId = "implementer", closeReviews = true, issueHat = null
 } = {}) {
   assert.equal((await openTask(ledger, taskId, { class: cls, brief })).ok, true);
   for (const [op, actor, payload, key] of [
@@ -1840,14 +2032,20 @@ async function walkToSettled(ledger, taskId, {
     })).ok, true, op);
   }
   if (closeReviews) {
-    for (const point of brief.reviewPoints ?? []) {
+    const points = Array.isArray(brief.reviewPoints) ? brief.reviewPoints : [];
+    // 复核报告入账须持帽（27 号票台账腿权威门）：有复核点却不给 issueHat＝装配错误，
+    // 响亮抛（不许静默跳过）；无复核点的用例本就无须传
+    if (points.length > 0 && typeof issueHat !== "function") {
+      throw new Error("walkToSettled 需要 issueHat：闭合复核点须逐点持帽入账（27 号票）");
+    }
+    for (const point of points) {
       assert.equal((await ledger.command({
         op: "review.request", taskId, actor: HOST, ...cas(ledger, taskId),
         idempotencyKey: `${taskId}-rv-${point}`, payload: { point, reviewer: "bot-reviewer" }
       })).ok, true);
       assert.equal((await ledger.recordReviewReport({
         taskId, reviewer: "bot-reviewer", report: { ...CLOSED_REPORT, subject: point },
-        idempotencyKey: `${taskId}-rr-${point}`
+        capability: issueHat(), idempotencyKey: `${taskId}-rr-${point}`
       })).ok, true);
     }
   }
@@ -1911,8 +2109,8 @@ test("关闭前置（§B；V-A2.7／V-A2.9，14 号票）：产出未按「谁�
 test("关闭前置（§B；V-A2.7，14 号票）：命中必审点未闭合即拒——交付门不得在关闭处被绕过", async () => {
   const home = mkHome();
   try {
-    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clockAt().now });
-    await walkToSettled(ledger, "TK-00000096");
+    const { ledger, hat } = reviewRig(home);
+    await walkToSettled(ledger, "TK-00000096", { issueHat: hat });
     registerReport({
       dshHome: home, botId: "implementer",
       input: { title: "本任务产出", summary: "s", body: "b", task: "TK-00000096" }
@@ -1932,7 +2130,7 @@ test("关闭前置（§B；V-A2.7，14 号票）：命中必审点未闭合即�
     assert.equal((await ledger.recordReviewReport({
       taskId: "TK-00000096", reviewer: "bot-reviewer",
       report: { ...CLOSED_REPORT, subject: "before-irreversible-write" },
-      idempotencyKey: "rr96-add"
+      capability: hat(), idempotencyKey: "rr96-add"
     })).ok, true);
     assert.equal((await close(ledger, "TK-00000096", "c96-ok")).ok, true);
   } finally {

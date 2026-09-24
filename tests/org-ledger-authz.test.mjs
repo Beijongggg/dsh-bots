@@ -48,7 +48,9 @@ function mkRig(clock, { posts = {} } = {}) {
   const postForBot = (botId) => posts[botId] ?? null;
   const authorizer = createLedgerAuthorizer({ issuer, postForBot });
   const gated = createTaskLedger({ CRITERION_INJECTION,
-    dshHome: home, now: clock.now, authorize: authorizer.authorize
+    dshHome: home, now: clock.now, authorize: authorizer.authorize,
+    // 复核报告入账的帽验签（27 号票）：台账腿＝权威门＋唯一消费点
+    reviewHat: issuer
   });
   issuer.bindLedger(gated); // 吊销投影腿读同一门面（构造顺序解耦）
   const dispatcher = createLedgerCommandDispatcher({ ledger: gated, issuer, postForBot });
@@ -497,6 +499,7 @@ test("关闭前置的拒绝同样带 authorized 标记（21 号票①机械证�
   const { gated, dispatcher, issuer, home } = mkRig(clock, { posts: { "implementer": "implementer", "lead": "project-lead" } });
   writeInstanceRow(home, "implementer");
   writeInstanceRow(home, "lead");
+  writeInstanceRow(home, "bot-rev"); // 复核帽的活态腿（27 号票：报告入账须持帽）
   try {
     const taskId = "TK-00000021";
     await gated.command({ op: "task.intake", taskId, actor: HOST, idempotencyKey: "cl-1", payload: { class: "project", brief: { ...VALID_BRIEF, reviewPoints: [] } } });
@@ -522,11 +525,14 @@ test("关闭前置的拒绝同样带 authorized 标记（21 号票①机械证�
       op: "review.request", taskId, actor: HOST, idempotencyKey: "cl-rv",
       payload: { point: "before-external-visibility", reviewer: "bot-rev" }
     });
+    const reviewHat = issuer.issueRoleCapability({ botId: "bot-rev", post: "verifier" });
+    assert.equal(reviewHat.ok, true, reviewHat.reason);
     assert.equal((await gated.recordReviewReport({
       taskId, reviewer: "bot-rev",
       report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "复核实例模型" },
+      capability: reviewHat.envelope,
       idempotencyKey: "cl-rr"
-    })).ok, true, "复核报告入账");
+    })).ok, true, "复核报告入账（持帽）");
     const delivered = await dispatcher({
       op: "task.deliver", taskId, actor: POST("implementer"), capability: cap, idempotencyKey: "cl-8",
       expectedStatus: "produced", expectedSeq: gated.task(taskId).lastSeq, payload: {}
@@ -548,6 +554,37 @@ test("关闭前置的拒绝同样带 authorized 标记（21 号票①机械证�
     assert.equal(denied.code, "acceptance-check-unwired", "关闭前置拒绝（授权有效、信封已被本命令消费）");
     assert.equal(denied.authorized, true, "鉴权门之后的拒绝一律带 authorized——判据类拒绝的复验锚不得顶掉该标记");
     assert.equal(gated.task(taskId).status, "settled", "拒绝不改状态");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("复核面帽腿在消费之前（27 号票）：非复核帽信封不被烧——同一张任务能力随后在命令面照常可用", async () => {
+  const clock = clockAt();
+  const { gated, dispatcher, issuer, home } = mkRig(clock, { posts: { "implementer": "implementer" } });
+  writeInstanceRow(home, "implementer");
+  try {
+    const taskId = "TK-00000022";
+    await assignedTask(gated, taskId, "implementer");
+    const cap = issuer.issueTaskCapability({ taskId, botId: "implementer", post: "implementer" });
+    assert.equal(cap.ok, true, cap.reason);
+
+    // 复核面：任务能力不是复核帽 → 拒（帽腿判定在消费之前）
+    const denied = await gated.recordReviewReport({
+      taskId, reviewer: "implementer",
+      report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "m" },
+      capability: cap.envelope, idempotencyKey: "hb-rr"
+    });
+    assert.equal(denied.ok, false);
+    assert.equal(denied.code, "review-hat-required");
+
+    // 同一张信封在命令面照常可用（授权有效、被本命令消费并续签）——越权尝试不消耗任何人的帽
+    const accepted = await dispatcher({
+      op: "task.accept", taskId, actor: POST("implementer"), capability: cap.envelope,
+      idempotencyKey: "hb-accept", expectedStatus: "assigned", expectedSeq: gated.task(taskId).lastSeq, payload: {}
+    });
+    assert.equal(accepted.ok, true, `被复核面拒不得烧掉任务能力：${accepted.reason}`);
+    assert.equal(accepted.capability?.payload?.post, "implementer", "命令面照常续签");
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
