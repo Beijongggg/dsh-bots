@@ -269,7 +269,11 @@ supersede/deprecated 登记（append 语义、不物理删除）；与台账冲�
 **登记命令化**（10 号票实现口径，`V-A4.5`）：写口＝组织命令面 op
 `knowledge.register`／`knowledge.deprecate`（宿主侧执行面：不在台账状态机内、
 不落台账事件），**bot 侧无共享面直写通道**——登记由 host 进程执行，读侧
-（`knowledge_search` 与磁盘直读）照旧。检索面维持**索引级子串**，否决向量
+（`knowledge_search` 与磁盘直读）照旧。**腿内 actor 门**（30 号票口径）：该腿不经
+台账本体，故自带与台账**同源**的 actor 形状门（`isValidActor` → `invalid-actor`）
+＋**归属腿**——user 只许声明唯一 user principal（`RULING_ACTOR`），声明他人 id 即
+伪造产出方归属（`knowledge-actor-spoof`）；台账放行口径（user 全权／host 进程内
+组件）不动——门在腿内，不进门面。检索面维持**索引级子串**，否决向量
 检索与全文检索；「开工先 search」只进调研承载岗的岗位卡派生提示段。
 共享侧**无第三面**＝知识库根顶层级条目封闭枚举（索引清单/报告目录/模板/
 写锁目录），长出第五条即第三面，须走规格修订。

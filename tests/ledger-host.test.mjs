@@ -25,6 +25,7 @@ import { createCapabilityIssuer } from "../lib/org/capability-issue.js";
 import { instanceRegistryFile } from "../lib/org/capability-base.js";
 import { createReviewFaceGate } from "../lib/org/review-kit.js";
 import { createLedgerAccessKit } from "../lib/org/permissions.js";
+import { RULING_ACTOR } from "../lib/org/human-inbox.js";
 import { createTaskLedger, eventsFile, ledgerDir, EVENT_TYPES } from "../lib/org/task-ledger.js";
 import { BOOTSTRAP_ANCHOR_POST } from "../lib/org/role-cards.js";
 import { deprecateReport, readIndex, registerReport, reportsDirFor } from "../lib/knowledge.js";
@@ -656,28 +657,132 @@ test("复核面消费点在台账腿（27 号票）：同一信封二次提交�
 
 // ---------------- 知识登记命令化 HTTP（org-v2 10 号票 V-A4.5） ----------------
 
+/**
+ * 知识命令腿夹具（30 号票）：与「knowledge.register 命令化」用例同一装配——在册实例行、
+ * 台账、签发器、鉴权装配件、宿主接线（登记执行体落临时 DSH_HOME）。形状门用例与既有
+ * 用例共用一份装配，避免第三份手抄（装配漂移＝用例间口径分叉）。
+ */
+function mkKnowledgeHost(home) {
+  const row = {
+    botId: "bot-researcher", pid: process.pid, startedAt: `proc:${process.pid}`,
+    hostInstanceId: "gen-knowledge-gate", at: Date.now()
+  };
+  mkdirSync(join(home, "bots", "started"), { recursive: true });
+  writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
+  const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: () => NOW });
+  const issuer = createCapabilityIssuer({ dshHome: home, ledger, now: () => NOW });
+  const access = createLedgerAccessKit({ issuer, postForBot: (botId) => (botId === "bot-researcher" ? "researcher" : null) });
+  const host = createLedgerHost({
+    ledger, now: () => NOW, readBotIds: () => [], isAlive: () => true, broadcast: () => {},
+    logger: { warn() {}, info() {} },
+    authorizeCommand: access.authorize,
+    knowledgeRegister: ({ op, payload, botId }) =>
+      (op === "knowledge.deprecate"
+        ? deprecateReport({ dshHome: home, id: payload.id, reason: payload.reason })
+        : registerReport({ dshHome: home, botId, input: payload }))
+  });
+  const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
+  return { ledger, issuer, access, host, api };
+}
+
+test("知识命令腿 actor 形状门：无 actor／畸形 actor 一律拒（与台账 invalid-actor 同源；零落盘、不消耗信封）", async () => {
+  const home = mkHome();
+  try {
+    const { issuer, api } = mkKnowledgeHost(home);
+    const role = issuer.issueRoleCapability({ botId: "bot-researcher", post: "researcher" });
+    assert.equal(role.ok, true, role.reason);
+
+    // 形状负例（每次**随体携带一张活信封**——负例若走到鉴权门就会烧掉它）
+    const malformed = [
+      ["缺 actor", undefined],
+      ["actor=null", null],
+      ["空对象", {}],
+      ["user 无 id", { kind: "user" }],
+      ["user 空 id", { kind: "user", id: "" }],
+      ["post 无 id", { kind: "post" }],
+      ["未知 kind", { kind: "agent", id: "bot-researcher" }]
+    ];
+    for (const [label, actor] of malformed) {
+      const res = await call(api, "POST", "/api/bots/_ledger/commands", {
+        op: "knowledge.register", actor, idempotencyKey: `k-shape-${label}`, capability: role.envelope,
+        payload: { title: "形状负例", summary: "s", body: "b" }
+      });
+      assert.equal(res.status, 403, `${label}：${JSON.stringify(res.body)}`);
+      assert.equal(res.body.code, "invalid-actor",
+        `${label}：形状门与台账结构性拒绝同码（同源 isValidActor）——实得 ${String(res.body.code)}`);
+    }
+    assert.equal(readIndex(home).length, 0, "形状负例零落盘（共享面无写入）");
+
+    // 已知通道策略不回退：host 仍由通道层拦（码不变）
+    const hostActor = await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "knowledge.register", actor: { kind: "host", id: "web" }, idempotencyKey: "k-shape-host",
+      payload: { title: "host 冒名", summary: "s", body: "b" }
+    });
+    assert.equal(hostActor.status, 403);
+    assert.equal(hostActor.body.code, "host-channel-forbidden", "host 冒名结论码不变（通道策略先拦）");
+
+    // 不消耗：形状门在鉴权门**之前**——同一张信封随后照常可用（正例不回退）
+    const ok = await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "knowledge.register", actor: { kind: "post", id: "bot-researcher" }, idempotencyKey: "k-shape-after",
+      capability: role.envelope, payload: { title: "形状负例之后", summary: "s", body: "b" }
+    });
+    assert.equal(ok.status, 200, JSON.stringify(ok.body));
+    assert.equal(readIndex(home).length, 1, "信封未被形状负例消耗");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("知识命令腿 actor 归属门：user 只许声明 user principal 本人，他人 id 即伪造归属（user 正例不回退）", async () => {
+  const home = mkHome();
+  try {
+    const { issuer, api } = mkKnowledgeHost(home);
+
+    // 伪造归属：user 自声明**在册实例**的 id（索引 botId 字段是产出方归属，不由调用方指定）
+    const role = issuer.issueRoleCapability({ botId: "bot-researcher", post: "researcher" });
+    const forged = await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "knowledge.register", actor: { kind: "user", id: "bot-researcher" }, idempotencyKey: "k-spoof",
+      capability: role.envelope, payload: { title: "冒名登记", summary: "s", body: "b" }
+    });
+    assert.equal(forged.status, 403, JSON.stringify(forged.body));
+    assert.equal(forged.body.code, "knowledge-actor-spoof",
+      "user 声明非本人 id＝伪造产出方归属（照 11 号票 mail 面 spoof 语义与命名）");
+    assert.equal(readIndex(home).length, 0, "伪造归属零落盘");
+
+    // user principal 本人（CSRF 通道的唯一 user 身份）照常可登记：产出方记 principal 本人
+    const mine = await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "knowledge.register", actor: { ...RULING_ACTOR }, idempotencyKey: "k-user",
+      payload: { title: "人间登记", summary: "s", body: "b" }
+    });
+    assert.equal(mine.status, 200, JSON.stringify(mine.body));
+    assert.equal(readIndex(home).length, 1);
+    assert.equal(readIndex(home)[0].botId, RULING_ACTOR.id, "产出方＝user principal 本人");
+
+    // 废弃腿同门（同一拦截腿两 op）：伪造归属在废弃腿同样拒、且不改状态
+    const deprecated = await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "knowledge.deprecate", actor: { kind: "user", id: "bot-researcher" }, idempotencyKey: "k-spoof-dep",
+      payload: { id: readIndex(home)[0].id, reason: "冒名废弃" }
+    });
+    assert.equal(deprecated.status, 403, JSON.stringify(deprecated.body));
+    assert.equal(deprecated.body.code, "knowledge-actor-spoof");
+    assert.equal(readIndex(home)[0].status, "valid", "伪造归属的废弃尝试不得改状态");
+
+    // user principal 本人在废弃腿同样成立（正例覆盖两 op：register 与 deprecate）
+    const mineDeprecate = await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "knowledge.deprecate", actor: { ...RULING_ACTOR }, idempotencyKey: "k-user-dep",
+      payload: { id: readIndex(home)[0].id, reason: "人间废弃" }
+    });
+    assert.equal(mineDeprecate.status, 200, JSON.stringify(mineDeprecate.body));
+    assert.equal(readIndex(home)[0].status, "deprecated");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
 test("knowledge.register 命令化：授权过的岗位实例经 host 执行登记（bot 侧无直写通道）", async () => {
   const home = mkHome();
   try {
-    const row = {
-      botId: "bot-researcher", pid: process.pid, startedAt: `proc:${process.pid}`,
-      hostInstanceId: "gen-researcher", at: Date.now()
-    };
-    mkdirSync(join(home, "bots", "started"), { recursive: true });
-    writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
-    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: () => NOW });
-    const issuer = createCapabilityIssuer({ dshHome: home, ledger, now: () => NOW });
-    const access = createLedgerAccessKit({ issuer, postForBot: (botId) => (botId === "bot-researcher" ? "researcher" : null) });
-    const host = createLedgerHost({
-      ledger, now: () => NOW, readBotIds: () => [], isAlive: () => true, broadcast: () => {},
-      logger: { warn() {}, info() {} },
-      authorizeCommand: access.authorize,
-      knowledgeRegister: ({ op, payload, botId }) =>
-        (op === "knowledge.deprecate"
-          ? deprecateReport({ dshHome: home, id: payload.id, reason: payload.reason })
-          : registerReport({ dshHome: home, botId, input: payload }))
-    });
-    const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
+    const { ledger, issuer, api } = mkKnowledgeHost(home);
 
     // 未携 capability → 403（fail closed；不因「登记是轻动作」而放行）
     const naked = await call(api, "POST", "/api/bots/_ledger/commands", {
@@ -723,25 +828,7 @@ test("knowledge.register 命令化：授权过的岗位实例经 host 执行登�
 test("knowledge.deprecate：命令化废弃腿——授权后走 host 执行，未接线/未授权一律 fail closed", async () => {
   const home = mkHome();
   try {
-    const row = {
-      botId: "bot-researcher", pid: process.pid, startedAt: `proc:${process.pid}`,
-      hostInstanceId: "gen-deprecate", at: Date.now()
-    };
-    mkdirSync(join(home, "bots", "started"), { recursive: true });
-    writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
-    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: () => NOW });
-    const issuer = createCapabilityIssuer({ dshHome: home, ledger, now: () => NOW });
-    const access = createLedgerAccessKit({ issuer, postForBot: (botId) => (botId === "bot-researcher" ? "researcher" : null) });
-    const host = createLedgerHost({
-      ledger, now: () => NOW, readBotIds: () => [], isAlive: () => true, broadcast: () => {},
-      logger: { warn() {}, info() {} },
-      authorizeCommand: access.authorize,
-      knowledgeRegister: ({ op, payload, botId }) =>
-        (op === "knowledge.deprecate"
-          ? deprecateReport({ dshHome: home, id: payload.id, reason: payload.reason })
-          : registerReport({ dshHome: home, botId, input: payload }))
-    });
-    const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
+    const { ledger, issuer, api } = mkKnowledgeHost(home);
 
     const role = issuer.issueRoleCapability({ botId: "bot-researcher", post: "researcher" });
     const seeded = await call(api, "POST", "/api/bots/_ledger/commands", {

@@ -16,9 +16,10 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { join } from "node:path";
 
-import { botWorkspaceDir, createLedgerAccessKit, createLedgerAuthorizer, isBotWritablePath } from "../lib/org/permissions.js";
+import { botWorkspaceDir, createLedgerAccessKit, createLedgerAuthorizer, isBotWritablePath, knowledgeActorVerdict } from "../lib/org/permissions.js";
 import { createCapabilityIssuer } from "../lib/org/capability-issue.js";
 import { instanceRegistryFile } from "../lib/org/capability-base.js";
+import { RULING_ACTOR } from "../lib/org/human-inbox.js";
 import { ROLE_CARDS, ROLE_CARD_FIELDS } from "../lib/org/role-cards.js";
 import { deriveToolFace, LEDGER_COMMAND_OPS, OP_SET, WRITE_OPS } from "../lib/org/op-set.js";
 import { indexFile, knowledgeDir, reportsDirFor, templateFileFor } from "../lib/knowledge.js";
@@ -174,6 +175,37 @@ test("V-A3.9 正交（能力侧）：真 capability 扩不出文件面——共�
   // capability 槽位——行为上即「有能力≠可写共享面」。
   assert.equal(isBotWritablePath({ dshHome: HOME, botId: "bot-a", target: join(HOME, "bots", "ledger", "events.jsonl") }), false,
     "L1 不因任何任务域授权而放宽");
+});
+
+test("知识命令腿 actor 门（30 号票）：形状／归属判定表；台账放行口径不动（同一 actor 两门两判）", () => {
+  // 形状腿＝与台账结构性拒绝**同源同码**（叶件 isValidActor；不另抄一份口径）
+  for (const bad of [undefined, null, {}, { kind: "user" }, { kind: "user", id: "" }, { kind: "post" }, { kind: "agent", id: "bot-a" }]) {
+    assert.equal(knowledgeActorVerdict(bad).code, "invalid-actor", `形状负例须拒：${JSON.stringify(bad)}`);
+  }
+  // 归属腿：user 只许声明唯一 user principal（09 号票单源 RULING_ACTOR）
+  assert.deepEqual(knowledgeActorVerdict({ ...RULING_ACTOR }), { ok: true });
+  assert.equal(knowledgeActorVerdict({ kind: "user", id: "bot-other" }).code, "knowledge-actor-spoof",
+    "user 声明他人 id＝伪造产出方归属（照 mail 面 spoof 语义）");
+  // post 不在本门判身份：形状合法即过——身份由**信封绑定**把守（capability-bot-mismatch）
+  assert.deepEqual(knowledgeActorVerdict({ kind: "post", id: "bot-other" }), { ok: true });
+  // host 自足兜底：通道策略（ledger-host 更前面）已拦，本门同码同形——不依赖调用方门序
+  assert.equal(knowledgeActorVerdict({ kind: "host", id: "web" }).code, "host-channel-forbidden");
+
+  // 台账放行口径**不动**（本门只加在知识腿）：同一 actor 在台账门照旧放行——
+  // user 全权不经岗位表、host 为进程内确定性组件（V-A3.10；`authorize` 一行未改）
+  const home = mkdtempSync(join(tmpdir(), "dsh-perm-knowledge-actor-"));
+  process.on("exit", () => rmSync(home, { recursive: true, force: true }));
+  mkdirSync(join(home, "bots", "started"), { recursive: true });
+  const issuer = createCapabilityIssuer({ dshHome: home });
+  const { authorize } = createLedgerAuthorizer({ issuer, postForBot: () => "researcher" });
+  assert.deepEqual(
+    authorize({ op: "knowledge.register", actor: { kind: "user", id: "bot-other" } }), { ok: true },
+    "台账门放行口径不变（越权归属由知识腿自己的门拦，不由台账门代拦）"
+  );
+  assert.deepEqual(
+    authorize({ op: "knowledge.register", actor: { kind: "host", id: "web" } }), { ok: true },
+    "host＝进程内确定性组件，照旧放行（通道策略在 ledger-host 拦，不在台账门）"
+  );
 });
 
 test("权限装配件工厂（23 号票③）：{issuer, postForBot, logger} 一处装配——authorize 直通鉴权器、createDispatcher 成套取出 dispatcher", async () => {

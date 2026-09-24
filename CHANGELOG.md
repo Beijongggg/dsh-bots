@@ -7,6 +7,57 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 **30 号票实施：知识命令腿 actor 形状／归属门**——用户指令 `/implement 30`＝授权；
+  **2 改件＋2 测试件＋1 语义注记件＋2 坐标件＋票面／本条目**，TDD 两切片先红后绿）：
+  - **缺陷（29 号票 A1，独立复核确认）**：`POST /api/bots/_ledger/commands` 的
+    `knowledge.register`／`knowledge.deprecate` 拦截腿自称「先过与台账同一张能力鉴权门」，
+    但门（`permissions.js` `createLedgerAuthorizer`）对**actor 缺席／畸形**直接放行
+    （`{ok:true}`——user＝台账全权、host＝进程内组件），而 actor 形状校验住在**台账本体**
+    （`task-ledger.command` 的 `isValidActor` → `invalid-actor`）。知识腿不经台账本体（不入
+    状态机、不落事件），于是「省掉 actor」即整体绕过信封三元组、共享面可被无身份写入，
+    `actor:{kind:"user",id:"<他人 botId>"}` 更能伪造条目归属（索引 `botId` 字段）。复现：
+    `actor ∈ {undefined, null, {}, {kind:"user"}}` 一律 `{"ok":true}` 且落盘。
+  - **范围**：`lib/org/permissions.js`（新增 `knowledgeActorVerdict` 判定件＋口径注记；
+    `authorize` **一行未改**）、`lib/org/ledger-host.js`（知识腿接形状门＋模块头注记门序）、
+    `tests/ledger-host.test.mjs`（抽取共用夹具 `mkKnowledgeHost` 并把两个既有知识腿用例改挂其上
+    ＋2 用例）、`tests/org-permissions.test.mjs`（判定表＋台账放行口径边界 1 用例）、
+    `CONTEXT.md`（知识库词条补「腿内 actor 门」口径）、`lib/org/acceptance-coordinates.js`
+    ＋`.scratch/org-v2/spec.md`（`V-A4.5` **补执行坐标**：三条新测试，两侧同拍回写）＋本票面／本条目。
+    **不新增判据**：A 组判据集仍是封闭的 60 条（双向锁定复核通过），判据文本／级别／挂标计数
+    一律未动——实施批只许「补执行坐标」。
+  - **三项开工裁定（票面 Comments「开工前定死」）**：① **门落腿内、口径同源**——形状判定调
+    叶件 `ledger-events.isValidActor`（台账同一引用，不另抄），判定件住 `permissions.js`
+    （通道侧结论码既有住所，与 `HOST_CHANNEL_FORBIDDEN` 同处）；**不改台账 `authorize`**
+    （user／host 全权语义原样，测试以同一 actor 钉「两门两判」）。**门序**＝接线门 → 形状门
+    → 鉴权门 → 执行面，形状在鉴权前**承重**：形状负例随体的活信封**不被烧**。② **归属腿**：
+    user 的 id 是**归属声明**不是身份声明——本部署「CSRF 令牌＝唯一 user principal」（§D L3）
+    通道不带第二个身份可比对，故以仓内单源的 principal 表示 `human-inbox.RULING_ACTOR`
+    （`{kind:"user",id:"user"}`）为准，声明他人 id 即**伪造产出方归属**（照 11 号票 mail 面
+    `mail-actor-spoof` 语义与命名，状态码取本腿既有 403 惯例）；**不选**「user 一律拒登记」
+    （与 user 全权＋§E 全员基础工具语境冲突），**不选** post 也查在册（身份已由信封绑定
+    `capability-bot-mismatch` 把守）。③ **负例三口径**：不消耗／零落盘／不落台账。
+  - **负例覆盖**：缺 actor、`null`、`{}`、`kind:"user"` 无 id、空 id、`kind:"post"` 无 id、
+    未知 kind 共 **7 例** → 403 `invalid-actor`（形状规则与台账**同源**叶件 `isValidActor`；
+    文案按本腿可达的 kind 集给出——与台账同码异文，照 `capability-malformed` 三处同码异文的
+    既有先例）；user 声明他人 id（register／deprecate 两 op 同门）→ 403 `knowledge-actor-spoof`；
+    host 冒名**通道策略位置与码逐字不变**（403 `host-channel-forbidden`），且判定件**同码兜底**
+    （门自身自足，不依赖调用方门序）；`RULING_ACTOR` 本人在 register／deprecate 两腿照常
+    200（索引产出方＝`user`／状态翻 `deprecated`）。
+  - **验证结果**：两切片各自先红（缺 actor 实得 200；伪造归属实得 200 且 `botId` 记为他人）；
+    `ledger-host` **19/19**、`org-permissions` **11/11**、`org-acceptance-coordinates` **14/14**；
+    全量回归 **67/67** 测试文件；preflight 四道门 **PASS**（①67/67 ②冻结面 0010 包 **10/10**
+    ③status-lint 0 违例〔97 md〕④宿主契约 **11 PASS/0 FAIL/0 SKIP**）。既有 post 信封正／负例
+    （无帽 403、角色帽 200＋索引产出方＝提交实例、复核帽 403）与本腿未接线 503 **逐字不变**；
+    10 号票 `V-A4.5` 与 11 号票 mail 面回归不回退。运行面零写入（全程临时 DSH_HOME；测试经
+    隔离子进程）。
+  - **复审**：`/code-review` 双轴（固定点 `e2a9b3b`，双席并行）——Standards：硬违例 3（**修 2**
+    〔既有用例改挂共用夹具、未落档的复审条补齐〕／**留 1**〔`invalid-actor` 同码异文＝判断项改判：
+    规则已单源 `isValidActor`、文案按各面可达 kind 集必异，照 `capability-malformed` 三处同码
+    异文先例；正确单源位置在冻结面 0010 包内，为一个常量重出包不成比例——已删 overclaim〕）
+    ＋判断项 4（**修 1**〔host 自足兜底〕／**留 3**）；Spec：**修 3**（`V-A4.5` 补执行坐标、
+    废弃腿 user 正例、复审条落档）／**留 1**（user principal 不需信封＝票面②裁定，进一步收紧
+    须改 §D L3 属用户点名范围）。合计 **修 6 留 5**，逐条理由见票面 Comments 末条。
+
 - ✅ 本轮（org-v2 **27 号票实施：复核报告的帽验签落到台账腿**——用户指令 `/implement 27`＝授权；
   **4 改件＋1 装具＋5 测试件＋规格坐标回写＋2 语义注记件＋票面／本条目**，TDD 先红后绿）：
   - **范围**：`lib/org/review-kit.js`（抽出**单一源** `verifyReviewHat`；`createReviewFaceGate` 降级为
