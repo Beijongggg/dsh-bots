@@ -308,7 +308,7 @@ test("移交件＝冻结简报＋复核史：judgement 推理轨迹机械不可�
   assert.ok(!serialized.includes("中间过程-abc"), "移交件不得含判断输入");
 });
 
-test("复核面 gate：帽信封须 post=verifier＋op 在帽内；读不消费 nonce", () => {
+test("复核面 gate：帽信封须 post=verifier＋op 在帽内；读／写两条面都不消费帽（消费点在台账腿，27 号票）", () => {
   const calls = [];
   const issuer = {
     verify(args) {
@@ -329,7 +329,7 @@ test("复核面 gate：帽信封须 post=verifier＋op 在帽内；读不消费 
   const report = gate.authorizeReport({ envelope: { payload: {}, sig: "s" }, botId: "bot-r", taskId: "TK-REVIEW-KIT" });
   assert.equal(report.ok, true);
   assert.equal(calls[1].op, "review.report");
-  assert.equal(calls[1].consumeNonce, true);
+  assert.equal(calls[1].consumeNonce, false, "通道门是入口预筛：整体不消费帽（唯一消费点在台账写路径）");
 });
 
 test("复核面 gate：非帽信封（post≠verifier）／帽缺 op／未被指定复核者即拒", () => {

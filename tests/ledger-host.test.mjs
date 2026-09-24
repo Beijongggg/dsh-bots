@@ -33,6 +33,7 @@ const ledgerDirExists = (home) => existsSync(ledgerDir(home));
 import { receiptsDirFor } from "../lib/mail-plane.js";
 import { VALID_BRIEF } from "./helpers/brief-fixture.mjs";
 import { ACCEPTANCE_RUNNER, criterionInjection } from "./helpers/criterion-fixture.mjs";
+import { wireReviewHat } from "./helpers/capability-fixture.mjs";
 
 /** 已有夹具的判据执行面：本组用例测的不是判据门，显式声明「判据面已接线」（25 号票）。 */
 const CRITERION_INJECTION = Object.freeze(criterionInjection(ACCEPTANCE_RUNNER));
@@ -445,15 +446,17 @@ test("值守 disposer 释放台账写锁（宿主停机/热重载不留悬空写
 test("复核面 HTTP：移交件读与报告提交经帽信封门；未携帽 403；报告响应携带续签帽", async () => {
   const home = mkHome();
   try {
-    // 实例行（活 pid＝本进程）＋签发面＋复核面 gate 全真接线
+    // 实例行（活 pid＝本进程）＋签发面＋复核面 gate 全真接线（27 号票：同一签发面
+    // 也给台账腿——报告入账的权威门与唯一消费点在台账，通道门只做入口预筛）
     const row = {
       botId: "bot-reviewer", pid: process.pid, startedAt: `proc:${process.pid}`,
       hostInstanceId: "gen-reviewer", at: Date.now()
     };
     mkdirSync(join(home, "bots", "started"), { recursive: true });
     writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
-    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: () => NOW });
-    const issuer = createCapabilityIssuer({ dshHome: home, ledger, now: () => NOW });
+    const { issuer, ledger } = wireReviewHat({
+      home, now: () => NOW, ledgerOptions: { ...CRITERION_INJECTION }
+    });
     const reviewGate = createReviewFaceGate({ issuer, ledger });
     const host = createLedgerHost({
       ledger, now: () => NOW, readBotIds: () => [], isAlive: () => true, broadcast: () => {},
@@ -531,8 +534,9 @@ test("复核面续签（21 号票 ①）：报告被台账拒绝（review-not-re
     };
     mkdirSync(join(home, "bots", "started"), { recursive: true });
     writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
-    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: () => NOW });
-    const issuer = createCapabilityIssuer({ dshHome: home, ledger, now: () => NOW });
+    const { issuer, ledger } = wireReviewHat({
+      home, now: () => NOW, ledgerOptions: { ...CRITERION_INJECTION }
+    });
     const reviewGate = createReviewFaceGate({ issuer, ledger });
     const host = createLedgerHost({
       ledger, now: () => NOW, readBotIds: () => [], isAlive: () => true, broadcast: () => {},
@@ -555,7 +559,7 @@ test("复核面续签（21 号票 ①）：报告被台账拒绝（review-not-re
     const hat = issuer.issueRoleCapability({ botId: "bot-reviewer", post: "verifier" });
     assert.equal(hat.ok, true, hat.reason);
 
-    // 帽 gate 通过（被指定），但台账拒绝：subject 未在本任务登记复核请求
+    // 入口预筛通过（被指定），但台账腿拒绝：subject 未在本任务登记复核请求
     const rejected = await call(api, "POST", "/api/bots/_ledger/reviews", {
       taskId: "TK-00000071", actor: { kind: "post", id: "bot-reviewer" }, idempotencyKey: "rvr-bad",
       capability: hat.envelope,
@@ -564,7 +568,7 @@ test("复核面续签（21 号票 ①）：报告被台账拒绝（review-not-re
     assert.equal(rejected.status, 409);
     assert.equal(rejected.body.code, "review-not-requested");
     assert.equal(rejected.body.capability?.payload?.post, "verifier",
-      "授权有效（帽已被 gate 单次消费）而报告被拒：同样续签帽，否则复核者连报即断链");
+      "预筛通过（帽腿已过、已被台账腿消费）而报告被拒：同样续签帽，否则复核者连报即断链");
 
     // 续签帽可连报：换合法 subject 提交即 200（链式接力）
     const reported = await call(api, "POST", "/api/bots/_ledger/reviews", {
@@ -575,13 +579,76 @@ test("复核面续签（21 号票 ①）：报告被台账拒绝（review-not-re
     assert.equal(reported.status, 200, reported.body.reason);
     assert.equal(reported.body.ok, true);
 
-    // 边界：帽 gate 自身拒绝（无帽）不给新帽——鉴权失败不续签
+    // 边界：入口预筛自身拒绝（无帽）不给新帽——鉴权失败不续签
     const naked = await call(api, "POST", "/api/bots/_ledger/reviews", {
       taskId: "TK-00000071", actor: { kind: "post", id: "bot-reviewer" }, idempotencyKey: "rvr-naked",
       report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "review-model" }
     });
     assert.equal(naked.status, 403);
-    assert.equal(naked.body.capability, undefined, "未过帽 gate：不续签（越权不换新信封）");
+    assert.equal(naked.body.capability, undefined, "未过预筛：不续签（越权不换新信封）");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("复核面消费点在台账腿（27 号票）：同一信封二次提交即 capability-replayed；入口预筛不消费帽", async () => {
+  const home = mkHome();
+  try {
+    const row = {
+      botId: "bot-reviewer", pid: process.pid, startedAt: `proc:${process.pid}`,
+      hostInstanceId: "gen-reviewer", at: Date.now()
+    };
+    mkdirSync(join(home, "bots", "started"), { recursive: true });
+    writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
+    const { issuer, ledger } = wireReviewHat({
+      home, now: () => NOW, ledgerOptions: { ...CRITERION_INJECTION }
+    });
+    const reviewGate = createReviewFaceGate({ issuer, ledger });
+    const host = createLedgerHost({
+      ledger, now: () => NOW, readBotIds: () => [], isAlive: () => true, broadcast: () => {},
+      logger: { warn() {}, info() {} }, reviewGate, issuer
+    });
+    const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
+
+    await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "task.intake", taskId: "TK-00000072", actor: { kind: "user", id: "user" },
+      idempotencyKey: "rvp-intake", payload: {
+        class: "project", brief: { ...VALID_BRIEF, reviewPoints: ["before-external-visibility"] }
+      }
+    });
+    assert.equal((await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "review.request", taskId: "TK-00000072", actor: { kind: "user", id: "user" },
+      idempotencyKey: "rvp-request", payload: { point: "before-external-visibility", reviewer: "bot-reviewer" }
+    })).body.ok, true);
+
+    const hat = issuer.issueRoleCapability({ botId: "bot-reviewer", post: "verifier" });
+    assert.equal(hat.ok, true, hat.reason);
+    // 入口预筛拒（无帽）不消费任何帽：同一张帽随后照常提交成功
+    const naked = await call(api, "POST", "/api/bots/_ledger/reviews", {
+      taskId: "TK-00000072", actor: { kind: "post", id: "bot-reviewer" }, idempotencyKey: "rvp-naked",
+      report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "review-model" }
+    });
+    assert.equal(naked.status, 403);
+    const reported = await call(api, "POST", "/api/bots/_ledger/reviews", {
+      taskId: "TK-00000072", actor: { kind: "post", id: "bot-reviewer" }, idempotencyKey: "rvp-ok",
+      capability: hat.envelope,
+      report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "review-model" }
+    });
+    assert.equal(reported.status, 200, reported.body.reason);
+    assert.equal(reported.body.ok, true);
+
+    // 一次提交恰好消费一次：同一信封重放——预筛仍放行（它不消费），台账腿的消费点拒
+    const replay = await call(api, "POST", "/api/bots/_ledger/reviews", {
+      taskId: "TK-00000072", actor: { kind: "post", id: "bot-reviewer" }, idempotencyKey: "rvp-replay",
+      capability: hat.envelope,
+      report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "review-model" }
+    });
+    assert.equal(replay.status, 409);
+    assert.equal(replay.body.code, "capability-replayed");
+    assert.equal(replay.body.capability, undefined,
+      "已消费信封的重放拒绝发生在帽腿之前：不续签（否则一张旧帽可无限换新帽）");
+    assert.equal(ledger.events({ taskId: "TK-00000072" }).filter((e) => e.type === "review-reported").length, 1,
+      "重放不得落第二条复核报告");
   } finally {
     rmSync(home, { recursive: true, force: true });
   }

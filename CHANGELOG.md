@@ -7,6 +7,45 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 **27 号票实施：复核报告的帽验签落到台账腿**——用户指令 `/implement 27`＝授权；
+  **4 改件＋1 装具＋5 测试件＋规格坐标回写＋2 语义注记件＋票面／本条目**，TDD 先红后绿）：
+  - **范围**：`lib/org/review-kit.js`（抽出**单一源** `verifyReviewHat`；`createReviewFaceGate` 降级为
+    **入口预筛**、整体不消费 nonce）、`lib/org/task-ledger.js`（`recordReviewReport({…, capability})`
+    三段式：预验→帽腿→**唯一消费点**；帽腿之后的 reject 回执带 `authorized: true`；注入缝 `reviewHat`
+    ——畸形注入构造期抛、显式留空运行时 `review-hat-unwired` fail closed）、`lib/org/ledger-host.js`
+    （信封随命令传下去；续签判据＝入账成功 ∪ 帽腿之后）、`lib/org/post-channel.js`（注释同步）、
+    `lib/index.js`（同一签发面给 `reviewGate` 与台账 `reviewHat`）＋`tests/helpers/capability-fixture.mjs`
+    （`wireReviewHat` 装配件）＋`tests/{task-ledger,ledger-host,org-ledger-authz,org-review-kit,
+    org-closed-loop-smoke}.test.mjs`＋`lib/org/acceptance-coordinates.js`／`.scratch/org-v2/spec.md`
+    （`V-A3.2` 坐标回写）＋`CONTEXT.md`／`lib/org/human-inbox.js`（领域口径与计数词表注记）＋票面收口。
+  - **缺陷（14 号票 recon G4）**：复核报告的落账面只认字符串不认帽——`recordReviewReport` 校报告形状／
+    指定关系／产出方自任，但**不要求提交者当时真持复核帽信封**；帽验签只在 HTTP 面，故换一条通道
+    （进程内直调台账门面）即可无帽交一份「复核报告」，且该报告作为事实源事件在案。
+  - **口径（票面 Comments「开工前定死」＋复审更正）**：①**权威门放台账腿**——唯一写者门口必须验凭据，
+    通道不是唯一门；不选「通道门为权威」的理由＝那等于承认事实源可被无凭据写入，与 §D L2「事件只能经
+    命令面写」冲突。②唯一消费点＝台账腿，三段式＝预验（不消费）→帽腿（纯判定，**非帽信封不被烧**，
+    越权尝试不消耗任何人的帽）→消费（复验＋`consumeNonceOnce` 独占消费）；**过了帽腿即消费**，其后
+    形状／任务态／产出方／指定关系类拒绝照旧消费、不回滚——与命令面「授权通过即消费」同构（21 号票①）。
+    ③读面（`GET /review-handoff`）不消费不变，通道门整体不消费。**续签**＝入账成功 ∪ 帽腿之后
+    （回执 `authorized` 标记）：初稿「预筛通过即续签」被复审实测推翻——预筛不查 nonce，已消费旧帽
+    照样过筛、被拒后仍换到新帽＝无限续杯，已更正为命令面同口径并用测试钉死。
+  - **验证结果**：三条新用例先红（无帽提交原样入账＝本票的洞）后绿；`task-ledger` **57/57**、
+    `org-review-kit` **18/18**、`ledger-host` **17/17**、`org-ledger-authz` **19/19**、
+    `org-closed-loop-smoke` **6/6**；全量回归 **63/63**；preflight 四道门 **PASS**
+    （①63/63 ②冻结面 0009 包 7/7 ③status-lint 0 违例〔77 md〕④宿主契约 11 PASS/0 FAIL/0 SKIP）。
+    HTTP 面既有负例不回退（未携帽 403 `capability-malformed`、他人帽 403 `capability-bot-mismatch`、
+    预筛失败不续签）；冻结面零改动、运行面零写入（隔离子进程执行）。
+  - **复审**：`/code-review` 双轴（固定点 `230784d`，双席并行）——Standards：硬违例 1（缺落档＝本轮
+    本条履行）／判断项 4（**修 2**：测试装具单一源 `wireReviewHat`、有复核点却缺 `issueHat` 即响亮抛；
+    **留 2**：指定关系两处两码职责不同〔读面无 subject〕、gate↔issuer 接口断言属预筛契约证据）；
+    Spec：**高 1 已修**（旧帽换新帽）／部分 1 已修措辞（「消费与落账紧邻」更正为「消费紧邻帽腿」）／
+    跨子系统 1（新拒绝进 20 号票计数词表：按既有词形规则分别落 count／ignore／reset，**不扩词表**，
+    `human-inbox.js` 注释加注记）。处置全文见票面 Comments「实施与验证」。
+  - **授权依据**：2026-09-24 用户指令 `/implement 27`；并发写者隔离口径由用户当轮裁定——实施期间主
+    工作树有另一会话在改 `lib/org/task-ledger.js`（28 号票行为保持抽取），本票改在独立分支
+    `ticket-27-review-hat-ledger-leg`（worktree `.worktrees/ticket-27`）实施、未触碰主工作树，合并由
+    用户执行（合并点：`lib/org/task-ledger.js` 与 `CHANGELOG.md` 顶部）。
+
 - ✅ 本轮（org-v2 **29 号票实施：风险审计交接→独立复核＋修复批 30–36 发布**——用户指令
   `/implement 接一下外置的代码风险评估票`（29 号）＝授权；**7 新票面＋29 票面收口＋本条目**，
   代码零改动）：

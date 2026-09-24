@@ -783,7 +783,7 @@ Status: ready-for-agent
 | # | 判据 | 执行坐标 | 证据落点 | 级别 |
 |---|---|---|---|---|
 | `V-A3.1` | L1 文件面：bot 直写仅限自身 workspace，`~/.dsh` 全域与共享面零直写 | tests/org-permissions.test.mjs::L1：自身 workspace 内可写＋tests/org-permissions.test.mjs::L1 负例：~/.dsh 全域＋tests/org-permissions.test.mjs::L1 负例：知识库容器协议＋tests/org-permissions.test.mjs::L1 负例：投递面 | 回归记录 | 常驻 |
-| `V-A3.2` | L2 组织命令经认证 host 通道；台账命令鉴权三元组各有可执行负例 | tests/org-ledger-authz.test.mjs::腿一负例：岗位命令无信封即拒＋tests/org-ledger-authz.test.mjs::腿一负例：伪造签名＋tests/org-ledger-authz.test.mjs::腿二负例＋tests/org-ledger-authz.test.mjs::腿三负例 | 回归记录 | 常驻 |
+| `V-A3.2` | L2 组织命令经认证 host 通道；台账命令鉴权三元组各有可执行负例 | tests/org-ledger-authz.test.mjs::腿一负例：岗位命令无信封即拒＋tests/org-ledger-authz.test.mjs::腿一负例：伪造签名＋tests/org-ledger-authz.test.mjs::腿二负例＋tests/org-ledger-authz.test.mjs::腿三负例＋tests/task-ledger.test.mjs::复核报告入账验帽 | 回归记录 | 常驻 |
 | `V-A3.3` | op-set 岗位表与实际签发对账一致，含 `ledger.read` 四常设岗有、复核帽无 | scripts/capability-issued-audit.mjs＋tests/capability-issued-audit.test.mjs::对账脚本：签发笔笔在岗位表内即绿＋tests/org-op-set.test.mjs::ledger.read 四常设岗有 | 回归记录 | 常驻 |
 | `V-A3.4` | 复核帽不含任何写 op（机械检查，不靠约定） | tests/org-op-set.test.mjs::复核帽不含任何写 op＋tests/org-op-set.test.mjs::共享面写者（V-A3.4 的本义） | 回归记录 | 常驻 |
 | `V-A3.5` | capability 由 host 在台账转移点签发（bot 不能自请）、单次消费、短 TTL 加心跳续签、任务域绑定、租约回收与关闭时自动吊销 | tests/org-capability-issue.test.mjs::任务能力：assign 转移点签发＋tests/org-ledger-authz.test.mjs::签发联动＋tests/org-ledger-authz.test.mjs::链式能力＋演练:drill-capability-issue-revoke | 台账事件 | 实验期一次 |
