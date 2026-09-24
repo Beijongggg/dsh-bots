@@ -7,7 +7,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { EventEmitter } from "node:events";
@@ -16,7 +16,7 @@ import {
   createMailHttpApi, createMailRelay, createMailRejectionRecorder, MAIL_INBOX_KEYS
 } from "../lib/org/mail-relay.js";
 import {
-  readAllInboxLines, readMaxReceiptSeq, readOutbox, readReceipts, responseState
+  inboxDirFor, messagesPathFor, readAllInboxLines, readMaxReceiptSeq, readOutbox, readReceipts, responseState
 } from "../lib/mail-plane.js";
 
 const HOMES = [];
@@ -137,6 +137,99 @@ test("幂等回复与投递去重：同 replyToMessageId／同 replyTo／同 ide
   assert.equal(retry.replayed, true);
   assert.equal(retry.messageId, tool.messageId);
   assert.equal(readAllInboxLines(home, "b").length, 1);
+});
+
+test("回信锚按发信人分域：B、C 同序号各自投递，重启后各自重放仍去重", () => {
+  const { home, relay: r } = relay();
+  const b = r.send({ from: "b", to: "a", text: "B 的回信", replyTo: 1 });
+  const c = r.send({ from: "c", to: "a", text: "C 的回信", replyTo: 1 });
+  assert.equal(b.ok, true);
+  assert.equal(c.ok, true);
+  assert.equal(b.replayed, undefined);
+  assert.equal(c.replayed, undefined, "B 预先写入同锚不能压制 C 的回信");
+  assert.deepEqual([b.seq, c.seq], [1, 2]);
+  assert.notEqual(b.messageId, c.messageId);
+
+  const restarted = createMailRelay({ dshHome: home, readRegistry: () => REGISTRY });
+  for (const [from, first] of [["b", b], ["c", c]]) {
+    const replay = restarted.send({ from, to: "a", text: "崩溃后的回信重放", replyTo: 1 });
+    assert.deepEqual(replay, { ...first, replayed: true });
+  }
+  assert.deepEqual(readAllInboxLines(home, "a").map(({ from, text, replyTo }) => ({ from, text, replyTo })), [
+    { from: "b", text: "B 的回信", replyTo: 1 },
+    { from: "c", text: "C 的回信", replyTo: 1 }
+  ]);
+});
+
+test("投递幂等键按发信人分域：B、C 同键各自投递，同发信人重放只返回自己的消息", () => {
+  const { home, relay: r } = relay();
+  const b = r.send({ from: "b", to: "a", text: "B 的咨询", idempotencyKey: "k1" });
+  const c = r.send({ from: "c", to: "a", text: "C 的咨询", idempotencyKey: "k1" });
+  assert.equal(b.ok, true);
+  assert.equal(c.ok, true);
+  assert.equal(b.replayed, undefined);
+  assert.equal(c.replayed, undefined, "C 的同名幂等键不能命中 B 的投递");
+  assert.deepEqual([b.seq, c.seq], [1, 2]);
+  assert.notEqual(b.messageId, c.messageId);
+
+  const restarted = createMailRelay({ dshHome: home, readRegistry: () => REGISTRY });
+  for (const [from, first] of [["b", b], ["c", c]]) {
+    const replay = restarted.send({ from, to: "a", text: "通道重试", idempotencyKey: "k1" });
+    assert.deepEqual(replay, { ...first, replayed: true });
+  }
+  assert.deepEqual(readAllInboxLines(home, "a").map(({ from, text }) => ({ from, text })), [
+    { from: "b", text: "B 的咨询" },
+    { from: "c", text: "C 的咨询" }
+  ]);
+});
+
+test("历史裸锚读取已有 from 分域，缺发信人的行不去重，旧行字节不变", () => {
+  const { home, relay: r } = relay();
+  const legacyRows = [
+    { id: "old-reply", seq: 1, from: "b", text: "旧回信", kind: "mail-response", replyTo: 7 },
+    { id: "old-key", seq: 2, from: "b", text: "旧投递", idempotencyKey: "old-k" },
+    { id: "unknown-sender", seq: 3, text: "无发信人旧行", replyTo: 8, idempotencyKey: "unknown-k" }
+  ];
+  const legacyBytes = legacyRows.map((row) => JSON.stringify(row)).join("\n") + "\n";
+  mkdirSync(inboxDirFor(home, "a"), { recursive: true });
+  writeFileSync(messagesPathFor(home, "a"), legacyBytes);
+
+  assert.deepEqual(r.send({ from: "b", to: "a", text: "旧回信重放", replyTo: 7 }),
+    { ok: true, to: "a", messageId: "old-reply", seq: 1, replayed: true });
+  assert.deepEqual(r.send({ from: "b", to: "a", text: "旧投递重放", idempotencyKey: "old-k" }),
+    { ok: true, to: "a", messageId: "old-key", seq: 2, replayed: true });
+
+  const cReply = r.send({ from: "c", to: "a", text: "C 的新回信", replyTo: 7 });
+  const cKey = r.send({ from: "c", to: "a", text: "C 的新投递", idempotencyKey: "old-k" });
+  const unknownReply = r.send({ from: "b", to: "a", text: "有发信人的回信", replyTo: 8 });
+  const unknownKey = r.send({ from: "b", to: "a", text: "有发信人的投递", idempotencyKey: "unknown-k" });
+  for (const result of [cReply, cKey, unknownReply, unknownKey]) {
+    assert.equal(result.ok, true);
+    assert.equal(result.replayed, undefined, "旧锚仅能去重同发信人的消息");
+  }
+  assert.deepEqual([cReply.seq, cKey.seq, unknownReply.seq, unknownKey.seq], [4, 5, 6, 7]);
+  assert.deepEqual(readAllInboxLines(home, "a").slice(0, 3), legacyRows);
+  assert.equal(readFileSync(messagesPathFor(home, "a"), "utf8").slice(0, legacyBytes.length), legacyBytes,
+    "升级只读旧行，不迁移、不改写");
+});
+
+test("HTTP 投递按 actor 注入的发信人分域，自带回信锚与幂等键均保留", async () => {
+  const { home, relay: r } = relay();
+  const api = { mailRelay: r };
+  for (const from of ["b", "c"]) {
+    const body = { actor: { kind: "post", id: from }, to: "a", text: `${from} 的回信`, replyTo: 1, idempotencyKey: "k1" };
+    const first = await callMailApi(api, "POST", "/api/bots/_mail/send", { body });
+    assert.equal(first.status, 200);
+    assert.equal(first.body.ok, true);
+    assert.equal(first.body.replayed, undefined);
+    const replay = await callMailApi(api, "POST", "/api/bots/_mail/send", { body });
+    assert.equal(replay.status, 200);
+    assert.deepEqual(replay.body, { ...first.body, replayed: true });
+  }
+  assert.deepEqual(readAllInboxLines(home, "a").map(({ from, replyTo, idempotencyKey }) => ({ from, replyTo, idempotencyKey })), [
+    { from: "b", replyTo: 1, idempotencyKey: "k1" },
+    { from: "c", replyTo: 1, idempotencyKey: "k1" }
+  ]);
 });
 
 test("语义失败各按其道（V-A4.7 分支三）：未知收件人／自发／空正文／夹带键／发信者不在册一律拒且零写入", () => {

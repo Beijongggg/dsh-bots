@@ -150,15 +150,19 @@ test("崩溃窗口端到端：claim→outbox 落盘→（崩溃）→重放→�
 });
 
 // ---------- 回路由去重 ----------
-test("inboxResponseTo：回信锚 replyTo=seq 在场即命中（kind 枚举已废止，含 v1 遗留行）", () => {
+test("inboxResponseTo：回信锚按 from 与 replyTo=seq 命中，kind 不参与判定", () => {
   const home = mkHome();
   const senderMsg = appendMessage(home, "sender", { from: "user", text: "hi" });
-  assert.equal(inboxResponseTo(home, "sender", senderMsg.seq), null);
+  assert.equal(inboxResponseTo(home, "sender", senderMsg.seq, "w"), null);
   const reply = appendMessage(home, "sender", { from: "w", text: "re", replyTo: senderMsg.seq });
-  assert.equal(inboxResponseTo(home, "sender", senderMsg.seq).id, reply.id, "命中即取回该行（回路由去重据此）");
-  assert.equal(inboxResponseTo(home, "sender", 999), null);
-  assert.equal(inboxResponseTo(home, "sender", 0), null, "非法 seq 恒 null");
-  // v1 遗留行（kind + replyTo）按锚同样命中：升级窗口内不重复回信
+  assert.equal(inboxResponseTo(home, "sender", senderMsg.seq, "w").id, reply.id, "命中即取回该行（回路由去重据此）");
+  assert.equal(inboxResponseTo(home, "sender", senderMsg.seq, "other"), null, "其他发信人不能命中同序号回信");
+  for (const from of [undefined, null, "", 7]) {
+    assert.equal(inboxResponseTo(home, "sender", senderMsg.seq, from), null, "无有效发信人时不退回全信箱去重");
+  }
+  assert.equal(inboxResponseTo(home, "sender", 999, "w"), null);
+  assert.equal(inboxResponseTo(home, "sender", 0, "w"), null, "非法 seq 恒 null");
+  // 写侧不再生成 kind；实际 v1 历史行兼容由 org-mail-relay 夹具覆盖。
   const legacy = appendMessage(home, "legacy", { from: "w", text: "旧回信", kind: "mail-response", kindLegacyKept: true, replyTo: 7 });
   assert.equal("kind" in legacy, false, "写侧不再产生 kind（11 号票形态改造）");
 });

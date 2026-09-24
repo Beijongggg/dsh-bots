@@ -1167,6 +1167,13 @@ probe/evidence-runner/sentinel 系）则新 runId 出 0009。
 | B5 | SSE 可重放：单调 eventId＋Last-Event-ID＋有限窗口 ledger＋cursor/ack | **已实施（2026-09-07，副审独立复核通过）**：createSseHub 单调 eventId（帧前置 `id:` 行）＋`SSE_LEDGER_LIMIT=256` 有界 ledger＋`replayAfter` 窗口判定（lastId=起点−1 边界完整补发；非整数/未来 id/断层→null）；sseEndpoint 读 Last-Event-ID——窗口内先按序补发再订阅接实时，超窗/未知/缺省（首连）发 `reload` 兜底＝统一初始化路径；client.js 最小接线 `reload→refreshBots`。events ＋7 用例 14/14、全量 53/53×2、冻结面 9/9 零触碰；无持久 ack／落盘 ledger 不在本批（留界：首连 open＋reload 双刷新见 PROJECT_UNDERSTANDING 仍可选题）；**已部署（2026-09-08 同 B3 部署批同链收口；规格：`.scratch/b5-sse-replay/spec.md`）** |
 | 结构债 | HTTP contract JSON schema（P2-3）、client.js 行数上限政策、index.js 按上限继续抽取、read-only 语义澄清（P2-5）、stats 版本化（P2-4）；storage 抽象统一（P2-2）后置至 B 批稳定 | 穿插低优先；**首件已落（2026-09-07 session-driver 批，架构评审候选 1）**：会话回合协议单一归属（lib/session-driver.js＋双 adapter 化），领域词入 CONTEXT.md；**候选 6 已实施（2026-09-07 受信链机械抽取批）**：lib/review-job-tools.js 610 行＋internals 回填，index.js 3,515 行（上限余量 785）、50/50×3、冻结面 9/9——两件（session-driver＋review-job-tools）随 2026-09-08 部署批同链生效；**候选 4 已实施（2026-09-08 client-fetch 批）**并同链部署；候选 2 工单待启动（`.scratch/arch-*`） |
 
+2026-09-24，org-v2 31 号票修订 B3 的 inbox 去重口径：每个收件人信箱内，回信按
+`(from, replyTo)`、投递幂等键按 `(from, idempotencyKey)` 判重。`replyTo` 是回信者
+自己 inbox 的序号，允许投递方携带；HTTP 面继续由 actor 注入 `from`。历史裸锚行
+使用已有 `from` 分域，不迁移，缺少有效 `from` 的旧行不匹配新投递；`kind` 不参与。
+outbox 仍在各发信人自己的信箱内按 `replyToMessageId` 去重。此修订仅在仓库实施，
+不更新 B3 的历史部署结论。口径与验证见 `.scratch/org-v2-build/issues/31-mail-idempotency-scoping.md`。
+
 暂缓维持（报告 §11.3 口径）：provider router、knowledge 全文检索、自动派单、
 UI polish——在 B 系批完成前不启动。排序理由（报告一句话总结仍为准绳）：
 dsh-bots 评审面已达显式边界级别，普通面未达；B1 居首系其同时为「评审写面
