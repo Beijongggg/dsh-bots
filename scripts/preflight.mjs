@@ -9,7 +9,8 @@
  *      executionEvidence.provenance.sourceManifest，逐文件 sha256＋byteLength；
  *      包文件只读，零写入）
  *   ③ .scratch Status 词表 lint（五排程词＋resolved；claimed 仅限有
- *      Type: 行的 wayfinder 票；两个历史异词件显式豁免不回改）
+ *      Type: 行的 wayfinder 票；两个历史异词件显式豁免不回改），并检查知识库
+ *      文件直写与登记／废弃调用者名单，任一违例即拒绝
  *   ④ 宿主契约门（独立探针脚本，挂在冻结面门之后、不并入测试套件——探针
  *      三态 PASS/FAIL/SKIP，SKIP 分列计数可见；本门以 dev 面运行：SKIP 不
  *      阻断但可见，部署面由 scripts/host-contract-probe.mjs --face=deploy 把
@@ -21,6 +22,7 @@ import { spawnSync } from "node:child_process";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { tmpdirHint } from "../tests/run.mjs";
+import { scanKnowledgeLayerFace, scanKnowledgeRegisterWriters } from "../lib/org/knowledge-shared-face.js";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 
@@ -116,6 +118,19 @@ export function statusLint(scratchRoot) {
   return { scanned, violations };
 }
 
+/** 第③门：状态词表与知识库写者扫描共用一个违例出口，独立于回归和宿主探针。 */
+export function repositoryLint(repoRoot) {
+  const status = statusLint(join(repoRoot, ".scratch"));
+  const knowledge = scanKnowledgeLayerFace(repoRoot);
+  const writers = scanKnowledgeRegisterWriters(repoRoot);
+  return {
+    scanned: status.scanned,
+    knowledgeScanned: knowledge.scanned,
+    knowledgeCallers: writers.callers,
+    violations: [...status.violations, ...knowledge.violations, ...writers.violations]
+  };
+}
+
 const isMain =
   process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 
@@ -164,10 +179,10 @@ if (isMain) {
     }
   }
 
-  // ③ Status 词表 lint
-  const lint = statusLint(join(repoRoot, ".scratch"));
+  // ③ Status 词表与知识库写者扫描，共用违例出口。
+  const lint = repositoryLint(repoRoot);
   if (lint.violations.length === 0) {
-    lines.push(`preflight ③status-lint: 0 违例（扫 ${lint.scanned} 个 md） ✅`);
+    lines.push(`preflight ③status-lint: 0 违例（扫 ${lint.scanned} 个 md；知识库扫描 ${lint.knowledgeScanned} 个脚本，登记／废弃调用者 ${lint.knowledgeCallers.length} 个） ✅`);
   } else {
     lines.push(`preflight ③status-lint: ${lint.violations.length} 违例 ❌`);
     for (const v of lint.violations) lines.push(`  - ${v}`);

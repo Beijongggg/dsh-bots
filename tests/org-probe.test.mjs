@@ -129,6 +129,25 @@ test("node.tests：结论绑定快照（文件级＋树级）；缺文件在采�
   assert.equal(missing.code, "probe-read", "缺文件＝快照采集失败，先于子进程 fail closed");
 });
 
+test("node.tests：快照排除所有层级的 .git 大小写变体，摘要只绑定保留文件", async () => {
+  const cwd = tempRoot();
+  const source = materializeTestFile(cwd, "git-filter.test.mjs", [
+    "import assert from 'node:assert/strict';",
+    "import { existsSync } from 'node:fs';",
+    "for (const path of ['.git', '.GIT', 'nested/.GiT']) assert.equal(existsSync(path), false, path);"
+  ]);
+  for (const dir of [".git", ".GIT", "nested/.GiT"]) {
+    mkdirSync(join(cwd, dir), { recursive: true });
+    writeFileSync(join(cwd, dir, "config"), "metadata\n");
+  }
+  const r = await runCriterion({ probe: "node.tests", args: { file: "git-filter.test.mjs" } }, { dshHome: cwd, cwd });
+  assert.equal(r.ok, true, JSON.stringify(r));
+  const fileDigest = createHash("sha256").update(source).digest("hex");
+  const expectedTree = createHash("sha256")
+    .update(canonicalJson({ "tests/git-filter.test.mjs": fileDigest })).digest("hex");
+  assert.equal(r.snapshot.tree, expectedTree, "Git 元数据不进入快照摘要");
+});
+
 test("node.tests：执行落在物化快照副本内（字面达成）——子进程 cwd ∉ 活树根、相对 import 落在副本；活树执行窗口内自改不影响结论（drift 守卫退役）", async () => {
   const cwd = tempRoot();
   mkdirSync(join(cwd, "tests", "helpers"), { recursive: true });

@@ -7,6 +7,21 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- 本轮（2026-09-24，org-v2 32 号票实施完成：知识登记写者扫描补漏）：
+  - 范围与口径：`registerReport` 与 `deprecateReport` 共用 host 写者名单；
+    共用扫描器覆盖大小写不敏感的 JS/MJS/CJS，并用真实路径截断目录链接环；
+    探针快照与摘要统一排除 `.git` 大小写变体；preflight 第③门接入知识写者扫描。
+  - 验证：六个新增用例覆盖废弃调用者、bot 注册面、扩展名、目录链接环、Git
+    元数据过滤与第③门违例聚合。知识扫描 19/19、探针 15/15、preflight 子件 9/9；
+    七件 JS/MJS 语法检查通过。全量回归首次发现新增测试标题与 V-A4.5 坐标重复，
+    修名后坐标回归 14/14，复跑 `npm run preflight` 四门 PASS：①67/67 测试文件；
+    ②0010 冻结面 10/10；③97 md、52 脚本、1 个登记／废弃调用者，零违例；
+    ④宿主契约 11 PASS／0 FAIL／0 SKIP。无 typecheck 脚本或 TypeScript 配置。
+  - 两轴评审：固定点 `f4a8224`，隔离副本提交 `5ea095a`，Standards 规范违例 0、
+    基线异味建议 0；Spec 0，独立复跑相关回归 43/43。无阻断项，票面转 `resolved`。
+  - 授权与边界：用户 `$implement 32`；开工决定已写入 32 票 Comments。
+    轮前其他票修改保留并排除于本票提交；改件不在 0010 包 sourceManifest 内。
+
 - 本轮（2026-09-24，org-v2 **31 号票实施完成：邮件幂等按发信人分域**）：
   - **范围与修复**：`lib/mail-plane.js`、`lib/org/mail-relay.js`、两件邮件回归、
     31 票面、`PLAN-expanded-engineering.md` 与本条目。inbox 回信按 `(from, replyTo)`、

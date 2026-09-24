@@ -5,7 +5,7 @@
  * 单一事实源：扫描函数在 `lib/org/knowledge-shared-face.js`，本模块只
  * 钉行为边界：
  *   - 「bot 不经命令面直写知识库共面文件」语义不变式：扫 `lib/*.js` 与
- *     `lib/org/*.js` 全文，凡出现对 `knowledge/` 路径下报告/索引的写操作
+ *     `lib/org/` 下脚本全文，覆盖 JS/MJS/CJS 大小写变体，凡出现对 `knowledge/` 路径下报告/索引的写操作
  *     （writeFileSync / writeFileAtomic / appendFileSync / mkdir 等）且
  *     不在豁免单（仅 `lib/knowledge.js` 的 `registerReport` /
  *     `ensureKnowledgeBase` / `acquireIndexLock` 实现）即违例；
@@ -17,7 +17,8 @@
  * 列表，本测试在隔离临时仓库里做正负例，端到端不触真实本仓库 `lib/`。
  */
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -232,7 +233,7 @@ test("knowledgeFaceShape 只读：扫描未安装的知识库根不得创建它"
 });
 
 // ---------- 缝⑧：登记写者名单闭合（V-A4.5 命令化后的形态） ----------
-test("登记写者名单闭合：registerReport 调用者只有 lib/index.js（host 装配面），新增即违例", () => {
+test("登记写者名单闭合：登记与废弃调用者只有 lib/index.js，新增即违例", () => {
   const repoRoot = join(import.meta.dirname, "..");
   const r = scanKnowledgeRegisterWriters(repoRoot);
   assert.deepEqual(r.violations, [], JSON.stringify(r.violations, null, 2));
@@ -240,10 +241,10 @@ test("登记写者名单闭合：registerReport 调用者只有 lib/index.js（h
   assert.ok(r.callers.includes("lib/index.js"), "host 装配面是唯一调用者");
 });
 
-test("bot 侧注册面不得直写：registerKnowledgeTools / registerOrgTools 函数体内无 registerReport", () => {
+test("bot 侧注册面不得直写：registerKnowledgeTools / registerOrgTools 函数体内无登记或废弃调用", () => {
   const repoRoot = join(import.meta.dirname, "..");
   const r = scanKnowledgeRegisterWriters(repoRoot);
-  assert.deepEqual(r.botSideWriters, [], "bot 实例侧注册面出现 registerReport＝直写通道复活");
+  assert.deepEqual(r.botSideWriters, [], "bot 实例侧注册面出现登记或废弃调用＝直写通道复活");
 });
 
 test("登记写者扫描是负例可辨的：违规调用者（新模块）被抓出", () => {
@@ -256,6 +257,66 @@ test("登记写者扫描是负例可辨的：违规调用者（新模块）被�
   assert.equal(r.violations.length, 1);
   assert.match(r.violations[0], /rogue-writer\.js/);
   assert.match(r.violations[0], /登记写者名单/);
+});
+
+test("废弃写者负例：deprecateReport 与 registerReport 共用 host 名单，定义不算调用", () => {
+  const fx = mkFixture();
+  writeMod(fx.lib, "knowledge.js", "export function registerReport() {}\nexport function deprecateReport() {}\n");
+  writeMod(fx.lib, "index.js", "const r = deprecateReport({});\n");
+  writeMod(fx.org, "rogue-deprecate.js", "export function go() { return deprecateReport({ dshHome }); }\n");
+  const r = scanKnowledgeRegisterWriters(fx.root);
+  assert.deepEqual(r.callers, ["lib/index.js", "lib/org/rogue-deprecate.js"]);
+  assert.equal(r.violations.length, 1);
+  assert.match(r.violations[0], /rogue-deprecate\.js.*deprecateReport.*登记写者名单/);
+  assert.match(r.violations[0], /knowledge\.deprecate/);
+});
+
+test("bot 侧注册面零直写：两个注册函数都拒绝登记与废弃调用", () => {
+  for (const fn of ["registerKnowledgeTools", "registerOrgTools"]) {
+    for (const writer of ["registerReport", "deprecateReport"]) {
+      const fx = mkFixture();
+      writeMod(fx.lib, "index.js", `function ${fn}() {\n  ${writer}({});\n}\n`);
+      const r = scanKnowledgeRegisterWriters(fx.root);
+      assert.equal(r.botSideWriters.length, 1, `${fn} 中的 ${writer} 应被拒绝`);
+      assert.match(r.botSideWriters[0], new RegExp(`${fn}.*${writer}`));
+      assert.deepEqual(r.violations, r.botSideWriters);
+    }
+  }
+});
+
+test("扫描面覆盖 JS/MJS/CJS 大小写变体：文件直写与命令写者均不可漏扫", () => {
+  for (const ext of ["js", "mjs", "cjs", "JS", "MJS", "CJS", "mJs"]) {
+    const fx = mkFixture();
+    writeMod(fx.org, `rogue.${ext}`, [
+      "deprecateReport({});",
+      "writeFileSync(join(home, 'bots', 'knowledge', 'index.jsonl'), 'x');"
+    ].join("\n"));
+    writeMod(fx.org, "notes.txt", "registerReport({});");
+    const layer = scanKnowledgeLayerFace(fx.root);
+    assert.equal(layer.scanned, 1, `${ext} 应计入扫描，文本文件不扫描`);
+    assert.equal(layer.violations.length, 1, `${ext} 文件直写应被拒绝`);
+    const writers = scanKnowledgeRegisterWriters(fx.root);
+    assert.deepEqual(writers.callers, [`lib/org/rogue.${ext}`]);
+    assert.equal(writers.violations.length, 1, `${ext} 命令写者应被拒绝`);
+  }
+});
+
+test("目录符号链接：跟随外部目录，祖先环与重复目录只扫描一次", () => {
+  const fx = mkFixture();
+  const external = join(fx.root, "external");
+  writeMod(external, "rogue.mjs", "deprecateReport({});\n");
+  symlinkSync(external, join(fx.lib, "linked"), "dir");
+  symlinkSync(external, join(fx.lib, "linked-again"), "dir");
+  symlinkSync(fx.lib, join(external, "back"), "dir");
+  const scanUrl = new URL("../lib/org/knowledge-shared-face.js", import.meta.url).href;
+  const child = spawnSync(process.execPath, ["--input-type=module", "-e", `
+    import { scanKnowledgeRegisterWriters } from ${JSON.stringify(scanUrl)};
+    console.log(JSON.stringify(scanKnowledgeRegisterWriters(process.argv[1])));
+  `, fx.root], { encoding: "utf8", timeout: 5000 });
+  assert.equal(child.status, 0, child.error?.message ?? child.stderr);
+  const r = JSON.parse(child.stdout);
+  assert.deepEqual(r.callers, ["lib/linked/rogue.mjs"]);
+  assert.equal(r.violations.length, 1);
 });
 
 // ---------- 运行 ----------

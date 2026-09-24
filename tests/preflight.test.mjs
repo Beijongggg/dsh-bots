@@ -13,6 +13,7 @@ import {
   latestPackage,
   verifyFrozenFace,
   statusLint,
+  repositoryLint,
 } from "../scripts/preflight.mjs";
 
 function makeFixture() {
@@ -150,6 +151,34 @@ test("statusLint：claimed 仅限 wayfinder 票（effort 有 map.md）；列表�
   }
 });
 
+
+test("preflight 第③门：Status 与知识写者违例汇入同一出口", () => {
+  const root = makeFixture();
+  try {
+    const lib = join(root, "lib");
+    mkdirSync(lib);
+    writeFileSync(join(lib, "knowledge.js"), "export function registerReport() {}\nexport function deprecateReport() {}\n");
+    writeFileSync(join(lib, "index.js"), "registerReport({}); deprecateReport({});\n");
+    assert.deepEqual(repositoryLint(root).violations, []);
+    for (const writer of [
+      "deprecateReport({});",
+      "registerReport({});",
+      "writeFileSync(join(home, 'bots', 'knowledge', 'index.jsonl'), 'x');"
+    ]) {
+      writeFileSync(join(lib, "rogue.CJS"), writer);
+      const bad = repositoryLint(root);
+      assert.equal(bad.violations.length, 1);
+      assert.match(bad.violations[0], /lib\/rogue\.CJS/);
+    }
+    makeScratchFixture(root);
+    const both = repositoryLint(root);
+    assert.equal(both.violations.length, 2);
+    assert.ok(both.violations.some((v) => v.includes("bogus-word")));
+    assert.ok(both.violations.some((v) => v.includes("lib/rogue.CJS")));
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
 
 test("statusLint：历史豁免基线不报警", () => {
   const root = makeFixture();
