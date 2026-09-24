@@ -7,7 +7,8 @@
  * deploymentImpact 结构＋manualOverride 四字段；basePackage 合同（完整 64hex、
  * 可读取路径、hash 账实一致、省略号/截断拒绝）；E4（摘要引用不存在产物即失败）；
  * 版本化写出（wx 排他：同名重写失败＝旧包不得被覆盖；文件名内嵌 sha8；
- * 包内容 executionEvidence/human 分离）。
+ * 包内容 executionEvidence/human 分离）；
+ * /4（28 号票）台账证据段：必填、复验（复用台账校验器）、与 run 内证据件逐字节一致。
  */
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
@@ -26,6 +27,8 @@ const {
   verifyProvenanceBindings, buildArchiveBinding
 } = await import("../lib/evidence-packager.js");
 const { claimRun, appendRunLedger } = await import("../lib/sentinel-provenance.js");
+const { captureLedgerEvidence, ledgerSliceDigest } = await import("../lib/ledger-evidence.js");
+const { createTaskLedger } = await import("../lib/org/task-ledger.js");
 
 const results = [];
 const test = (name, fn) => results.push([name, fn]);
@@ -44,7 +47,60 @@ const rejectsWith = (fn, pattern) => {
   });
 };
 
+/**
+ * 台账证据夹具（/4 必填段）：用**生产面** `captureLedgerEvidence` 造段，并把段落到
+ * 临时目录里当 run 内证据件（`binding` 指向它）——手搓段过不了自己的校验器，
+ * 也就验不出校验器真的在把守。
+ */
+function bindSection(section, dir) {
+  const bytes = Buffer.from(JSON.stringify(section, null, 2) + "\n");
+  const artifact = path.join(dir, "ledger-evidence.json");
+  fs.writeFileSync(artifact, bytes);
+  return { binding: { path: artifact, sha256: sha256(bytes), byteLength: bytes.length }, ...section };
+}
+
+function ledgerEvidenceFixture(runId) {
+  const dir = mkTmp();
+  const section = captureLedgerEvidence({ eventsPath: path.join(dir, "bots", "ledger", "events.jsonl"), runId, kind: "host-ledger", fromSeq: 0 });
+  return bindSection(section, dir);
+}
+
+/** 有事件的台账段（异步：走真实台账命令面）——供复验/篡改用例。 */
+async function ledgerEvidenceWithEvents(runId, { drill = null } = {}) {
+  const dir = mkTmp();
+  const home = dir;
+  const ledger = createTaskLedger({ dshHome: home, now: () => Date.parse("2026-09-24T10:00:00.000Z") });
+  const INT = { kind: "host", id: "web" };
+  for (const [index, taskId] of ["TK-28000001", "TK-28000002"].entries()) {
+    const done = await ledger.command({
+      op: "task.intake", taskId, actor: INT, idempotencyKey: `k-${index}`,
+      payload: {
+        class: "duty", brief: {
+          goal: "g", deliverables: [{ format: "markdown", location: "docs/x.md" }],
+          sources: [{ tool: "user", ref: "m" }], boundaries: "b",
+          acceptance: [{ probe: "fs.contains", args: { location: "docs/x.md", text: "x" } }], reviewPoints: []
+        }
+      }
+    });
+    assert.equal(done.ok, true, `fixture intake ${taskId}: ${done.reason ?? ""}`);
+  }
+  ledger.close();
+  const section = captureLedgerEvidence({
+    eventsPath: path.join(home, "bots", "ledger", "events.jsonl"), runId,
+    kind: drill === null ? "host-ledger" : "isolated-drill-root", fromSeq: 0, requireEvents: true, drill
+  });
+  return bindSection(section, dir);
+}
+
 function baseEvidence(overrides = {}) {
+  const { provenance: provenanceOverride, ledgerEvidence: ledgerOverride, ...rest } = overrides;
+  const provenance = provenanceOverride ?? {
+    runId: randomUUID(),
+    rawBinding: { path: "/tmp/x/raw.json", sha256: sha256(Buffer.from("raw-bytes")), byteLength: 9 },
+    sourceManifestSha256: sha256(Buffer.from("manifest")),
+    registry: { status: "completed", dir: "/tmp/registry" }
+  };
+  const ledgerEvidence = ledgerOverride ?? ledgerEvidenceFixture(provenance.runId);
   return {
     fullRegression: { passed: 43, total: 43, source: "tests/run.mjs" },
     concurrencyStress: { runs: 1, results: ["ok"], source: "tests/review-concurrency.test.mjs" },
@@ -56,13 +112,9 @@ function baseEvidence(overrides = {}) {
     },
     probe: { mode: "shadow", results: [{ action: "write:bots.json", result: "ALLOWED" }] },
     treeDiff: { modified: [], removed: [], added: ["dsh-home/bots/bots.json"], addedUnexpected: [] },
-    provenance: {
-      runId: randomUUID(),
-      rawBinding: { path: "/tmp/x/raw.json", sha256: sha256(Buffer.from("raw-bytes")), byteLength: 9 },
-      sourceManifestSha256: sha256(Buffer.from("manifest")),
-      registry: { status: "completed", dir: "/tmp/registry" }
-    },
-    ...overrides
+    provenance,
+    ledgerEvidence,
+    ...rest
   };
 }
 const GOOD_SHA = sha256(Buffer.from("closure-bytes"));
@@ -229,12 +281,17 @@ test("v2 包内容：executionEvidence 与 human 分离；schema/scope/basePacka
     executionEvidence: baseEvidence(), human: baseHuman, modifiedFiles: [], newTestModules: [],
     basePackage: null, packageScope: "cumulative", repoRoot, generatedAt: "2026-08-30T00:00:00.000Z"
   });
-  assert.equal(pkg.schemaVersion, "evidence-package/3");
+  assert.equal(pkg.schemaVersion, "evidence-package/4");
   assert.equal(pkg.packageType, "review-evidence-package-v2");
   assert.equal(pkg.packageScope, "cumulative");
   assert.equal(pkg.basePackage, null);
   assert.equal("humanReviewNotes" in pkg.executionEvidence, false, "四禁④");
   assert.deepEqual(Object.keys(pkg.human).sort(), ["authorizationBasis", "humanReviewNotes", "pendingItems", "scope"]);
+  // /4：台账证据段在包里（复制进包：事件逐条嵌入＋指向 run 内证据件的完整绑定）
+  assert.equal(pkg.executionEvidence.ledgerEvidence.schemaVersion, "ledger-evidence/1");
+  assert.equal(pkg.executionEvidence.ledgerEvidence.runId, pkg.executionEvidence.provenance.runId);
+  assert.match(pkg.executionEvidence.ledgerEvidence.binding.sha256, /^[0-9a-f]{64}$/);
+  assert.ok(Array.isArray(pkg.executionEvidence.ledgerEvidence.events));
 });
 
 // ---------------- O-6.4/O-6.6/O-6.9 新增：parity 派生／交叉核验／七项绑定／archiveBinding ----------------
@@ -322,6 +379,122 @@ test("O-6.9 buildArchiveBinding：逐文件 sha/byteLength 核验；篡改归档
   fs.writeFileSync(path.join(archiveRoot, runId, "raw.json"), "TAMPERED");
   assert.throws(() => buildArchiveBinding({ archiveManifestPath: manifestPath, repoRoot: dir }), /账实不符/);
   assert.throws(() => buildArchiveBinding({ archiveManifestPath: path.join(dir, "missing.json"), repoRoot: dir }), /不可读取/);
+});
+
+// ---------------- /4：台账证据段（org-v2 28 号票） ----------------
+
+test("/4 台账证据段必填：缺段即失败（禁二）；runId 与 provenance 不符即失败", () => {
+  const missing = baseEvidence();
+  delete missing.ledgerEvidence;
+  rejectsWith(() => validateExecutionEvidence(missing), /缺必填结构化字段：ledgerEvidence/);
+  rejectsWith(() => validateExecutionEvidence(baseEvidence({ ledgerEvidence: "not-an-object" })), /ledgerEvidence 缺失或非对象/);
+  rejectsWith(() => buildEvidencePackageV2({
+    executionEvidence: baseEvidence({ ledgerEvidence: ledgerEvidenceFixture(randomUUID()) }),
+    human: baseHuman, modifiedFiles: [], newTestModules: [], basePackage: null, packageScope: "cumulative", repoRoot
+  }), /runId 与 provenance.runId 不符/);
+  rejectsWith(() => validateExecutionEvidence(baseEvidence({
+    ledgerEvidence: { ...ledgerEvidenceFixture(randomUUID()), schemaVersion: "ledger-evidence/9", runId: baseEvidence().provenance.runId }
+  })), /schemaVersion/);
+  // 绑定形状：路径／hash／byteLength 缺一即拒
+  const ok = baseEvidence();
+  for (const mutate of [
+    (x) => { delete x.binding; },
+    (x) => { x.binding = { ...x.binding, sha256: "short" }; },
+    (x) => { x.binding = { ...x.binding, byteLength: "9" }; }
+  ]) {
+    const evidence = baseEvidence();
+    mutate(evidence.ledgerEvidence);
+    rejectsWith(() => validateExecutionEvidence(evidence), /binding/);
+  }
+  assert.equal(validateExecutionEvidence(ok), true, "合法件必须过");
+});
+
+test("/4 台账证据复验：事件被篡改／digest 被改／自陈被改／自陈红 → 拒绝打包", async () => {
+  const runId = randomUUID();
+  const good = await ledgerEvidenceWithEvents(runId);
+  assert.ok(good.events.length >= 2);
+  const build = (ledgerEvidence) => buildEvidencePackageV2({
+    executionEvidence: baseEvidence({ provenance: { ...baseEvidence().provenance, runId }, ledgerEvidence }),
+    human: baseHuman, modifiedFiles: [], newTestModules: [], basePackage: null, packageScope: "cumulative", repoRoot
+  });
+  // 正例：合法（含真实事件）必须能打包
+  try {
+    assert.equal(build(good).executionEvidence.ledgerEvidence.events.length, good.events.length);
+  } catch (error) {
+    console.error("DEBUG keys:", Object.keys(good).slice(0, 4).join(","), "| hasBinding:", Boolean(good.binding), "| msg:", error.message);
+    throw error;
+  }
+  // ① 事件体被改（eventHash 不再匹配）——注意绑定件也随之改写，故必须由**复验**拦下
+  const tampered = JSON.parse(JSON.stringify(good));
+  tampered.events[0].taskId = "TK-28bad001";
+  const dir1 = mkTmp();
+  const rebound1 = bindSection((({ binding, ...rest }) => rest)(tampered), dir1);
+  rejectsWith(() => build(rebound1), /未过复验|未过台账事件校验/);
+  // ② sliceDigest 被改（计数/摘要与嵌入记录不符）
+  const digestTampered = JSON.parse(JSON.stringify(good));
+  digestTampered.sliceDigest = "0".repeat(64);
+  const rebound2 = bindSection((({ binding, ...rest }) => rest)(digestTampered), mkTmp());
+  rejectsWith(() => build(rebound2), /sliceDigest 不符/);
+  // ③ 自陈结论被改成红（自陈与复算不符）
+  const selfTampered = JSON.parse(JSON.stringify(good));
+  selfTampered.verification.ok = false;
+  const rebound3 = bindSection((({ binding, ...rest }) => rest)(selfTampered), mkTmp());
+  rejectsWith(() => build(rebound3), /自陈的 verification 与复算不一致/);
+});
+
+test("/4 E4：台账证据件的存在／长度／hash／内容四项账实核验", async () => {
+  const runId = randomUUID();
+  const good = await ledgerEvidenceWithEvents(runId);
+  const asEvidence = (over) => baseEvidence({ provenance: { ...baseEvidence().provenance, runId }, ledgerEvidence: over });
+  const build = (over) => buildEvidencePackageV2({
+    executionEvidence: asEvidence(over), human: baseHuman, modifiedFiles: [], newTestModules: [],
+    basePackage: null, packageScope: "cumulative", repoRoot
+  });
+  // ① 不存在
+  rejectsWith(() => build({ ...good, binding: { ...good.binding, path: path.join(mkTmp(), "missing.json") } }), /不存在/);
+  // ② byteLength 不符
+  rejectsWith(() => build({ ...good, binding: { ...good.binding, byteLength: good.binding.byteLength + 1 } }), /byteLength 账实不符/);
+  // ③ sha 不符
+  rejectsWith(() => build({ ...good, binding: { ...good.binding, sha256: sha256(Buffer.from("other")) } }), /sha256 账实不符/);
+  // ④ 绑定真而内容被换（嵌入段与件内容不一致）
+  const swapped = JSON.parse(JSON.stringify(good));
+  swapped.events = [];
+  swapped.counts = { events: 0 };
+  swapped.sliceDigest = ledgerSliceDigest([]);
+  const { binding, ...embedded } = swapped;
+  rejectsWith(() => build({ binding, ...embedded }), /与绑定件内容不一致|未过复验|counts/);
+});
+
+test("/4 演练 run：证据为空／自陈非绿／缺查询结论 → 拒绝打包", async () => {
+  const runId = randomUUID();
+  const okDrill = {
+    id: "drill-ledger-rebuild", name: "台账重建演练", carrier: "carrier", window: "窗口",
+    root: "/dev/shm/x", isolated: true,
+    report: { path: "/dev/shm/x/report.json", sha256: sha256(Buffer.from("report")), byteLength: 6 },
+    queryConclusion: { before: [], after: [], identical: true }, verdict: { ok: true, checks: [] }
+  };
+  const withDrill = await ledgerEvidenceWithEvents(runId, { drill: okDrill });
+  const built = buildEvidencePackageV2({
+    executionEvidence: baseEvidence({ provenance: { ...baseEvidence().provenance, runId }, ledgerEvidence: withDrill }),
+    human: baseHuman, modifiedFiles: [], newTestModules: [], basePackage: null, packageScope: "cumulative", repoRoot
+  });
+  assert.equal(built.executionEvidence.ledgerEvidence.drill.id, "drill-ledger-rebuild");
+  // 演练证据为空 → 拒
+  const emptySection = captureLedgerEvidence({ eventsPath: path.join(mkTmp(), "bots", "ledger", "events.jsonl"), runId, kind: "isolated-drill-root", fromSeq: 0 });
+  const emptyDrilled = bindSection({ ...emptySection, drill: okDrill }, mkTmp());
+  rejectsWith(() => buildEvidencePackageV2({
+    executionEvidence: baseEvidence({ provenance: { ...baseEvidence().provenance, runId }, ledgerEvidence: emptyDrilled }),
+    human: baseHuman, modifiedFiles: [], newTestModules: [], basePackage: null, packageScope: "cumulative", repoRoot
+  }), /演练 run 的台账证据为空/);
+  // 演练自陈非绿 → 拒
+  const redDrill = { ...okDrill, verdict: { ok: false, checks: [] } };
+  const red = await ledgerEvidenceWithEvents(randomUUID(), { drill: redDrill });
+  const redSection = (({ binding, ...rest }) => rest)(red);
+  const redBound = bindSection(redSection, mkTmp());
+  rejectsWith(() => buildEvidencePackageV2({
+    executionEvidence: baseEvidence({ provenance: { ...baseEvidence().provenance, runId: redSection.runId }, ledgerEvidence: redBound }),
+    human: baseHuman, modifiedFiles: [], newTestModules: [], basePackage: null, packageScope: "cumulative", repoRoot
+  }), /演练自陈结论非 ok/);
 });
 
 // ---------------- 运行 ----------------

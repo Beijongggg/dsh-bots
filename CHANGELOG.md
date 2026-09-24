@@ -7,6 +7,66 @@
 必须在对应文件中编辑落档（六类事件的落档位置表见 README §6.2）——未落档的
 会话结论不构成项目事实。
 
+- ✅ 本轮（org-v2 **28 号票：台账证据进增量包**——用户指令 `/implement 28`＝授权；
+  **7 新件＋6 改件＋1 增量包＋2 证据 run＋票面收口＋本条目**，纯追加式落地，冻结面零覆盖）：
+  - **范围**：新增 `lib/ledger-evidence.js`（窗口采集／复验）、`lib/org/ledger-events.js`
+    （事件契约叶件）、`scripts/ledger-drill.mjs`（演练执行器）、
+    `scripts/ledger-evidence-verify.mjs`（包外复算入口）＋4 个测试模块；改
+    `lib/evidence-packager.js`／`scripts/evidence-packager.mjs`／`scripts/evidence-runner.mjs`
+    ／`lib/org/task-ledger.js`／`lib/org/human-inbox.js`＋3 个既有测试模块；
+    新包 `artifacts/packages/review-evidence-package-0010-405fdf54.json`
+    （SHA-256 `405fdf54d53f76508e6e628bf8e8c9b0c7da7cfa1a91130c82f9c6e2027a5470`，
+    schema `evidence-package/4`，basePackage＝0009 `053b0565…`）。
+  - **四项开工裁定（票面 Comments「开工前定死」）**：① 形态＝**复制进包**（窗口内事件
+    逐条嵌入 `executionEvidence.ledgerEvidence.events`＋run 内证据件完整 hash 绑定；
+    不选「摘要＋指针」：包冻结／台账活文件，指针在包写出后必然漂移、E4 账实口径不成立）；
+    ② 范围＝`seq ∈ (fromSeq, toSeq]`，缺省下界＝本 run 起步时台账末位 seq，演练显式 0；
+    ③ 复验＝复用台账 `validateEventRecord`（逐条重算 eventHash）＋窗口 seq 连续，
+    包外入口只读、不要求台账在场；④ 冻结面＝新序号包，0001–0009／`docs/TEMP-*`／
+    `docs/CLOSURE-*` 零改动。
+  - **契约变更**：包 schema `/3 → /4`，`ledgerEvidence` 为**必填段**（缺段／形状非法／
+    复验红／绑定账实不符一律 fail closed）；台账证据件 schema `ledger-evidence/1`；
+    演练报告 schema `ledger-drill-report/1`。`scripts/evidence-packager.mjs` 只读消费
+    `raw.payload.ledgerEvidence` 的 binding（记录本体在 run 内 `ledger-evidence.json`），
+    经 `loadAndVerifyLedgerEvidence`（**唯一读取＋复验点**，三处调用共用）复制进包。
+  - **行为保持抽取**（本票的必要前提，非顺手重构）：事件类型表／负载键白名单／两张事实表
+    词表（裁定类、上浮原因）＋校验器从 `lib/org/task-ledger.js` 下沉到叶件
+    `lib/org/ledger-events.js`（除 `./store-base.js` 外零依赖；`task-ledger.js`／
+    `human-inbox.js` 原地再导出，两模块导出**同一函数引用**，行为逐字不变）。理由：证据链
+    执行闭包＝preflight 门② 的冻结面复验对象，拉进整张组织图会让此后每次改 `lib/org/*`
+    都要重出证据包；实测闭包 **7 → 10 件**（＋`ledger-evidence.js`／`ledger-events.js`／
+    `store-base.js`），`tests/sentinel-provenance.test.mjs` 加反向断言把「组织图不进闭包」
+    盯死。
+  - **演练端到端（`V-A2.2`／`drill-ledger-rebuild`）**：`scripts/ledger-drill.mjs` 在
+    **隔离数据根**（run 目录内，真实运行面零写入）用真实台账命令面开 intake／planned／
+    assigned 三张未闭合任务 → 停 host（释放写锁）→ 冷启（同根建新门面）→ `openQueue()`
+    重建集合与停机前逐行比对（7 项检查全绿）；演练与采集都跑在**后置污染核验之前**，
+    段内失败 fail closed（run 落 raw/capture/终态记录但不得打包）。登记表其余六条演练
+    显式拒绝（未实现，不静默空跑），其证据落点仍待各自窗口。
+  - **新增运行面豁免（需记）**：`PROTECTED_SNAPSHOT_EXCLUSIONS` 补登
+    `/^proxy-fallback\//`——DSH 宿主自身的代理回退状态（宿主每次对外请求写、与 run 产物
+    无关）；未补前任何在宿主机上跑的 run 都被判「受保护面不 clean」而拿不到包（首次
+    e2e run `893ab789…` 即因此 failed，该 run 的 raw/capture 原样保留为证据）。豁免面
+    随包内 `realSurfaceCheck.exclusions` 自述，判定口径不变（本 run 写入仍被抓）。
+  - **验证结果**：**全量回归 67/67**（新增 4 个测试模块：`tests/ledger-events.test.mjs`／
+    `ledger-evidence.test.mjs`／`ledger-drill.test.mjs`／`ledger-evidence-verify.test.mjs`）；
+    **preflight 四门 PASS**（①67/67 ②冻结面 **0010 包 10/10** ③0 违例扫 97 md
+    ④11 PASS / 0 FAIL / 0 SKIP）；**端到端证据**＝run `e81db1d9-af91-4555-8069-ccb0f8778d61`
+    （回归 67/67、受保护面 verified+clean、演练窗口 8 条事件、包外复算
+    `scripts/ledger-evidence-verify.mjs --package …0010…` exit 0，含演练 7 项检查与
+    `openQueue()` 重建集合）；`/code-review` 两轴复审：Standards 硬违例 3（①run 目录创建
+    被误移入 completed 分支 ②文档载但代码从不读的幽灵开关 `--ledger-artifact-root`
+    ③本条目缺位）全部就地修；judgement 5 处置 4（kind 封闭枚举＋去静默缺省、规范化 JSON
+    一致性口径纠偏、E4 绑定核验三份合一处、human-inbox 头注纠偏）维持 1（演练取
+    `tests/helpers/brief-fixture.mjs` 合法简报＝同一契约唯一一份，理由写入件头），
+    Spec 轴：票面 Comments 缺位已补、`--ledger-artifact-root` 假落点同修、runner 一处
+    形态注释写反已改；两轴均无未处置项。开发期联调用的两次 `--skip-tests` 临时输出根
+    run（`/dev/shm`／`/tmp`，raw 随沙箱清理丢失）已把 registry 记录与 claim 回退，
+    未进证据链。
+  - **授权依据**：2026-09-24 用户指令 `/implement 28`（票号由用户直接给出）。
+  - **并列会话注记**：本轮与另一会话（27 号票）在同一工作树并行实施，本次提交只含
+    本票路径；27 号票票面改动未并入。
+
 - ✅ 本轮（org-v2 **29 号票实施：风险审计交接→独立复核＋修复批 30–36 发布**——用户指令
   `/implement 接一下外置的代码风险评估票`（29 号）＝授权；**7 新票面＋29 票面收口＋本条目**，
   代码零改动）：

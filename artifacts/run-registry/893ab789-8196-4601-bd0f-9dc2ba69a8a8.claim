@@ -1,0 +1,11 @@
+{
+  "runId": "893ab789-8196-4601-bd0f-9dc2ba69a8a8",
+  "claimedAt": "2026-09-24T04:22:29.102Z",
+  "pid": 6,
+  "argv": [
+    "--drill",
+    "drill-ledger-rebuild"
+  ],
+  "sourceManifestSha256": "e6ed1eecfe1c7687c036cbc22a44b8c8546e4cec473e42fae0d9d63979d8d9e0",
+  "status": "claimed"
+}

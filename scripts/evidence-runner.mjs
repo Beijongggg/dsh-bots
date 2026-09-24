@@ -10,6 +10,8 @@
  * 用法：
  *   node scripts/evidence-runner.mjs [--out-root <dir>] [--out-profile evidence|ephemeral]
  *        [--ephemeral-out-root <abs>] [--skip-tests] [--real-surface-exclusions-doc]
+ *        [--drill <登记演练 id>]      # 28 号票：隔离演练根上跑登记演练，其台账窗口进证据
+ *        [--ledger-events <路径>] [--ledger-window-from <非负整数>]
  *   node scripts/evidence-runner.mjs --init-registry   # 独立初始化命令（唯一建根路径）
  *
  * O-6.1 输出根合同（与探针 D/E 输出合同同构）：
@@ -41,10 +43,13 @@ import { createHash, randomUUID } from "node:crypto";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { PARITY_MANIFEST } from "../lib/parity-manifest.js";
 import { canonicalizePath, pathInsideOrEqual, pathsOverlap, findExistingPathIssue, ProbeError } from "../lib/sentinel-safety.js";
+import { buildDrillBlock, captureLedgerEvidence, readLedgerEventsFile } from "../lib/ledger-evidence.js";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const runnerScript = fileURLToPath(import.meta.url);
 const packagerCli = join(repoRoot, "scripts", "evidence-packager.mjs");
+/** 28 号票：演练执行器（隔离数据根上的登记演练；本 runner 只 spawn 它，不 import 台账图）。 */
+const drillCli = join(repoRoot, "scripts", "ledger-drill.mjs");
 
 // ---------------- O-6.3：真实运行面快照 ----------------
 
@@ -56,6 +61,10 @@ export const PROTECTED_SNAPSHOT_EXCLUSIONS = Object.freeze([
   /^bots\/review\/capabilities\//,               // 租约心跳（leaseUntil 单调推进）
   /\.log$/,                                      // 日志
   /^(sessions|session-backups|archived-sessions|attachments|browser-profiles|storages|agent-presets-backup)\//, // 会话/浏览器/存储易变面
+  // 28 号票补登：DSH 宿主自身的代理回退状态（宿主每次对外请求写；与本次 run 的产物
+  // 无关，属宿主机器面）——此前未列入，导致任何在宿主机上跑的 run 都被判不 clean。
+  // 判定口径不变：**本 run 写入的**受保护路径仍会被抓（豁免面由 exclusions 进包自述）。
+  /^proxy-fallback\//,
   /^web-.*\.log\./
 ]);
 
@@ -243,6 +252,95 @@ function writeExclusive(filePath, bytes) {
   }
 }
 
+// ---------------- 28 号票：台账证据（窗口采集＋演练） ----------------
+
+/**
+ * 台账事件文件坐标（优先级：显式 `--ledger-events` > 演练隔离根 > 真实 DSH_HOME）。
+ * 演练 run 的窗口取自**演练根**自己的台账（隔离根在 run 目录内，不碰真实运行面）；
+ * 普通 run 取 `<DSH_HOME>/bots/ledger/events.jsonl`（只读）。
+ */
+export function resolveLedgerEventsPath({ dshHome, explicit = null, drillHome = null }) {
+  if (typeof explicit === "string" && explicit !== "") return resolve(explicit);
+  if (typeof drillHome === "string" && drillHome !== "") {
+    return join(resolve(drillHome), "bots", "ledger", "events.jsonl");
+  }
+  return join(resolve(dshHome), "bots", "ledger", "events.jsonl");
+}
+
+/** 观测台账末位 seq（Phase 1 用；文件缺失＝0——「本 run 期间新增」的窗口下界）。 */
+export function observeLedgerCursor(eventsPath) {
+  const file = readLedgerEventsFile(eventsPath);
+  return file.events.length === 0 ? 0 : file.events[file.events.length - 1].seq;
+}
+
+/**
+ * 登记/实现核验（先期缝，**不 import 登记表**）：由演练 CLI 自己回答「这个 id 可跑吗」。
+ * runner 若 import `DRILL_WINDOWS`，整张组织图（durability／role-cards／…）会被拉进
+ * 证据链的冻结闭包——那会让此后每次改 `lib/org/*` 都要重出证据包才能过 preflight 门②。
+ */
+export function checkDrillRegistration(drillId) {
+  const result = spawnSync(process.execPath, [drillCli, "--check", "--drill", drillId], {
+    encoding: "utf8", maxBuffer: 8 * 1024 * 1024
+  });
+  if (result.status !== 0) {
+    return { ok: false, reason: (result.stderr ?? "").trim() || `演练核验失败（exit ${String(result.status)}）` };
+  }
+  try {
+    return { ok: true, drill: JSON.parse(result.stdout).drill };
+  } catch (error) {
+    return { ok: false, reason: `演练核验输出不可解析：${error.message}` };
+  }
+}
+
+/**
+ * 执行登记的演练（spawn 隔离子进程；runner 不 import 台账代码图）。演练自陈结论必须
+ * 为绿——报告落盘后按字节取 hash 绑进证据（报告是演练的事实产物，不是 runner 的自述）。
+ * 登记字段（名称／窗口／承载）取自**报告**（报告由 CLI 按登记表填），runner 不另立一份。
+ */
+function runRegisteredDrill({ drillId, home, reportPath }) {
+  const result = spawnSync(process.execPath, [drillCli, "--drill", drillId, "--home", home, "--report", reportPath], {
+    encoding: "utf8", maxBuffer: 64 * 1024 * 1024
+  });
+  if (result.status !== 0) {
+    throw new Error(`演练 ${drillId} 未通过（exit ${String(result.status)}）：${(result.stderr ?? "").trim()}`);
+  }
+  const reportBytes = readFileSync(reportPath);
+  const report = JSON.parse(reportBytes.toString("utf8"));
+  const registered = report?.drill ?? {};
+  for (const [key, value] of Object.entries({ id: registered.id, name: registered.name, carrier: registered.carrier, window: registered.window })) {
+    if (typeof value !== "string" || value === "") throw new Error(`演练报告缺登记字段 ${key}（登记表＝lib/org/acceptance-coordinates.js::DRILL_WINDOWS）`);
+  }
+  if (registered.id !== drillId) throw new Error(`演练报告 id 与请求不符：${String(registered.id)} ≠ ${drillId}`);
+  if (report?.verdict?.ok !== true) throw new Error(`演练报告结论非 ok：${JSON.stringify(report?.verdict)}`);
+  return buildDrillBlock({
+    id: registered.id, name: registered.name, carrier: registered.carrier, window: registered.window,
+    root: home,
+    report: { path: reportPath, sha256: sha256Of(reportBytes), byteLength: reportBytes.length },
+    queryConclusion: report.queryConclusion,
+    verdict: report.verdict
+  });
+}
+
+/**
+ * 采集窗口证据并写出 run 内证据件 `ledger-evidence.json`（wx 排他）。
+ * 三份东西各就各位（28 号票形态裁定＝**复制进包**）：
+ *   - **run 内证据件**（本函数写出）＝原始产物：窗口内事件逐条＋source/window/复验结论；
+ *   - **raw.payload.ledgerEvidence**＝只带该件的 binding（path/sha256/byteLength）——
+ *     原始产物不复制第二份；
+ *   - **证据包**（packager 只读消费）＝把该件内容**复制进包**（`executionEvidence.
+ *     ledgerEvidence` 含 events 逐条）＋绑定件完整 hash。活台账在包外且必然漂移，
+ *     指针直指活台账不可复验，故复制的对象是「run 内的那份复制件」。
+ */
+export function captureLedgerEvidenceArtifact({ eventsPath, runId, fromSeq, runDir, kind, requireEvents, drillBlock }) {
+  const section = captureLedgerEvidence({
+    eventsPath, kind, runId, fromSeq, toSeq: null, drill: drillBlock, requireEvents
+  });
+  const artifactPath = join(runDir, "ledger-evidence.json");
+  const bytes = Buffer.from(JSON.stringify(section, null, 2) + "\n");
+  writeExclusive(artifactPath, bytes);
+  return { section, binding: { path: artifactPath, sha256: sha256Of(bytes), byteLength: bytes.length } };
+}
+
 // ---------------- 主流程 ----------------
 
 async function runInitRegistry() {
@@ -293,8 +391,55 @@ async function runEvidence(opts) {
   if (claim.contentWriteError !== null) {
     failWith("Phase 1", new ProbeError("UNEXPECTED_IO", "1", { runId, message: `claim 内容写入失败（invalid tombstone 语义，runId 已占用，本次不启动）：${claim.contentWriteError}` }, "preserve-for-caller"));
   }
+  // ---- 28 号票：窗口下界观测（只读，先于一切执行） ----
+  // 缺省窗口＝「本 run 期间新增的台账事件」：起步时记末位 seq，落证据时以此为下界。
+  // 演练 run 显式给 --ledger-window-from 0（隔离演练根自建台账，窗口＝整段演练）。
+  const ledgerEventsPathForWindow = resolveLedgerEventsPath({
+    dshHome: home,
+    explicit: opts.ledgerEvents,
+    drillHome: null // 演练根在 run 目录内、此刻尚不存在；演练 run 以显式 fromSeq 定窗（见 finish）
+  });
+  const ledgerCursorAtStart = observeLedgerCursor(ledgerEventsPathForWindow);
 
   const finish = (status, extra = {}) => {
+    // ---- 28 号票：台账证据段（演练 → run 窗口采集 → run 内证据件） ----
+    // 顺序刻意如此：演练与采集发生在**后置污染核验之前**——演练子进程若碰了真实运行面，
+    // 会被同一把只读快照抓成不 clean（→ 非 completed → 打不出包）。段内失败 fail closed：
+    // run 仍落 raw/capture/终态记录（证据全在），但终态为 failed、本 run 不得打包。
+    const runDir = join(outRootAbs, runId);
+    let runStatus = status;
+    let ledgerEvidence = null;
+    let ledgerFailure = null;
+    try {
+      mkdirSync(runDir, { mode: 0o700 }); // 已校验父链真实目录；排他创建（EEXIST 即崩留 claim→abandoned 语义）
+    } catch (error) {
+      failWith("Phase 6", new ProbeError("EVIDENCE_EMIT_FAILURE", "4", { runDir, message: `run 目录创建失败：${error.message}` }, "preserve-for-caller"));
+    }
+    if (runStatus === "completed") {
+      try {
+        const drillHome = opts.drill === null ? null : join(runDir, "drill-home");
+        const drillBlock = opts.drill === null
+          ? null
+          : runRegisteredDrill({ drillId: opts.drill, home: drillHome, reportPath: join(runDir, "drill-report.json") });
+        const ledgerEventsPath = resolveLedgerEventsPath({
+          dshHome: resolve(process.env.DSH_HOME ?? join(process.env.HOME ?? "", ".dsh")),
+          explicit: opts.ledgerEvents,
+          drillHome
+        });
+        ledgerEvidence = captureLedgerEvidenceArtifact({
+          eventsPath: ledgerEventsPath, runId, runDir,
+          fromSeq: opts.ledgerWindowFrom ?? (opts.drill === null ? ledgerCursorAtStart : 0),
+          kind: opts.drill === null ? "host-ledger" : "isolated-drill-root",
+          requireEvents: opts.drill !== null,
+          drillBlock
+        });
+      } catch (error) {
+        runStatus = "failed";
+        ledgerFailure = { phase: "ledger-evidence", detail: error?.message ?? String(error) };
+        console.error(`[evidence-runner] 台账证据段失败（fail closed：本 run 不得产出证据包）：${ledgerFailure.detail}`);
+      }
+    }
+
     // ---- O-6.3：真实运行面运行后核验（任何失败路径都尽力执行） ----
     const postSnapshots = surfaces.map(({ label, path }) => ({ label, path, snapshot: snapshotProtectedSurface(path) }));
     const surfaceDiffs = preSnapshots.map((pre, i) => {
@@ -320,7 +465,11 @@ async function runEvidence(opts) {
         exclusions: PROTECTED_SNAPSHOT_EXCLUSIONS.map((re) => re.source),
         preIncomplete
       },
-      layoutManifestDigest: opts.layoutManifestDigest
+      layoutManifestDigest: opts.layoutManifestDigest,
+      // 28 号票：台账证据只入**绑定**（path/sha256/byteLength）——记录本体在 run 内
+      // 证据件 `ledger-evidence.json` 里，packager 只读消费并核 hash（不在 raw 里复制两份）。
+      ledgerEvidence: ledgerEvidence === null ? null : { ...ledgerEvidence.binding },
+      ledgerEvidenceFailure: ledgerFailure
     };
     const timing = {
       runStartedAt,
@@ -337,8 +486,6 @@ async function runEvidence(opts) {
     // phase="4"（证据输出段）：timing 违约属 raw 落盘前置失败——PROBE_PHASES 合法域 0～4，
     // 不得使用合同外阶段号（构造器对越界 phase 直接抛错）。
     if (!timingCheck.ok) failWith("Phase 4（timing 前置）", new ProbeError("UNEXPECTED_IO", "4", { violations: timingCheck.violations }, "preserve-for-caller"));
-    const runDir = join(outRootAbs, runId);
-    mkdirSync(runDir, { mode: 0o700 }); // 已校验父链真实目录；最终组件排他创建（EEXIST 即崩留 claim→abandoned 语义）
     const rawPath = join(runDir, "raw.json");
     const rawBytes = Buffer.from(JSON.stringify(raw, null, 2) + "\n");
     writeExclusive(rawPath, rawBytes);
@@ -348,7 +495,7 @@ async function runEvidence(opts) {
     writeExclusive(capturePath, Buffer.from(JSON.stringify(capture, null, 2) + "\n"));
     const captureSha256 = sha256Of(readFileSync(capturePath));
     // ---- Phase 8：终态 ledger（/2 完整绑定）；污染/核验不完整 → 非 completed 终态 ----
-    const finalStatus = status === "completed" && surfaceClean && surfaceVerified ? "completed" : status === "completed" ? "failed" : status;
+    const finalStatus = runStatus === "completed" && surfaceClean && surfaceVerified ? "completed" : runStatus === "completed" ? "failed" : runStatus;
     let registryComplete = false;
     let ledgerError = null;
     try {
@@ -376,10 +523,18 @@ async function runEvidence(opts) {
       evidenceRunnerHash: raw.probe.evidenceRunnerHash,
       fullRegression: opts.fullRegression,
       parity: opts.parity,
+      ledgerEvidence: ledgerEvidence === null ? null : {
+        path: ledgerEvidence.binding.path, sha256: ledgerEvidence.binding.sha256,
+        events: ledgerEvidence.section.events.length,
+        window: { fromSeq: ledgerEvidence.section.window.fromSeq, toSeq: ledgerEvidence.section.window.toSeq },
+        source: { kind: ledgerEvidence.section.source.kind, path: ledgerEvidence.section.source.path },
+        drill: ledgerEvidence.section.drill === null ? null : { id: ledgerEvidence.section.drill.id, verdict: ledgerEvidence.section.drill.verdict.ok }
+      },
+      ledgerEvidenceFailure: ledgerFailure,
       ...extra,
-      summary: "产物已就绪；打包须由 evidence-packager 只读消费（七项绑定核验）"
+      summary: "产物已就绪；打包须由 evidence-packager 只读消费（七项绑定核验＋台账证据复验）"
     }, null, 2) + "\n");
-    process.exit(status === "completed" && registryComplete && surfaceClean && surfaceVerified ? 0 : 1);
+    process.exit(finalStatus === "completed" && registryComplete && surfaceClean && surfaceVerified ? 0 : 1);
   };
 
   // ---- Phase 2：全量回归 ----
@@ -433,7 +588,10 @@ async function main() {
     outRoot: join(repoRoot, "artifacts", "runs"),
     outProfile: "evidence",
     ephemeralOutRoot: null,
-    skipTests: false
+    skipTests: false,
+    drill: null,
+    ledgerEvents: null,
+    ledgerWindowFrom: null
   };
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
@@ -441,6 +599,16 @@ async function main() {
     else if (a === "--out-profile") { opts.outProfile = args[i + 1] ?? ""; i += 1; }
     else if (a === "--ephemeral-out-root") { opts.ephemeralOutRoot = args[i + 1] ?? ""; i += 1; }
     else if (a === "--skip-tests") opts.skipTests = true;
+    else if (a === "--drill") { opts.drill = args[i + 1] ?? ""; i += 1; }
+    else if (a === "--ledger-events") { opts.ledgerEvents = args[i + 1] ?? ""; i += 1; }
+    else if (a === "--ledger-window-from") {
+      const raw = args[i + 1] ?? "";
+      if (!/^\d+$/.test(raw)) {
+        failWith("Phase 0", new ProbeError("PRECONDITION_FAILED", "0", { message: `--ledger-window-from 须为非负整数：${String(raw)}` }, "preserve-for-caller"));
+      }
+      opts.ledgerWindowFrom = Number(raw);
+      i += 1;
+    }
     else if (a === "--real-surface-exclusions-doc") {
       process.stdout.write(JSON.stringify({ exclusions: PROTECTED_SNAPSHOT_EXCLUSIONS.map((re) => re.source) }, null, 2) + "\n");
       process.exit(0);
@@ -448,6 +616,16 @@ async function main() {
       console.error(`未知参数：${a}`);
       process.exit(2);
     }
+  }
+  if (opts.drill !== null) {
+    // 登记/实现核验先于一切写入（不得凭拼错的 id 跑完整套测试再失败）；登记表＝
+    // lib/org/acceptance-coordinates.js::DRILL_WINDOWS，由演练 CLI 读并回答。
+    const checked = checkDrillRegistration(opts.drill);
+    if (!checked.ok) {
+      console.error(`[evidence-runner] --drill ${String(opts.drill)} 不可执行：${checked.reason}`);
+      process.exit(2);
+    }
+    if (opts.ledgerWindowFrom === null) opts.ledgerWindowFrom = 0; // 隔离演练根：窗口＝整段演练
   }
   return runEvidence(opts);
 }

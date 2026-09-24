@@ -1,0 +1,333 @@
+{
+  "schemaVersion": "ledger-evidence/1",
+  "runId": "e81db1d9-af91-4555-8069-ccb0f8778d61",
+  "capturedAt": "2026-09-24T04:24:07.037Z",
+  "source": {
+    "kind": "isolated-drill-root",
+    "path": "/home/beijong/project/dsh-bots/artifacts/runs/e81db1d9-af91-4555-8069-ccb0f8778d61/drill-home/bots/ledger/events.jsonl",
+    "present": true,
+    "byteLength": 3005,
+    "sha256": "f698209c268c002ac70df21307df0edfa76fb0c1db42c254536a7f6ff8bbb241",
+    "lineCount": 8,
+    "firstSeq": 1,
+    "lastSeq": 8,
+    "absentReason": null
+  },
+  "window": {
+    "rule": "seq ∈ (fromSeq, toSeq]：fromSeq 缺省＝本 run 起步时台账末位 seq（＝本 run 期间新增的事件）；演练 run 显式 fromSeq=0（隔离演练根自建台账，窗口＝整段演练）；窗口内事件**收全**，不做挑选",
+    "fromSeq": 0,
+    "toSeq": 8,
+    "fromAt": "2026-09-24T10:00:00.000Z",
+    "toAt": "2026-09-24T10:00:00.000Z"
+  },
+  "counts": {
+    "events": 8
+  },
+  "events": [
+    {
+      "seq": 1,
+      "eventId": "muf120xn-36fbcced",
+      "type": "intake",
+      "at": "2026-09-24T10:00:00.000Z",
+      "taskId": "TK-28d00001",
+      "actor": {
+        "kind": "host",
+        "id": "web"
+      },
+      "writerEpoch": 1,
+      "class": "project",
+      "brief": {
+        "goal": "示例目标",
+        "deliverables": [
+          {
+            "format": "markdown",
+            "location": "docs/x.md"
+          }
+        ],
+        "sources": [
+          {
+            "tool": "user",
+            "ref": "msg-1"
+          }
+        ],
+        "boundaries": "不改真实运行面",
+        "acceptance": [
+          {
+            "probe": "fs.contains",
+            "args": {
+              "location": "docs/x.md",
+              "text": "示例"
+            }
+          }
+        ],
+        "reviewPoints": []
+      },
+      "eventHash": "3726a31a0c215966a243f3d72c2ded2113c0cb67af00c800063b714d763a3c94"
+    },
+    {
+      "seq": 2,
+      "eventId": "muf120xv-ea2beb7f",
+      "type": "intake",
+      "at": "2026-09-24T10:00:00.000Z",
+      "taskId": "TK-28d00002",
+      "actor": {
+        "kind": "host",
+        "id": "web"
+      },
+      "writerEpoch": 1,
+      "class": "project",
+      "brief": {
+        "goal": "示例目标",
+        "deliverables": [
+          {
+            "format": "markdown",
+            "location": "docs/x.md"
+          }
+        ],
+        "sources": [
+          {
+            "tool": "user",
+            "ref": "msg-1"
+          }
+        ],
+        "boundaries": "不改真实运行面",
+        "acceptance": [
+          {
+            "probe": "fs.contains",
+            "args": {
+              "location": "docs/x.md",
+              "text": "示例"
+            }
+          }
+        ],
+        "reviewPoints": []
+      },
+      "eventHash": "7b73d2bbb6a9d52f4e96b3c8afbab9c022ec83af99c0ea14ff9acec340543a6d"
+    },
+    {
+      "seq": 3,
+      "eventId": "muf120y0-f0564644",
+      "type": "triage",
+      "at": "2026-09-24T10:00:00.000Z",
+      "taskId": "TK-28d00002",
+      "actor": {
+        "kind": "host",
+        "id": "web"
+      },
+      "writerEpoch": 1,
+      "decision": "立项",
+      "eventHash": "98950c50760dd4f15b4f9b175fc5fa211e48f45b2579785986506ee92fb11fd7"
+    },
+    {
+      "seq": 4,
+      "eventId": "muf120y5-dc44d23a",
+      "type": "plan",
+      "at": "2026-09-24T10:00:00.000Z",
+      "taskId": "TK-28d00002",
+      "actor": {
+        "kind": "host",
+        "id": "web"
+      },
+      "writerEpoch": 1,
+      "eventHash": "bc3905a94fafb896b7385c4ab4e0efc4c23d5721b592293b86701a771f78ce4a"
+    },
+    {
+      "seq": 5,
+      "eventId": "muf120yb-617acd42",
+      "type": "intake",
+      "at": "2026-09-24T10:00:00.000Z",
+      "taskId": "TK-28d00003",
+      "actor": {
+        "kind": "host",
+        "id": "web"
+      },
+      "writerEpoch": 1,
+      "class": "duty",
+      "brief": {
+        "goal": "示例目标",
+        "deliverables": [
+          {
+            "format": "markdown",
+            "location": "docs/x.md"
+          }
+        ],
+        "sources": [
+          {
+            "tool": "user",
+            "ref": "msg-1"
+          }
+        ],
+        "boundaries": "不改真实运行面",
+        "acceptance": [
+          {
+            "probe": "fs.contains",
+            "args": {
+              "location": "docs/x.md",
+              "text": "示例"
+            }
+          }
+        ],
+        "reviewPoints": []
+      },
+      "eventHash": "b2ba6c8e00537bd3cbb46096fc7280ad669058263309adccce0d712622f297b6"
+    },
+    {
+      "seq": 6,
+      "eventId": "muf120yg-38543693",
+      "type": "triage",
+      "at": "2026-09-24T10:00:00.000Z",
+      "taskId": "TK-28d00003",
+      "actor": {
+        "kind": "host",
+        "id": "web"
+      },
+      "writerEpoch": 1,
+      "decision": "立项",
+      "eventHash": "61f6e24dbe3d4a83194045f403390460a6bfd95fb58e4ce01eba08c99ba284ab"
+    },
+    {
+      "seq": 7,
+      "eventId": "muf120yl-ad0bf8a9",
+      "type": "plan",
+      "at": "2026-09-24T10:00:00.000Z",
+      "taskId": "TK-28d00003",
+      "actor": {
+        "kind": "host",
+        "id": "web"
+      },
+      "writerEpoch": 1,
+      "eventHash": "f523f0645512fe2f0202eca402275635f8d8508b5dea03937c2e6e884852cf36"
+    },
+    {
+      "seq": 8,
+      "eventId": "muf120yr-7c84c729",
+      "type": "assign",
+      "at": "2026-09-24T10:00:00.000Z",
+      "taskId": "TK-28d00003",
+      "actor": {
+        "kind": "host",
+        "id": "web"
+      },
+      "writerEpoch": 1,
+      "assignee": "researcher",
+      "dispatcher": "project-lead",
+      "lease": {
+        "acceptBy": "2026-09-24T10:10:00.000Z",
+        "expiresAt": "2026-09-24T10:25:00.000Z",
+        "leaseMs": 900000
+      },
+      "eventHash": "0441cda85182585816294231809e5b6fe3340e61ab40281a851b8f5519de840f"
+    }
+  ],
+  "sliceDigest": "f6a25dae3e2e4061bcb3c9a2846ec4cd84b2d121c0ada4b56c3597f8e1a70c86",
+  "verification": {
+    "scheme": "lib/org/ledger-events.js::validateEventRecord 逐条重算（类型／负载键白名单／taskId／actor／两张事实表词表／eventHash），窗口内 seq 连续（首条以上一条＝window.fromSeq），sliceDigest 复算",
+    "ok": true,
+    "checked": 8,
+    "problems": []
+  },
+  "drill": {
+    "id": "drill-ledger-rebuild",
+    "name": "台账重建演练",
+    "carrier": "tests/org-closed-loop-smoke.test.mjs::闭环烟测 ②（常驻钉桩）＋实操：停 host → 留 bots/ledger/events.jsonl → 冷启 → 读 openQueue()",
+    "window": "切换批 smoke 段（16 号票：就绪探针 PASS 后、旧席归档前）",
+    "root": "/home/beijong/project/dsh-bots/artifacts/runs/e81db1d9-af91-4555-8069-ccb0f8778d61/drill-home",
+    "isolated": true,
+    "report": {
+      "path": "/home/beijong/project/dsh-bots/artifacts/runs/e81db1d9-af91-4555-8069-ccb0f8778d61/drill-report.json",
+      "sha256": "b959378d83fa58350126006cb4c97aaf521c888f461839d2c32d5d497d1731ab",
+      "byteLength": 8872
+    },
+    "queryConclusion": {
+      "method": "ledger.openQueue()（状态＝事件序列的投影；冷启后由事件日志重新折叠）",
+      "before": [
+        {
+          "taskId": "TK-28d00001",
+          "status": "intake",
+          "owner": null,
+          "lastSeq": 1
+        },
+        {
+          "taskId": "TK-28d00002",
+          "status": "planned",
+          "owner": null,
+          "lastSeq": 4
+        },
+        {
+          "taskId": "TK-28d00003",
+          "status": "assigned",
+          "owner": "researcher",
+          "lastSeq": 8
+        }
+      ],
+      "after": [
+        {
+          "taskId": "TK-28d00001",
+          "status": "intake",
+          "owner": null,
+          "lastSeq": 1
+        },
+        {
+          "taskId": "TK-28d00002",
+          "status": "planned",
+          "owner": null,
+          "lastSeq": 4
+        },
+        {
+          "taskId": "TK-28d00003",
+          "status": "assigned",
+          "owner": "researcher",
+          "lastSeq": 8
+        }
+      ],
+      "identical": true,
+      "holdingsBefore": {
+        "botId": "researcher",
+        "taskId": "TK-28d00003",
+        "status": "assigned"
+      },
+      "eventCount": 8
+    },
+    "verdict": {
+      "ok": true,
+      "checks": [
+        {
+          "name": "停机前在办集合非空（演练有对象）",
+          "ok": true,
+          "detail": "openQueue=3"
+        },
+        {
+          "name": "在手任务可查（V-A2.6 口径）",
+          "ok": true,
+          "detail": "holdingsFor(researcher)=TK-28d00003"
+        },
+        {
+          "name": "停 host 后不持写锁",
+          "ok": true,
+          "detail": "holdsWriterLock()=false"
+        },
+        {
+          "name": "冷启后未闭合队列逐行重建一致",
+          "ok": true,
+          "detail": "重建 3 条"
+        },
+        {
+          "name": "事件数在停启间不变（无静默补写/丢写）",
+          "ok": true,
+          "detail": "8 → 8"
+        },
+        {
+          "name": "幂等键在冷启后仍生效（同键不落第二事件）",
+          "ok": true,
+          "detail": "replayed=true"
+        },
+        {
+          "name": "事件日志逐条过台账校验器（eventHash 重算＋seq 连续）",
+          "ok": true,
+          "detail": "checked=8/8"
+        }
+      ],
+      "problems": []
+    }
+  }
+}

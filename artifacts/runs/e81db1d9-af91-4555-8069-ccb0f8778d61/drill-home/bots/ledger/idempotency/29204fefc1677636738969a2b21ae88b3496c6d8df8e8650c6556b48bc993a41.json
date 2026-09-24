@@ -1,0 +1,1 @@
+{"idempotencyKeyHash":"29204fefc1677636738969a2b21ae88b3496c6d8df8e8650c6556b48bc993a41","idempotencyKey":"TK-28d00003-intake","at":"2026-09-24T10:00:00.000Z","taskId":"TK-28d00003","op":"task.intake","result":{"ok":true,"taskId":"TK-28d00003","status":"intake","seq":5}}

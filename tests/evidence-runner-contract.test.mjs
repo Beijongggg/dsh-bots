@@ -11,7 +11,10 @@
  *     前后 diff 捕获新增/修改/删除/新增异常条目；扫描失败 INCONCLUSIVE；
  *   - /3 阶段链（org-v2 15 号票）：runner 无 v1 段（并发压测／probe CLI）调用、
  *     payload 无退役段键、布局 digest 仍从 sentinel-shadow 绑定（静态侧——
- *     不产生真实 registry claim）。
+ *     不产生真实 registry claim）；
+ *   - 28 号票台账证据段（静态侧＋库级，不产生真实 registry claim）：台账坐标解析
+ *     （演练根 > DSH_HOME）、窗口下界观测、演练登记核验（经演练 CLI，不 import 组织图）、
+ *     run 内证据件写出与空窗拒绝。
  */
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
@@ -25,7 +28,8 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
 const runner = path.join(repoRoot, "scripts", "evidence-runner.mjs");
 
 const {
-  validateRunnerOutRoot, snapshotProtectedSurface, diffProtectedSnapshots, PROTECTED_SNAPSHOT_EXCLUSIONS
+  validateRunnerOutRoot, snapshotProtectedSurface, diffProtectedSnapshots, PROTECTED_SNAPSHOT_EXCLUSIONS,
+  resolveLedgerEventsPath, observeLedgerCursor, checkDrillRegistration, captureLedgerEvidenceArtifact
 } = await import("../scripts/evidence-runner.mjs");
 
 const results = [];
@@ -238,6 +242,86 @@ test("/3 阶段链：runner 无 v1 段（并发压测／probe CLI）调用；pay
   // 布局唯一来源绑定仍在（经 lib/sentinel-shadow.js）
   assert.equal(source.includes("sentinel-shadow.js"), true, "布局 digest 须从 sentinel-shadow 导入绑定");
   assert.equal(source.includes("shadowLayoutManifestDigest"), true, "布局 digest 绑定不得缺失");
+});
+
+// ---------------- 28 号票：台账证据段（库级；不产生真实 registry claim） ----------------
+
+test("28 号票 台账坐标：演练根优先于 DSH_HOME；显式路径优先于两者", () => {
+  const dshHome = "/tmp/dsh-home-x";
+  assert.equal(resolveLedgerEventsPath({ dshHome }), path.join(dshHome, "bots", "ledger", "events.jsonl"));
+  assert.equal(
+    resolveLedgerEventsPath({ dshHome, drillHome: "/tmp/run-1/drill-home" }),
+    path.join("/tmp/run-1/drill-home", "bots", "ledger", "events.jsonl"),
+    "演练 run 取隔离演练根的台账（真实运行面零写入）"
+  );
+  assert.equal(
+    resolveLedgerEventsPath({ dshHome, drillHome: "/tmp/run-1/drill-home", explicit: "/tmp/other/events.jsonl" }),
+    "/tmp/other/events.jsonl",
+    "显式 --ledger-events 优先"
+  );
+});
+
+test("28 号票 窗口下界观测：台账缺失＝0；有事件＝末位 seq（只读）", () => {
+  const dir = mkTmp();
+  assert.equal(observeLedgerCursor(path.join(dir, "bots", "ledger", "events.jsonl")), 0);
+  const eventsPath = path.join(dir, "bots", "ledger", "events.jsonl");
+  fs.mkdirSync(path.dirname(eventsPath), { recursive: true });
+  const lines = [1, 2, 3].map((seq) => JSON.stringify({ seq, eventHash: "x" })).join("\n") + "\n";
+  fs.writeFileSync(eventsPath, lines);
+  assert.equal(observeLedgerCursor(eventsPath), 3);
+  assert.equal(fs.readFileSync(eventsPath, "utf8"), lines, "观测不得改写台账");
+});
+
+test("28 号票 演练登记核验（经演练 CLI，不 import 组织图）：已登记可跑／未登记与未实现即拒", () => {
+  const ok = checkDrillRegistration("drill-ledger-rebuild");
+  assert.equal(ok.ok, true, ok.reason);
+  assert.equal(ok.drill.id, "drill-ledger-rebuild");
+  for (const id of ["no-such-drill", "drill-lease-reclaim"]) {
+    const bad = checkDrillRegistration(id);
+    assert.equal(bad.ok, false, `${id} 应被拒`);
+    assert.match(bad.reason, /未登记执行窗口|未实现/);
+  }
+});
+
+test("28 号票 run 内证据件：真实台账窗口写出＋绑定账实相符；演练 run 空窗即拒", async () => {
+  const { createTaskLedger } = await import("../lib/org/task-ledger.js");
+  const home = mkTmp();
+  const ledger = createTaskLedger({ dshHome: home, now: () => Date.parse("2026-09-24T10:00:00.000Z") });
+  const done = await ledger.command({
+    op: "task.intake", taskId: "TK-28r00001", actor: { kind: "host", id: "web" },
+    idempotencyKey: "r1", payload: {
+      class: "duty", brief: {
+        goal: "g", deliverables: [{ format: "markdown", location: "docs/x.md" }],
+        sources: [{ tool: "user", ref: "m" }], boundaries: "b",
+        acceptance: [{ probe: "fs.contains", args: { location: "docs/x.md", text: "x" } }], reviewPoints: []
+      }
+    }
+  });
+  assert.equal(done.ok, true);
+  ledger.close();
+  const runDir = path.join(mkTmp(), "run");
+  fs.mkdirSync(runDir);
+  const capture = captureLedgerEvidenceArtifact({
+    eventsPath: path.join(home, "bots", "ledger", "events.jsonl"),
+    runId: "22222222-3333-4444-5555-666666666666",
+    fromSeq: 0, runDir, kind: "isolated-drill-root", requireEvents: true, drillBlock: null
+  });
+  const bytes = fs.readFileSync(capture.binding.path);
+  assert.equal(capture.binding.path, path.join(runDir, "ledger-evidence.json"));
+  assert.equal(capture.binding.byteLength, bytes.length);
+  assert.equal(capture.binding.sha256, createHash("sha256").update(bytes).digest("hex"));
+  assert.equal(capture.section.events.length, done.seq, "窗口＝全部事件（fromSeq=0）");
+  assert.equal(capture.section.source.kind, "isolated-drill-root");
+  assert.equal(capture.section.verification.ok, true);
+  // 演练 run 空窗：不得产证据件（fail closed），且不落任何文件
+  const emptyRunDir = path.join(mkTmp(), "run-empty");
+  fs.mkdirSync(emptyRunDir);
+  assert.throws(() => captureLedgerEvidenceArtifact({
+    eventsPath: path.join(mkTmp(), "bots", "ledger", "events.jsonl"),
+    runId: "33333333-4444-5555-6666-777777777777",
+    fromSeq: 0, runDir: emptyRunDir, kind: "isolated-drill-root", requireEvents: true, drillBlock: null
+  }), /不得为空/);
+  assert.deepEqual(fs.readdirSync(emptyRunDir), [], "失败不得留下证据件");
 });
 
 // ---------------- 运行 ----------------

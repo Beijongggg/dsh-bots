@@ -1,0 +1,1 @@
+{"idempotencyKeyHash":"b79e3f9da94146bed8237c6b55341943bc2dd67b3cf69ec58f00afebb09cf966","idempotencyKey":"TK-28d00003-assign","at":"2026-09-24T10:00:00.000Z","taskId":"TK-28d00003","op":"task.assign","result":{"ok":true,"taskId":"TK-28d00003","status":"assigned","seq":8}}

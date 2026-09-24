@@ -47,8 +47,12 @@ test("真实入口：sourceManifest 恰为［脚本＋依赖闭包］，sha256/b
   const { sourceManifest, sourceManifestSha256 } = resolveSourceManifest(RUNNER, repoRoot);
   const paths = sourceManifest.map((e) => e.path);
   // 15 号票后：runner 静态导入 parity-manifest/safety＋动态字面量导入
-  // provenance/shadow——闭包恰为五文件。
+  // provenance/shadow——闭包恰为五文件；28 号票加台账证据段（ledger-evidence ＋
+  // 台账事件契约叶件 ledger-events/store-base），闭包恰为八文件。
   assert.deepEqual(paths, [
+    "lib/ledger-evidence.js",
+    "lib/org/ledger-events.js",
+    "lib/org/store-base.js",
     "lib/parity-manifest.js", "lib/sentinel-provenance.js", "lib/sentinel-safety.js",
     "lib/sentinel-shadow.js", "scripts/evidence-runner.mjs"
   ]);
@@ -389,17 +393,26 @@ test("O-6.4 ledger /2 负例：缺绑定字段/非法 hash/非终态 → 拒绝�
   assert.equal(fs.existsSync(path.join(dir, "run-registry.jsonl")), false, "残缺终态记录零落盘");
 });
 
-test("O-6.5 执行闭包：runner∪packager 闭包恰为 7 文件（含 lib/parity-manifest.js 与 lib/sentinel-shadow.js）；evidenceRunnerHash 绑定 runner", () => {
+test("O-6.5 执行闭包：runner∪packager 闭包恰为 10 文件（含台账事件契约叶件，不含组织图）；evidenceRunnerHash 绑定 runner", () => {
   const { sourceManifest, sourceManifestSha256 } = buildExecutionSourceManifest({
     repoRoot, runnerScript: RUNNER,
     consumerScripts: ["scripts/evidence-packager.mjs"]
   });
+  // 28 号票：台账证据段的复验器（ledger-evidence）＋台账事件契约叶件（ledger-events、
+  // store-base）进闭包——**组织图不进**（DRILL_WINDOWS／task-ledger／durability 等
+  // 一律不在清单里）；这条正是「抽取叶件」的理由：闭包即 preflight 门② 的冻结面，
+  // 拉进整张组织图会让此后每次改 lib/org/* 都要重出证据包。
   assert.deepEqual(sourceManifest.map((e) => e.path).sort(), [
-    "lib/evidence-packager.js", "lib/parity-manifest.js",
+    "lib/evidence-packager.js", "lib/ledger-evidence.js",
+    "lib/org/ledger-events.js", "lib/org/store-base.js",
+    "lib/parity-manifest.js",
     "lib/sentinel-provenance.js", "lib/sentinel-safety.js",
     "lib/sentinel-shadow.js",
     "scripts/evidence-packager.mjs", "scripts/evidence-runner.mjs"
   ]);
+  for (const banned of ["lib/org/task-ledger.js", "lib/org/durability.js", "lib/org/acceptance-coordinates.js", "lib/knowledge.js"]) {
+    assert.equal(sourceManifest.some((e) => e.path === banned), false, `组织图件不得进证据闭包：${banned}`);
+  }
   const byPath = new Map(sourceManifest.map((e) => [e.path, e.sha256]));
   const raw = buildProbeRaw({
     runId: randomUUID(), argv: ["x"],

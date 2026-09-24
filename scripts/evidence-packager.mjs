@@ -30,7 +30,7 @@ import { fileURLToPath } from "node:url";
 import {
   buildEvidencePackageV2, writeEvidencePackageV2,
   deriveDeploymentImpactFromParity, buildArchiveBinding, verifyProvenanceBindings,
-  crossVerifyLegacyDeploymentImpact
+  crossVerifyLegacyDeploymentImpact, loadAndVerifyLedgerEvidence
 } from "../lib/evidence-packager.js";
 import { validateRunRegistry } from "../lib/sentinel-provenance.js";
 
@@ -104,12 +104,32 @@ if (opts["--deployment-impact-legacy"]) {
   legacyDeploymentImpactAttachment = { ...legacy, nonAuthoritative: true, crossVerifiedAgainst: "raw.payload.parity" };
 }
 
-// ---- executionEvidence（结构化面；包 schema evidence-package/3） ----
+// ---- executionEvidence（结构化面；包 schema evidence-package/4） ----
 // /3：probe verdict／concurrencyStress／treeDiff 三段已随 v1 评审形态退役
 // （15 号票）——raw 不再携带时缺省；probeCliHash/probeRuntimeClosure 同步退役
 // （/2 旧 raw 兼容读取时若在则照录）。
+// ---- 28 号票：台账证据段（/4 必填）——raw 只带 binding，记录本体在 run 内证据件里 ----
+// 只读消费：核对证据件账实（存在/byteLength/sha256）＋形状＋逐条复验，然后**复制进包**。
+const ledgerBinding = raw.payload.ledgerEvidence;
+if (ledgerBinding === null || ledgerBinding === undefined) {
+  die(`raw.payload.ledgerEvidence 缺失：run ${raw.runId} 未采集台账证据（证据包 /4 必填段；按 runId 窗口采集，见 scripts/evidence-runner.mjs）`);
+}
+// 唯一读取＋复验入口（lib/evidence-packager.js）：E4 账实（存在/byteLength/sha256）＋形状
+// ＋逐条复算（复用台账校验器）。这里只把件内容**复制进包**（形态裁定＝复制，见票面 Comments）。
+let ledgerEvidence = null;
+let ledgerRecheck = null;
+try {
+  const loaded = loadAndVerifyLedgerEvidence({ ledgerEvidence: { binding: ledgerBinding }, repoRoot });
+  ledgerEvidence = { binding: { path: ledgerBinding.path, sha256: ledgerBinding.sha256, byteLength: ledgerBinding.byteLength }, ...loaded.section };
+  ledgerRecheck = loaded.verdict;
+} catch (error) {
+  die(`台账证据复验失败（fail closed）：${error.message}`);
+}
+if (ledgerEvidence.runId !== raw.runId) die(`台账证据 runId 与 raw.runId 不符：${String(ledgerEvidence.runId)} ≠ ${String(raw.runId)}`);
+
 const executionEvidence = {
   fullRegression: raw.payload.fullRegression,
+  ledgerEvidence,
   deploymentImpact,
   realSurfaceCheck: raw.payload.realSurfaceCheck ?? null,
   provenance: {
@@ -179,5 +199,13 @@ const written = writeEvidencePackageV2(pkg, { repoRoot, sequence: opts["--sequen
 console.log(JSON.stringify({
   package: written.path, sha256: written.sha256, byteLength: written.byteLength,
   basePackage: pkg.basePackage, runId: raw.runId, archiveBinding: archiveBinding === null ? null : { path: archiveBinding.archiveManifestPath, sha256: archiveBinding.archiveManifestSha256, runs: archiveBinding.runs.length },
-  deploymentImpact: { driftCount: deploymentImpact.driftCount, checked: deploymentImpact.checked, identical: deploymentImpact.identical, restartNeeded: deploymentImpact.restartNeeded, deploySyncNeeded: deploymentImpact.deploySyncNeeded, source: "raw.payload.parity（机械派生）" }
+  deploymentImpact: { driftCount: deploymentImpact.driftCount, checked: deploymentImpact.checked, identical: deploymentImpact.identical, restartNeeded: deploymentImpact.restartNeeded, deploySyncNeeded: deploymentImpact.deploySyncNeeded, source: "raw.payload.parity（机械派生）" },
+  ledgerEvidence: {
+    path: ledgerEvidence.binding.path, sha256: ledgerEvidence.binding.sha256,
+    events: ledgerEvidence.events.length,
+    window: { fromSeq: ledgerEvidence.window.fromSeq, toSeq: ledgerEvidence.window.toSeq },
+    source: { kind: ledgerEvidence.source.kind, present: ledgerEvidence.source.present, path: ledgerEvidence.source.path },
+    verification: ledgerRecheck.recomputed,
+    drill: ledgerEvidence.drill === null ? null : { id: ledgerEvidence.drill.id, verdict: ledgerEvidence.drill.verdict.ok, report: ledgerEvidence.drill.report.path }
+  }
 }, null, 2));

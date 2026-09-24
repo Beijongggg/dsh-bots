@@ -1,0 +1,285 @@
+{
+  "schemaVersion": "ledger-drill-report/1",
+  "drill": {
+    "id": "drill-ledger-rebuild",
+    "name": "台账重建演练",
+    "criterionIds": [
+      "V-A2.2"
+    ],
+    "window": "切换批 smoke 段（16 号票：就绪探针 PASS 后、旧席归档前）",
+    "carrier": "tests/org-closed-loop-smoke.test.mjs::闭环烟测 ②（常驻钉桩）＋实操：停 host → 留 bots/ledger/events.jsonl → 冷启 → 读 openQueue()"
+  },
+  "isolatedRoot": {
+    "path": "/home/beijong/project/dsh-bots/artifacts/runs/e81db1d9-af91-4555-8069-ccb0f8778d61/drill-home",
+    "realDshHome": false
+  },
+  "startedAt": "2026-09-24T04:24:06.942Z",
+  "finishedAt": "2026-09-24T04:24:07.025Z",
+  "steps": [
+    {
+      "step": "冷启前：建门面（同一数据根的首个实例）",
+      "at": "2026-09-24T04:24:06.943Z"
+    },
+    {
+      "step": "驱动命令面：intake／planned／assigned 三张未闭合任务就位",
+      "at": "2026-09-24T04:24:07.023Z",
+      "events": 8
+    },
+    {
+      "step": "停 host：关闭旧门面（释放台账写锁）",
+      "at": "2026-09-24T04:24:07.024Z",
+      "writerLockHeld": false
+    },
+    {
+      "step": "冷启：同数据根建新门面并读 openQueue()",
+      "at": "2026-09-24T04:24:07.025Z",
+      "events": 8
+    },
+    {
+      "step": "核对事件日志完整性（validateEventRecord 逐条）",
+      "at": "2026-09-24T04:24:07.025Z",
+      "checked": 8
+    }
+  ],
+  "queryConclusion": {
+    "method": "ledger.openQueue()（状态＝事件序列的投影；冷启后由事件日志重新折叠）",
+    "before": [
+      {
+        "taskId": "TK-28d00001",
+        "status": "intake",
+        "owner": null,
+        "lastSeq": 1
+      },
+      {
+        "taskId": "TK-28d00002",
+        "status": "planned",
+        "owner": null,
+        "lastSeq": 4
+      },
+      {
+        "taskId": "TK-28d00003",
+        "status": "assigned",
+        "owner": "researcher",
+        "lastSeq": 8
+      }
+    ],
+    "after": [
+      {
+        "taskId": "TK-28d00001",
+        "status": "intake",
+        "owner": null,
+        "lastSeq": 1
+      },
+      {
+        "taskId": "TK-28d00002",
+        "status": "planned",
+        "owner": null,
+        "lastSeq": 4
+      },
+      {
+        "taskId": "TK-28d00003",
+        "status": "assigned",
+        "owner": "researcher",
+        "lastSeq": 8
+      }
+    ],
+    "identical": true,
+    "holdingsBefore": {
+      "botId": "researcher",
+      "taskId": "TK-28d00003",
+      "status": "assigned"
+    },
+    "eventCount": 8
+  },
+  "ledger": {
+    "path": "/home/beijong/project/dsh-bots/artifacts/runs/e81db1d9-af91-4555-8069-ccb0f8778d61/drill-home/bots/ledger/events.jsonl",
+    "present": true,
+    "sha256": "f698209c268c002ac70df21307df0edfa76fb0c1db42c254536a7f6ff8bbb241",
+    "byteLength": 3005,
+    "lineCount": 8,
+    "lastSeq": 8
+  },
+  "verdict": {
+    "ok": true,
+    "checks": [
+      {
+        "name": "停机前在办集合非空（演练有对象）",
+        "ok": true,
+        "detail": "openQueue=3"
+      },
+      {
+        "name": "在手任务可查（V-A2.6 口径）",
+        "ok": true,
+        "detail": "holdingsFor(researcher)=TK-28d00003"
+      },
+      {
+        "name": "停 host 后不持写锁",
+        "ok": true,
+        "detail": "holdsWriterLock()=false"
+      },
+      {
+        "name": "冷启后未闭合队列逐行重建一致",
+        "ok": true,
+        "detail": "重建 3 条"
+      },
+      {
+        "name": "事件数在停启间不变（无静默补写/丢写）",
+        "ok": true,
+        "detail": "8 → 8"
+      },
+      {
+        "name": "幂等键在冷启后仍生效（同键不落第二事件）",
+        "ok": true,
+        "detail": "replayed=true"
+      },
+      {
+        "name": "事件日志逐条过台账校验器（eventHash 重算＋seq 连续）",
+        "ok": true,
+        "detail": "checked=8/8"
+      }
+    ],
+    "problems": []
+  },
+  "provenance": {
+    "script": "scripts/ledger-drill.mjs",
+    "scriptSha256": "3b95b422eb77a1ae3ee1929fbd75c246c9a5c93388ed15e373b5f3d7cf47294f",
+    "sourceManifest": [
+      {
+        "path": "lib/host-faces.js",
+        "sha256": "ff94523b260e523505b4739c8998e4ead723ea98a76826a652aca5f7dbda6d44",
+        "byteLength": 16031
+      },
+      {
+        "path": "lib/knowledge.js",
+        "sha256": "6f0da9cdf3c064529eb315f2a0fa02bcc742eb551d70cea206b43d8bc8f8b95b",
+        "byteLength": 18738
+      },
+      {
+        "path": "lib/ledger-evidence.js",
+        "sha256": "481eca962e234c791efd349bae7ac43df063a2cd06760b3b0fb57f20181284dc",
+        "byteLength": 22636
+      },
+      {
+        "path": "lib/mail-plane.js",
+        "sha256": "a768b6c313a63a0f5d164714090f00f3d5c4e2fc8fcff4caa87931f2622d2d6d",
+        "byteLength": 22877
+      },
+      {
+        "path": "lib/mail-seq-lock.js",
+        "sha256": "3614872a9b8e2b9a49e0d9493cad6df77b340829c01cd8b0285c7d7b325d70e9",
+        "byteLength": 2867
+      },
+      {
+        "path": "lib/org/acceptance-coordinates.js",
+        "sha256": "750037a0c511241cb7e567dc07bee20da8c800f79a87ed3f44cc42943d0f1b20",
+        "byteLength": 46861
+      },
+      {
+        "path": "lib/org/brief-gate.js",
+        "sha256": "fb4ec4bd05e8248a74fc8e203a95ac21c7f19e29a936e0728406a5b9e9a7014b",
+        "byteLength": 3692
+      },
+      {
+        "path": "lib/org/brief.js",
+        "sha256": "606ae2ffb897a4510fa5ca7465146d9e78eac91380af58757cd2823a58c9830c",
+        "byteLength": 11030
+      },
+      {
+        "path": "lib/org/capability-base.js",
+        "sha256": "9f24d8b54f92a05c57c90348ffaabfe113a4990e9f6b419af9926a9af8b14d22",
+        "byteLength": 11749
+      },
+      {
+        "path": "lib/org/durability.js",
+        "sha256": "4ddfce677a23329f5ad7666a86e3beff9aecc3d668e99d43d1a55ed3643a4a83",
+        "byteLength": 64843
+      },
+      {
+        "path": "lib/org/face-scan.js",
+        "sha256": "ba68027d4136e07191cca206c70dee69000fa5f92e578b03d49f4639deefc0ea",
+        "byteLength": 2151
+      },
+      {
+        "path": "lib/org/human-inbox.js",
+        "sha256": "f68146bf063e7437049347cccc9352023e023fbb172fbce70134a7c5bf526370",
+        "byteLength": 25753
+      },
+      {
+        "path": "lib/org/is-non-empty-string.js",
+        "sha256": "b8e5ea9a834cc785a8eeef467a118c5464d7df09d534b64102b4b002138505df",
+        "byteLength": 538
+      },
+      {
+        "path": "lib/org/ledger-events.js",
+        "sha256": "4d81c546062ea105a7c20b2a2f4d3da5da76c6b892aed723ec18fca5201f81c9",
+        "byteLength": 11575
+      },
+      {
+        "path": "lib/org/memory-layer.js",
+        "sha256": "633c5066c10cc83f549dd299621d5ab47b0d4cb2e2e071a2b6d5fa01a68f3eda",
+        "byteLength": 21058
+      },
+      {
+        "path": "lib/org/probe.js",
+        "sha256": "b7501952500ae63965cdc1efcafc2764c575f435aa3ec87c8840cca8f57d65f9",
+        "byteLength": 16354
+      },
+      {
+        "path": "lib/org/review-kit.js",
+        "sha256": "ec559d7ea4a6bdcae148ca3221c96b9d07777da5713fbd42f10af73ac3abe338",
+        "byteLength": 15854
+      },
+      {
+        "path": "lib/org/role-cards.js",
+        "sha256": "c6476a65109827223ed3dd27e895250f0cc04e2045a011eb4bff7ff4993ec836",
+        "byteLength": 23741
+      },
+      {
+        "path": "lib/org/run-count.js",
+        "sha256": "0765d53c71d7a26576f71cc3704627487304af8209ce453545bc6db92cd73642",
+        "byteLength": 1923
+      },
+      {
+        "path": "lib/org/store-base.js",
+        "sha256": "1dcc1271fef4e0d1314fcbb19f0a9643235da4df6f66e59b2f0be27a6b9357f8",
+        "byteLength": 20800
+      },
+      {
+        "path": "lib/org/task-ledger.js",
+        "sha256": "4dfd7cf0311964abf833d68a7fea15bd324ccafa6902143129c4c1852eebd08b",
+        "byteLength": 89250
+      },
+      {
+        "path": "lib/org/unauthorized-count.js",
+        "sha256": "10010fe266e129f44b3f51cb33e0a9d7cc88288003c257d0861cc3cda49ddaeb",
+        "byteLength": 7846
+      },
+      {
+        "path": "lib/sentinel-provenance.js",
+        "sha256": "fabad41a9ae0772790b2dc87788a090a8bcd026cf636e2eb6c0dd541de6322cd",
+        "byteLength": 22223
+      },
+      {
+        "path": "lib/sentinel-safety.js",
+        "sha256": "8d52fa3d674a0f0ee41131b3e7b74695b648407e51e61b40f59c2f68f0d9244a",
+        "byteLength": 11877
+      },
+      {
+        "path": "lib/sentinel-shadow.js",
+        "sha256": "88a047e026beaf46c00bdedaa791fd1ae46abb04c9eaf14db150ca8a18902df3",
+        "byteLength": 15452
+      },
+      {
+        "path": "scripts/ledger-drill.mjs",
+        "sha256": "3b95b422eb77a1ae3ee1929fbd75c246c9a5c93388ed15e373b5f3d7cf47294f",
+        "byteLength": 15995
+      },
+      {
+        "path": "tests/helpers/brief-fixture.mjs",
+        "sha256": "0a0fd2a32bd9115a685b61c4bf009fb177f047ccdf87b06844a0213047965c19",
+        "byteLength": 725
+      }
+    ],
+    "sourceManifestSha256": "6c1638b4df7d51a5cb4dd34f3a88030689b060c68136058aefa7abe6567a9408"
+  }
+}
