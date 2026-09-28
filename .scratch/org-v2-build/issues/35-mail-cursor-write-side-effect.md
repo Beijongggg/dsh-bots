@@ -32,7 +32,7 @@
 **Blocked by:** 31（同改 mail 面：31 改 `send` 去重腿，本票改 `cursor` 读面腿；
 串行实施，免同文件并发冲突）
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] 读面／写面拆分或方法语义修正（二选一，理由在案）
 - [x] cursor 身份腿口径写死（匿名 GET 不再能触发写）
@@ -105,3 +105,35 @@ TDD 三缝（vertical slice，行为经公开接口断言，不测 mail-plane �
   用例无计时器／并发／网络，505 件 prune 断言 mtime 全显式设定、确定性）。
 - 真实运行面零写入（夹具全走 `mkdtempSync` 临时目录；部署同步未做——属 16 号票）；
   不触 sourceManifest 文件、冻结包（门② 10/10 为凭）；未新增正式文档，无地图变更。
+
+### 2026-09-28 code-review 收口
+
+两只读隔离上下文子代理并行评审（身份未披露，不作推断），固定点 `73e8d33`，
+评审快照提交 `654a094`，以 `git diff 73e8d33...HEAD` 仅比较本票五件差异
+（作用域干净，无票外 hunk）。
+
+- **Standards**：硬性规范违例 **0**，判断性建议 **3**。`tail[0]` 双重级联
+  （possible Repeated Switches／Duplicated Code）→ 已处置：`op` 命名与中继调用
+  并入单源分派表（`{mail.send, mail.consume, mail.cursor}`），调用点
+  `relayCall(dispatch)`；`rejectAuthz` 的 `opOverride` 形参改名 `recordOp`
+  （possible Mysterious Name 消解）。`post()` 薄委托（possible Middle Man，弱项）
+  评估后保留：失败／回执映射是 `post` 的职责，`attempt` 只做重试传输，分层与
+  `V-A4.7` 三分支叙述一致。另两项依覆盖规则压制（`actor{kind,id}` 重复＝规格
+  钦定身份口径；跨文件铺展＝立项三缝 vertical slice）。
+- **Spec**：越权 **0**，不符 **0**，缺失／部分 **2**，全处置。①门证据：在既有
+  “全量×2＋preflight PASS×2”之外再跑全量＋preflight 各一次（处置后树），随后落档
+  终树再验一次，累计全量 **69/69**×4、preflight **PASS**×4
+  （①69/69 ②10/10 ③0 违例 ④11/0/0）；
+  中间单次 68/69 记为未复现单文件抖动——失败文件名因日志写会话外 ephemeral
+  `/tmp` 而丢失（过程教训：验证日志一律写工作区内临时文件、阅后即删），不归因
+  本票改动（新增用例无计时器／并发／网络，prune 断言 mtime 全显式设定）；
+  若复现则按失败文件名追查。②cursor 身份负例：补 `from` 夹带→409 与缺
+  `actor`→403 两锁（此前仅锁 `botId` 夹带／host 冒名／ghost，依赖共享块隐式
+  覆盖；现六腿齐全：POST 200／ghost 403＋留痕／host 403／botId 409／from 409／
+  缺身份 403／GET 405）。
+- 处置后复验：两文件合跑 **20/20**，全量 **69/69**，preflight **PASS**
+  （四门同上）；改动文件 `node --check` 通过。落档后终树再验一次：全量累计
+  **69/69**×4，preflight **PASS**×4，四门不变。
+
+两轴无阻断项，本票转 `resolved`。落档事件见当月日志卷
+（`docs/changelog/2026-09-01.md` `EV-20260928-mail-cursor-post`）。
