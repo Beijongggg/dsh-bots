@@ -11,6 +11,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, w
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { EventEmitter } from "node:events";
+import { spawnSync } from "node:child_process";
 
 import {
   createMailHttpApi, createMailRelay, createMailRejectionRecorder, MAIL_INBOX_KEYS
@@ -29,6 +30,13 @@ function mkHome() {
 process.on("exit", () => {
   for (const home of HOMES) rmSync(home, { recursive: true, force: true });
 });
+
+/** 已死进程的 pid（拉起即收割）：36 号票死主锁快路的夹具前提。 */
+function deadPid() {
+  const child = spawnSync(process.execPath, ["-e", ""]);
+  if (child.status !== 0) throw new Error("取死 pid 的夹具子进程未正常退出");
+  return child.pid;
+}
 
 const REGISTRY = {
   a: { id: "a", name: "发信者" },
@@ -350,6 +358,31 @@ async function callMailApi(api, method, url, { headers = {}, body = null, hooks 
   await createMailHttpApi({ json, readBody, routeSegments, ...hooks })(makeReq(method, url, { headers, body }), res, api);
   return { status: res.status, body: res.payload };
 }
+
+test("HTTP 投递：inbox seq 锁留痕经中继 logger 出栈（36 号票 A9）", async () => {
+  const home = mkHome();
+  const warns = [];
+  const api = {
+    mailRelay: createMailRelay({
+      dshHome: home, readRegistry: () => REGISTRY, logger: { warn: (line) => warns.push(line) }
+    })
+  };
+  // 死主锁：inbox 的 .seq.lock 持有者 pid 已不存在 → 快路接管，投递照常
+  const lockDir = join(inboxDirFor(home, "b"), ".seq.lock");
+  mkdirSync(lockDir, { recursive: true });
+  writeFileSync(join(lockDir, "owner.json"), JSON.stringify({ pid: deadPid(), at: Date.now() }));
+
+  const res = await callMailApi(api, "POST", "/api/bots/_mail/send", {
+    body: { actor: { kind: "post", id: "a" }, to: "b", text: "锁接管后投递" }
+  });
+  assert.equal(res.status, 200, JSON.stringify(res.body));
+  assert.equal(res.body.ok, true);
+  assert.equal(res.body.seq, 1, "接管后投递落 seq 1（锁被接管而非失败）");
+  assert.equal(readAllInboxLines(home, "b").length, 1, "消息照常落盘");
+  assert.equal(warns.length, 1, "接管恰留一行（留痕经宿主 logger，不落新文件面）");
+  assert.ok(warns[0].includes("lock=mail-seq") && warns[0].includes("takeover=1") && warns[0].includes("outcome=acquired"),
+    warns[0]);
+});
 
 test("HTTP cursor：继承属性不是在册实例，拒绝不落基线并留下正确操作名", async () => {
   const { home, relay: r } = relay();

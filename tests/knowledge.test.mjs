@@ -16,7 +16,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const { ensureKnowledgeBase, readIndex, nextReportId, registerReport, deprecateReport, searchIndex,
@@ -36,6 +36,14 @@ function mkHome() {
   return home;
 }
 const NOW = new Date("2026-08-24T06:00:00.000Z");
+
+/** 已死进程的 pid（拉起即收割）：36 号票死主锁快路的夹具前提。 */
+function deadPid() {
+  const child = spawnSync(process.execPath, ["-e", ""]);
+  if (child.status !== 0) throw new Error("取死 pid 的夹具子进程未正常退出");
+  return child.pid;
+}
+
 const input = (overrides = {}) => ({
   title: "调研标题", body: "# 报告正文\n...",
   summary: "三句摘要", tags: ["标签A", "标签B"],
@@ -305,6 +313,102 @@ test("acquireIndexLock：owner.json 不可读时 release 不删锁（F-E：防�
     fs.rmSync(path.join(lockDir, "owner.json")); // 归属不可证明（缺失与不可读同路径）
     lock.release();
     assert.ok(fs.existsSync(lockDir), "无法证明归属时不得删除锁目录（泄漏由 3s 陈旧接管自愈）");
+  } finally {
+    fs.rmSync(lockDir, { recursive: true, force: true });
+  }
+});
+
+test("acquireIndexLock（36 号票 A9）：死主锁不等 staleMs 即接管；活主锁不抢", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  const lockDir = path.join(knowledgeDir(home), ".lock");
+  // 死主（owner.json 的 pid 已不存在）：快路立即接管——staleMs 拉大到 60s 把慢路关掉，
+  // 取得锁这件事本身就证明走的是死主快路，而不是等陈旧阈值。
+  fs.mkdirSync(lockDir);
+  fs.writeFileSync(path.join(lockDir, "owner.json"), JSON.stringify({ pid: deadPid(), at: Date.now() }));
+  const lock = acquireIndexLock(home, { spinMs: 3000, staleMs: 60_000, tickMs: 10 });
+  assert.equal(lock.tookOver, true, "死主锁须被立即接管");
+  lock.release();
+
+  // 活主（本进程）且未陈旧：不得被快路抢走，fail closed 超时且锁目录保持
+  fs.mkdirSync(lockDir);
+  fs.writeFileSync(path.join(lockDir, "owner.json"), JSON.stringify({ pid: process.pid, at: Date.now() }));
+  try {
+    assert.throws(() => acquireIndexLock(home, { spinMs: 300, staleMs: 60_000, tickMs: 10 }), /锁超时/,
+      "活持有者的锁不得被快路接管");
+    assert.ok(fs.existsSync(lockDir), "活主锁目录不得被删");
+  } finally {
+    fs.rmSync(lockDir, { recursive: true, force: true });
+  }
+});
+
+test("registerReport（36 号票 A9）：锁争用经 logger 留痕——无争用零告警，接管留一行", () => {
+  const clean = mkHome();
+  ensureKnowledgeBase(clean);
+  const quiet = [];
+  const first = registerReport({
+    dshHome: clean, botId: "b", input: input(), now: NOW, logger: { warn: (line) => quiet.push(line) }
+  });
+  assert.equal(first.ok, true, first.error);
+  assert.deepEqual(quiet, [], "亚阈快路径不留痕（留痕不制造噪声）");
+
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  const lockDir = path.join(knowledgeDir(home), ".lock");
+  fs.mkdirSync(lockDir);
+  fs.writeFileSync(path.join(lockDir, "owner.json"), JSON.stringify({ pid: deadPid(), at: Date.now() }));
+  const lines = [];
+  const r = registerReport({
+    dshHome: home, botId: "b", input: input(), now: NOW, logger: { warn: (line) => lines.push(line) }
+  });
+  assert.equal(r.ok, true, r.error);
+  assert.equal(r.id, "R-2026-001");
+  assert.equal(lines.length, 1, "接管恰留一行（指标随行：lock／waitMs／outcome／takeover／holderPid／dir）");
+  assert.ok(lines[0].includes("lock=knowledge-index"), lines[0]);
+  assert.ok(lines[0].includes("takeover=1"), lines[0]);
+  assert.ok(lines[0].includes("outcome=acquired"), lines[0]);
+  assert.equal(fs.existsSync(lockDir), false, "接管后锁目录已清理");
+});
+
+test("deprecateReport（36 号票 A9）：与登记同一留痕口径（同一把索引锁）", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  registerReport({ dshHome: home, botId: "b", input: input(), now: NOW });
+  const lockDir = path.join(knowledgeDir(home), ".lock");
+  fs.mkdirSync(lockDir);
+  fs.writeFileSync(path.join(lockDir, "owner.json"), JSON.stringify({ pid: deadPid(), at: Date.now() }));
+  const lines = [];
+  const r = deprecateReport({
+    dshHome: home, id: "R-2026-001", reason: "36 号票留痕口径", now: NOW,
+    logger: { warn: (line) => lines.push(line) }
+  });
+  assert.equal(r.ok, true, r.error);
+  assert.equal(lines.length, 1, "接管恰留一行");
+  assert.ok(lines[0].includes("lock=knowledge-index") && lines[0].includes("takeover=1"), lines[0]);
+});
+
+test("registerReport（36 号票 A9）：默认冻结上限 1.5s（旧缺省 6s）——超时留痕且零落盘", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  const lockDir = path.join(knowledgeDir(home), ".lock");
+  // mtime 设为未来（远端写入/时钟偏差形态）：陈旧接管永不成立 → 观察纯 spin 上限
+  fs.mkdirSync(lockDir);
+  fs.writeFileSync(path.join(lockDir, "owner.json"), JSON.stringify({ pid: process.pid, at: Date.now() }));
+  const future = new Date(Date.now() + 3_600_000);
+  fs.utimesSync(lockDir, future, future);
+  const lines = [];
+  const startedAt = Date.now();
+  const r = registerReport({
+    dshHome: home, botId: "b", input: input(), now: NOW, logger: { warn: (line) => lines.push(line) }
+  });
+  const elapsed = Date.now() - startedAt;
+  try {
+    assert.equal(r.ok, false, "拿不到锁不得无锁写入");
+    assert.match(r.error, /锁超时/);
+    assert.ok(elapsed >= 1400, `默认 spinMs 须实际跑满自旋窗口（实得 ${elapsed}ms）`);
+    assert.ok(elapsed < 5000, `默认冻结上限已从 6000ms 收紧（实得 ${elapsed}ms）`);
+    assert.equal(lines.filter((line) => line.includes("outcome=timeout")).length, 1, "超时无条件留痕");
+    assert.equal(readIndex(home).length, 0, "超时路径零落盘");
   } finally {
     fs.rmSync(lockDir, { recursive: true, force: true });
   }

@@ -15,6 +15,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
+import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -45,6 +46,13 @@ function mkHome() {
   const home = mkdtempSync(join(tmpdir(), "dsh-ledger-host-"));
   mkdirSync(join(home, "bots", "inbox"), { recursive: true });
   return home;
+}
+
+/** 已死进程的 pid（拉起即收割）：36 号票死主锁快路的夹具前提。 */
+function deadPid() {
+  const child = spawnSync(process.execPath, ["-e", ""]);
+  if (child.status !== 0) throw new Error("取死 pid 的夹具子进程未正常退出");
+  return child.pid;
 }
 
 /** 写一条 skipped-stale receipt（v1 收单积压超限截断的现场证据）。 */
@@ -689,7 +697,7 @@ test("复核面消费点在台账腿（27 号票）：同一信封二次提交�
  * 台账、签发器、鉴权装配件、宿主接线（登记执行体落临时 DSH_HOME）。形状门用例与既有
  * 用例共用一份装配，避免第三份手抄（装配漂移＝用例间口径分叉）。
  */
-function mkKnowledgeHost(home) {
+function mkKnowledgeHost(home, { logger = { warn() {}, error() {}, info() {} } } = {}) {
   const row = {
     botId: "bot-researcher", pid: process.pid, startedAt: `proc:${process.pid}`,
     hostInstanceId: "gen-knowledge-gate", at: Date.now()
@@ -701,16 +709,46 @@ function mkKnowledgeHost(home) {
   const access = createLedgerAccessKit({ issuer, postForBot: (botId) => (botId === "bot-researcher" ? "researcher" : null) });
   const host = createLedgerHost({
     ledger, now: () => NOW, readBotIds: () => [], isAlive: () => true, broadcast: () => {},
-    logger: { warn() {}, info() {} },
+    logger,
     authorizeCommand: access.authorize,
+    // 与 lib/index.js 生产装配同形（36 号票 A9 起执行体带 logger）：索引锁争用
+    // 留痕经宿主 logger 出栈；夹具拷贝漂移＝用例与实际接线口径分叉。
     knowledgeRegister: ({ op, payload, botId }) =>
       (op === "knowledge.deprecate"
-        ? deprecateReport({ dshHome: home, id: payload.id, reason: payload.reason })
-        : registerReport({ dshHome: home, botId, input: payload }))
+        ? deprecateReport({ dshHome: home, id: payload.id, reason: payload.reason, logger })
+        : registerReport({ dshHome: home, botId, input: payload, logger }))
   });
-  const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
+  const api = { dshHome: home, ledgerHost: host, ctx: { logger } };
   return { ledger, issuer, access, host, api };
 }
+
+test("knowledge.register 命令腿：索引锁留痕经宿主 logger 出栈（36 号票 A9）", async () => {
+  const home = mkHome();
+  try {
+    const warns = [];
+    const { issuer, api } = mkKnowledgeHost(home, { logger: { warn: (line) => warns.push(line) } });
+    const role = issuer.issueRoleCapability({ botId: "bot-researcher", post: "researcher" });
+    assert.equal(role.ok, true, role.reason);
+
+    // 死主锁：.lock 持有者 pid 已不存在 → 快路接管并留痕（宿主事件循环不再为其冻结）
+    const lockDir = join(home, "bots", "knowledge", ".lock");
+    mkdirSync(lockDir, { recursive: true });
+    writeFileSync(join(lockDir, "owner.json"), JSON.stringify({ pid: deadPid(), at: Date.now() }));
+
+    const ok = await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "knowledge.register", actor: { kind: "post", id: "bot-researcher" }, idempotencyKey: "k-trace",
+      capability: role.envelope, payload: { title: "留痕", summary: "s", body: "b" }
+    });
+    assert.equal(ok.status, 200, JSON.stringify(ok.body));
+    assert.equal(ok.body.ok, true);
+    assert.equal(warns.length, 1, "接管恰留一行（留痕随宿主日志，不落新文件面）");
+    assert.ok(warns[0].includes("lock=knowledge-index") && warns[0].includes("takeover=1") && warns[0].includes("outcome=acquired"),
+      warns[0]);
+    assert.equal(readIndex(home).length, 1, "接管后登记照常落盘");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
 
 test("知识命令腿 actor 形状门：无 actor／畸形 actor 一律拒（与台账 invalid-actor 同源；零落盘、不消耗信封）", async () => {
   const home = mkHome();
