@@ -29,7 +29,7 @@
 
 **Blocked by:** 无（但 16 号票切换批与各演练的证据落点依赖本票定形）
 
-**Status:** resolved
+**Status:** resolved（2026-09-24 原票返修完成；实施、验证与复审见 Comments 末条）
 
 - [x] 台账证据进包的形态定死（复制或摘要＋指针，写明理由）——**复制进包**，被否方案与理由见 Comments ①
 - [x] 采集范围按 runId 窗口切，窗口外事实不混入——`seq ∈ (fromSeq, toSeq]`，窗口内收全；整文件规模入 `source` 不隐藏
@@ -145,3 +145,33 @@
   `.scratch/org-v2-build/attachments/28-ledger-evidence/` 下放本轮 `human.json`（包内人工块
   原文）、`modified-files.json`／`new-test-modules.json`（packager 入参）、两个 e2e run 的
   runner stdout／stderr 与 preflight 输出——证据包本身自带完整绑定，附件只是便于复核。
+
+### 2026-09-24 复审返修启动
+
+用户在任务量评估后指令「启动」，授权原票返修。现 CLI 虽能复算包内事件，却因
+绑定附件不可访问而整体失败，未兑现本票「一个包文件即可复算」的承诺。
+本次在独立复验 CLI 接缝区分默认的包内复算与显式附件交叉核验；后者仍调用既有
+严格绑定校验器。补没有原附件／台账的离线正例、包内篡改负例与附件核验正负例。
+打包阶段的 E4 校验保持，计划只改非冻结 CLI、测试与文档，不覆盖既有证据件。
+
+### 2026-09-24 复审返修完成
+
+- **根因与修复**：原 CLI 在包内复算后无条件读取 binding 指向的附件。现在
+  `--package <包>` 默认只复算嵌入的台账证据段，输出 `artifact:null`；显式加
+  `--check-binding` 才调用 `loadAndVerifyLedgerEvidence` 严格核附件路径、哈希、
+  字节数与内容一致性。`--artifact` 单件复算及 `--ledger-events` 同窗核验保留，
+  `--artifact` 与 `--check-binding` 同给按用法错误拒绝。CLI 不宣称重验整包。
+- **回归**：复制包后删除夹具原 run 与台账根，仍可独立验绿；包内事件／digest／窗口／
+  自陈篡改、显式附件缺失／篡改仍判红。先复现原附件缺失导致独立复算失败，再修至绿。
+- **返修复审**：固定点 `a04707c` 的两轴复审：Standards 0 项；Spec 1 项 P2——
+  `--ledger-events` 缺值会吞掉后面的 `--check-binding`，合法空窗包可假绿。已先补
+  真实 CLI 失败回归，再令路径参数拒绝缺值、空串及后续开关，报 exit 2 且不输出
+  复验结论。Spec 独立复跑 `node tests/ledger-evidence-verify.test.mjs` **6/6**；
+  Standards 增量复核通过，两轴未处置项均 0。
+- **实包验证**：0010 包在 Node 权限子进程中只放行包文件与仓内执行依赖、禁止读取
+  原 run 附件时，独立复算 exit 0、8 条事件通过、`artifact:null`；通常只读环境下
+  同包加 `--check-binding` 亦 exit 0、附件检查通过。原包与附件均未修改。
+- **收口与边界**：最终 `npm run preflight` 四门 PASS：①67/67 测试文件；②0010
+  冻结面 10/10；③0 违例（97 md）；④11 PASS／0 FAIL／0 SKIP。授权沿用上条用户
+  「启动」。打包器、台账证据库及事件校验叶件均未改，E4 与 schema 保持；没有重出
+  证据包，真实运行面、旧包／raw／ledger 零写入。

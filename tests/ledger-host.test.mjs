@@ -499,15 +499,31 @@ test("复核面 HTTP：移交件读与报告提交经帽信封门；未携帽 40
     assert.deepEqual(handoff.body.brief.reviewPoints, ["before-external-visibility"]);
 
     // 携帽报 closed → 200＋续签帽；上浮不触发（一轮闭合）
-    const reported = await call(api, "POST", "/api/bots/_ledger/reviews", {
+    const reportBody = {
       taskId: "TK-00000070", actor: { kind: "post", id: "bot-reviewer" }, idempotencyKey: "rvh-report",
       capability: hat.envelope,
       report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "review-model" }
-    });
+    };
+    const reported = await call(api, "POST", "/api/bots/_ledger/reviews", reportBody);
     assert.equal(reported.status, 200);
     assert.equal(reported.body.ok, true);
     assert.equal(reported.body.escalated, false);
     assert.equal(reported.body.capability?.payload?.post, "verifier", "响应携带续签帽（链式）");
+
+    // 同键缓存成功不代表本次消费。旧帽反复重放、新帽重放都不能增发帽或追加事件。
+    const afterReport = ledger.events().length;
+    for (const capability of [hat.envelope, hat.envelope, reported.body.capability]) {
+      const replay = await call(api, "POST", "/api/bots/_ledger/reviews", { ...reportBody, capability });
+      assert.equal(replay.status, 200);
+      assert.equal(replay.body.replayed, true);
+      assert.equal(replay.body.capability === undefined, true, "缓存成功的重放不重签帽");
+    }
+    assert.equal(ledger.events().length, afterReport, "同键重放零追加事件");
+    const nextReport = await call(api, "POST", "/api/bots/_ledger/reviews", {
+      ...reportBody, idempotencyKey: "rvh-report-next", capability: reported.body.capability
+    });
+    assert.equal(nextReport.status, 200, "重放没有烧掉新帽，新键提交仍可正常消费并续签");
+    assert.equal(nextReport.body.capability?.payload?.post, "verifier");
 
     // 他人冒用帽 → 403（信封属 bot-reviewer）
     const impostor = await call(api, "POST", "/api/bots/_ledger/reviews", {
@@ -561,15 +577,26 @@ test("复核面续签（21 号票 ①）：报告被台账拒绝（review-not-re
     assert.equal(hat.ok, true, hat.reason);
 
     // 入口预筛通过（被指定），但台账腿拒绝：subject 未在本任务登记复核请求
-    const rejected = await call(api, "POST", "/api/bots/_ledger/reviews", {
+    const rejectedBody = {
       taskId: "TK-00000071", actor: { kind: "post", id: "bot-reviewer" }, idempotencyKey: "rvr-bad",
       capability: hat.envelope,
       report: { subject: "before-irreversible-write", verdict: "closed", gaps: [], modelIdentity: "review-model" }
-    });
+    };
+    const rejected = await call(api, "POST", "/api/bots/_ledger/reviews", rejectedBody);
     assert.equal(rejected.status, 409);
     assert.equal(rejected.body.code, "review-not-requested");
     assert.equal(rejected.body.capability?.payload?.post, "verifier",
       "预筛通过（帽腿已过、已被台账腿消费）而报告被拒：同样续签帽，否则复核者连报即断链");
+
+    const afterRejection = ledger.events().length;
+    for (const capability of [hat.envelope, hat.envelope, rejected.body.capability]) {
+      const replay = await call(api, "POST", "/api/bots/_ledger/reviews", { ...rejectedBody, capability });
+      assert.equal(replay.status, 409);
+      assert.equal(replay.body.replayed, true);
+      assert.equal(replay.body.code, "review-not-requested");
+      assert.equal(replay.body.capability === undefined, true, "缓存拒绝带 authorized 也不得重复签帽");
+    }
+    assert.equal(ledger.events().length, afterRejection, "拒绝结果的重放也不再落事件");
 
     // 续签帽可连报：换合法 subject 提交即 200（链式接力）
     const reported = await call(api, "POST", "/api/bots/_ledger/reviews", {

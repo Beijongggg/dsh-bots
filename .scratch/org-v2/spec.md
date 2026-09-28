@@ -766,7 +766,7 @@ Status: ready-for-agent
 |---|---|---|---|---|
 | `V-A2.1` | 台账＝host 侧 append-only 事件日志、单一写者；bot 无台账文件直写通道 | tests/task-ledger.test.mjs::单一写者＋tests/ledger-host.test.mjs::HTTP 命令面是唯一写入口 | 回归记录 | 常驻 |
 | `V-A2.2` | 状态为事件投影：清空内存态重启 host 后可从未闭合队列的事件重建 | tests/task-ledger.test.mjs::状态是事件投影＋查询:ledger.openQueue()＋演练:drill-ledger-rebuild | 台账事件／增量包 | 实验期一次 |
-| `V-A2.3` | 主干十态＋四旁路齐备，每态可回答「下一步谁负责、超时怎么办」；非法转移被确定性层拒绝（含 CAS 期望状态不符即拒） | tests/task-ledger.test.mjs::状态表：主干十态＋tests/task-ledger.test.mjs::主干转移＋tests/task-ledger.test.mjs::非法转移被确定性层拒绝＋tests/task-ledger.test.mjs::CAS：期望状态不符即拒 | 回归记录 | 常驻 |
+| `V-A2.3` | 主干十态＋四旁路齐备，每态可回答「下一步谁负责、超时怎么办」；非法转移被确定性层拒绝（含 CAS 期望状态不符即拒） | tests/task-ledger.test.mjs::状态表：主干十态＋tests/task-ledger.test.mjs::主干转移＋tests/task-ledger.test.mjs::非法转移被确定性层拒绝＋tests/task-ledger.test.mjs::CAS：期望状态不符即拒＋tests/acceptance-records.test.mjs::关闭检查期间取消＋tests/acceptance-records.test.mjs::关闭检查期间改简报或强制加审＋tests/acceptance-records.test.mjs::同键并发关闭只记录首次结论＋tests/acceptance-records.test.mjs::不同键并发关闭只有一次成功 | 回归记录 | 常驻 |
 | `V-A2.4` | 四要素简报四非空、验收判据非空且可执行；派出即冻，改动只经 amend 事件并显式通知承接方 | tests/org-brief.test.mjs::四要素各非空＋tests/task-ledger.test.mjs::派出即冻结＋tests/task-ledger.test.mjs::amend：追加事件并通知 | 回归记录 | 常驻 |
 | `V-A2.5` | 派单租约：逾期未接自动释放回队列并通知派单方；租约到期回收，重派封顶后上浮 | tests/task-ledger.test.mjs::派单租约＋tests/task-ledger.test.mjs::重派达封顶则上浮用户＋tests/ledger-host.test.mjs::值守轮询＋演练:drill-lease-reclaim | 台账事件 | 实验期一次 |
 | `V-A2.6` | 一实例同时只持一个进行中任务，第二次归属被机械拒绝 | tests/task-ledger.test.mjs::一实例同时只持一个进行中任务＋tests/org-dispatch-decision.test.mjs::派单决策：空闲且可承接者首中 | 回归记录 | 常驻 |
@@ -786,7 +786,7 @@ Status: ready-for-agent
 | `V-A3.2` | L2 组织命令经认证 host 通道；台账命令鉴权三元组各有可执行负例 | tests/org-ledger-authz.test.mjs::腿一负例：岗位命令无信封即拒＋tests/org-ledger-authz.test.mjs::腿一负例：伪造签名＋tests/org-ledger-authz.test.mjs::腿二负例＋tests/org-ledger-authz.test.mjs::腿三负例＋tests/task-ledger.test.mjs::复核报告入账验帽 | 回归记录 | 常驻 |
 | `V-A3.3` | op-set 岗位表与实际签发对账一致，含 `ledger.read` 四常设岗有、复核帽无 | scripts/capability-issued-audit.mjs＋tests/capability-issued-audit.test.mjs::对账脚本：签发笔笔在岗位表内即绿＋tests/org-op-set.test.mjs::ledger.read 四常设岗有 | 回归记录 | 常驻 |
 | `V-A3.4` | 复核帽不含任何写 op（机械检查，不靠约定） | tests/org-op-set.test.mjs::复核帽不含任何写 op＋tests/org-op-set.test.mjs::共享面写者（V-A3.4 的本义） | 回归记录 | 常驻 |
-| `V-A3.5` | capability 由 host 在台账转移点签发（bot 不能自请）、单次消费、短 TTL 加心跳续签、任务域绑定、租约回收与关闭时自动吊销 | tests/org-capability-issue.test.mjs::任务能力：assign 转移点签发＋tests/org-ledger-authz.test.mjs::签发联动＋tests/org-ledger-authz.test.mjs::链式能力＋演练:drill-capability-issue-revoke | 台账事件 | 实验期一次 |
+| `V-A3.5` | capability 由 host 在台账转移点签发（bot 不能自请）、单次消费、短 TTL 加心跳续签、任务域绑定、租约回收与关闭时自动吊销 | tests/org-capability-issue.test.mjs::任务能力：assign 转移点签发＋tests/org-ledger-authz.test.mjs::签发联动＋tests/org-ledger-authz.test.mjs::链式能力＋tests/ledger-host.test.mjs::复核面 HTTP＋tests/ledger-host.test.mjs::复核面续签＋演练:drill-capability-issue-revoke | 台账事件 | 实验期一次 |
 | `V-A3.6` | 拒绝 fail closed，且拒绝本身记台账事件并回错误回执 | tests/org-ledger-authz.test.mjs::腿一负例：岗位命令无信封即拒＋tests/org-ledger-authz.test.mjs::拒绝幂等 | 回归记录 | 常驻 |
 | `V-A3.7` | 邮件零权威：capability 递送不经 mail；伪造 mail 不改变任何状态或权限 | tests/org-ledger-authz.test.mjs::越权投递面负例＋tests/org-capability-issue.test.mjs::递送不经 mail＋tests/org-mail-relay.test.mjs::mail.send：host 唯一写者 | 回归记录 | 常驻 |
 | `V-A3.8` | 无岗位以 danger-full-access 为履约前提，每岗在 workspace-write 下可履约 | tests/org-permissions.test.mjs::V-A3.8 | 回归记录 | 常驻 |

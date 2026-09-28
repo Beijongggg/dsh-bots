@@ -2,15 +2,15 @@
  * 台账证据复验器回归（org-v2 28 号票）——tests/ledger-evidence-verify.test.mjs。
  *
  * 覆盖「包外独立复算」这条路径的完整性：拿一个包文件即可复验（不要求台账在场、不要求
- * 宿主在跑），且**结论以复算为准**——篡改事件体／digest／绑定件／自陈结论逐项必须红；
- * 台账在场时同窗交叉核验为绿（append-only 增长不算坏）。
+ * 宿主在跑），且**结论以复算为准**——篡改包内事件体／digest／自陈结论必须红；
+ * 显式要求附件核验时，绑定件缺失或篡改必须红。台账在场时可做同窗交叉核验。
  */
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { captureLedgerEvidence } from "../lib/ledger-evidence.js";
@@ -68,17 +68,33 @@ async function fixture() {
 test("包外独立复算：一个包文件即可验绿（台账不在场也成立）", async () => {
   const f = await fixture();
   assert.ok(f.section.events.length >= 2);
-  const res = runCli(["--package", f.pkgPath]);
+  const copiedPackage = join(mkTmp(), "package.json");
+  writeFileSync(copiedPackage, readFileSync(f.pkgPath));
+  rmSync(dirname(f.artifactPath), { recursive: true, force: true });
+  rmSync(f.home, { recursive: true, force: true });
+  const res = runCli(["--package", copiedPackage]);
   assert.equal(res.status, 0, `stderr=${res.stderr}`);
   const out = JSON.parse(res.stdout);
   assert.equal(out.ok, true);
   assert.equal(out.checked, f.section.events.length);
-  assert.equal(out.artifact.contentMatch, true, "包内嵌入段与绑定件内容一致（规范化 JSON 逐字段）");
+  assert.equal(out.artifact, null, "默认不宣称已核验原附件");
   assert.equal(out.crossChecked, null, "未给台账路径＝不做交叉核验");
-  // 单件（run 内证据件）同样可验
+});
+
+test("显式附件交叉核验：原附件账实一致才通过，单件仍可独立复算", async () => {
+  const f = await fixture();
+  const res = runCli(["--package", f.pkgPath, "--check-binding"]);
+  assert.equal(res.status, 0, `stderr=${res.stderr}`);
+  assert.equal(JSON.parse(res.stdout).artifact.contentMatch, true);
+  // 单件（run 内证据件）不需要包、其他附件或台账。
   const res2 = runCli(["--artifact", f.artifactPath]);
   assert.equal(res2.status, 0, `stderr=${res2.stderr}`);
   assert.equal(JSON.parse(res2.stdout).ok, true);
+  assert.equal(JSON.parse(res2.stdout).artifact, null);
+  writeFileSync(f.artifactPath, readFileSync(f.artifactPath, "utf8") + " ");
+  const tampered = runCli(["--package", f.pkgPath, "--check-binding"]);
+  assert.equal(tampered.status, 1);
+  assert.match(JSON.parse(tampered.stdout).problems.join("；"), /byteLength 账实不符/);
 });
 
 test("结论以复算为准：篡改事件体／digest／绑定件／自陈逐项红", async () => {
@@ -130,7 +146,7 @@ test("结论以复算为准：篡改事件体／digest／绑定件／自陈逐�
   missing.executionEvidence.ledgerEvidence.binding = { ...missing.executionEvidence.ledgerEvidence.binding, path: join(mkTmp(), "nope.json") };
   const dir4 = mkTmp();
   write(missing, join(dir4, "pkg.json"));
-  const res4 = runCli(["--package", join(dir4, "pkg.json")]);
+  const res4 = runCli(["--package", join(dir4, "pkg.json"), "--check-binding"]);
   assert.equal(res4.status, 1);
   assert.match(JSON.parse(res4.stdout).problems.join("；"), /绑定件核验失败：E4：台账证据件不存在/);
 });
@@ -158,10 +174,33 @@ test("台账在场：同窗交叉核验绿；台账在包后增长不算坏；�
   assert.match(JSON.parse(mismatched.stdout).problems.join("；"), /不一致|交叉核验失败/);
 });
 
+test("路径缺值不得吞掉显式附件核验开关，空窗包也必须拒绝", () => {
+  const dir = mkTmp();
+  const section = captureLedgerEvidence({
+    eventsPath: join(dir, "absent-events.jsonl"), kind: "host-ledger",
+    runId: "review-absent", fromSeq: 0
+  });
+  const pkgPath = join(dir, "package.json");
+  const binding = { path: join(dir, "missing-binding.json"), sha256: "0".repeat(64), byteLength: 0 };
+  writeFileSync(pkgPath, JSON.stringify({ executionEvidence: { ledgerEvidence: { binding, ...section } } }));
+  assert.equal(runCli(["--package", pkgPath]).status, 0, "合法空窗可独立复算");
+  const missing = runCli(["--package", pkgPath, "--check-binding"]);
+  assert.equal(missing.status, 1);
+  assert.match(JSON.parse(missing.stdout).problems.join("；"), /绑定件核验失败/);
+  for (const tail of [["--check-binding"], ["", "--check-binding"], []]) {
+    const invalid = runCli(["--package", pkgPath, "--ledger-events", ...tail]);
+    assert.equal(invalid.status, 2, `缺路径应报用法错误：${invalid.stdout}`);
+    assert.match(invalid.stderr, /--ledger-events 缺少值/);
+    assert.equal(invalid.stdout, "", "参数错误不能产出复验结论");
+  }
+});
+
 test("用法与缺段：无参数／两者同给 → exit 2；包内无台账证据段 → exit 2", async () => {
   assert.equal(runCli([]).status, 2);
   const f = await fixture();
   assert.equal(runCli(["--package", f.pkgPath, "--artifact", f.artifactPath]).status, 2);
+  assert.equal(runCli(["--artifact", f.artifactPath, "--check-binding"]).status, 2,
+    "附件绑定属于包，单件复算不能请求包的绑定核验");
   const dir = mkTmp();
   const bare = join(dir, "pkg.json");
   writeFileSync(bare, JSON.stringify({ executionEvidence: {} }) + "\n");

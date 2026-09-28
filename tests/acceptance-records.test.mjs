@@ -14,6 +14,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { spawn } from "node:child_process";
+import { once } from "node:events";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -105,6 +107,242 @@ const registeredArtifacts = (taskId, botId = "implementer") => () => [{ task: ta
 
 const close = (ledger, taskId, key) => ledger.command({
   op: "task.close", taskId, actor: HOST, ...cas(ledger, taskId), idempotencyKey: key, payload: {}
+});
+
+/** 真子进程暂停判据检查，以 IPC 控制返回时点；并发命令仍落同一 host 写者。 */
+function pausedCriterion(t, starts = 1) {
+  const child = spawn(process.execPath, ["-e",
+    'process.on("message", () => process.exit(0)); process.send("ready");'
+  ], { stdio: ["ignore", "ignore", "inherit", "ipc"] });
+  const ready = once(child, "message");
+  const finished = once(child, "exit");
+  t.after(() => child.kill());
+  let entered;
+  let calls = 0;
+  return {
+    checking: new Promise((resolve) => { entered = resolve; }),
+    async run() {
+      await ready;
+      if (++calls === starts) entered();
+      const [code] = await finished;
+      assert.equal(code, 0, "判据子进程正常完成");
+      return { ok: true };
+    },
+    release() { if (child.connected) child.send("finish"); }
+  };
+}
+
+test("关闭检查期间取消：旧 CAS 被拒，取消投影及队列保持可读（25 号票并发返修）", { timeout: 5000 }, async (t) => {
+  const home = mkHome();
+  const check = pausedCriterion(t);
+  const taskId = "TK-00000270";
+  const ledger = createTaskLedger({
+    dshHome: home, artifactsFor: registeredArtifacts(taskId), criterionRunnerFor: () => check.run
+  });
+  let closing;
+  try {
+    await walkToSettled(ledger, taskId);
+    closing = close(ledger, taskId, "c270-close");
+    await check.checking;
+    const cancelling = ledger.command({
+      op: "task.cancel", taskId, actor: { kind: "user", id: "user" }, ...cas(ledger, taskId),
+      idempotencyKey: "c270-cancel", payload: { reason: "检查期间用户取消" }
+    });
+    check.release();
+    const [closed, cancelled] = await Promise.all([closing, cancelling]);
+    assert.equal(cancelled.ok, true);
+    assert.equal(closed.ok, false);
+    assert.equal(closed.code, "cas-mismatch");
+    assert.equal(ledger.task(taskId).status, "cancelled");
+    assert.deepEqual(ledger.openQueue(), []);
+    assert.equal(ledger.events({ taskId }).filter((event) => event.type === "close").length, 0);
+    assert.equal(ledger.events({ taskId }).at(-1).code, "cas-mismatch");
+  } finally {
+    check.release();
+    await Promise.allSettled([closing]);
+    ledger.close();
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("同键并发关闭只记录首次结论，后到检查重放成功或拒绝（25 号票幂等返修）", { timeout: 5000 }, async (t) => {
+  for (const pass of [true, false]) {
+    await t.test(pass ? "首次成功" : "首次拒绝", async (t) => {
+      const home = mkHome();
+      const check = pausedCriterion(t, 2);
+      const taskId = "TK-00000271";
+      let checks = 0;
+      const ledger = createTaskLedger({
+        dshHome: home, artifactsFor: registeredArtifacts(taskId),
+        criterionRunnerFor: () => async () => {
+          const shouldPass = checks++ === 0 ? pass : !pass;
+          await check.run();
+          return shouldPass ? { ok: true } : {
+            ok: false, reason: "判据未满足", snapshotSha256: "a".repeat(64)
+          };
+        }
+      });
+      const pending = [];
+      try {
+        await walkToSettled(ledger, taskId);
+        const before = ledger.events().length;
+        pending.push(close(ledger, taskId, "c271-close"), close(ledger, taskId, "c271-close"));
+        await check.checking;
+        check.release();
+        const [first, second] = await Promise.all(pending);
+        assert.equal(first.ok, pass);
+        assert.equal(second.replayed, true);
+        assert.equal(second.ok, first.ok);
+        assert.equal(second.code, first.code);
+        assert.equal(second.snapshotSha256, first.snapshotSha256);
+        assert.equal(ledger.events().length, before + 1, "并发同键只落首次结论的一个事件");
+        assert.equal(ledger.task(taskId).status, pass ? "closed" : "settled");
+        const later = await close(ledger, taskId, "c271-close");
+        assert.equal(later.replayed, true);
+        assert.equal(later.ok, first.ok, "后到检查不得覆盖首次幂等记录");
+        assert.equal(later.code, first.code);
+      } finally {
+        check.release();
+        await Promise.allSettled(pending);
+        ledger.close();
+        rmSync(home, { recursive: true, force: true });
+      }
+    });
+  }
+});
+
+test("关闭检查期间改简报或强制加审：旧检查不能关闭新版本任务（25 号票 CAS 返修）", { timeout: 5000 }, async (t) => {
+  for (const change of ["amend", "review.request"]) {
+    await t.test(change, async (t) => {
+      const home = mkHome();
+      const check = pausedCriterion(t);
+      const taskId = "TK-00000272";
+      const ledger = createTaskLedger({
+        dshHome: home, artifactsFor: registeredArtifacts(taskId), criterionRunnerFor: () => check.run
+      });
+      let closing;
+      try {
+        await walkToSettled(ledger, taskId);
+        closing = close(ledger, taskId, "c272-close");
+        await check.checking;
+        const updating = ledger.command({
+          op: change === "amend" ? "task.amend" : change, taskId, actor: HOST,
+          ...cas(ledger, taskId), idempotencyKey: "c272-change",
+          payload: change === "amend"
+            ? { brief: { ...ledger.task(taskId).brief, acceptance: [passCriterion("新增判据")] } }
+            : { point: "before-external-visibility", reviewer: "reviewer", mandatory: true, attribution: "关闭前加审" }
+        });
+        check.release();
+        const [closed, updated] = await Promise.all([closing, updating]);
+        assert.equal(updated.ok, true, updated.reason);
+        assert.equal(closed.code, "cas-mismatch");
+        assert.equal(ledger.task(taskId).status, "settled");
+        assert.equal(ledger.events({ taskId }).filter((event) => event.type === "close").length, 0);
+        if (change === "amend") {
+          assert.deepEqual(ledger.task(taskId).acceptance, [passCriterion("新增判据")]);
+        } else {
+          const retry = await close(ledger, taskId, "c272-retry");
+          assert.equal(retry.code, "review-gaps-open", "重新提交仍受新增必审点阻断");
+        }
+      } finally {
+        check.release();
+        await Promise.allSettled([closing]);
+        ledger.close();
+        rmSync(home, { recursive: true, force: true });
+      }
+    });
+  }
+});
+
+test("不同键并发关闭只有一次成功，另一条 CAS 拒绝且投影可重建（25 号票并发返修）", { timeout: 5000 }, async (t) => {
+  const home = mkHome();
+  const check = pausedCriterion(t, 2);
+  const taskId = "TK-00000273";
+  const ledger = createTaskLedger({
+    dshHome: home, artifactsFor: registeredArtifacts(taskId), criterionRunnerFor: () => check.run
+  });
+  const pending = [];
+  try {
+    await walkToSettled(ledger, taskId);
+    pending.push(close(ledger, taskId, "c273-first"), close(ledger, taskId, "c273-second"));
+    await check.checking;
+    check.release();
+    const results = await Promise.all(pending);
+    assert.equal(results.filter((result) => result.ok).length, 1);
+    assert.equal(results.find((result) => !result.ok).code, "cas-mismatch");
+    assert.equal(ledger.events({ taskId }).filter((event) => event.type === "close").length, 1);
+    assert.equal(ledger.task(taskId).status, "closed");
+    assert.deepEqual(ledger.openQueue(), []);
+    const reader = createTaskLedger({ dshHome: home, readOnly: true });
+    assert.equal(reader.task(taskId).status, "closed", "重新从事件投影仍可读");
+    reader.close();
+  } finally {
+    check.release();
+    await Promise.allSettled(pending);
+    ledger.close();
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("关闭检查期间其他任务仍能收单，其他任务的事件不使本次 CAS 失效", { timeout: 5000 }, async (t) => {
+  const home = mkHome();
+  const check = pausedCriterion(t);
+  const taskId = "TK-00000274";
+  const ledger = createTaskLedger({
+    dshHome: home, artifactsFor: registeredArtifacts(taskId), criterionRunnerFor: () => check.run
+  });
+  let closing;
+  try {
+    await walkToSettled(ledger, taskId);
+    closing = close(ledger, taskId, "c274-close");
+    await check.checking;
+    const other = await openTask(ledger, "TK-00000275");
+    assert.equal(other.ok, true, "判据尚未返回时另一任务已收单");
+    check.release();
+    assert.equal((await closing).ok, true);
+    assert.deepEqual(ledger.openQueue().map((task) => task.taskId), ["TK-00000275"]);
+  } finally {
+    check.release();
+    await Promise.allSettled([closing]);
+    ledger.close();
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("关闭检查期间产出登记撤除或变得不可读：不得按旧登记放行", { timeout: 5000 }, async (t) => {
+  for (const unreadable of [false, true]) {
+    await t.test(unreadable ? "登记不可读" : "登记撤除", async (t) => {
+      const home = mkHome();
+      const check = pausedCriterion(t);
+      const taskId = "TK-00000276";
+      let changed = false;
+      const ledger = createTaskLedger({
+        dshHome: home, criterionRunnerFor: () => check.run,
+        artifactsFor: () => {
+          if (changed && unreadable) throw new Error("登记面不可读");
+          return changed ? [] : [{ task: taskId, botId: "implementer" }];
+        }
+      });
+      let closing;
+      try {
+        await walkToSettled(ledger, taskId);
+        closing = close(ledger, taskId, "c276-close");
+        await check.checking;
+        changed = true;
+        check.release();
+        const result = await closing;
+        assert.equal(result.ok, false);
+        assert.equal(result.code, unreadable ? "artifact-registry-unreadable" : "artifact-not-registered");
+        assert.equal(ledger.task(taskId).status, "settled");
+        assert.equal(ledger.events({ taskId }).filter((event) => event.type === "close").length, 0);
+      } finally {
+        check.release();
+        await Promise.allSettled([closing]);
+        ledger.close();
+        rmSync(home, { recursive: true, force: true });
+      }
+    });
+  }
 });
 
 test("判据全过即放行：关闸时逐条现跑（判据来自任务投影的冻结简报），跑完即准关（§B 前置第三条）", async () => {
