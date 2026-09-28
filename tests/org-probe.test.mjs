@@ -327,6 +327,47 @@ test("33号票A5：node.tests 输出含 SKIP 标记且 exit 0 → 判不过（pr
   assert.match(verdict.reason, /跳过/);
 });
 
+test("33号票A5：stderr 无换行诊断不遮蔽 stdout 的 SKIP 行", async () => {
+  const cwd = tempRoot();
+  materializeTestFile(cwd, "mixed-skip.test.mjs", [
+    "process.stderr.write('diagnostic without newline');",
+    "await new Promise(resolve => setTimeout(resolve, 100));",
+    `console.log("${SKIP_MARKER} unavailable dependency");`
+  ]);
+  const verdict = await runCriterion({ probe: "node.tests", args: { file: "mixed-skip.test.mjs" } }, { dshHome: cwd, cwd });
+  assert.equal(verdict.ok, false, "stderr 不得使跳过变为通过");
+  assert.equal(verdict.code, "probe-skip");
+});
+
+test("33号票A5：任一流的 UTF-8 SKIP 标记跨块、后跟长输出仍判跳过", async () => {
+  for (const stream of ["stdout", "stderr"]) {
+    const cwd = tempRoot();
+    materializeTestFile(cwd, "split-skip.test.mjs", [
+      `const marker = Buffer.from(${JSON.stringify(SKIP_MARKER + " split character\n")});`,
+      `process.${stream}.write(marker.subarray(0, 1));`,
+      "await new Promise(resolve => setTimeout(resolve, 100));",
+      `process.${stream}.write(marker.subarray(1));`,
+      `process.${stream}.write('x'.repeat(6000));`
+    ]);
+    const verdict = await runCriterion({ probe: "node.tests", args: { file: "split-skip.test.mjs" } }, { dshHome: cwd, cwd });
+    assert.equal(verdict.ok, false, `${stream} 的分块标记不得漏检`);
+    assert.equal(verdict.code, "probe-skip");
+    assert.ok(verdict.output.length <= 4000, "诊断输出仍限长，检测不依赖截断后的文本");
+  }
+});
+
+test("33号票A5：非零退出优先于 SKIP，保留测试失败归因", async () => {
+  const cwd = tempRoot();
+  materializeTestFile(cwd, "failed-skip.test.mjs", [
+    `console.log("${SKIP_MARKER} one case skipped");`,
+    "process.exitCode = 1;"
+  ]);
+  const verdict = await runCriterion({ probe: "node.tests", args: { file: "failed-skip.test.mjs" } }, { dshHome: cwd, cwd });
+  assert.equal(verdict.ok, false);
+  assert.equal(verdict.code, "probe-failed");
+  assert.match(verdict.reason, /退出码 1/);
+});
+
 test("33号票A6：非法参数值 fail closed——location 非串与 cwd 非串不再穿透抛错", async () => {
   const dshHome = tempRoot();
   const badLocation = await runCriterion(

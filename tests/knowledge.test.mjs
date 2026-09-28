@@ -465,6 +465,41 @@ test("F-R4-1（命令化后的延续形态）：knowledge.register 描述经 des
 });
 
 // ---------- 34 号票 A7a：损坏行占序号水位 ----------
+test("A7a 稀疏序号的最高号索引损坏：已有报告占号，预览与登记均不覆盖正文", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  const corrupt = '{"id":"R-2026-100",';
+  fs.writeFileSync(indexFile(home), JSON.stringify({ id: "R-2026-099", status: "valid" }) + "\n" + corrupt + "\n");
+  const priorReport = path.join(reportsDirFor(home), "R-2026-100.md");
+  fs.writeFileSync(priorReport, "ORIGINAL");
+
+  assert.equal(nextReportId(home, NOW), "R-2026-101");
+  const registered = registerReport({ dshHome: home, botId: "b", input: input({ body: "NEW" }), now: NOW });
+  assert.equal(registered.ok, true, registered.error);
+  assert.equal(registered.id, "R-2026-101");
+  assert.equal(fs.readFileSync(priorReport, "utf8"), "ORIGINAL");
+  assert.ok(fs.readFileSync(indexFile(home), "utf8").includes(corrupt), "损坏行仍保留修复线索");
+});
+
+test("A7a 索引缺失、修复删行或 id 字段损坏时，未登记报告仍占当年序号", () => {
+  for (const index of [undefined, "", '{}\n', '{"id":"R-2026-001","status":"valid"}\n']) {
+    const home = mkHome();
+    ensureKnowledgeBase(home);
+    if (index !== undefined) fs.writeFileSync(indexFile(home), index);
+    const priorReport = path.join(reportsDirFor(home), "R-2026-005.md");
+    fs.writeFileSync(priorReport, "ORIGINAL");
+    fs.writeFileSync(path.join(reportsDirFor(home), "R-2025-999.md"), "OTHER YEAR");
+    fs.writeFileSync(path.join(reportsDirFor(home), "R-2026-888.md.bak"), "BACKUP");
+
+    assert.equal(nextReportId(home, NOW), "R-2026-006");
+    const registered = registerReport({ dshHome: home, botId: "b", input: input(), now: NOW });
+    assert.equal(registered.ok, true, registered.error);
+    assert.equal(registered.id, "R-2026-006");
+    assert.equal(fs.readFileSync(priorReport, "utf8"), "ORIGINAL");
+    assert.equal(nextReportId(home, new Date("2027-01-01T00:00:00Z")), "R-2027-001");
+  }
+});
+
 test("A7a 损坏行占序号水位：索引仅剩损坏行＋既有报告文件 → 新登记不复用 id、不覆盖正文", () => {
   const home = mkHome();
   ensureKnowledgeBase(home);

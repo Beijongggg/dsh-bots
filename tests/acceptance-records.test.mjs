@@ -57,13 +57,15 @@ function failingTree() {
   return root;
 }
 
-/** 一个自造仓形：tests/ 下物化一个**声明 SKIP 且 exit 0**的测试文件（33 号票 A5 传导）。 */
+/** SKIP 前有 stderr 无换行诊断，关闭前置仍须拒绝这次跳过。 */
 function skipTree() {
   const root = mkdtempSync(join(tmpdir(), "org-acceptance-skip-"));
   TREES.push(root);
   mkdirSync(join(root, "tests"), { recursive: true });
   writeFileSync(join(root, "tests", "skip-acceptance.test.mjs"),
-    `console.log("${SKIP_MARKER} fixture skip（关闭前置须判不过）");\n`, "utf8");
+    "process.stderr.write('diagnostic without newline');\n"
+    + "await new Promise(resolve => setTimeout(resolve, 100));\n"
+    + `console.log("${SKIP_MARKER} fixture skip（关闭前置须判不过）");\n`, "utf8");
   return root;
 }
 
@@ -497,7 +499,7 @@ test("超时＝不过（不是跳过）：node.tests 超时在关闭前置处被
   }
 });
 
-test("跳过≠通过：node.tests 声明 SKIP 在关闭前置处被拒（33 号票 A5 传导）", async () => {
+test("跳过≠通过：stderr 无换行诊断后的 SKIP 在关闭前置处被拒（33 号票 A5 传导）", async () => {
   const home = mkHome();
   try {
     const ledger = createTaskLedger({
