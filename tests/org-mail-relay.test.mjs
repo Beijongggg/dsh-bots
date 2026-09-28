@@ -7,7 +7,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { EventEmitter } from "node:events";
@@ -16,7 +16,8 @@ import {
   createMailHttpApi, createMailRelay, createMailRejectionRecorder, MAIL_INBOX_KEYS
 } from "../lib/org/mail-relay.js";
 import {
-  inboxDirFor, messagesPathFor, readAllInboxLines, readMaxReceiptSeq, readOutbox, readReceipts, responseState
+  inboxDirFor, messagesPathFor, readAllInboxLines, readMaxReceiptSeq, readOutbox, readReceipts, responseState,
+  writeReceipt
 } from "../lib/mail-plane.js";
 
 const HOMES = [];
@@ -350,6 +351,69 @@ async function callMailApi(api, method, url, { headers = {}, body = null, hooks 
   return { status: res.status, body: res.payload };
 }
 
+test("HTTP cursor（35 号票）：POST actor 认证落基线，GET 下线 405 且零写", async () => {
+  const { home, relay: r } = relay();
+  const api = { mailRelay: r };
+  assert.equal(r.send({ from: "a", to: "b", text: "存量一" }).seq, 1);
+  assert.equal(r.send({ from: "a", to: "b", text: "存量二" }).seq, 2);
+
+  // 读面 GET 下线：405 且不触发任何写（迁移条件满足时也不落基线）
+  const get = await callMailApi(api, "GET", "/api/bots/_mail/cursor", { headers: { "x-dsh-bots-bot-id": "b" } });
+  assert.equal(get.status, 405, "GET cursor 下线（读面零写）");
+  assert.equal(readMaxReceiptSeq(home, "b"), 0, "匿名 GET 不得推进水位／落基线");
+
+  // 写面 POST：认证 actor 方可触发迁移基线
+  const post = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
+    { body: { actor: { kind: "post", id: "b" } } });
+  assert.equal(post.status, 200);
+  assert.equal(post.body.ok, true);
+  assert.deepEqual({ lastSeq: post.body.lastSeq, replay: post.body.replay, baseline: post.body.baseline },
+    { lastSeq: 2, replay: false, baseline: 2 }, "认证 POST 触发旧数据迁移：写基线、存量不回放");
+  assert.equal(readMaxReceiptSeq(home, "b"), 2);
+});
+
+test("HTTP cursor 条件触发三路径（35 号票）：prune 只经认证 POST／迁移写一次／二次纯读不覆写", async () => {
+  const { home, relay: r } = relay();
+  const api = { mailRelay: r };
+
+  // 路径一 prune 超限：505 件 receipts（mtime 递增保证淘汰最旧），水位 505
+  for (let i = 1; i <= 505; i += 1) {
+    writeReceipt(home, "b", { messageId: `m-${i}`, seq: i });
+    const file = join(inboxDirFor(home, "b"), "receipts", `m-${i}.json`);
+    const stamp = new Date(Date.now() + i * 10);
+    utimesSync(file, stamp, stamp);
+  }
+  assert.equal(readReceipts(home, "b").length, 505);
+
+  // 匿名 GET：405 且不触发 prune（写副作用不可经读面触发）
+  const get = await callMailApi(api, "GET", "/api/bots/_mail/cursor", { headers: { "x-dsh-bots-bot-id": "b" } });
+  assert.equal(get.status, 405);
+  assert.equal(readReceipts(home, "b").length, 505, "GET 不得触发 prune");
+
+  // 认证 POST：prune 至 500，水位 505 只增不减
+  const pruned = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
+    { body: { actor: { kind: "post", id: "b" } } });
+  assert.equal(pruned.status, 200);
+  assert.deepEqual({ lastSeq: pruned.body.lastSeq, replay: pruned.body.replay }, { lastSeq: 505, replay: false });
+  assert.equal(readReceipts(home, "b").length, 500, "认证 POST 触发 prune（保留 500）");
+  assert.equal(readMaxReceiptSeq(home, "b"), 505, "水位只增不减");
+
+  // 路径二 零水位迁移：bot c 有存量无水位 → 认证 POST 写一次基线
+  assert.equal(r.send({ from: "a", to: "c", text: "旧一" }).seq, 1);
+  const migrate = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
+    { body: { actor: { kind: "post", id: "c" } } });
+  assert.deepEqual({ lastSeq: migrate.body.lastSeq, replay: migrate.body.replay, baseline: migrate.body.baseline },
+    { lastSeq: 1, replay: false, baseline: 1 });
+
+  // 路径三 纯读：二次 POST 不覆写（无 baseline 键，水位保持迁移基线）
+  const reread = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
+    { body: { actor: { kind: "post", id: "c" } } });
+  assert.equal(reread.status, 200);
+  assert.equal(reread.body.baseline, undefined, "二次读取不再写基线（纯读）");
+  assert.deepEqual({ lastSeq: reread.body.lastSeq, replay: reread.body.replay }, { lastSeq: 1, replay: false });
+  assert.equal(readMaxReceiptSeq(home, "c"), 1, "存量基线认／继续有效，不重建");
+});
+
 test("HTTP 面：actor 认证（注册实例＋kind=post）——未在册／host 冒名／负载夹带 from 一律拒且零写入", async () => {
   const { home, relay: r } = relay();
   const api = { mailRelay: r };
@@ -385,12 +449,29 @@ test("HTTP 面：actor 认证（注册实例＋kind=post）——未在册／hos
 
   assert.equal(readAllInboxLines(home, "b").length, 1, "全部拒绝路径零写入");
 
-  // 消费汇报与游标：同一认证口径
-  const cursor = await callMailApi(api, "GET", "/api/bots/_mail/cursor", { headers: { "x-dsh-bots-bot-id": "b" } });
+  // 消费汇报与游标：同一认证口径（35 号票：cursor 同为 POST＋actor 认证）
+  const cursor = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
+    { body: { actor: { kind: "post", id: "b" } } });
   assert.equal(cursor.status, 200);
   assert.equal(cursor.body.ok, true);
-  const cursorGhost = await callMailApi(api, "GET", "/api/bots/_mail/cursor", { headers: { "x-dsh-bots-bot-id": "ghost" } });
+  const cursorSeen = [];
+  const cursorGhost = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
+    { body: { actor: { kind: "post", id: "ghost" } }, hooks: { recordRejection: (r) => cursorSeen.push(r) } });
   assert.equal(cursorGhost.status, 403);
+  assert.equal(cursorGhost.body.code, "mail-bot-unknown");
+  assert.equal(cursorSeen.length, 1, "cursor 中继判定的身份类拒绝同样进鉴权留痕");
+  assert.equal(cursorSeen[0].op, "mail.cursor");
+  const cursorHost = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
+    { body: { actor: { kind: "host", id: "host" } } });
+  assert.equal(cursorHost.status, 403);
+  assert.equal(cursorHost.body.code, "host-channel-forbidden");
+  const cursorSpoof = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
+    { body: { actor: { kind: "post", id: "b" }, botId: "a" } });
+  assert.equal(cursorSpoof.status, 409);
+  assert.equal(cursorSpoof.body.code, "mail-actor-spoof");
+  const cursorGet = await callMailApi(api, "GET", "/api/bots/_mail/cursor",
+    { headers: { "x-dsh-bots-bot-id": "b" } });
+  assert.equal(cursorGet.status, 405, "GET cursor 下线（读面零写）");
 
   // 未接线＝503 fail closed（通道不可用分支：客户端按分支一有限重试；无 bot 侧降级通道）；错误方法 405
   const unwired = await callMailApi({}, "POST", "/api/bots/_mail/send",

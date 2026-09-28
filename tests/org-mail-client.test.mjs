@@ -91,7 +91,7 @@ test("通道不可用＝错误回执＋有限重试；鉴权拒绝与语义失�
   assert.equal(semanticLog.filter((entry) => entry.url.endsWith("/_mail/send")).length, 1);
 });
 
-test("消费汇报与游标腿：claim／finalize／skip 走 POST consume，游标走 GET cursor 带身份头", async () => {
+test("消费汇报与游标腿：claim／finalize／skip／cursor 均走 POST 认证命令（35 号票：cursor 经 POST＋actor＋CSRF，GET 下线）", async () => {
   const log = [];
   const fetchImpl = fakeFetch((url) => {
     const csrf = CSRF_OK(url);
@@ -113,8 +113,10 @@ test("消费汇报与游标腿：claim／finalize／skip 走 POST consume，游�
   assert.deepEqual(JSON.parse(consumes[2].body), { actor: { kind: "post", id: "a" }, messageId: "m-9", seq: 9, outcome: "skipped-stale" });
 
   const cursorCall = log.find((entry) => entry.url.endsWith("/_mail/cursor"));
-  assert.equal(cursorCall.method, "GET");
-  assert.equal(cursorCall.headers["x-dsh-bots-bot-id"], "a");
+  assert.equal(cursorCall.method, "POST");
+  assert.equal(cursorCall.headers["x-dsh-bots-token"], "t-1", "认证 host 命令：CSRF 令牌随头");
+  assert.deepEqual(JSON.parse(cursorCall.body), { actor: { kind: "post", id: "a" } },
+    "游标腿身份由通道注入（零 capability 门槛，但仍须认证身份）");
 });
 
 test("CSRF 令牌轮换：403 csrf-* 重取令牌重试一次（与命令面同纪律）", async () => {
