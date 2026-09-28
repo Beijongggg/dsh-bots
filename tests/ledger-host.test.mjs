@@ -15,7 +15,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
-import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -33,6 +32,7 @@ import { deprecateReport, readIndex, registerReport, reportsDirFor } from "../li
 
 const ledgerDirExists = (home) => existsSync(ledgerDir(home));
 import { receiptsDirFor } from "../lib/mail-plane.js";
+import { deadPid } from "./helpers/dead-pid-fixture.mjs";
 import { VALID_BRIEF } from "./helpers/brief-fixture.mjs";
 import { ACCEPTANCE_RUNNER, criterionInjection } from "./helpers/criterion-fixture.mjs";
 import { wireReviewHat } from "./helpers/capability-fixture.mjs";
@@ -46,13 +46,6 @@ function mkHome() {
   const home = mkdtempSync(join(tmpdir(), "dsh-ledger-host-"));
   mkdirSync(join(home, "bots", "inbox"), { recursive: true });
   return home;
-}
-
-/** 已死进程的 pid（拉起即收割）：36 号票死主锁快路的夹具前提。 */
-function deadPid() {
-  const child = spawnSync(process.execPath, ["-e", ""]);
-  if (child.status !== 0) throw new Error("取死 pid 的夹具子进程未正常退出");
-  return child.pid;
 }
 
 /** 写一条 skipped-stale receipt（v1 收单积压超限截断的现场证据）。 */
@@ -742,7 +735,7 @@ test("knowledge.register 命令腿：索引锁留痕经宿主 logger 出栈（36
     assert.equal(ok.status, 200, JSON.stringify(ok.body));
     assert.equal(ok.body.ok, true);
     assert.equal(warns.length, 1, "接管恰留一行（留痕随宿主日志，不落新文件面）");
-    assert.ok(warns[0].includes("lock=knowledge-index") && warns[0].includes("takeover=1") && warns[0].includes("outcome=acquired"),
+    assert.ok(warns[0].includes("lockId=knowledge-index") && warns[0].includes("takeover=1") && warns[0].includes("outcome=acquired"),
       warns[0]);
     assert.equal(readIndex(home).length, 1, "接管后登记照常落盘");
   } finally {

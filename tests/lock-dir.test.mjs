@@ -15,13 +15,17 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+import { deadPid } from "./helpers/dead-pid-fixture.mjs";
 
 const { LOCK_DEFAULTS, acquireLockDir } = await import("../lib/lock-dir.js");
 const { LOCK_WAIT_WARN_MS, formatLockWait, lockWaitSink } = await import("../lib/lock-trace.js");
 
+const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const homes = [];
 function mkRoot(prefix = "dsh-bots-lock-") {
   const dir = mkdtempSync(join(tmpdir(), prefix));
@@ -32,13 +36,6 @@ process.on("exit", () => {
   for (const dir of homes) rmSync(dir, { recursive: true, force: true });
 });
 
-/** 已死进程的 pid：拉起后立刻收割（spawnSync 返回即 reap，pid 已不存在）。 */
-function deadPid() {
-  const child = spawnSync(process.execPath, ["-e", ""]);
-  assert.equal(child.status, 0, "取死 pid 的夹具子进程须正常退出");
-  assert.throws(() => process.kill(child.pid, 0), "夹具前提：该 pid 确已死亡");
-  return child.pid;
-}
 
 /** 造一把“有人持有”的锁：目录＋owner.json（pid 可指定），mtime 设为现在（未陈旧）。 */
 function seedLock(lockDir, pid) {
@@ -61,8 +58,8 @@ test("快路径：无争用即得，零等待、零接管、不回调 onWait，�
   const root = mkRoot();
   const lockDir = join(root, ".lock");
   const seen = [];
-  const lock = acquireLockDir(lockDir, { lock: "test-lock", onWait: (info) => seen.push(info) });
-  assert.equal(lock.waitMs, 0, "无争用＝零等待");
+  const lock = acquireLockDir(lockDir, { lockId: "test-lock", onWait: (info) => seen.push(info) });
+  assert.ok(lock.waitMs <= 5, `无争用＝即刻取得（实得 ${lock.waitMs}ms；时钟粒度与调度抖动上限 5ms）`);
   assert.equal(lock.tookOver, false, "无争用＝无接管");
   assert.deepEqual(seen, [], "亚阈快路径不制造噪声（零回调）");
   assert.ok(existsSync(lockDir), "持锁期间锁目录存在");
@@ -76,13 +73,13 @@ test("死主快路：持有者 pid 已死 → 不等 staleMs 即接管（staleMs
   seedLock(lockDir, deadPid());
   const seen = [];
   const lock = acquireLockDir(lockDir, {
-    lock: "test-lock", spinMs: 3000, staleMs: 60_000, tickMs: 10, onWait: (info) => seen.push(info)
+    lockId: "test-lock", spinMs: 3000, staleMs: 60_000, tickMs: 10, onWait: (info) => seen.push(info)
   });
   assert.equal(lock.tookOver, true, "死主锁须被接管");
   assert.equal(seen.length, 1, "接管恰回调一次");
   assert.equal(seen[0].outcome, "acquired");
   assert.equal(seen[0].tookOver, true);
-  assert.equal(seen[0].lock, "test-lock");
+  assert.equal(seen[0].lockId, "test-lock");
   assert.equal(seen[0].dir, lockDir);
   lock.release();
   assert.equal(existsSync(lockDir), false, "接管后可正常持有并释放");
@@ -95,7 +92,7 @@ test("活主不被抢：pid 存活（本进程）且 mtime 未陈旧 → 超时�
   const seen = [];
   assert.throws(
     () => acquireLockDir(lockDir, {
-      lock: "test-lock", label: "测试锁", spinMs: 300, staleMs: 60_000, tickMs: 10,
+      lockId: "test-lock", label: "测试锁", spinMs: 300, staleMs: 60_000, tickMs: 10,
       onWait: (info) => seen.push(info)
     }),
     /锁超时/, "活持有者不得被快路抢走——超时是 fail closed 的既有出路"
@@ -112,7 +109,7 @@ test("归属不明不被抢：owner.json 缺失且未陈旧 → 保守等待（�
   const lockDir = join(root, ".lock");
   seedLock(lockDir, null);
   assert.throws(
-    () => acquireLockDir(lockDir, { lock: "test-lock", label: "测试锁", spinMs: 300, staleMs: 60_000, tickMs: 10 }),
+    () => acquireLockDir(lockDir, { lockId: "test-lock", label: "测试锁", spinMs: 300, staleMs: 60_000, tickMs: 10 }),
     /锁超时/,
     "无法证明持有者已死时不得接管（防删掉接管者的新锁）"
   );
@@ -125,7 +122,7 @@ test("慢路保留：mtime 超 staleMs 仍照旧接管（收紧参数不取消�
   seedLock(lockDir, process.pid); // pid 存活，只能靠陈旧判定
   const past = new Date(Date.now() - 10_000);
   utimesSync(lockDir, past, past);
-  const lock = acquireLockDir(lockDir, { lock: "test-lock", spinMs: 1000, staleMs: 50, tickMs: 10 });
+  const lock = acquireLockDir(lockDir, { lockId: "test-lock", spinMs: 1000, staleMs: 50, tickMs: 10 });
   assert.equal(lock.tookOver, true, "陈旧锁接管路径不得因快路加入而失效");
   lock.release();
 });
@@ -133,7 +130,7 @@ test("慢路保留：mtime 超 staleMs 仍照旧接管（收紧参数不取消�
 test("保守释放：owner 不可证明属本进程时不删锁目录（F-E 语义不变）", () => {
   const root = mkRoot();
   const lockDir = join(root, ".lock");
-  const lock = acquireLockDir(lockDir, { lock: "test-lock" });
+  const lock = acquireLockDir(lockDir, { lockId: "test-lock" });
   rmSync(join(lockDir, "owner.json"));
   lock.release();
   assert.equal(existsSync(lockDir), true, "归属不明时释放不删（泄漏由后续接管自愈）");
@@ -145,7 +142,7 @@ test("超时文案：沿用「锁超时」且带锁名与本次参数（调用�
   const lockDir = join(root, ".lock");
   seedLock(lockDir, process.pid);
   try {
-    acquireLockDir(lockDir, { lock: "知识库索引锁", spinMs: 150, tickMs: 10, staleMs: 60_000 });
+    acquireLockDir(lockDir, { lockId: "knowledge-index", label: "知识库索引锁", spinMs: 150, tickMs: 10, staleMs: 60_000 });
     assert.fail("持锁时第二获取者应超时");
   } catch (error) {
     assert.match(error.message, /知识库索引锁超时（150ms 内未获得）/);
@@ -155,18 +152,18 @@ test("超时文案：沿用「锁超时」且带锁名与本次参数（调用�
 
 test("留痕口径：单行含 lock/waitMs/outcome/takeover/holderPid/dir 六个可解析字段", () => {
   const line = formatLockWait({
-    lock: "knowledge-index", dir: "/tmp/home/bots/knowledge/.lock",
+    lockId: "knowledge-index", dir: "/tmp/home/bots/knowledge/.lock",
     waitMs: 1240, outcome: "acquired", tookOver: true, holderPid: 4321
   });
   assert.ok(line.startsWith("[dsh-bots] 锁等待"), `单行留痕前缀固定：${line}`);
   for (const field of [
-    "lock=knowledge-index", "waitMs=1240", "outcome=acquired", "takeover=1",
+    "lockId=knowledge-index", "waitMs=1240", "outcome=acquired", "takeover=1",
     "holderPid=4321", "dir=/tmp/home/bots/knowledge/.lock"
   ]) {
     assert.ok(line.includes(field), `留痕须带 ${field}（指标随行落账）：${line}`);
   }
   assert.equal(line.includes("\n"), false, "单行");
-  const unknown = formatLockWait({ lock: "mail-seq", dir: "/x/.seq.lock", waitMs: 0, outcome: "acquired" });
+  const unknown = formatLockWait({ lockId: "mail-seq", dir: "/x/.seq.lock", waitMs: 0, outcome: "acquired" });
   assert.ok(unknown.includes("holderPid=unknown"), "持有者不可读时以 unknown 占位，不吞字段");
 });
 
@@ -174,7 +171,7 @@ test("留痕策略：亚阈不告警；超阈／接管／超时无条件告警�
   const lines = [];
   const sink = lockWaitSink({ warn: (line) => lines.push(line) });
   const info = (over) => ({
-    lock: "mail-seq", dir: "/x/.seq.lock", waitMs: 0, outcome: "acquired",
+    lockId: "mail-seq", dir: "/x/.seq.lock", waitMs: 0, outcome: "acquired",
     tookOver: false, holderPid: null, ...over
   });
 
@@ -193,14 +190,83 @@ test("留痕策略：亚阈不告警；超阈／接管／超时无条件告警�
 test("留痕策略可调：warnMs 覆盖（阈值是调用方口径，不是写死的）", () => {
   const lines = [];
   const sink = lockWaitSink({ warn: (line) => lines.push(line) }, { warnMs: 0 });
-  sink({ lock: "mail-seq", dir: "/x/.seq.lock", waitMs: 0, outcome: "acquired", tookOver: false, holderPid: null });
+  sink({ lockId: "mail-seq", dir: "/x/.seq.lock", waitMs: 0, outcome: "acquired", tookOver: false, holderPid: null });
   assert.equal(lines.length, 1, "warnMs=0＝任何争用都留痕（用例按此注入，不需要真等 100ms）");
+});
+
+test("留痕出口抛错不得成为新失败点：取锁照常返回，超时仍抛「锁超时」", () => {
+  const root = mkRoot();
+  const lockDir = join(root, ".lock");
+  const explode = () => { throw new Error("logger 炸了"); };
+
+  // 接管路径：留痕抛错不得中断「已取得锁」的返回（否则锁目录悬空、调用方无句柄释放）
+  seedLock(lockDir, deadPid());
+  const lock = acquireLockDir(lockDir, {
+    lockId: "test-lock", label: "测试锁", spinMs: 3000, staleMs: 60_000, tickMs: 10, onWait: explode
+  });
+  assert.equal(lock.tookOver, true, "留痕抛错不影响接管结论");
+  lock.release();
+
+  // 超时路径：留痕抛错不得顶替 LOCK_TIMEOUT（否则调用方拿不到 fail-closed 语义）
+  seedLock(lockDir, process.pid);
+  const future = new Date(Date.now() + 3_600_000);
+  utimesSync(lockDir, future, future);
+  try {
+    assert.throws(
+      () => acquireLockDir(lockDir, {
+        lockId: "test-lock", label: "测试锁", spinMs: 150, staleMs: 60_000, tickMs: 10, onWait: explode
+      }),
+      /锁超时/, "留痕异常不得顶替超时错误"
+    );
+  } finally {
+    rmSync(lockDir, { recursive: true, force: true });
+  }
+});
+
+test("接管删除持续失败（EACCES）：不得无界紧循环，deadline 内 fail closed（隔离子进程，防挂死）", () => {
+  const root = mkRoot();
+  const parent = join(root, "readonly");
+  const lockDir = join(parent, ".lock");
+  mkdirSync(parent);
+  seedLock(lockDir, deadPid());
+  const future = new Date(Date.now() + 3_600_000);
+  utimesSync(lockDir, future, future); // 关掉 mtime 慢路：只剩死主快路与注定失败的删除
+  // 夹具前提（实测）：父目录 0o555 下 mkdir 报 EEXIST、owner.json 可读、rm 报 EACCES
+  chmodSync(parent, 0o555);
+  const lockUrl = pathToFileURL(join(REPO_ROOT, "lib", "lock-dir.js")).href;
+  const script = `
+    const { acquireLockDir } = await import(${JSON.stringify(lockUrl)});
+    const info = [];
+    let outcome = "none";
+    try {
+      const lock = acquireLockDir(${JSON.stringify(lockDir)}, {
+        lockId: "test-lock", label: "测试锁", spinMs: 300, staleMs: 60_000, tickMs: 5,
+        onWait: (entry) => info.push(entry)
+      });
+      lock.release();
+      outcome = "acquired";
+    } catch (error) {
+      outcome = error?.code === "LOCK_TIMEOUT" ? "timeout" : "other:" + String(error?.message);
+    }
+    process.stdout.write(JSON.stringify({ outcome, info }));
+  `;
+  const child = spawnSync(process.execPath, ["--input-type=module", "-e", script],
+    { timeout: 20_000, encoding: "utf8" });
+  chmodSync(parent, 0o755);
+  assert.equal(child.signal, null,
+    `删除持续失败时不得无界紧循环（子进程被 ${String(child.signal)} 强杀＝回归）：${String(child.stderr).slice(0, 200)}`);
+  const report = JSON.parse(child.stdout);
+  assert.equal(report.outcome, "timeout", `须在 spinMs 内 fail closed：${child.stdout}`);
+  assert.equal(report.info.length, 1, "超时仍无条件留痕");
+  assert.equal(report.info[0].outcome, "timeout");
+  assert.equal(report.info[0].tookOver, false, "删除失败不构成接管");
+  assert.ok(existsSync(lockDir), "删除失败时锁目录仍在（不得谎报接管）");
 });
 
 test("锁目录内容：owner.json 记本进程 pid（跨进程归属判定的唯一凭据）", () => {
   const root = mkRoot();
   const lockDir = join(root, ".lock");
-  const lock = acquireLockDir(lockDir, { lock: "test-lock" });
+  const lock = acquireLockDir(lockDir, { lockId: "test-lock" });
   try {
     const owner = JSON.parse(readFileSync(join(lockDir, "owner.json"), "utf8"));
     assert.equal(owner.pid, process.pid);

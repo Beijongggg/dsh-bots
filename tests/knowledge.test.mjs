@@ -16,8 +16,10 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
-import { spawn, spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
+
+import { deadPid } from "./helpers/dead-pid-fixture.mjs";
 
 const { ensureKnowledgeBase, readIndex, nextReportId, registerReport, deprecateReport, searchIndex,
   auditKnowledgeIndex,
@@ -36,13 +38,6 @@ function mkHome() {
   return home;
 }
 const NOW = new Date("2026-08-24T06:00:00.000Z");
-
-/** 已死进程的 pid（拉起即收割）：36 号票死主锁快路的夹具前提。 */
-function deadPid() {
-  const child = spawnSync(process.execPath, ["-e", ""]);
-  if (child.status !== 0) throw new Error("取死 pid 的夹具子进程未正常退出");
-  return child.pid;
-}
 
 const input = (overrides = {}) => ({
   title: "调研标题", body: "# 报告正文\n...",
@@ -275,7 +270,7 @@ test("acquireIndexLock：唯一获取；持锁时自旋超时；释放后可再�
 test("registerReport：陈旧锁（持有者死亡未释放）自动接管，登记不阻塞", () => {
   const home = mkHome();
   ensureKnowledgeBase(home);
-  // 伪造死锁：手建 .lock 且 mtime 设为 10s 前（> staleMs 3000）
+  // 伪造死锁：手建 .lock 且 mtime 设为 10s 前（> staleMs=1000，走 mtime 慢路接管）
   const lockDir = path.join(knowledgeDir(home), ".lock");
   fs.mkdirSync(lockDir);
   const past = new Date(Date.now() - 10_000);
@@ -364,7 +359,7 @@ test("registerReport（36 号票 A9）：锁争用经 logger 留痕——无争�
   assert.equal(r.ok, true, r.error);
   assert.equal(r.id, "R-2026-001");
   assert.equal(lines.length, 1, "接管恰留一行（指标随行：lock／waitMs／outcome／takeover／holderPid／dir）");
-  assert.ok(lines[0].includes("lock=knowledge-index"), lines[0]);
+  assert.ok(lines[0].includes("lockId=knowledge-index"), lines[0]);
   assert.ok(lines[0].includes("takeover=1"), lines[0]);
   assert.ok(lines[0].includes("outcome=acquired"), lines[0]);
   assert.equal(fs.existsSync(lockDir), false, "接管后锁目录已清理");
@@ -384,7 +379,7 @@ test("deprecateReport（36 号票 A9）：与登记同一留痕口径（同一�
   });
   assert.equal(r.ok, true, r.error);
   assert.equal(lines.length, 1, "接管恰留一行");
-  assert.ok(lines[0].includes("lock=knowledge-index") && lines[0].includes("takeover=1"), lines[0]);
+  assert.ok(lines[0].includes("lockId=knowledge-index") && lines[0].includes("takeover=1"), lines[0]);
 });
 
 test("registerReport（36 号票 A9）：默认冻结上限 1.5s（旧缺省 6s）——超时留痕且零落盘", () => {

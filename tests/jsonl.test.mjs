@@ -8,6 +8,8 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 
+import { deadPid } from "./helpers/dead-pid-fixture.mjs";
+
 const { internals } = await import("../lib/index.js");
 
 const home = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-jsonl-"));
@@ -112,13 +114,10 @@ fs.mkdirSync(lockInbox, { recursive: true });
 // 锁单测③（36 号票 A9）：死主快路（持有者 pid 已死 → 不等 staleMs 即接管）＋
 // 投递面留痕经 logger 出栈（快路径零告警，接管恰一行）。
 {
-  const { spawnSync } = await import("node:child_process");
-  const dead = spawnSync(process.execPath, ["-e", ""]);
-  assert.equal(dead.status, 0, "取死 pid 的夹具子进程须正常退出");
   const dir = path.join(lockHome, "bots", "inbox", "deads");
   fs.mkdirSync(path.join(dir, ".seq.lock"), { recursive: true });
   fs.writeFileSync(path.join(dir, ".seq.lock", "owner.json"),
-    JSON.stringify({ pid: dead.pid, at: Date.now() }));
+    JSON.stringify({ pid: deadPid(), at: Date.now() }));
 
   const fast = acquireMailSeqLock(dir, { spinMs: 3000, staleMs: 60_000, tickMs: 10 });
   assert.equal(fast.tookOver, true, "死主锁须被立即接管（staleMs 拉大关掉慢路，成功即证快路）");
@@ -127,13 +126,13 @@ fs.mkdirSync(lockInbox, { recursive: true });
   // 留痕：appendMessage 的 logger 出口（宿主中继面按此接线）
   fs.mkdirSync(path.join(dir, ".seq.lock"), { recursive: true });
   fs.writeFileSync(path.join(dir, ".seq.lock", "owner.json"),
-    JSON.stringify({ pid: dead.pid, at: Date.now() }));
+    JSON.stringify({ pid: deadPid(), at: Date.now() }));
   const lines = [];
   const msg = internals.appendMessage(lockHome, "deads", { from: "user", text: "死主锁后投递" },
     { logger: { warn: (line) => lines.push(line) } });
   assert.equal(msg.seq, 1, "接管后投递照常落盘");
   assert.equal(lines.length, 1, "接管恰留一行");
-  assert.ok(lines[0].includes("lock=mail-seq") && lines[0].includes("takeover=1"), lines[0]);
+  assert.ok(lines[0].includes("lockId=mail-seq") && lines[0].includes("takeover=1"), lines[0]);
   const quiet = [];
   internals.appendMessage(lockHome, "deads", { from: "user", text: "无争用" },
     { logger: { warn: (line) => quiet.push(line) } });

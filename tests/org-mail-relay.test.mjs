@@ -11,11 +11,11 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, w
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { EventEmitter } from "node:events";
-import { spawnSync } from "node:child_process";
 
 import {
   createMailHttpApi, createMailRelay, createMailRejectionRecorder, MAIL_INBOX_KEYS
 } from "../lib/org/mail-relay.js";
+import { deadPid } from "./helpers/dead-pid-fixture.mjs";
 import {
   inboxDirFor, messagesPathFor, readAllInboxLines, readMaxReceiptSeq, readOutbox, readReceipts, responseState,
   writeReceipt
@@ -30,13 +30,6 @@ function mkHome() {
 process.on("exit", () => {
   for (const home of HOMES) rmSync(home, { recursive: true, force: true });
 });
-
-/** 已死进程的 pid（拉起即收割）：36 号票死主锁快路的夹具前提。 */
-function deadPid() {
-  const child = spawnSync(process.execPath, ["-e", ""]);
-  if (child.status !== 0) throw new Error("取死 pid 的夹具子进程未正常退出");
-  return child.pid;
-}
 
 const REGISTRY = {
   a: { id: "a", name: "发信者" },
@@ -380,7 +373,7 @@ test("HTTP 投递：inbox seq 锁留痕经中继 logger 出栈（36 号票 A9）
   assert.equal(res.body.seq, 1, "接管后投递落 seq 1（锁被接管而非失败）");
   assert.equal(readAllInboxLines(home, "b").length, 1, "消息照常落盘");
   assert.equal(warns.length, 1, "接管恰留一行（留痕经宿主 logger，不落新文件面）");
-  assert.ok(warns[0].includes("lock=mail-seq") && warns[0].includes("takeover=1") && warns[0].includes("outcome=acquired"),
+  assert.ok(warns[0].includes("lockId=mail-seq") && warns[0].includes("takeover=1") && warns[0].includes("outcome=acquired"),
     warns[0]);
 });
 
