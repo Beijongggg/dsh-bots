@@ -20,6 +20,7 @@ import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const { ensureKnowledgeBase, readIndex, nextReportId, registerReport, deprecateReport, searchIndex,
+  auditKnowledgeIndex,
   knowledgeDir, indexFile, reportsDirFor, templateFileFor, acquireIndexLock } = await import("../lib/knowledge.js");
 const { internals } = await import("../lib/index.js");
 const { registerKnowledgeTools } = internals;
@@ -287,7 +288,7 @@ test("registerReport：索引损坏/非对象行重写后原样保留（K-2 不�
   fs.appendFileSync(indexFile(home), `${goodLine}\n${corrupt}\n${arrLine}\n`);
   const r = registerReport({ dshHome: home, botId: "b", input: input(), now: NOW });
   assert.equal(r.ok, true);
-  assert.equal(r.id, "R-2026-100", "损坏/非对象行不计入序号");
+  assert.equal(r.id, "R-2026-100", "水位次 max(99 好行, 1 好行+2 不可解析)+1＝100");
   const raw = fs.readFileSync(indexFile(home), "utf8");
   assert.ok(raw.includes(corrupt), "损坏行原样保留");
   assert.ok(raw.includes(arrLine), "非对象行原样保留");
@@ -461,6 +462,132 @@ test("F-R4-1（命令化后的延续形态）：knowledge.register 描述经 des
   const tool2 = face2.find((t) => t.op === "knowledge.register");
   assert.ok(!tool2.description.includes("报告模板结构（REPORT_TEMPLATE.md"), "无模板 → 无模板节");
   assert.ok(tool2.description.includes("把一份产出登记进团队共享知识库"), "基础句仍在");
+});
+
+// ---------- 34 号票 A7a：损坏行占序号水位 ----------
+test("A7a 损坏行占序号水位：索引仅剩损坏行＋既有报告文件 → 新登记不复用 id、不覆盖正文", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  const r1 = registerReport({ dshHome: home, botId: "b", input: input(), now: NOW });
+  assert.equal(r1.id, "R-2026-001");
+  // 模拟 R-2026-001 索引行截断损坏（报告文件保留 ORIGINAL）
+  const onlyLine = fs.readFileSync(indexFile(home), "utf8").split("\n").filter((l) => l.trim() !== "");
+  assert.equal(onlyLine.length, 1);
+  const truncated = onlyLine[0].slice(0, 20);
+  assert.throws(() => JSON.parse(truncated), "截断行须确实不可解析");
+  fs.writeFileSync(indexFile(home), truncated + "\n");
+  const before = fs.readFileSync(path.join(reportsDirFor(home), "R-2026-001.md"), "utf8");
+  const r2 = registerReport({ dshHome: home, botId: "b",
+    input: input({ title: "新", body: "NEW", summary: "s2" }), now: NOW });
+  assert.equal(r2.ok, true);
+  assert.notEqual(r2.id, "R-2026-001", "损坏行占位，不得复用旧 id");
+  assert.equal(fs.readFileSync(path.join(reportsDirFor(home), "R-2026-001.md"), "utf8"), before,
+    "旧正文不得被覆盖");
+  assert.ok(fs.readFileSync(indexFile(home), "utf8").includes(truncated), "损坏行仍原样保留（K-2）");
+});
+
+test("A7a nextReportId 与 registerReport 同水位：单损坏行 → R-2026-002", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  fs.appendFileSync(indexFile(home), "{truncated\n");
+  assert.equal(nextReportId(home, NOW), "R-2026-002");
+});
+
+// ---------- 34 号票 A7b：valid 以外一律拒（两终态） ----------
+test("A7b 废弃→取代即拒：已 deprecated 条目不可再被取代，不动任何文件", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  registerReport({ dshHome: home, botId: "b", input: input(), now: NOW });
+  assert.equal(deprecateReport({ dshHome: home, id: "R-2026-001", reason: "被否定", now: NOW }).ok, true);
+  const indexBefore = fs.readFileSync(indexFile(home), "utf8");
+  const reportsBefore = fs.readdirSync(reportsDirFor(home)).sort();
+  const r = registerReport({ dshHome: home, botId: "b",
+    input: input({ title: "取代已废弃", supersedes: "R-2026-001" }), now: NOW });
+  assert.equal(r.ok, false, "已废弃条目不可再被取代");
+  assert.equal(fs.readFileSync(indexFile(home), "utf8"), indexBefore, "拒绝路径不动索引");
+  assert.deepEqual(fs.readdirSync(reportsDirFor(home)).sort(), reportsBefore, "拒绝路径不写新报告");
+  const target = readIndex(home).find((e) => e.id === "R-2026-001");
+  assert.equal(target.status, "deprecated", "目标仍是废弃态");
+  assert.equal("supersededBy" in target, false, "不叠加后继指针");
+});
+
+test("A7b 取代→废弃即拒：已 updated（有后继）条目不可再被废弃，不动索引", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  registerReport({ dshHome: home, botId: "b", input: input(), now: NOW });
+  registerReport({ dshHome: home, botId: "b",
+    input: input({ title: "新版", supersedes: "R-2026-001" }), now: NOW });
+  const indexBefore = fs.readFileSync(indexFile(home), "utf8");
+  const r = deprecateReport({ dshHome: home, id: "R-2026-001", reason: "事后废弃", now: NOW });
+  assert.equal(r.ok, false, "有后继条目不可再废弃");
+  assert.equal(fs.readFileSync(indexFile(home), "utf8"), indexBefore, "拒绝路径不动索引");
+  const target = readIndex(home).find((e) => e.id === "R-2026-001");
+  assert.equal(target.status, "updated");
+  assert.equal(target.supersededBy, "R-2026-002");
+  assert.equal("deprecatedReason" in target, false, "不叠加废弃理由");
+  assert.equal("deprecatedAt" in target, false, "不叠加废弃时间");
+});
+
+test("A7b 已 updated 条目不可二次取代：后继指针不被改写", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  registerReport({ dshHome: home, botId: "b", input: input(), now: NOW });
+  registerReport({ dshHome: home, botId: "b",
+    input: input({ title: "新版", supersedes: "R-2026-001" }), now: NOW });
+  const r = registerReport({ dshHome: home, botId: "b",
+    input: input({ title: "又一版", supersedes: "R-2026-001" }), now: NOW });
+  assert.equal(r.ok, false, "已有后继即拒，不改写指针");
+  assert.equal(readIndex(home).find((e) => e.id === "R-2026-001").supersededBy, "R-2026-002");
+});
+
+test("A7b 未知状态 fail closed：非 valid／updated／deprecated 条目取代废弃一律拒", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  fs.appendFileSync(indexFile(home), JSON.stringify({ id: "R-2026-001", title: "异态", status: "archived" }) + "\n");
+  const indexBefore = fs.readFileSync(indexFile(home), "utf8");
+  assert.equal(registerReport({ dshHome: home, botId: "b",
+    input: input({ title: "取代异态", supersedes: "R-2026-001" }), now: NOW }).ok, false);
+  assert.equal(deprecateReport({ dshHome: home, id: "R-2026-001", now: NOW }).ok, false);
+  assert.equal(fs.readFileSync(indexFile(home), "utf8"), indexBefore, "拒绝路径不动索引");
+});
+
+// ---------- 34 号票存量：只读核验 ----------
+test("auditKnowledgeIndex：只读报损坏行＋混合态＋未知状态，不写盘", () => {
+  const home = mkHome();
+  ensureKnowledgeBase(home);
+  const good = { id: "R-2026-001", title: "好行", status: "valid" };
+  const mixedDeprecated = { id: "R-2026-002", title: "废弃又被取代", status: "deprecated",
+    deprecatedReason: "x", deprecatedAt: NOW.toISOString(), supersededBy: "R-2026-003" };
+  const mixedUpdated = { id: "R-2026-003", title: "取代又被废弃", status: "updated",
+    supersededBy: "R-2026-004", deprecatedReason: "y", deprecatedAt: NOW.toISOString() };
+  const unknown = { id: "R-2026-004", title: "异态", status: "archived" };
+  const nonStringResidual = { id: "R-2026-005", title: "非串残留", status: "valid", supersededBy: null };
+  const corrupt = "{truncated";
+  const arrLine = JSON.stringify(["not", "object"]);
+  fs.writeFileSync(indexFile(home),
+    [JSON.stringify(good), "", corrupt, JSON.stringify(mixedDeprecated),
+     arrLine, JSON.stringify(mixedUpdated), JSON.stringify(unknown),
+     JSON.stringify(nonStringResidual)].join("\n") + "\n");
+  const before = fs.readFileSync(indexFile(home), "utf8");
+  const a = auditKnowledgeIndex(home);
+  assert.equal(a.ok, true);
+  assert.deepEqual(a.corrupt.map((c) => c.line), [3, 5], "行号＝文件物理行号（空行跳过但占号）");
+  assert.ok(a.corrupt.every((c) => typeof c.raw === "string"), "损坏行带原文");
+  const mixedIds = Object.fromEntries(a.mixed.map((m) => [m.id, m.problems]));
+  assert.ok(mixedIds["R-2026-002"].includes("deprecated+supersededBy"));
+  assert.ok(mixedIds["R-2026-003"].includes("updated+deprecatedReason"));
+  assert.ok(mixedIds["R-2026-004"].includes("unknown-status"));
+  assert.ok(mixedIds["R-2026-005"].includes("valid+residual"), "非串残留（null）同样报");
+  assert.equal("R-2026-001" in mixedIds, false, "干净行不上榜");
+  assert.equal(fs.readFileSync(indexFile(home), "utf8"), before, "核验只读不写");
+});
+
+test("auditKnowledgeIndex：文件缺失 → 空榜单（ok:true）", () => {
+  const home = mkHome();
+  const a = auditKnowledgeIndex(home);
+  assert.equal(a.ok, true);
+  assert.deepEqual(a.corrupt, []);
+  assert.deepEqual(a.mixed, []);
 });
 
 // ---------- 运行 ----------

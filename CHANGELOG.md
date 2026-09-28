@@ -1,9 +1,37 @@
 # dsh-bots 变更日志（CHANGELOG）
 
-逐轮演进记录，自 docs/PROJECT_UNDERSTANDING.md 迁出（第一轮＝整页 Bot 模式架构落地，
-见 docs/PROJECT_UNDERSTANDING.md「当前状态」节；此处从第二轮起，新条目往后追加）。
+逐轮演进记录，自 docs/PROJECT_UNDERSTANDING.md 迁出，从第二轮起保留历史。
+新事件置顶，既往条目原文保留。近期阅读用 `node scripts/project-context.mjs --recent 3`。
 
 本日志记录项目变化与决策，落档范围与位置见 README §6.2。
+
+## 2026-09-28 EV-20260928-doc-navigation 文档职责与读取路径
+
+范围：README、AGENTS §4、PLAN 阅读入口、领域与工单导航，以及只读查询脚本和专项回归。
+变化：事实源按任务、规格与阶段归属；[README §4](README.md#4-任务阅读路径) 改为按任务读取；旧编号说明原文迁至 [历史索引](docs/history/task-number-guide.md)。
+`scripts/project-context.mjs` 即时读取票面状态、依赖、跨目录规格与近期事件，输出来源坐标和内容摘要；PLAN 既有正文与本日志既往事件保留。
+验证：查询专项 5/5；在隔离基线 `32e035a` 上验证本轮实现，preflight 四门 PASS，全量 68/68、0010 冻结面 10/10、宿主契约 11 PASS／0 FAIL／0 SKIP。
+文档链接与标题锚点通过；历史编号迁移与 PLAN 旧正文逐字节保留。并行 34 号票改动未纳入本轮隔离验证。
+授权依据：用户在文档组织方案后指令「优化」，据此调整事实源路由、落档格式与阅读入口；未改工单裁定、运行面或冻结件。
+
+- 本轮（2026-09-28，org-v2 34 号票实施完成：知识索引一致性双题——损坏行序号水位／废弃取代两终态／只读存量核验）：
+  - 范围与修复：`lib/knowledge.js`、8 件知识回归、34 票面。A7a 损坏行 id 复用——
+    新增 `nextSeqForYear` 水位（`max(已解析最大序号，当年好行数＋不可解析行数)+1`，
+    `registerReport` 与 `nextReportId` 共用单源），序号只进不退，损坏／非对象行
+    仍原样保留（K-2 不变），跳号空位可接受；A7b 叠加语义——`valid` 以外一律拒
+    （`deprecated` 为终态、`updated` 有后继即终态、未知状态 catch-all fail closed），
+    拒绝路径不动任何文件，`deprecatedReason/At` 与 `supersededBy` 互斥；存量——
+    新增只读 `auditKnowledgeIndex`（损坏行号＋混合态＋未知状态，不写盘），修复手顺
+    见票面（备份→核验→逐行清→复验归零，不自动迁移）。host 腿零改（调同一函数继承）。
+  - 验证：知识 **32/32**、全量回归 **68/68**（第 68 件＝并行会话未跟踪新件，非本票）；
+    `npm run preflight` 四门 PASS：①68/68
+    ②0010 包 10/10 ③0 违例 ④11 PASS／0 FAIL／0 SKIP。运行面零写入。
+    中途 `Status: claimed` 被门③纠正一例（实现票不得用 claimed，已改回）。
+  - 两轴评审：固定点 `32e035a`，Standards 硬违例 **0**（stale 断言消息修 1／
+    judgement 留 3）、Spec 缺失 0／creep 0／看似错 3 全修（理由见 34 票 Comments）。
+    票面转 `resolved`。
+  - 授权与边界：用户 `/implement 34`；开工四问（缝＋三裁定）全按推荐通过，见票面。
+    真实运行面零写入，未部署或重启。
 
 - 本轮（2026-09-28，org-v2 33 号票实施完成：探针面一轮收口——快照 GC／SKIP 假绿／非法参数／TMPDIR）：
   - 范围与修复：`lib/org/probe.js`、两件探针回归、33 票面。A4 快照 GC——物化／摘要／
