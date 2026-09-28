@@ -22,6 +22,7 @@ import { dirname, join } from "node:path";
 
 import { createTaskLedger, EVENT_TYPES, OPS } from "../lib/org/task-ledger.js";
 import { criterionRunnerInjection } from "../lib/org/criterion-runner.js";
+import { SKIP_MARKER } from "./run.mjs";
 import { VALID_BRIEF } from "./helpers/brief-fixture.mjs";
 import { ACCEPTANCE_FILE, criterionInjection, failCriterion, offWhitelistCriterion, passCriterion } from "./helpers/criterion-fixture.mjs";
 
@@ -53,6 +54,16 @@ function failingTree() {
   writeFileSync(join(root, "tests", "red-acceptance.test.mjs"),
     "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\n"
     + "test(\"red\", () => assert.equal(1, 2));\n", "utf8");
+  return root;
+}
+
+/** 一个自造仓形：tests/ 下物化一个**声明 SKIP 且 exit 0**的测试文件（33 号票 A5 传导）。 */
+function skipTree() {
+  const root = mkdtempSync(join(tmpdir(), "org-acceptance-skip-"));
+  TREES.push(root);
+  mkdirSync(join(root, "tests"), { recursive: true });
+  writeFileSync(join(root, "tests", "skip-acceptance.test.mjs"),
+    `console.log("${SKIP_MARKER} fixture skip（关闭前置须判不过）");\n`, "utf8");
   return root;
 }
 
@@ -481,6 +492,28 @@ test("超时＝不过（不是跳过）：node.tests 超时在关闭前置处被
     } finally {
       rmSync(cwd, { recursive: true, force: true });
     }
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("跳过≠通过：node.tests 声明 SKIP 在关闭前置处被拒（33 号票 A5 传导）", async () => {
+  const home = mkHome();
+  try {
+    const ledger = createTaskLedger({
+      dshHome: home, now: clockAt().now,
+      artifactsFor: registeredArtifacts("TK-00000260"),
+      ...criterionRunnerInjection({ dshHome: home, cwd: skipTree() })
+    });
+    await walkToSettled(ledger, "TK-00000260", {
+      acceptance: [{ probe: "node.tests", args: { file: "skip-acceptance.test.mjs" } }]
+    });
+    const blocked = await close(ledger, "TK-00000260", "c260-skip");
+    assert.equal(blocked.ok, false);
+    assert.equal(blocked.code, "acceptance-check-failed");
+    assert.match(blocked.reason, /跳过/, "SKIP 归因到理由串（不是「通过」）");
+    assert.match(blocked.snapshotSha256 ?? "", /^[0-9a-f]{64}$/, "SKIP 结论同样带快照摘要（树级）");
+    assert.equal(ledger.task("TK-00000260").status, "settled", "拒不改状态");
   } finally {
     rmSync(home, { recursive: true, force: true });
   }

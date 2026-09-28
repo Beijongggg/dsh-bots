@@ -17,17 +17,21 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, utimesSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import {
   PROBE_COMMAND_NAMES,
+  PROBE_SKIP_MARKER,
   criterionMatches,
   probeCommand,
-  runCriterion
+  resolveProbeTmpEnv,
+  runCriterion,
+  sweepStaleProbeSnapshots
 } from "../lib/org/probe.js";
 import { canonicalJson } from "../lib/org/store-base.js";
+import { SKIP_MARKER } from "./run.mjs";
 
 function tempRoot() {
   return mkdtempSync(join(tmpdir(), "org-probe-"));
@@ -309,4 +313,139 @@ test("criterionMatches：判据 canonical JSON 相等即逐字同一；键序差
     { probe: "fs.contains", args: { location: "a", text: "t" } },
     { probe: "fs.contains", args: { location: "a", text: "t2" } }
   ), false, "参数值不同＝不是同一条判据（防运行侧改口径）");
+});
+
+test("33号票A5：node.tests 输出含 SKIP 标记且 exit 0 → 判不过（probe-skip，跳过≠通过）", async () => {
+  assert.equal(PROBE_SKIP_MARKER, SKIP_MARKER, "探针 SKIP 标记与套件入口单源一致（防漂移）");
+  const cwd = tempRoot();
+  materializeTestFile(cwd, "skip-probe.test.mjs", [
+    `console.log("${SKIP_MARKER} fixture skip（探针须判不过）");`
+  ]);
+  const verdict = await runCriterion({ probe: "node.tests", args: { file: "skip-probe.test.mjs" } }, { dshHome: cwd, cwd });
+  assert.equal(verdict.ok, false, `SKIP 不得判通过：${JSON.stringify(verdict)}`);
+  assert.equal(verdict.code, "probe-skip");
+  assert.match(verdict.reason, /跳过/);
+});
+
+test("33号票A6：非法参数值 fail closed——location 非串与 cwd 非串不再穿透抛错", async () => {
+  const dshHome = tempRoot();
+  const badLocation = await runCriterion(
+    { probe: "fs.contains", args: { location: 123, text: "x" } },
+    { dshHome }
+  );
+  assert.equal(badLocation.ok, false);
+  assert.equal(badLocation.code, "probe-args");
+  const cwd = tempRoot();
+  materializeTestFile(cwd, "sample-probe.test.mjs", [
+    "import { test } from \"node:test\";", "import assert from \"node:assert/strict\";",
+    "test(\"sample\", () => assert.equal(1 + 1, 2));"
+  ]);
+  const badCwd = await runCriterion(
+    { probe: "node.tests", args: { file: "sample-probe.test.mjs" } },
+    { dshHome: cwd, cwd: 123 }
+  );
+  assert.equal(badCwd.ok, false, `执行体同步抛须折成拒绝：${JSON.stringify(badCwd)}`);
+});
+
+test("33号票B4：子进程 TMP/TEMP 回退——ctx.tmpdir 同时写入三键（Windows 口径）", async () => {  const cwd = tempRoot();
+  const sentinel = tempRoot();
+  materializeTestFile(cwd, "tmp-env-probe.test.mjs", [
+    "import { test } from \"node:test\";",
+    "import assert from \"node:assert/strict\";",
+    `test("tmp env", () => {`,
+    `  assert.equal(process.env.TMPDIR, ${JSON.stringify(sentinel)}, "TMPDIR 须为 ctx.tmpdir");`,
+    `  assert.equal(process.env.TEMP, ${JSON.stringify(sentinel)}, "TEMP 须同值（Windows 子进程认此键）");`,
+    `  assert.equal(process.env.TMP, ${JSON.stringify(sentinel)}, "TMP 须同值");`,
+    "});"
+  ]);
+  const verdict = await runCriterion(
+    { probe: "node.tests", args: { file: "tmp-env-probe.test.mjs" } },
+    { dshHome: cwd, cwd, tmpdir: sentinel }
+  );
+  assert.equal(verdict.ok, true, `三键须同写 ctx.tmpdir：${JSON.stringify(verdict)}`);
+});
+
+test("33号票B4：临时目录解析链——ctx.tmpdir 优先，否则 TMPDIR→TEMP→TMP，全缺即 undefined", () => {
+  assert.equal(resolveProbeTmpEnv({ tmpdir: "/s/ctx" }), "/s/ctx");
+  assert.equal(resolveProbeTmpEnv({ tmpdir: 123, }), resolveProbeTmpEnv({}), "非串 ctx.tmpdir 视为未设");
+  const prev = { TMPDIR: process.env.TMPDIR, TEMP: process.env.TEMP, TMP: process.env.TMP };
+  try {
+    process.env.TMPDIR = "/s/tmpdir";
+    process.env.TEMP = "/s/temp";
+    process.env.TMP = "/s/tmp";
+    assert.equal(resolveProbeTmpEnv({}), "/s/tmpdir");
+    delete process.env.TMPDIR;
+    assert.equal(resolveProbeTmpEnv({}), "/s/temp");
+    delete process.env.TEMP;
+    assert.equal(resolveProbeTmpEnv({}), "/s/tmp");
+    delete process.env.TMP;
+    assert.equal(resolveProbeTmpEnv({}), undefined);
+    process.env.TMPDIR = "";
+    assert.equal(resolveProbeTmpEnv({}), undefined, "空串视为未设");
+  } finally {
+    for (const [key, value] of Object.entries(prev)) {
+      if (value === undefined) delete process.env[key]; else process.env[key] = value;
+    }
+  }
+});
+
+test("33号票A6：不可串化参数值仍 fail closed（probe-args，理由串化不得抛）", async () => {
+  const dshHome = tempRoot();
+  // BigInt 值：键集恰合（过逐字一致），值非法触发守卫；JSON.stringify(BigInt) 会抛，
+  // 理由串须走安全串化仍落 probe-args（复审 Spec(c)2）
+  const verdict = await runCriterion({ probe: "fs.contains", args: { location: "x.txt", text: 10n } }, { dshHome });
+  assert.equal(verdict.ok, false);
+  assert.equal(verdict.code, "probe-args");
+});
+
+test("33号票B4：快照物化基座服从同一解析链（ctx.tmpdir 下落副本）", async () => {
+  const cwd = tempRoot();
+  const sentinel = tempRoot();
+  materializeTestFile(cwd, "base-probe.test.mjs", [
+    "import { test } from \"node:test\";",
+    "import assert from \"node:assert/strict\";",
+    `test("base\", () => assert.ok(process.cwd().startsWith(${JSON.stringify(sentinel)}), "执行须落在 ctx.tmpdir 下的快照副本内：" + process.cwd()));`
+  ]);
+  const verdict = await runCriterion(
+    { probe: "node.tests", args: { file: "base-probe.test.mjs" } },
+    { dshHome: cwd, cwd, tmpdir: sentinel }
+  );
+  assert.equal(verdict.ok, true, `物化基座须服从 ctx.tmpdir：${JSON.stringify(verdict)}`);
+});
+
+test("33号票A5：超时优先于 SKIP（超时归因不变）", async () => {
+  const cwd = tempRoot();
+  materializeTestFile(cwd, "slow-skip-probe.test.mjs", [
+    `console.log("${SKIP_MARKER} 我跳过但我也超时");`,
+    "await new Promise((resolve) => setTimeout(resolve, 30000));"
+  ]);
+  const verdict = await runCriterion(
+    { probe: "node.tests", args: { file: "slow-skip-probe.test.mjs" } },
+    { dshHome: cwd, cwd, timeoutMs: 250 }
+  );
+  assert.equal(verdict.ok, false);
+  assert.equal(verdict.code, "probe-timeout", `超时须优先于 SKIP：${JSON.stringify(verdict)}`);
+});
+test("33号票A4：陈旧快照清扫器——TTL 外残留被扫，新鲜与异名不动", async () => {
+  const base = tempRoot();
+  const stale = join(base, "dsh-probe-snapshot-stale");
+  const fresh = join(base, "dsh-probe-snapshot-fresh");
+  const other = join(base, "org-probe-keep");
+  mkdirSync(stale, { recursive: true });
+  mkdirSync(fresh, { recursive: true });
+  mkdirSync(other, { recursive: true });
+  writeFileSync(join(stale, "x"), "old");
+  writeFileSync(join(fresh, "x"), "new");
+  // 同前缀的陈旧*文件*不是快照副本——清扫器只认目录（复审 Spec(c)1，不碰他物）
+  const staleFile = join(base, "dsh-probe-snapshot-stray-file");
+  writeFileSync(staleFile, "stray");
+  const old = Date.now() - 2 * 60 * 60 * 1000;
+  utimesSync(stale, old / 1000, old / 1000);
+  utimesSync(staleFile, old / 1000, old / 1000);
+  const swept = sweepStaleProbeSnapshots({ baseDir: base, maxAgeMs: 60 * 60 * 1000 });
+  assert.equal(swept, 1);
+  assert.equal(existsSync(stale), false, "陈旧副本须被清扫");
+  assert.equal(existsSync(fresh), true, "新鲜副本须保留（并发探针不误伤）");
+  assert.equal(existsSync(other), true, "异名目录须不动");
+  assert.equal(existsSync(staleFile), true, "同前缀文件须不动（只扫目录）");
 });
