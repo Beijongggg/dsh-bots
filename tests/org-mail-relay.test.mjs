@@ -469,6 +469,13 @@ test("HTTP 面：actor 认证（注册实例＋kind=post）——未在册／hos
     { body: { actor: { kind: "post", id: "b" }, botId: "a" } });
   assert.equal(cursorSpoof.status, 409);
   assert.equal(cursorSpoof.body.code, "mail-actor-spoof");
+  const cursorFromSpoof = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
+    { body: { actor: { kind: "post", id: "b" }, from: "a" } });
+  assert.equal(cursorFromSpoof.status, 409, "cursor 腿负载夹带 from 同拒（与 send 同口径）");
+  assert.equal(cursorFromSpoof.body.code, "mail-actor-spoof");
+  const cursorNoActor = await callMailApi(api, "POST", "/api/bots/_mail/cursor", { body: {} });
+  assert.equal(cursorNoActor.status, 403, "cursor 腿缺身份同拒");
+  assert.equal(cursorNoActor.body.code, "mail-actor-forbidden");
   const cursorGet = await callMailApi(api, "GET", "/api/bots/_mail/cursor",
     { headers: { "x-dsh-bots-bot-id": "b" } });
   assert.equal(cursorGet.status, 405, "GET cursor 下线（读面零写）");
