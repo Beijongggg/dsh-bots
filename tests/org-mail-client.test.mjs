@@ -117,6 +117,8 @@ test("消费汇报与游标腿：claim／finalize／skip／cursor 均走 POST �
   assert.equal(cursorCall.headers["x-dsh-bots-token"], "t-1", "认证 host 命令：CSRF 令牌随头");
   assert.deepEqual(JSON.parse(cursorCall.body), { actor: { kind: "post", id: "a" } },
     "游标腿身份由通道注入（零 capability 门槛，但仍须认证身份）");
+  assert.equal("x-dsh-bots-bot-id" in cursorCall.headers, false, "游标不再发送旧身份头");
+  assert.equal(log.some(entry => entry.url.endsWith("/_mail/cursor") && entry.method === "GET"), false);
 });
 
 test("CSRF 令牌轮换：403 csrf-* 重取令牌重试一次（与命令面同纪律）", async () => {

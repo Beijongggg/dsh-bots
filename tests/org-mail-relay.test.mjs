@@ -7,7 +7,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { EventEmitter } from "node:events";
@@ -351,16 +351,116 @@ async function callMailApi(api, method, url, { headers = {}, body = null, hooks 
   return { status: res.status, body: res.payload };
 }
 
+test("HTTP cursor：继承属性不是在册实例，拒绝不落基线并留下正确操作名", async () => {
+  const { home, relay: r } = relay();
+  for (const id of ["toString", "constructor", "__proto__"]) {
+    mkdirSync(inboxDirFor(home, id), { recursive: true });
+    const legacy = JSON.stringify({ id: `legacy-${id}`, seq: 1, from: "a", text: "存量" }) + "\n";
+    writeFileSync(messagesPathFor(home, id), legacy);
+    const seen = [];
+    const denied = await callMailApi({ mailRelay: r }, "POST", "/api/bots/_mail/cursor", {
+      body: { actor: { kind: "post", id } }, hooks: { recordRejection: entry => seen.push(entry) }
+    });
+    assert.equal(denied.status, 403, `${id} 未登记，不得被继承属性放行`);
+    assert.equal(denied.body.code, "mail-bot-unknown");
+    assert.equal(existsSync(join(inboxDirFor(home, id), "receipts", ".baseline.json")), false);
+    assert.equal(readMaxReceiptSeq(home, id), 0);
+    assert.equal(readFileSync(messagesPathFor(home, id), "utf8"), legacy);
+    assert.deepEqual(seen.map(({ op, code }) => ({ op, code })), [
+      { op: "mail.cursor", code: "mail-bot-unknown" }
+    ]);
+  }
+});
+
+test("HTTP 邮件在册口径一致：继承属性不能发信、消费或作为收件人 ID", async () => {
+  const { home, relay: r } = relay();
+  for (const id of ["toString", "constructor", "__proto__"]) {
+    mkdirSync(inboxDirFor(home, id), { recursive: true });
+    const messageId = `legacy-${id}`;
+    const legacy = JSON.stringify({ id: messageId, seq: 1, from: "a", text: "存量" }) + "\n";
+    writeFileSync(messagesPathFor(home, id), legacy);
+    const seen = [];
+    const hooks = { recordRejection: entry => seen.push(entry) };
+    const sent = await callMailApi({ mailRelay: r }, "POST", "/api/bots/_mail/send", {
+      body: { actor: { kind: "post", id }, to: "b", text: "不得投递" }, hooks
+    });
+    assert.equal(sent.status, 403, `${id} 不能冒充发信者`);
+    assert.equal(sent.body.code, "mail-sender-unknown");
+    const consumed = await callMailApi({ mailRelay: r }, "POST", "/api/bots/_mail/consume", {
+      body: { actor: { kind: "post", id }, messageId, seq: 1, outcome: "processed" }, hooks
+    });
+    assert.equal(consumed.status, 403, `${id} 不能汇报消费`);
+    assert.equal(consumed.body.code, "mail-bot-unknown");
+    const recipient = await callMailApi({ mailRelay: r }, "POST", "/api/bots/_mail/send", {
+      body: { actor: { kind: "post", id: "a" }, to: id, text: "不得投递" }
+    });
+    assert.equal(recipient.status, 409, `${id} 不是在册收件人`);
+    assert.equal(recipient.body.code, "mail-unknown-recipient");
+    assert.deepEqual(readAllInboxLines(home, "b"), []);
+    assert.equal(readMaxReceiptSeq(home, id), 0);
+    assert.equal(readFileSync(messagesPathFor(home, id), "utf8"), legacy);
+    assert.deepEqual(seen.map(({ op, code }) => ({ op, code })), [
+      { op: "mail.send", code: "mail-sender-unknown" },
+      { op: "mail.consume", code: "mail-bot-unknown" }
+    ]);
+  }
+});
+
+test("HTTP 在册判断不禁用名字：注册表自身登记的同名实例仍可投递、消费和读游标", async () => {
+  const home = mkHome();
+  const registry = JSON.parse('{"a":{"id":"a"},"toString":{"id":"toString"},"constructor":{"id":"constructor"},"__proto__":{"id":"__proto__"}}');
+  const api = { mailRelay: createMailRelay({ dshHome: home, readRegistry: () => registry }) };
+  for (const id of ["toString", "constructor", "__proto__"]) {
+    const sent = await callMailApi(api, "POST", "/api/bots/_mail/send", {
+      body: { actor: { kind: "post", id: "a" }, to: id, text: "合法投递" }
+    });
+    assert.equal(sent.status, 200);
+    const consumed = await callMailApi(api, "POST", "/api/bots/_mail/consume", {
+      body: { actor: { kind: "post", id }, messageId: sent.body.messageId, seq: sent.body.seq, outcome: "processed" }
+    });
+    assert.equal(consumed.status, 200);
+    const cursor = await callMailApi(api, "POST", "/api/bots/_mail/cursor", {
+      body: { actor: { kind: "post", id } }
+    });
+    assert.equal(cursor.status, 200);
+    assert.equal(cursor.body.lastSeq, sent.body.seq);
+    const reply = await callMailApi(api, "POST", "/api/bots/_mail/send", {
+      body: { actor: { kind: "post", id }, to: "a", text: "合法回信" }
+    });
+    assert.equal(reply.status, 200);
+  }
+});
+
 test("HTTP cursor（35 号票）：POST actor 认证落基线，GET 下线 405 且零写", async () => {
   const { home, relay: r } = relay();
   const api = { mailRelay: r };
   assert.equal(r.send({ from: "a", to: "b", text: "存量一" }).seq, 1);
   assert.equal(r.send({ from: "a", to: "b", text: "存量二" }).seq, 2);
+  const baselinePath = join(inboxDirFor(home, "b"), "receipts", ".baseline.json");
 
   // 读面 GET 下线：405 且不触发任何写（迁移条件满足时也不落基线）
   const get = await callMailApi(api, "GET", "/api/bots/_mail/cursor", { headers: { "x-dsh-bots-bot-id": "b" } });
   assert.equal(get.status, 405, "GET cursor 下线（读面零写）");
+  assert.equal((await callMailApi(api, "GET", "/api/bots/_mail/cursor")).status, 405, "无身份头 GET 同样拒绝");
+  assert.equal(existsSync(baselinePath), false, "GET 不生成基线文件");
   assert.equal(readMaxReceiptSeq(home, "b"), 0, "匿名 GET 不得推进水位／落基线");
+
+  const seen = [];
+  for (const [body, status] of [
+    [{}, 403],
+    [{ actor: { kind: "host", id: "host" } }, 403],
+    [{ actor: { kind: "post", id: "b" }, from: "a" }, 409],
+    [{ actor: { kind: "post", id: "b" }, botId: "a" }, 409],
+    [{ actor: { kind: "post", id: "ghost" } }, 403]
+  ]) {
+    const denied = await callMailApi(api, "POST", "/api/bots/_mail/cursor", {
+      body, hooks: { recordRejection: entry => seen.push(entry) }
+    });
+    assert.equal(denied.status, status);
+    assert.equal(existsSync(baselinePath), false, "身份拒绝不生成基线文件");
+    assert.equal(readMaxReceiptSeq(home, "b"), 0, "身份拒绝不推进水位");
+  }
+  assert.deepEqual(seen.map(entry => entry.op), Array(5).fill("mail.cursor"), "各拒绝分支均记录游标操作");
 
   // 写面 POST：认证 actor 方可触发迁移基线
   const post = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
@@ -370,6 +470,13 @@ test("HTTP cursor（35 号票）：POST actor 认证落基线，GET 下线 405 �
   assert.deepEqual({ lastSeq: post.body.lastSeq, replay: post.body.replay, baseline: post.body.baseline },
     { lastSeq: 2, replay: false, baseline: 2 }, "认证 POST 触发旧数据迁移：写基线、存量不回放");
   assert.equal(readMaxReceiptSeq(home, "b"), 2);
+  const baselineBefore = readFileSync(baselinePath, "utf8");
+  assert.equal(r.send({ from: "a", to: "b", text: "迁移后新消息" }).seq, 3);
+  const replay = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
+    { body: { actor: { kind: "post", id: "b" } } });
+  assert.equal(replay.status, 200);
+  assert.deepEqual({ lastSeq: replay.body.lastSeq, replay: replay.body.replay }, { lastSeq: 2, replay: true });
+  assert.equal(readFileSync(baselinePath, "utf8"), baselineBefore, "旧基线不重建，迁移后新消息仍待回放");
 });
 
 test("HTTP cursor 条件触发三路径（35 号票）：prune 只经认证 POST／迁移写一次／二次纯读不覆写", async () => {
