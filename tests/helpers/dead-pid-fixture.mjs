@@ -6,8 +6,7 @@
  * reap），再复核 `kill(pid, 0)` 确实报 `ESRCH`——僵尸（未 reap）与 pid 复用都
  * 会让例走成「归属不明」的保守路，夹具前提不成立时立刻炸，不静默降级。
  *
- * 共用一份（而非各测试文件手抄）：`docs/agents/issue-tracker.md` 的「同一装配
- * 一份」纪律同样适用于跨文件共享的夹具；手抄漂移＝用例间口径分叉。
+ * 多个锁测试共用此夹具，统一已死 pid 的确认方法。
  */
 import { spawnSync } from "node:child_process";
 

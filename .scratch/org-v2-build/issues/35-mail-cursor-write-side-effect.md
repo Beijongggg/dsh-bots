@@ -136,18 +136,15 @@ TDD 三缝（vertical slice，行为经公开接口断言，不测 mail-plane �
 两轴无阻断项，本票转 `resolved`。落档事件见当月日志卷
 （`docs/changelog/2026-09-01.md` `EV-20260928-mail-cursor-post`）。
 
-### 2026-09-28 两版对比后的返修口径
+### 2026-09-28 在册校验返修口径
 
-授权依据：用户在主线版 `3e8950a` 与隔离版 `22f8b21` 评分后指令
-“改善并提交，删除隔离板内容”。以主线版为基础，吸收隔离版有价值的回归断言。
+授权依据：用户指令“改善并提交”，补齐在册校验与相关回归。
 
 - 在册校验只认注册表自身字段，拒绝继承的 `toString`／`constructor`／`__proto__`。
   同一邮件中继内的 cursor、send、consume 与按 ID 查收件人共用该判定，保持
   普通在册实例与 user principal 的既有语义。
 - 沿用已确认的 HTTP／通道公开接口测试缝，补拒绝零写与 `mail.cursor` 留痕，
   并补无头 GET、客户端无旧身份头／无 GET、旧基线保留的行为断言。
-- 验证后删除干净的 `.worktrees/ticket-35-iso` 工作树及
-  `ticket-35-cursor-readonly` 分支；不合入该隔离版的独立提交。
 
 ### 2026-09-28 返修实施与收口
 
@@ -166,9 +163,6 @@ TDD 三缝（vertical slice，行为经公开接口断言，不测 mail-plane �
   冻结面 **10/10**、lint **0** 违例、宿主契约 **11 PASS／0 FAIL／0 SKIP**。
   首次管道日志缺最终汇总，不计有效门证据；改为工作区临时文件直接接收输出，
   复跑得到上述完整结果。测试与探针均经隔离子进程，夹具使用临时数据根。
-- 清理完成：复核隔离树无已修改、未跟踪或忽略文件，HEAD 为 `22f8b21` 后，
-  已删除 `.worktrees/ticket-35-iso` 及 `ticket-35-cursor-readonly` 分支，并确认
-  两者均不存在。其他票工作树保留，隔离提交未合入。
 
 本票保持 `resolved`。真实运行面及冻结件零写入。返修摘要见
 `docs/changelog/2026-09-01.md` 的 `EV-20260928-mail-registry-own-keys`。

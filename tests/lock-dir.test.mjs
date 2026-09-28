@@ -4,13 +4,13 @@
  * 契约（两个同型锁 `acquireIndexLock`／`acquireMailSeqLock` 共同委托本核心）：
  *   - 获取＝`mkdir` 原子抢占＋`owner.json{pid}`；释放前核对 pid 归属（非本进程不删）；
  *   - 等待＝短自旋（`tickMs`）＋短 `spinMs` 上限（单次事件循环冻结上限）；
- *   - 接管＝持有者**已死**（`owner.json` 的 pid 不存在）即可接管；归属不明／pid
- *     存活者只按 `staleMs` 陈旧判定接管；rm 前复核同一锁实例（`ino`）；
+ *   - 接管＝持有者**已死**（`owner.json` 的 pid 不存在）即可接管；已知存活者
+ *     不因目录陈旧被抢，只有无有效 pid 时沿用 `staleMs` 恢复；rm 前复核同一锁实例；
  *   - 留痕＝本次获取发生过争用（等待或接管）或超时即回调一次（`onWait`），
  *     字段供宿主 logger 单行落账；超时抛既有「锁超时」文案。
  *
  * 缝（用户已确认）：共享核心 `acquireLockDir` 公开面＋留痕策略 `lib/lock-trace.js`。
- * 时序断言一律用「把慢路参数关掉」的方式证明快路，不与机器速度赛跑。
+ * 死主快路通过关闭慢路验证，无争用路径不设墙钟耗时上限。
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -24,6 +24,8 @@ import { deadPid } from "./helpers/dead-pid-fixture.mjs";
 
 const { LOCK_DEFAULTS, acquireLockDir } = await import("../lib/lock-dir.js");
 const { LOCK_WAIT_WARN_MS, formatLockWait, lockWaitSink } = await import("../lib/lock-trace.js");
+const { acquireIndexLock } = await import("../lib/knowledge.js");
+const { acquireMailSeqLock } = await import("../lib/mail-seq-lock.js");
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const homes = [];
@@ -54,12 +56,12 @@ test("LOCK_DEFAULTS：两个锁同一常量——spinMs 1500（冻结上限）�
     "spinMs > staleMs：慢路仍能在 spin 窗口内完成一次陈旧接管自愈，不退化为永久待锁");
 });
 
-test("快路径：无争用即得，零等待、零接管、不回调 onWait，释放后目录清理", () => {
+test("快路径：无争用可获取、无接管、不回调 onWait，释放后目录清理", () => {
   const root = mkRoot();
   const lockDir = join(root, ".lock");
   const seen = [];
   const lock = acquireLockDir(lockDir, { lockId: "test-lock", onWait: (info) => seen.push(info) });
-  assert.ok(lock.waitMs <= 5, `无争用＝即刻取得（实得 ${lock.waitMs}ms；时钟粒度与调度抖动上限 5ms）`);
+  assert.ok(Number.isFinite(lock.waitMs) && lock.waitMs >= 0, "句柄携带有效的等待耗时");
   assert.equal(lock.tookOver, false, "无争用＝无接管");
   assert.deepEqual(seen, [], "亚阈快路径不制造噪声（零回调）");
   assert.ok(existsSync(lockDir), "持锁期间锁目录存在");
@@ -104,6 +106,59 @@ test("活主不被抢：pid 存活（本进程）且 mtime 未陈旧 → 超时�
   assert.ok(seen[0].waitMs >= 300, `回调 waitMs=${seen[0].waitMs} 须覆盖整个自旋窗口`);
 });
 
+test("跨进程活主互斥：两种锁超过陈旧阈值仍不可抢，持有者释放后可再获取", async (t) => {
+  for (const [name, moduleFile, acquire, relativeDir, lockName] of [
+    ["acquireIndexLock", "knowledge.js", acquireIndexLock, "bots/knowledge", ".lock"],
+    ["acquireMailSeqLock", "mail-seq-lock.js", acquireMailSeqLock, ".", ".seq.lock"]
+  ]) {
+    await t.test(name, () => {
+      const root = mkRoot();
+      const parent = join(root, relativeDir);
+      mkdirSync(parent, { recursive: true });
+      const lockDir = join(parent, lockName);
+      const held = acquire(root);
+      try {
+        // 持有者确实仍存活；提前设置 mtime 只消除等待陈旧阈值的测试耗时。
+        const past = new Date(Date.now() - 60_000);
+        utimesSync(lockDir, past, past);
+        const ownerBefore = readFileSync(join(lockDir, "owner.json"), "utf8");
+        const moduleUrl = pathToFileURL(join(REPO_ROOT, "lib", moduleFile)).href;
+        const script = `
+          const { ${name}: acquire } = await import(${JSON.stringify(moduleUrl)});
+          const seen = [];
+          let result;
+          try {
+            const lock = acquire(${JSON.stringify(root)}, {
+              spinMs: 200, tickMs: 10, onWait: info => seen.push(info)
+            });
+            lock.release();
+            result = { outcome: "acquired" };
+          } catch (error) {
+            result = { outcome: error.code, seen };
+          }
+          process.stdout.write(JSON.stringify(result));
+        `;
+        const child = spawnSync(process.execPath, ["--input-type=module", "-e", script],
+          { timeout: 5000, encoding: "utf8" });
+        assert.equal(child.status, 0, `争锁子进程应正常结束：${child.stderr}`);
+        const result = JSON.parse(child.stdout);
+        assert.equal(result.outcome, "LOCK_TIMEOUT", "活持有者未释放，竞争者只能超时");
+        assert.equal(result.seen.length, 1);
+        assert.equal(result.seen[0].outcome, "timeout");
+        assert.equal(result.seen[0].tookOver, false);
+        assert.equal(result.seen[0].holderPid, process.pid);
+        assert.equal(readFileSync(join(lockDir, "owner.json"), "utf8"), ownerBefore,
+          "超时不得改变持有者归属");
+      } finally {
+        held.release();
+      }
+      const next = acquire(root);
+      next.release();
+      assert.equal(existsSync(lockDir), false, "持有者正常释放后可再次获取并释放");
+    });
+  }
+});
+
 test("归属不明不被抢：owner.json 缺失且未陈旧 → 保守等待（超时），锁目录保持", () => {
   const root = mkRoot();
   const lockDir = join(root, ".lock");
@@ -111,19 +166,38 @@ test("归属不明不被抢：owner.json 缺失且未陈旧 → 保守等待（�
   assert.throws(
     () => acquireLockDir(lockDir, { lockId: "test-lock", label: "测试锁", spinMs: 300, staleMs: 60_000, tickMs: 10 }),
     /锁超时/,
-    "无法证明持有者已死时不得接管（防删掉接管者的新锁）"
+    "未到恢复阈值的未知归属锁不得接管"
   );
   assert.equal(existsSync(lockDir), true, "归属不明的锁目录保持原样");
 });
 
-test("慢路保留：mtime 超 staleMs 仍照旧接管（收紧参数不取消既有自愈）", () => {
+test("陈旧锁的 pid 越界：归属不明时仍可恢复，不误判成存活进程", () => {
   const root = mkRoot();
   const lockDir = join(root, ".lock");
-  seedLock(lockDir, process.pid); // pid 存活，只能靠陈旧判定
+  seedLock(lockDir, 2 ** 31);
+  const past = new Date(Date.now() - 60_000);
+  utimesSync(lockDir, past, past);
+  const seen = [];
+  const lock = acquireLockDir(lockDir, {
+    spinMs: 200, staleMs: 50, onWait: info => seen.push(info)
+  });
+  try {
+    assert.equal(lock.tookOver, true, "非法 pid 不应让陈旧锁永久保留");
+    assert.equal(seen.length, 1);
+    assert.equal(seen[0].holderPid, null);
+  } finally {
+    lock.release();
+  }
+});
+
+test("未知归属恢复：无 owner 且 mtime 超 staleMs 时沿用陈旧接管", () => {
+  const root = mkRoot();
+  const lockDir = join(root, ".lock");
+  seedLock(lockDir, null);
   const past = new Date(Date.now() - 10_000);
   utimesSync(lockDir, past, past);
   const lock = acquireLockDir(lockDir, { lockId: "test-lock", spinMs: 1000, staleMs: 50, tickMs: 10 });
-  assert.equal(lock.tookOver, true, "陈旧锁接管路径不得因快路加入而失效");
+  assert.equal(lock.tookOver, true, "未知归属的陈旧锁仍可恢复");
   lock.release();
 });
 
