@@ -35,9 +35,9 @@
 
 ## 4. 事实源——按问题路由
 
-- 进度与最近变化 → `CHANGELOG.md` 顶部条目
-- 门态开闭 → `PLAN-expanded-engineering.md` 门态收口段
-- 文档地图/任务编号解码/落档规范 → `README.md`
+- 工单进度 → 对应票面 `Status` 与 `Comments`；最近变化 → `CHANGELOG.md` 入口所指分卷
+- 设计与门态 → 按对象、版本、环境读对应规格、验收／切换记录；路由见 README §1
+- 文档地图/任务阅读路径/编号解码/落档规范 → `README.md`
 - 当前终版证据包 → `artifacts/packages/` 最新序号包
 
 ## 5. 工单、triage 与领域文档

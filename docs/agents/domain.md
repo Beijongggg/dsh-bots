@@ -2,19 +2,17 @@
 
 How the engineering skills should consume this repo's domain documentation when exploring the codebase.
 
-## Before exploring, read these
+## Reading the domain
 
-- **`docs/PROJECT_UNDERSTANDING.md`** — this repo's established domain overview
-  （功能面、产品方向、跨轮方法论）. Read it first; it predates this scaffold
-  and remains the primary reference.
-- **`CONTEXT.md`** at the repo root — the living glossary the
-  `/domain-modeling` skill maintains. Created lazily when terms or
-  decisions actually get resolved; live since 2026-09-07 (first terms:
-  会话回合 / session driver / turn baseline / 监督 adapter). Until a
-  needed term exists there, proceed silently — don't suggest creating
-  entries upfront.
+- Read **`docs/PROJECT_UNDERSTANDING.md`** when first entering the project. It is
+  the established overview of functionality, product direction and methodology.
+  For a specific ticket, follow its spec pointers and read the relevant overview
+  sections. The reading route is [README §4](../../README.md#4-任务阅读路径).
+- Look up the terms needed for the task in **`CONTEXT.md`**, the living glossary
+  maintained through `/domain-modeling`. Add definitions when terminology is
+  resolved; leave absent terms unfilled until then.
 - **`docs/adr/`** — read ADRs that touch the area you're about to work in.
-  The directory doesn't exist yet; same lazy-creation rule applies.
+  Create an ADR only when a decision needs to be recorded.
 
 ## File structure
 

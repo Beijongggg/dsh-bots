@@ -21,7 +21,7 @@ When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the 
 
 | Label                            | Applies to             | Meaning      | Evidence obligation（凭据义务）                                                    |
 | -------------------------------- | ---------------------- | ------------ | ---------------------------------------------------------------------------------- |
-| `resolved`                       | implementation issue   | 已实施完成   | `## Comments` 实施与验证证据＋CHANGELOG 顶部条目（AGENTS.md §2 落档纪律）           |
+| `resolved`                       | implementation issue   | 已实施完成   | `## Comments` 实施与验证证据＋当月日志卷事件（README §6.2；根 CHANGELOG 为读取入口） |
 | `resolved`                       | wayfinder ticket       | 决议完成     | `## Answer` 节＋map.md Decisions-so-far 回写（见 issue-tracker.md Wayfinding 段）   |
 | `claimed`                        | wayfinder ticket **only** | 已认领执行中 | 实现票不得使用（2026-09-08 同步批评审曾纠正一例）                                  |
 

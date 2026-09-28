@@ -10,7 +10,7 @@
  *      包文件只读，零写入）
  *   ③ .scratch Status 词表 lint（五排程词＋resolved；claimed 仅限有
  *      Type: 行的 wayfinder 票；两个历史异词件显式豁免不回改），并检查知识库
- *      文件直写与登记／废弃调用者名单，任一违例即拒绝
+ *      文件直写、登记／废弃调用者名单与日志分卷／归档完整性，任一违例即拒绝
  *   ④ 宿主契约门（独立探针脚本，挂在冻结面门之后、不并入测试套件——探针
  *      三态 PASS/FAIL/SKIP，SKIP 分列计数可见；本门以 dev 面运行：SKIP 不
  *      阻断但可见，部署面由 scripts/host-contract-probe.mjs --face=deploy 把
@@ -23,6 +23,7 @@ import { dirname, join, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { tmpdirHint } from "../tests/run.mjs";
 import { scanKnowledgeLayerFace, scanKnowledgeRegisterWriters } from "../lib/org/knowledge-shared-face.js";
+import { checkChangelog } from "./changelog-files.mjs";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 
@@ -118,16 +119,17 @@ export function statusLint(scratchRoot) {
   return { scanned, violations };
 }
 
-/** 第③门：状态词表与知识库写者扫描共用一个违例出口，独立于回归和宿主探针。 */
+/** 第③门：状态词表、知识库写者与日志检查共用违例出口，独立于回归和宿主探针。 */
 export function repositoryLint(repoRoot) {
   const status = statusLint(join(repoRoot, ".scratch"));
   const knowledge = scanKnowledgeLayerFace(repoRoot);
   const writers = scanKnowledgeRegisterWriters(repoRoot);
+  const changelog = checkChangelog(repoRoot);
   return {
     scanned: status.scanned,
     knowledgeScanned: knowledge.scanned,
     knowledgeCallers: writers.callers,
-    violations: [...status.violations, ...knowledge.violations, ...writers.violations]
+    violations: [...status.violations, ...knowledge.violations, ...writers.violations, ...changelog.violations]
   };
 }
 

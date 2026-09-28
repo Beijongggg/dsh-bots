@@ -11,6 +11,18 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 - Completed work flips `Status:` to `resolved`（终态-成功；凭据义务与 wayfinder 专属的 `claimed` 见 `triage-labels.md`「Terminal states」——本仓库对上游五词表的本地扩展）. spec.md `Status:` shares the same vocabulary
 - Comments and conversation history append to the bottom of the file under a `## Comments` heading
 
+## Reading a task
+
+Identify a ticket by feature and number, for example `org-v2-build/34`. Read its
+current fields, confirmed decisions in Comments, and the spec sections it cites.
+Follow cross-feature spec pointers as written; the implementation directory need
+not contain its own spec. Read dependency tickets when their contracts affect the task.
+
+Use `node scripts/project-context.mjs <feature> [NN]` to locate current fields and
+sources. The view reads files on demand; `Status` remains authoritative on the ticket.
+Check scheduling and authorization in the source before starting. Project-wide
+reading and history lookup follow [README §4](../../README.md#4-任务阅读路径).
+
 ## Relationship to this repo's existing conventions（本仓库适配）
 
 - `.scratch/` 承接**可执行**的工单／规格／路标（to-tickets / triage / to-spec /
@@ -18,8 +30,10 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 - **长期观察项**（不立项、只记触发信号的条目）仍按既有约定登记于
   `docs/PROJECT_UNDERSTANDING.md`「仍可选题」与 `CHANGELOG.md` 留界条目——
   不要把观察项搬进 `.scratch/`，也不要把工单登记进 PROJECT_UNDERSTANDING。
-- 工单落地为实际改动时，仍受根目录 `AGENTS.md` 第 1 节留痕纪律约束
-  （CHANGELOG 顶部条目 + README §2 地图同步）。
+- 工单落地为实际改动时，按根目录 `AGENTS.md` §2 与 README §6.2 落档。
+  详细实施与复审处置留在本票 Comments；当月日志卷写摘要并链接本票，
+  分卷位置与轮转规则见 README §6.2；根 CHANGELOG 只保留读取入口。
+  新增或移动正式项目文档才同步 README §2，工单文件不逐份登记到地图。
 
 ## When a skill says "publish to the issue tracker"
 
