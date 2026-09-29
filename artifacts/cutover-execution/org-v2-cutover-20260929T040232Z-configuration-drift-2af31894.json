@@ -1,0 +1,24 @@
+{
+  "schema": "org-v2/cutover-execution-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T04:36:43.124Z",
+  "stage": "configuration-drift-stop",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-becb8bf5.json",
+    "sha256": "becb8bf5ace50a778b183f619297f638b1ecddfa056724274bd747f219a8f4b5"
+  },
+  "failedCommand": "node /tmp/dsh-bots-16-execute.mjs archive",
+  "expectedConfiguration": {
+    "sha256": "c827a5555484773d051731b58e8d4c999a9fc16936dacf4e0310307c027f9492",
+    "byteLength": 4632
+  },
+  "observedConfiguration": {
+    "sha256": "0deee442a44333db573eee726c4bb47b6a861739563dbb0ed2099a47e4327468",
+    "byteLength": 4641
+  },
+  "runtimeWritesPerformed": false,
+  "backupCreated": false,
+  "archiveCreated": false,
+  "attribution": "Awaiting user attribution of concurrent configuration edit",
+  "rollbackPerformed": false
+}
