@@ -421,6 +421,10 @@ test("接线：宿主实例注册台账值守，bot 实例不构造台账（无�
     baseUrl,
     logger: { info() {}, warn() {}, error() {}, debug() {} },
     effect: (fn, name) => { applied.push(name); return () => {}; },
+    // bot 分支三面（提示段/知识库/岗位工具）经 inject 等待服务就绪（16 号票
+    // ptc-r2）；本测试的合成 ctx 无宿主服务——挂起等待＝永不触发，与无该服务
+    // 宿主的跳过语义一致。
+    inject: (names, cb) => { applied.push(`dsh-bots: 等待服务 ${names.join("+")}`); },
     get: () => undefined
   });
   try {
