@@ -667,7 +667,9 @@ export async function probeConfigIdsStage(roots) {
         return { state: "FAIL", reason: `官方 provider 配置读回失败：${errMsg(error)}`, coordinate: "dsh-llm-pi-ai/lib/index.js" };
       }
     }
-    return { state: "PASS", coordinate: "官方装载器往返＋官方 id 全集对照＋模型 pin 与 provider 配置真实读回" };
+    return { state: "PASS", coordinate: agentDefaultModel.AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE === undefined
+      ? "官方装载器往返＋官方 id 全集对照＋模型 pin 与 provider 配置真实读回"
+      : "官方装载器往返＋官方 id 全集对照＋旧宿主模型命名空间与路由名核验" };
   } finally {
     rmSync(home, { recursive: true, force: true });
   }

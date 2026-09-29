@@ -66,3 +66,19 @@ test("重生成 profile 保留已迁移后的当前模型配置，不用旧 sett
       `${mode}: 重生成不改变当前配置`);
   });
 });
+
+test("原生 YAML 条目字段换序后，重生成仍保留当前 provider 配置", async () => {
+  for (const mode of ["script", "builtin"]) await withProfile(mode, async ({ profile, bot, scaffold }) => {
+    writeFileSync(join(profile, "settings.yaml"), "llm-pi-ai:\n  providers: {old-route: {models: [{id: old-model}]}}\n");
+    const current = "- config:\n    providers:\n      changed-route:\n"
+      + "        api: openai-completions\n        baseURL: https://changed.invalid/v2\n"
+      + "        models: [{id: model-b}]\n  id: 'llm-pi-ai'\n";
+    writeFileSync(join(profile, "cordis.patch.yml"), current);
+    bot.modelProvider = "changed-route";
+    bot.model = "model-b";
+    await scaffold();
+    const patch = readFileSync(join(profile, "cordis.patch.yml"), "utf8");
+    assert.ok(patch.includes(current), `${mode}: id 的字段顺序不影响用户配置保留`);
+    assert.ok(!patch.includes("old-route"), `${mode}: 不使用陈旧 provider`);
+  });
+});
