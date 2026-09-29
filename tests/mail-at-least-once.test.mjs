@@ -94,6 +94,37 @@ test("initialMailCursor：旧数据迁移——无 receipt 有消息 → 基线�
   assert.equal(readMaxReceiptSeq(home, "w"), 3, "基线已落盘");
 });
 
+// ---------- 游标决策：零 receipt 存量的迁移/新生区分（37 号票 F1） ----------
+test("initialMailCursor：零 receipt＋存量＋receipts 目录已存在（create 预建痕迹）→ 回放不落基线", () => {
+  const home = mkHome();
+  for (let i = 0; i < 3; i += 1) appendMessage(home, "w", { from: "user", text: "new" });
+  fs.mkdirSync(path.join(home, "bots", "inbox", "w", "receipts"), { recursive: true });
+  const cursor = initialMailCursor(home, "w");
+  assert.deepEqual({ lastSeq: cursor.lastSeq, replay: cursor.replay }, { lastSeq: 0, replay: true },
+    "未启动即收到首封邮件（实例诞生于新消费语义）→ 全量回放，不被迁移基线吞没");
+  assert.equal(cursor.baseline, undefined, "不得落基线");
+  assert.equal(readMaxReceiptSeq(home, "w"), 0, "水位不动");
+});
+
+test("initialMailCursor：零 receipt＋responses 有崩溃残留（claim 后 finalize 前）→ 回放不落基线", () => {
+  const home = mkHome();
+  const msg = appendMessage(home, "w", { from: "user", text: "任务" });
+  claimResponse(home, "w", messageIdFor("w", msg), msg.seq);
+  const cursor = initialMailCursor(home, "w");
+  assert.deepEqual({ lastSeq: cursor.lastSeq, replay: cursor.replay }, { lastSeq: 0, replay: true },
+    "崩溃中断的首封（receipts 目录不存在、responses 有 claimed）→ 回放，at-least-once");
+  assert.equal(cursor.baseline, undefined, "不得落基线");
+  assert.equal(readMaxReceiptSeq(home, "w"), 0);
+});
+
+test("initialMailCursor：迁移判定只认 receipts/responses 痕迹——目录是中继投递建的≠新语义（回归锚）", () => {
+  const home = mkHome();
+  // appendMessage 只建 inbox/<botId>/，不建 receipts/responses——旧数据迁移判定不受投递污染
+  for (let i = 0; i < 2; i += 1) appendMessage(home, "legacy", { from: "user", text: "old" });
+  const cursor = initialMailCursor(home, "legacy");
+  assert.equal(cursor.baseline, 2, "无新消费机制痕迹的存量仍按旧数据迁移处置（口径不变）");
+});
+
 test("initialMailCursor：receipt 水位落后文件 → replay（停机积压回放）；追平 → 不回放", () => {
   const home = mkHome();
   for (let i = 0; i < 5; i += 1) appendMessage(home, "w", { from: "user", text: "m" });
