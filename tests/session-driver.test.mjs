@@ -121,6 +121,40 @@ test("提取规则：多 text part 依序拼接，非 text part 过滤", async (
   assert.equal(out.text, "第一段\n第二段");
 });
 
+test("错误终止：baseline 后 turn/end reason.kind=error 且无 assistant → 立即抛错，不死等超时", async () => {
+  const h = makeHarness();
+  // 实证形状（2026-09-29 TK-20260929 供应商 400 工具名拒绝）：一次 turn/end
+  // reason={kind:"error",error:{message,code}}，无 assistant/message，token 0。
+  h.feedHistory(
+    { events: [] }, // pre-prompt baseline
+    { events: [{
+      type: "turn/end",
+      data: { turn: 1, reason: { kind: "error", error: { message: "400: Invalid 'tools[12].name'", code: "INVALID_REQUEST" } } }
+    }] }
+  );
+  const driver = createSessionDriver({ rpc: h.rpc, sleep: h.sleep, now: h.now });
+  await assert.rejects(
+    () => driver.runPrompt({ cwd: "/w", text: "t", timeoutMs: 10_000, pollMs: 1_000, errorLabel: "bot agent turn" }),
+    (error) => /bot agent turn.*400: Invalid 'tools\[12\]\.name'/.test(error.message)
+      && !/timed out/.test(error.message)
+  );
+  // 只允许 baseline+一次轮询，不得继续烧满预算（旧实现死等至超时）
+  assert.equal(h.calls.filter(([m]) => m === "session.history").length, 2, "首次见到错误终止即退出");
+});
+
+test("错误终止不吞既有形态：reason 缺 error 对象时仍抛出可定位错误", async () => {
+  const h = makeHarness();
+  h.feedHistory(
+    { events: [] },
+    { events: [{ type: "turn/end", data: { turn: 2, reason: { kind: "error" } } }] }
+  );
+  const driver = createSessionDriver({ rpc: h.rpc, sleep: h.sleep, now: h.now });
+  await assert.rejects(
+    () => driver.runPrompt({ cwd: "/w", text: "t", timeoutMs: 10_000, pollMs: 1_000, errorLabel: "reviewer" }),
+    (error) => /reviewer/.test(error.message) && !/timed out/.test(error.message)
+  );
+});
+
 test("超时：errorLabel 文案；轮询消耗虚拟时间不真等", async () => {
   const h = makeHarness();
   h.feedHistory({ events: [] });

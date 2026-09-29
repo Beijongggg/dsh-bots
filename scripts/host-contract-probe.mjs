@@ -598,6 +598,7 @@ export async function probeConfigIdsStage(roots) {
       }
     }
     const universe = new Set();
+    let webAppParsed = null;
     for (const bundle of ["dsh-base", "dsh-web-app"]) {
       const bundlePatch = resolveCandidates(roots, bundle, "cordis.patch.yml")[0];
       if (!bundlePatch) {
@@ -608,11 +609,24 @@ export async function probeConfigIdsStage(roots) {
       catch (error) {
         return { state: "FAIL", reason: `官方组合 patch ${bundle} 解析失败：${errMsg(error)}`, coordinate: bundlePatch };
       }
+      if (bundle === "dsh-web-app") webAppParsed = parsed;
       for (const id of patchIdsOf(parsed)) universe.add(id);
     }
     const misses = CONFIG_IDS_CRITICAL.filter((id) => !universe.has(id));
     if (misses.length > 0) {
       return { state: "FAIL", reason: `关键配置 id 不在官方组合 patch 全集（宿主侧改名＝patch 静默 no-op）：${misses.join("、")}`, coordinate: "dsh-base/cordis.patch.yml＋dsh-web-app/cordis.patch.yml" };
+    }
+    // web-app tools 行的 DSH_TOOLS_MODE 环境缝形状核验：bot 子进程靠它整体切
+    // PTC 呈现（组织工具带点 op 名不符合供应商 ^[a-zA-Z0-9_-]+$，2026-09-29
+    // TK-20260929 HTTP 400）。官方注明 TEMPORARY workaround——缝被移除时 bot 静默
+    // 回退 native，点名 FAIL 不放行。装载器保留 !!js 表达式为 {__jsExpr} 标记
+    // （求值属 Loader 装配阶段），此处按标记形状断言。
+    const toolsModeExpr = webAppParsed?.find((entry) => entry?.id === "tools")?.config?.mode;
+    if (!toolsModeExpr || typeof toolsModeExpr.__jsExpr !== "string"
+      || !toolsModeExpr.__jsExpr.includes("DSH_TOOLS_MODE")) {
+      return { state: "FAIL",
+        reason: `官方 web patch tools 行缺 DSH_TOOLS_MODE 环境缝（mode=${JSON.stringify(toolsModeExpr)}）——bot 子进程的 PTC 呈现会静默失效，组织工具带点名再次被供应商拒绝`,
+        coordinate: "dsh-web-app/cordis.patch.yml" };
     }
     const agentDefaultModel = await importHostIndex(roots, "dsh-agent-default-model").catch((error) => ({ __importError: errMsg(error) }));
     if (agentDefaultModel === null) return { state: "FAIL", reason: "dsh-agent-default-model 载体包不存在", coordinate: roots.join(" ; ") };
@@ -729,7 +743,7 @@ export const HOST_CONTRACT_PROBES = [
   {
     id: "P-CONFIG-IDS",
     face: "HF-CONFIG-IDS",
-    describe: "配置面 id/key：行为探针——我方 patch 经官方装载器往返＋官方组合 id 对照＋模型 pin 读回与合成 provider 模型解析（旧宿主核命名空间，不绑定用户模型值）",
+    describe: "配置面 id/key：行为探针——我方 patch 经官方装载器往返＋官方组合 id 对照＋模型 pin 读回与合成 provider 模型解析（旧宿主核命名空间，不绑定用户模型值）＋web patch tools 行 DSH_TOOLS_MODE 环境缝形状（PTC 呈现静默失效面）",
     async run(ctx) {
       if (!ctx.hostInstalled) return noHostSkip();
       return probeConfigIdsStage(ctx.roots);

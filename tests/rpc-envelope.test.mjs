@@ -150,4 +150,40 @@ try {
   authenticatedServer.closeIdleConnections?.();
 }
 console.log("✓ 浏览器认证开启时，原生会话仍完成回合并保留上下文");
+
+// 错误终止保真（2026-09-29 TK-20260929 供应商 400 工具名拒绝的实证形状）：
+// 回合只有一次 turn/end reason.kind=error、无 assistant 消息——driver 必须立即
+// 抛出供应商错误，而不是轮询到十分钟超时后报超时。
+fs.writeFileSync(path.join(home, "bots", "bots.json"), JSON.stringify({
+  errbot: { id: "errbot", name: "错误席", modelProvider: "niko", model: "approved-model",
+    port: 3299, createdAt: now }
+}));
+const errSessions = new Map();
+const errController = {
+  async create({ cwd }) {
+    const sessionId = "err-1";
+    errSessions.set(sessionId, { events: [] });
+    return { sessionId };
+  },
+  async selectModel() {},
+  async inspect(sessionId) { return { events: errSessions.get(sessionId).events }; },
+  async prompt({ sessionId }) {
+    errSessions.get(sessionId).events.push({
+      type: "turn/end",
+      data: { turn: 1, reason: { kind: "error", error: {
+        message: "400: {\"message\":\"Invalid 'tools[12].name'\"}", code: "INVALID_REQUEST"
+      } } }
+    });
+    return { accepted: true };
+  }
+};
+const errCtx = { ...ctx, get: name => name === "sessionController" ? errController : undefined };
+const startedAt = Date.now();
+await assert.rejects(
+  () => internals.runNativeAgentTurn(errCtx, home, "errbot", "go"),
+  (error) => /Invalid 'tools\[12\]\.name'/.test(error.message) && !/timed out/.test(error.message),
+  "错误终止应带出供应商错误消息"
+);
+assert.ok(Date.now() - startedAt < 60_000, "错误终止须及时返回，不得烧满十分钟预算");
+console.log("✓ 错误终止的回合立即带出供应商错误，不再死等超时");
 process.exit(0);

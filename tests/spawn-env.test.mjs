@@ -110,6 +110,10 @@ setInterval(() => {}, 1000);
     assert.ok(dump, "假 bin 已落环境 dump");
     assert.equal(dump.DSH_HOME, home, "DSH 显式集在位");
     assert.equal(dump.DSH_WEB_URL, `http://127.0.0.1:${bot.port}/`, "DSH_WEB_URL 在位（botUrl 契约）");
+    // 组织工具带点 op 名被供应商名称模式拒绝（2026-09-29 TK-20260929 HTTP 400）；
+    // bot 进程经官方 DSH_TOOLS_MODE 环境缝整体切 PTC run_code 呈现，原名工具
+    // 保留在生成的 SDK 内，岗位/任务权限面不变。
+    assert.equal(dump.DSH_TOOLS_MODE, "ptc", "bot 子进程以 PTC 工具呈现启动（DSH_TOOLS_MODE）");
     assert.equal(dump.DUMP_PATH, dumpPath, "逃生阀附加在位");
     assert.ok(typeof dump.PATH === "string" && dump.PATH !== "", "基集 PATH 在位");
     assert.ok(!("B4_SECRET_CANARY" in dump), "宿主敏感变量不进子进程");
