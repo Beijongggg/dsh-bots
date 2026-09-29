@@ -94,4 +94,60 @@ assert.ok(!methods2.includes("session.create"), "已有 sessionId 不应重复 c
 assert.ok(methods2.includes("session.prompt"), "第二轮仍应 prompt");
 
 console.log("✓ RPC 信封形状与 agent 回合状态机（含 session 复用）");
+
+// 当前宿主的 HTTP RPC 需要浏览器 cookie，普通回合应使用自身公开的
+// SessionController。fixture 只替换宿主接口，真实 driver 和持久会话政策照跑。
+const authenticatedServer = http.createServer((_req, res) => {
+  res.writeHead(401);
+  res.end("unauthorized");
+});
+await new Promise(resolve => authenticatedServer.listen(0, "127.0.0.1", resolve));
+fs.writeFileSync(path.join(home, "bots", "bots.json"), JSON.stringify({
+  native: { id: "native", name: "实施者", modelProvider: "niko", model: "approved-model",
+    port: authenticatedServer.address().port, createdAt: now }
+}));
+const sessions = new Map();
+const promptIds = new Set();
+const controller = {
+  async create({ cwd }) {
+    assert.equal(cwd, path.join(home, "bot-workspaces", "native"));
+    const sessionId = "native-" + (sessions.size + 1);
+    sessions.set(sessionId, { events: [], model: null, turn: 0 });
+    return { sessionId };
+  },
+  async selectModel({ sessionId, provider, model }) {
+    sessions.get(sessionId).model = `${provider}/${model}`;
+  },
+  async inspect(sessionId, signal) {
+    assert.ok(signal instanceof AbortSignal, "原生历史读取收到调用取消信号");
+    return { events: sessions.get(sessionId).events };
+  },
+  async prompt({ sessionId, requestId, mode, content }, signal) {
+    assert.ok(signal instanceof AbortSignal, "原生 prompt 收到调用取消信号");
+    assert.ok(typeof requestId === "string" && requestId.length > 0, "宿主新契约需要 prompt requestId");
+    assert.ok(!promptIds.has(requestId), "新消息不复用上一条的幂等身份");
+    promptIds.add(requestId);
+    assert.equal(mode, "queue");
+    const session = sessions.get(sessionId);
+    assert.equal(session.model, "niko/approved-model", "回合使用批准的模型指派");
+    session.turn++;
+    session.events.push(
+      { type: "assistant/message", data: { turn: session.turn,
+        message: { content: [{ type: "text", text: "native reply: " + content[0].text }] } } },
+      { type: "turn/end", data: { turn: session.turn } }
+    );
+    return { accepted: true };
+  }
+};
+const nativeCtx = { ...ctx, get: name => name === "sessionController" ? controller : undefined };
+try {
+  assert.equal(await internals.runNativeAgentTurn(nativeCtx, home, "native", "first"), "native reply: first");
+  assert.equal(await internals.runNativeAgentTurn(nativeCtx, home, "native", "second"), "native reply: second",
+    "复用会话时只取 baseline 之后的新回合");
+  assert.equal(sessions.size, 1, "第二条邮件沿用持久会话");
+} finally {
+  await new Promise(resolve => authenticatedServer.close(resolve));
+  authenticatedServer.closeIdleConnections?.();
+}
+console.log("✓ 浏览器认证开启时，原生会话仍完成回合并保留上下文");
 process.exit(0);

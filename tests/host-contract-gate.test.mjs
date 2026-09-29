@@ -201,6 +201,24 @@ function writeHostIndexFixture(dir, pkg, code) {
   return file;
 }
 
+test("P-HOST-RPC：原生会话方法缺失时，残留的 RPC 标记不能让宿主门通过", async () => {
+  const root = mkdtempSync(join(tmpdir(), "dsh-gate-native-session-"));
+  try {
+    writeHostIndexFixture(root, "dsh-client-connection", `export const envelope = "client-request";\n`);
+    writeHostIndexFixture(root, "dsh-api-session-controller", `
+export class SessionController {
+  create() {} selectModel() {} prompt() {}
+}
+`);
+    const probe = HOST_CONTRACT_PROBES.find(row => row.id === "P-HOST-RPC");
+    const result = await probe.run({ roots: [root], hostInstalled: true });
+    assert.equal(result.state, "FAIL", "inspect 缺失，普通回合无法读历史，不得放行");
+    assert.match(result.reason, /inspect/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("18号票 P-CTX-SERVICES 行为化：官方服务类真实实例化断言服务名（合成 fixture）", async () => {
   const root = mkdtempSync(join(tmpdir(), "dsh-gate-ctx-"));
   try {

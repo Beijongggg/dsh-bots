@@ -302,3 +302,28 @@ baseline，不读取认证密钥或关闭外部认证。上述官方文件摘要
 “Test only at pre-agreed seams”，补充确认尚待用户答复，当前未写新增测试
 或修复源码。原五项运行授权继续有效。票面保留 `ready-for-human`，闭环与
 最终切换门尚未勾选；已核验的撤建、归档、备份和授权按凭据勾选。
+
+### 2026-09-29 用户确认会话兼容修复的补充接缝
+
+用户回复「确认」，同意在原生会话回合接口与宿主 RPC 契约探针两处补回归，
+并修复当前宿主兼容。按 TDD 逐个先红后绿，普通回合使用公开的原生会话
+接口，保留持久 session、baseline 与超时监督。修复后重新验门和双轴评审，
+从干净提交准备增量部署，沿原五项授权继续现有 `TK-20260929`，不重复立项。
+
+**仓库修复**：`lib/native-session-rpc.js` 将公开 SessionController 映射到
+既有 driver，prompt 补独立 requestId，历史通过 inspect 读取。仅用于 bot
+自身会话，跨 bot stats 保持既有 HTTP／读盘路径。每次调用保持超时上限，
+当前服务形状损坏会直接报错；无该服务的旧宿主保留原 HTTP adapter。
+`HF-HOST-RPC` 同步登记，探针实际装载官方 SessionController 并通过相同
+adapter 校验四个方法，不再用 selectModel 字符串残留代替原生接口存在性。
+
+`node tests/rpc-envelope.test.mjs` 先在原生入口复现同一 HTTP 401，修复后
+新旧两种宿主装具均通过，原生两回合使用批准模型、不同 requestId 和同一
+持久 session，返回各自新回合文本。宿主门回归先见缺 inspect 仍 PASS，
+修复后 22/22。完整 preflight 退出码 0，72/72 测试文件、0010 冻结面
+10/10、lint 0 违例、宿主 12 PASS／0 FAIL／0 SKIP；node --check 通过。
+此时尚未部署修复，双轴复审和最终执行绑定继续在本票追加。
+
+真实 host 于 05:26:41Z 按原有队列停滞时限将 smoke 转为 `waiting-user`，
+seq 2、waitingClass=escalation、resumeFrom=intake。该事件保留，修复后经
+既有用户命令恢复同一任务，不抹掉等待历史或改动简报、判据与必审点。

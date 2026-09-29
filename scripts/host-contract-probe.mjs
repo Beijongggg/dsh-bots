@@ -34,6 +34,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { HOST_FACES } from "../lib/host-faces.js";
 import { profileIdFromBaseUrl } from "../lib/host-services.js";
+import { createNativeSessionRpc } from "../lib/native-session-rpc.js";
 import { createRequire } from "node:module";
 import { createTaskLedger, eventsFile, validateEventRecord } from "../lib/org/task-ledger.js";
 import { deriveStats, readSessionEventsFromFile } from "../lib/stats.js";
@@ -796,18 +797,28 @@ export const HOST_CONTRACT_PROBES = [
   {
     id: "P-HOST-RPC",
     face: "HF-HOST-RPC",
-    describe: "宿主 RPC：client-request 信封在 dsh-client-connection、session 方法在 api-session-controller",
-    run(ctx) {
+    describe: "宿主会话调用：公开 SessionController 经原生 adapter 校验 create/selectModel/prompt/inspect 形状，HTTP client-request 信封在位",
+    async run(ctx) {
       if (!ctx.hostInstalled) return noHostSkip();
       const connFiles = libFiles(ctx.roots, "dsh-client-connection");
       if (!marker(connFiles, "client-request")) {
         return { state: "FAIL", reason: "dsh-client-connection 不含 client-request 信封标记（RPC 信封漂移）", coordinate: connFiles.slice(0, 3).join(" ; ") };
       }
-      const sessionFiles = libFiles(ctx.roots, "dsh-api-session-controller");
-      if (!marker(sessionFiles, "selectModel")) {
-        return { state: "FAIL", reason: "dsh-api-session-controller 不含 selectModel 方法标记（session RPC 方法集漂移）", coordinate: sessionFiles.slice(0, 3).join(" ; ") };
+      const loaded = await requireHostExport(ctx.roots, "dsh-api-session-controller", {
+        exportName: "SessionController", missing: "dsh-api-session-controller 缺失",
+        notExported: "官方宿主未导出 SessionController"
+      });
+      if (loaded.fail) return loaded.fail;
+      const coordinate = "dsh-api-session-controller/lib/index.js:SessionController";
+      try {
+        const rpc = createNativeSessionRpc({
+          get: name => name === "sessionController" ? loaded.mod.SessionController.prototype : undefined
+        }, { timeoutMs: 1000 });
+        if (rpc === null) return { state: "FAIL", reason: "SessionController 缺少公开实例方法", coordinate };
+      } catch (error) {
+        return { state: "FAIL", reason: errMsg(error), coordinate };
       }
-      return { state: "PASS" };
+      return { state: "PASS", coordinate };
     }
   },
   {
