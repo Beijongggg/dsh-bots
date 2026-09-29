@@ -649,8 +649,54 @@ settle/close 被 blocker 挡住＝机制正确工作；解锁需要移交件登�
 |---|---:|---|
 | [计划 r8](../../../artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r8-ee8655a3.json) | 116,688 | `ee8655a3903b601acd31bec8f01b2d5eed964b288c8aa149b11d72d923096940` |
 | [增量备份](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv1-backup-verified-4272b9ac.json) | 8,327 | `4272b9acfcd5a7edea00e6fea09af4ba93b66196a55266d3fc91e137b58d3393` |
-| [停止记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv1-quiesced-94a4d0f3.json) | 1,004 | `94a4d0f379749a4e06ef593f9de0645f70b240e213aba193483e93577d2c6c0c` |
-| [部署记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv1-deployed-4502e7fd.json) | 595 | `4502e7fdc4764ba384ad4e72b2eb29f549d8ac8081dd2352da261b9636f37497` |
-| [启动记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv1-started-b5ae6bcb.json) | 643 | `b5ae6bcb4fd419fe32e27cfedc8e36ea74100319210a51bea0cec231998f31e5` |
-| [就绪记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv1-readiness-5f1ba736.json) | 91,534 | `5f1ba73683852d3c617f65b7f72599e3681d6ace058a27d3b2fc6db32805d40f` |
+| [停止记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv1-quiesced-94a4d0f3.json) | 1,004 | `94a4d0f3797494e06ef593f9de0645f70b240e213aba19348e935771998d6c0c` |
+| [部署记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv1-deployed-4502e7fd.json) | 595 | `4502e7fdc4764ba384ad4e72b2eb29f549d8ac8081dd2352da26b9636f37497` |
+| [启动记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv1-started-b5ae6bcb.json) | 643 | `b5ae6bcb4fd419fe32e27cfedc8e36ea74100319210a51a0cec231998f31e5` |
+| [就绪记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv1-readiness-5f1ba736.json) | 91,534 | `5f1ba73683852d3c617f65b7f72599e36d1d6ace05a27d3b2fc6db32805d40f` |
 | [复核请求](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-review-request-rv1-2f61925d.json) | 488 | `2f61925dcf59cb6501a87845aaecb469042a17587176435d6ef3bd3cdf8b502b` |
+
+### 2026-09-29 移交链缺口根因修正为读取口径缺陷，产出方三道门统一按历史事实判定（仓库侧完成，待 rv2 增量部署）
+
+上一节 blocker 的归因修正与修复。codex 会话中断后由用户「接手继续」接手（显式
+implement／tdd／code-review／domain-modeling 技能）。
+
+**归因修正**（先验证再断言）：只读复算证实 R-2026-010 登记条目锚定齐全
+（task=TK-20260929、botId=implementer、status=valid）且 `artifactsFor` 返回该条目
+——**登记链没有缺口**：25 号票实现的 closePrecondition ③本就以知识索引为产出登记
+面（knowledge.register 带 task 锚定即「谁产出谁登记」），14 号票保留项
+artifact.submit 无须升表接线（保留集维持）。真实缺陷＝**读取口径**：复核移交件读面
+（`review-artifacts.js`）与关闭登记门（`artifactRegistrationVerdict`）都以易变的当前
+归属 `owner` 判产出方；TK-20260929 于 seq 22 report（owner=implementer）后被
+lease-reclaimed（seq 31，lease-expired）清 owner、escalated（seq 32）上浮，复核恰运行
+在 owner=null 窗口——`entry.botId === null` 永假，移交件列表恒空。同一口径也挡在
+关闭门上：settle/close 收口会被 `artifact-not-registered` 同样误拒。
+
+**仓库修复**（`6dfb89a`＋返修 `cc66016`）：
+
+- 投影新增 `producer`：report 事件派生的历史事实（report 属 ownerOnly，actor 即
+  当时归属者）；归属让渡（租约回收/上浮/重排）不清、重派重跑后**后报者覆盖**。
+- `producerOf(task)` 两段口径单源（02 号票单一原语纪律）：report 后取 `producer`；
+  尚无 report 时取当前归属 `owner`（真实面登记常发生在 report 前的实施窗口——
+  R-2026-010 登记于 seq 22 前 22 秒；org-bootstrap-channel 既有用例钉住该段）。
+  三道门共用：复核移交件读面、关闭登记门、**独立性门 reviewer-is-producer**
+  （双轴评审共同点名的第三处漏改——owner=null 窗口真产出方原可被指定为 reviewer，
+  违 spec §C「产出方不得自任」；已返修为先红后绿）。
+- 「产出方（producer）」入 CONTEXT.md（显式 domain-modeling），Avoid 行钉「不得用
+  owner 代指产出方」。
+
+**TDD 与验证**：三轮先红后绿——task-ledger 投影/注入面用例（他人登记负例、重跑
+覆盖）、ledger-host review-handoff 用例（owner=null 时产出方工件可读、他人登记不
+出现、自任两腿负例：请求腿 HTTP 拒、报告腿经进程内直调在权威门拒）。完整
+preflight 四门：**74/74 测试文件、0010 冻结面 10/10、lint 0 违例、宿主契约
+12 PASS／0 FAIL／0 SKIP**；`node --check` 通过。
+
+**双轴评审**（`427d548..6dfb89a`）与返修：Standards 落档缺失（本节+CHANGELOG 随
+返修提交闭环）、自任门漏改、口径重复、领域词缺口，Spec 自任门缺陷与 producer 粘滞
+判断项——除粘滞项裁定**可辩护留界**（重派窗口旧 producer 粘滞，但关闭必经新
+report，届时已更新；头注与词条写明）外全部返修，返修 `cc66016` 经原轴复核逐项
+关闭，无新越权。
+
+下一步：出计划 r9 绑定 `cc66016` 做增量部署（沿原五项运行授权），恢复
+TK-20260929：user resume→重派重跑实施→复核（期望移交件可读、blocker 消解）→
+settle/close 收口闭环 smoke。简报、判据与必审点未改；本票保持 `ready-for-human`，
+真实切换验收框仍待执行凭据。
