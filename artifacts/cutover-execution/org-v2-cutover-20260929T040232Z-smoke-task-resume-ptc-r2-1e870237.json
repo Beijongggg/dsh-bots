@@ -1,0 +1,100 @@
+{
+  "schema": "org-v2/cutover-smoke-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T09:59:09.336Z",
+  "stage": "task-resume-ptc-r2",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r7-2f1b8113.json"
+  },
+  "taskId": "TK-20260929",
+  "input": {
+    "op": "task.resume",
+    "resumeTo": "triaged",
+    "expectedStatus": "waiting-user",
+    "expectedSeq": 8
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "taskId": "TK-20260929",
+      "status": "triaged",
+      "seq": 9,
+      "task": {
+        "taskId": "TK-20260929",
+        "class": "project",
+        "status": "triaged",
+        "owner": null,
+        "dispatcher": null,
+        "lease": {
+          "acceptBy": null,
+          "expiresAt": null,
+          "heartbeats": 0
+        },
+        "dispatchCount": 0,
+        "brief": {
+          "goal": "用真实双席完成一条预登记任务的收单、派单、登记工件、独立复核与结算。",
+          "deliverables": [
+            {
+              "format": "markdown",
+              "location": "bots/knowledge/reports/R-2026-010.md"
+            }
+          ],
+          "sources": [
+            {
+              "tool": "user",
+              "ref": "org-v2-cutover-20260929T040232Z:brief"
+            }
+          ],
+          "boundaries": "仅经组织命令提交工件与状态，不直接写 ~/.dsh；不改产品、部署、冻结件或旧知识条目。报告简述实际完成的动作并含本批标记。",
+          "acceptance": [
+            {
+              "probe": "fs.contains",
+              "args": {
+                "location": "bots/knowledge/reports/R-2026-010.md",
+                "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+              }
+            }
+          ],
+          "reviewPoints": [
+            "before-external-visibility"
+          ]
+        },
+        "acceptance": [
+          {
+            "probe": "fs.contains",
+            "args": {
+              "location": "bots/knowledge/reports/R-2026-010.md",
+              "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+            }
+          }
+        ],
+        "routineId": null,
+        "window": null,
+        "supersedesTaskId": null,
+        "parentTaskId": null,
+        "createdAt": "2026-09-29T04:56:40.755Z",
+        "updatedAt": "2026-09-29T09:59:09.316Z",
+        "lastSeq": 9,
+        "resumeFrom": null,
+        "waitingClass": null,
+        "escalationCause": null,
+        "lastRejection": null
+      },
+      "event": {
+        "seq": 9,
+        "eventId": "mumi85c4-05022be1",
+        "type": "resume",
+        "at": "2026-09-29T09:59:09.316Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 4,
+        "resumeTo": "triaged",
+        "eventHash": "42b8f2434e0f95af53979aceebaba87f4470c812f8a8072f651e34148a670a8b"
+      }
+    }
+  }
+}

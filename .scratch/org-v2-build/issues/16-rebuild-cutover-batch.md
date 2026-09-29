@@ -538,3 +538,57 @@ disposer 释放、装配面接线源码钉住（`tests/bot-faces-ready.test.mjs`
 下一步：出计划 r7 绑定本修复做增量部署，重跑就绪与 botEnv 核对，恢复
 `TK-20260929` 继续 smoke。任务现处 waiting-user、seq 8、resumeFrom=intake，
 等待历史全保留。
+
+### 2026-09-29 ptc-r2 已部署：真实分诊与实施回合全通，复核会话成新阻断
+
+计划 r7（`2f1b8113`）绑定源码 `243913a`（三件变更：lib/index.js 与两测试），
+沿原五项运行授权执行增量部署。首次 execute 的停链段因 host 优雅退出慢于
+15 秒 deadline 中止（backup-verified 已冻结）；续行脚本完成剩余停链、同步
+与重启并如实分层记录（quiesced 记录注明首段出处）。host 新 PID `146812`，
+双席由 host 经私有 IPC 启动，`/proc` 实得 `DSH_TOOLS_MODE=ptc`。
+
+**就绪 PASS**（readiness 记录含 botEnv），两席 role 签发审计行齐备（09:57:55
+duty／09:57:56 implementer）——服务等待修复在真实面生效。
+
+**smoke 实际推进**（TK-20260929，seq 9 起）：
+
+1. 用户命令 resume→triaged、return→intake（seq 9、10），仅以任务 ID 唤醒统筹。
+   **统筹在 PTC 呈现下完成真实分诊回合**（seq 11 triage「立项」）——工具名
+   兼容修复经真实模型请求验证。
+2. 用户腿 task.plan（seq 15）＋task.assign（seq 16，owner=implementer），按
+   冻结简报 actors.planAndAssign=user；唤醒邮件仅传任务 ID。
+3. 首次唤醒后实施者被动等待（seq 17 统筹登记 task-stalled；其 accept 曾在
+   任务能力签发〔审计 10:11:24Z〕前被拒 capability-required）。能力就位后
+   二次唤醒，**实施者在 PTC 呈现下完成真实实施链**：accept（seq 20）→start
+   （seq 21）→report（seq 22）——工件 R-2026-010 经 knowledge.register 登记，
+   预登记 evidence.probe(index=0) 判据命中（回信含工件快照 SHA-256）。
+4. 用户腿 review.request（seq 26，point=before-external-visibility，
+   reviewer=duty-coordinator；首试缺 reviewer 被拒并记录）。
+5. **新阻断**：fresh 复核会话（org-review-*）两次召集两次空转——会话日志仅
+   session/permission/sandbox/approval 四事件，无 turn/start、无模型请求、
+   token 0；台账 exception(seq 27、29「复核会话未成功入账报告」）。与持久
+   会话（分诊/实施均正常）对照，问题限定在 agents.create 一次性会话与 PTC
+   呈现（或 scoped verifier 工具面）的组合。这是本批第四个兼容阻断，诊断
+   与修复属新接缝（HF-REVIEW-SESSION 面），待提请确认后按 TDD 处理。
+
+任务现处 produced、seq 29；等待、恢复、退回与两次复核异常历史全保留。简报、
+报告号、验收判据与必审点未改。诊断期间一次副本清理 `pkill` 模式过宽误杀
+真实面双席（host 与数据面无损，即时经既有命令面拉回），已在前节如实记录。
+
+| 凭据 | 字节数 | SHA-256 |
+|---|---:|---|
+| [计划 r7](../../../artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r7-2f1b8113.json) | 98,296 | `2f1b811304a5003fffed68b3ad860f34708f45a38aa7ebcce0ac2aa588b74761` |
+| [执行脚本](../../../artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-ptc-r2-executor-d8943255.mjs) | 20,368 | `d89432551adb2756fd808ad4cd3ed92d4cffb34a81de5bef9d594e70d1113c2f` |
+| [最终 preflight](../../../artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-ptc-r2-preflight-87122bd1.log) | 182,909 | `87122bd19dabf17d8473c7e443eefc861ec694e3cc7bc89e3b701e2eac04faf1` |
+| [增量备份](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-ptc-r2-backup-verified-4ef5c78d.json) | 8,155 | `4ef5c78d4b698a58583417a17c47a71e8374e0a22c7d59f2cedb0ddefe453f17` |
+| [停止记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-ptc-r2-quiesced-015e6a0c.json) | 1,005 | `015e6a0cd233cd30d3b031e17eec94bc6e866daf2b732ce55cf55441143d2771` |
+| [部署记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-ptc-r2-deployed-47a9df58.json) | 613 | `47a9df58d6157d469d025706c09dd27ecc37ce38dfb4f19a328de6879bcc6744` |
+| [启动记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-ptc-r2-started-78361f81.json) | 646 | `78361f8132208fa893ca81f12fd072e72a04a559a392fdfbd3ad67a478f05dd7` |
+| [就绪记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-ptc-r2-readiness-2128f100.json) | 91,288 | `2128f1000b71314a46fa54ebf6d91401e11756f49f490a8a4cf8d9ba5ab11487` |
+| [恢复命令](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-task-resume-ptc-r2-1e870237.json) | 2,979 | `1e87023718fe251b1895340415982c1064a44b96c7215690784128d28190aed0` |
+| [退回收单](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-task-return-ptc-r2-2bb4b7cd.json) | 2,917 | `2bb4b7cd5ab5f575820acf467c5f7243c5fb53363e8b83edfe2f9117399edcb` |
+| [统筹唤醒](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-wake-triage-retry-ptc-r2-bebd2871.json) | 478 | `bebd287112380e563b2121a6164a1fd4550f752b1be9ad6548d9220b415242e4` |
+| [用户立项](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-task-plan-ptc-r2-aa18496a.json) | 777 | `aa18496a3fb6ea25b206c962cfd6ae3fb5eac50426b534b889c1e00872d489b0` |
+| [用户派单](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-task-assign-ptc-r2-ef5e2c3f.json) | 877 | `ef5e2c3f1e587b2bee0d8e26c96da7dfda3e4560e5a9182f4d2fa9e6ec1a2c51` |
+| [实施者唤醒](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-wake-implementer-retry-ptc-r2-f875d7fa.json) | 592 | `f875d7fadeb7fd8311ba850fdde5f4a6ecef0772cc0714390c9a863c1faa6dd7` |
+| [复核请求](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-review-request-ptc-r2-50bdbd65.json) | 3,721 | `50bdbd651fa77ff768bf6212112c474e17067f4cb64c8f196c93aca85fc3f766` |

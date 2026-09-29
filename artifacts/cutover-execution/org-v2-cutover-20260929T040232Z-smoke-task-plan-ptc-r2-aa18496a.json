@@ -1,0 +1,27 @@
+{
+  "schema": "org-v2/cutover-smoke-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T10:31:37.790Z",
+  "stage": "task-plan-ptc-r2",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r7-2f1b8113.json"
+  },
+  "taskId": "TK-20260929",
+  "actor": {
+    "kind": "user",
+    "id": "user"
+  },
+  "idempotencyKey": "org-v2-cutover-20260929T040232Z:ptc-r2:task.plan",
+  "input": {
+    "op": "task.plan",
+    "payload": {},
+    "expectedStatus": "triaged",
+    "expectedSeq": 14
+  },
+  "response": {
+    "ok": true,
+    "status": "planned",
+    "seq": 15
+  },
+  "note": "user leg per frozen brief actors.planAndAssign=user; command issued via CSRF command face; ledger events seq 15 are the durable record"
+}

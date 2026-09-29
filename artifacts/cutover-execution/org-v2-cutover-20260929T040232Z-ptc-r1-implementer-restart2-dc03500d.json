@@ -1,0 +1,26 @@
+{
+  "schema": "org-v2/cutover-increment-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "batch": "ptc-r1",
+  "capturedAt": "2026-09-29T08:18:05.512Z",
+  "stage": "implementer-restart",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r6-dc96cde3.json"
+  },
+  "reason": "implementer delivery entry disposed by a pre-existing race: one-shot org-ready arrived before the instance self-registration row reached disk, currentInstanceRow().row threw inside onMessage and dispose() dropped the entry; no retry path exists. Restart re-runs attach with the row already durable.",
+  "before": {
+    "pid": 122854,
+    "pidStartTicks": 2339327,
+    "online": true
+  },
+  "stop": {
+    "status": 200
+  },
+  "start": {
+    "status": 200,
+    "body": {
+      "pid": 123567,
+      "startedAt": 1790669885507
+    }
+  }
+}

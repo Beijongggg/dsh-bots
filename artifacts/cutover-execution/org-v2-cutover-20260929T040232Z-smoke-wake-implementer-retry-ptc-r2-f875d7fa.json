@@ -1,0 +1,20 @@
+{
+  "schema": "org-v2/cutover-smoke-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T10:20:15.945Z",
+  "stage": "wake-implementer-retry-ptc-r2",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r7-2f1b8113.json"
+  },
+  "taskId": "TK-20260929",
+  "botId": "implementer",
+  "message": "TK-20260929",
+  "response": {
+    "status": 200,
+    "body": {
+      "delivered": true,
+      "seq": 11
+    }
+  },
+  "note": "task capability issued at 10:11:24Z per audit trail; retry wake after capability-required rejection"
+}

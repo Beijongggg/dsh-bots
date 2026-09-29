@@ -1,0 +1,19 @@
+{
+  "schema": "org-v2/cutover-smoke-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T09:59:09.386Z",
+  "stage": "wake-triage-retry-ptc-r2",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r7-2f1b8113.json"
+  },
+  "taskId": "TK-20260929",
+  "botId": "duty-coordinator",
+  "message": "TK-20260929",
+  "response": {
+    "status": 200,
+    "body": {
+      "delivered": true,
+      "seq": 4
+    }
+  }
+}

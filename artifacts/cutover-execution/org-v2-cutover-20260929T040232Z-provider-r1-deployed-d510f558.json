@@ -1,0 +1,25 @@
+{
+  "schema": "org-v2/cutover-increment-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "batch": "provider-r1",
+  "capturedAt": "2026-09-29T06:17:16.448Z",
+  "stage": "deployed",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r5-a9d8cd49.json",
+    "sha256": "a9d8cd493702789e08c6ccc9aefc6e54a13ac5c0f4496151880e8ea1bacc8716",
+    "byteLength": 97503
+  },
+  "sourceCommit": "80187dc6cbe2d881a880b7a96e194c348e6d1f1a",
+  "sourceDigest": "5ca1373a25c6d7d4affa36e52bba8ab5ae3bb1a9f827cfeaa97a46961712c7dc",
+  "filesVerified": 182,
+  "changedPaths": [
+    "lib/host-faces.js",
+    "lib/index.js",
+    "lib/shared.cjs",
+    "scripts/create-bot.cjs",
+    "scripts/host-contract-probe.mjs",
+    "tests/bot-profile.test.mjs",
+    "tests/host-contract-gate.test.mjs"
+  ],
+  "preservedFiles": 25
+}

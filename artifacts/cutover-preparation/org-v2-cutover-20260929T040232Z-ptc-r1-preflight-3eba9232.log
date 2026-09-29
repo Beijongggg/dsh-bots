@@ -1,0 +1,3879 @@
+
+> dsh-bots@0.1.0 preflight
+> node scripts/preflight.mjs
+
+
+=== acceptance-records.test.mjs ===
+TAP version 13
+# Subtest: 关闭检查期间取消：旧 CAS 被拒，取消投影及队列保持可读（25 号票并发返修）
+ok 1 - 关闭检查期间取消：旧 CAS 被拒，取消投影及队列保持可读（25 号票并发返修）
+  ---
+  duration_ms: 65.908454
+  type: 'test'
+  ...
+# Subtest: 同键并发关闭只记录首次结论，后到检查重放成功或拒绝（25 号票幂等返修）
+    # Subtest: 首次成功
+    ok 1 - 首次成功
+      ---
+      duration_ms: 60.442811
+      type: 'test'
+      ...
+    # Subtest: 首次拒绝
+    ok 2 - 首次拒绝
+      ---
+      duration_ms: 54.297018
+      type: 'test'
+      ...
+    1..2
+ok 2 - 同键并发关闭只记录首次结论，后到检查重放成功或拒绝（25 号票幂等返修）
+  ---
+  duration_ms: 115.696587
+  type: 'test'
+  ...
+# Subtest: 关闭检查期间改简报或强制加审：旧检查不能关闭新版本任务（25 号票 CAS 返修）
+    # Subtest: amend
+    ok 1 - amend
+      ---
+      duration_ms: 54.111094
+      type: 'test'
+      ...
+    # Subtest: review.request
+    ok 2 - review.request
+      ---
+      duration_ms: 46.073046
+      type: 'test'
+      ...
+    1..2
+ok 3 - 关闭检查期间改简报或强制加审：旧检查不能关闭新版本任务（25 号票 CAS 返修）
+  ---
+  duration_ms: 101.267047
+  type: 'test'
+  ...
+# Subtest: 不同键并发关闭只有一次成功，另一条 CAS 拒绝且投影可重建（25 号票并发返修）
+ok 4 - 不同键并发关闭只有一次成功，另一条 CAS 拒绝且投影可重建（25 号票并发返修）
+  ---
+  duration_ms: 43.729683
+  type: 'test'
+  ...
+# Subtest: 关闭检查期间其他任务仍能收单，其他任务的事件不使本次 CAS 失效
+ok 5 - 关闭检查期间其他任务仍能收单，其他任务的事件不使本次 CAS 失效
+  ---
+  duration_ms: 48.028278
+  type: 'test'
+  ...
+# Subtest: 关闭检查期间产出登记撤除或变得不可读：不得按旧登记放行
+    # Subtest: 登记撤除
+    ok 1 - 登记撤除
+      ---
+      duration_ms: 40.532818
+      type: 'test'
+      ...
+    # Subtest: 登记不可读
+    ok 2 - 登记不可读
+      ---
+      duration_ms: 48.339582
+      type: 'test'
+      ...
+    1..2
+ok 6 - 关闭检查期间产出登记撤除或变得不可读：不得按旧登记放行
+  ---
+  duration_ms: 89.722982
+  type: 'test'
+  ...
+# Subtest: 判据全过即放行：关闸时逐条现跑（判据来自任务投影的冻结简报），跑完即准关（§B 前置第三条）
+ok 7 - 判据全过即放行：关闸时逐条现跑（判据来自任务投影的冻结简报），跑完即准关（§B 前置第三条）
+  ---
+  duration_ms: 26.440088
+  type: 'test'
+  ...
+# Subtest: 判据不过即拒：回执点名第几条／什么命令／为什么并带快照摘要；状态不变；修好后可关（现跑，不采信自报）
+ok 8 - 判据不过即拒：回执点名第几条／什么命令／为什么并带快照摘要；状态不变；修好后可关（现跑，不采信自报）
+  ---
+  duration_ms: 21.890714
+  type: 'test'
+  ...
+# Subtest: 拒绝回执的复验锚：快照摘要（snapshotSha256）随回执返回，幂等重放不丢
+ok 9 - 拒绝回执的复验锚：快照摘要（snapshotSha256）随回执返回，幂等重放不丢
+  ---
+  duration_ms: 15.84634
+  type: 'test'
+  ...
+# Subtest: 执行面未接线＝fail closed（acceptance-check-unwired）：「跑不了」不等于「过了」
+ok 10 - 执行面未接线＝fail closed（acceptance-check-unwired）：「跑不了」不等于「过了」
+  ---
+  duration_ms: 13.45436
+  type: 'test'
+  ...
+# Subtest: 超时＝不过（不是跳过）：node.tests 超时在关闭前置处被拒且可归因
+ok 11 - 超时＝不过（不是跳过）：node.tests 超时在关闭前置处被拒且可归因
+  ---
+  duration_ms: 275.12083
+  type: 'test'
+  ...
+# Subtest: 跳过≠通过：stderr 无换行诊断后的 SKIP 在关闭前置处被拒（33 号票 A5 传导）
+ok 12 - 跳过≠通过：stderr 无换行诊断后的 SKIP 在关闭前置处被拒（33 号票 A5 传导）
+  ---
+  duration_ms: 171.045255
+  type: 'test'
+  ...
+# Subtest: 执行面的运行时负例同样被拒且点名：真跑红的 `node.tests` 判据 ＝ probe-failed（带树级摘要）
+ok 13 - 执行面的运行时负例同样被拒且点名：真跑红的 `node.tests` 判据 ＝ probe-failed（带树级摘要）
+  ---
+  duration_ms: 93.340943
+  type: 'test'
+  ...
+# Subtest: 适用范围：无判据的简报在收单门即拒（不进事实源）；duty 任务带判据照跑判据门、不适用登记门
+ok 14 - 适用范围：无判据的简报在收单门即拒（不进事实源）；duty 任务带判据照跑判据门、不适用登记门
+  ---
+  duration_ms: 44.707379
+  type: 'test'
+  ...
+# Subtest: 执行面抛错不得逃逸：折算成拒绝回执并落账（工厂抛错＝acceptance-check-unwired；执行体抛错＝acceptance-check-failed）
+ok 15 - 执行面抛错不得逃逸：折算成拒绝回执并落账（工厂抛错＝acceptance-check-unwired；执行体抛错＝acceptance-check-failed）
+  ---
+  duration_ms: 21.325792
+  type: 'test'
+  ...
+# Subtest: 判据执行面收到的数据根＝台账根：调用方 ctx 里带同名 dshHome 也不得改判据执行根（防「登记在 A、判据跑在 B」漂移）
+ok 16 - 判据执行面收到的数据根＝台账根：调用方 ctx 里带同名 dshHome 也不得改判据执行根（防「登记在 A、判据跑在 B」漂移）
+  ---
+  duration_ms: 11.41603
+  type: 'test'
+  ...
+# Subtest: 逐条短路＋判据形状原样：跑到第一条不过即停（不把后面的也跑一遍）
+ok 17 - 逐条短路＋判据形状原样：跑到第一条不过即停（不把后面的也跑一遍）
+  ---
+  duration_ms: 14.320663
+  type: 'test'
+  ...
+# Subtest: 判据真源＝任务投影的冻结简报：调用方 payload 不能自带判据（关闭命令的负载键封闭）
+ok 18 - 判据真源＝任务投影的冻结简报：调用方 payload 不能自带判据（关闭命令的负载键封闭）
+  ---
+  duration_ms: 13.125735
+  type: 'test'
+  ...
+1..18
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1198.419967
+
+=== anchor-bootstrap.test.mjs ===
+✓ 空注册表自举：写入 v2 锚点席位（值班统筹／duty-coordinator／home 岗位绑定／3101）
+✓ 空文件视同空表：同样写锚点席位
+✓ 损坏表：重命名备份分支保留原样，重建目标是 v2 锚点
+✓ 非空注册表：零触碰（不注入锚点、不重写文件）
+✓ 锚点席位记录：实例 id／显示名／home 岗位三者同源，权限档 read-only
+✓ bootstrap 锚点席位不可删（400），注册表保持在场
+✓ 保护按席位标记判定，不按席位名字符串：用户自建席位（含 v1 旧名）可删；未知 id 404
+✓ 锚点席位 home 岗位不可改绑（400；含清空），改绑即等于拿掉锚点
+✓ 非锚点席位照旧可改绑 home 岗位
+✓ 起步编制契约：锚点＋实施者双席，项目经理／研究员按需拉起，锚点岗在常设岗册内
+✓ 编制状态纯函数：锚点席位（按标记）＋双席岗位齐备才算起步编制就绪，按需岗不影响
+✓ 锚点席位判据两处实现等价（前端 bundle ↔ 合同源，漂移即红）
+✓ lib/index.js：v1 内置席位标识符与字符串字面量清零，锚点走 v2 席位标记
+✓ lib/client.js：锚点席位判定走席位标记，v1 席位名与本地化键清零
+✓ 双席起步编制经公开面可起：自举得锚点席位 → create 建实施者席位 → 编制齐备
+
+=== api-security.test.mjs ===
+✓ isMutatingMethod：POST/PUT/PATCH/DELETE 为真，GET/HEAD/OPTIONS 为假
+✓ 签发：base64url 32 字节令牌＋expiresAt；rotate 窗口内复签同令牌
+✓ 校验矩阵：缺令牌→required；空串/undefined→required；伪造→invalid；有效→ok
+✓ 轮换：旧令牌进 previous，剩余有效期内受认；过期后仅 grace 窗受认，出窗即 expired
+✓ 空白会话：未签发时任意令牌 → invalid（无 current/previous 可匹配）
+✓ 门控：变更请求无令牌 → 403 code=csrf-token-required；伪造 → invalid；GET 不设门
+✓ 门控：有效令牌放行至处理器（坏载荷 400 证明已过门）；未接线 apiSecurity 沿用旧行为
+✓ _csrf 端点：GET 签发（token/expiresAt）；非 GET 405；未接线 404
+
+=== bot-autostart.test.mjs ===
+✓ 选择过滤：enabled=false / autoStart=false / pid 在线 全部跳过；余按注册表序
+✓ 编排：顺序启动、alreadyRunning 分类、单个失败不中断、结果三元组
+✓ 编排：无待启动 bot 时零调用零日志噪声路径
+✓ 应急闸：DSH_BOTS_AUTOSTART=0 → 全局关闭且零启动调用（含环境恢复）
+
+=== bot-profile.test.mjs ===
+TAP version 13
+# Subtest: 两条 profile 生成路径把已有 provider 配置交给当前宿主，保留用户参数
+ok 1 - 两条 profile 生成路径把已有 provider 配置交给当前宿主，保留用户参数
+  ---
+  duration_ms: 54.706794
+  type: 'test'
+  ...
+# Subtest: 重生成 profile 保留已迁移后的当前模型配置，不用旧 settings 覆盖用户修改
+ok 2 - 重生成 profile 保留已迁移后的当前模型配置，不用旧 settings 覆盖用户修改
+  ---
+  duration_ms: 92.187277
+  type: 'test'
+  ...
+# Subtest: 原生 YAML 条目字段换序后，重生成仍保留当前 provider 配置
+ok 3 - 原生 YAML 条目字段换序后，重生成仍保留当前 provider 配置
+  ---
+  duration_ms: 35.264587
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 189.916393
+
+=== bot-supervisor.test.mjs ===
+✓ nextBackoffMs：退避表逐级＋越界封顶
+✓ crashLooped：窗口剪枝＋阈值判定（now 为时钟函数）
+✓ restartAllowed：三层开关（enabled/autoRestart/应急闸）
+✓ listDescendants：递归快照（广度优先）；children 读不到 → 叶子
+✓ killDescendants：全体 SIGTERM → 短候 → SIGKILL（已死者跳过）
+✓ 意外退出 → 退避后自动重启；正常退出/有意退出不重启
+✓ generation fencing：旧代数的迟到退出事件被弃置
+✓ 崩溃自愈闭环：跨重启累计退出史，第 5 次意外退出熔断；手动 begin 清零重来
+✓ 挂起重启被 onStop 取消；触发时开关拦截（enabled=false）与应急闸生效
+✓ readiness 观测链：端口通 → ready；截止未通 → degraded；代数被取代 → 探针弃置
+
+BotSupervisor 测试全部通过
+
+=== capability-issued-audit.test.mjs ===
+TAP version 13
+# Subtest: 对账脚本：签发笔笔在岗位表内即绿（退出码 0，结论行 OK）
+ok 1 - 对账脚本：签发笔笔在岗位表内即绿（退出码 0，结论行 OK）
+  ---
+  duration_ms: 78.980628
+  type: 'test'
+  ...
+# Subtest: 对账脚本：越表签发即红（复核帽写 op／越出岗位表），退出码 1 且违例可归因
+ok 2 - 对账脚本：越表签发即红（复核帽写 op／越出岗位表），退出码 1 且违例可归因
+  ---
+  duration_ms: 82.265543
+  type: 'test'
+  ...
+# Subtest: 对账脚本：审计链形状与签发面口径不符即红（kind↔taskId↔op 集切分，签发面必拒者不得静默通过）
+ok 3 - 对账脚本：审计链形状与签发面口径不符即红（kind↔taskId↔op 集切分，签发面必拒者不得静默通过）
+  ---
+  duration_ms: 298.778733
+  type: 'test'
+  ...
+# Subtest: 对账脚本：审计链不可信即红（坏行／缺字段／重复 jti），空链不算违例
+ok 4 - 对账脚本：审计链不可信即红（坏行／缺字段／重复 jti），空链不算违例
+  ---
+  duration_ms: 318.005468
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 790.189538
+
+=== changelog.test.mjs ===
+TAP version 13
+# Subtest: 近期读取跨月和同月分卷倒序，再回读原文归档；来源指向实际文件与行号
+ok 1 - 近期读取跨月和同月分卷倒序，再回读原文归档；来源指向实际文件与行号
+  ---
+  duration_ms: 11.702254
+  type: 'test'
+  ...
+# Subtest: 新卷足够时不加载旧全文；需要回读或执行 preflight 时拒绝损坏归档
+ok 2 - 新卷足够时不加载旧全文；需要回读或执行 preflight 时拒绝损坏归档
+  ---
+  duration_ms: 4.930479
+  type: 'test'
+  ...
+# Subtest: 入口拒绝累积事件，分卷的行数与 UTF-8 字节上限都进入 preflight
+ok 3 - 入口拒绝累积事件，分卷的行数与 UTF-8 字节上限都进入 preflight
+  ---
+  duration_ms: 4.602875
+  type: 'test'
+  ...
+# Subtest: 缺卷、重复事件编号、错月份与不存在日期都明确报错
+ok 4 - 缺卷、重复事件编号、错月份与不存在日期都明确报错
+  ---
+  duration_ms: 1.525483
+  type: 'test'
+  ...
+# Subtest: 归档缺失或入口标记缺失不能退回旧读取逻辑；代码块中的标题不切分事件
+ok 5 - 归档缺失或入口标记缺失不能退回旧读取逻辑；代码块中的标题不切分事件
+  ---
+  duration_ms: 1.846328
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 36.303249
+
+=== client-fetch.test.mjs ===
+✓ 惰性引导：首次变更请求先 GET /_csrf，令牌随请求头携带且只引导一次
+✓ GET 不带令牌也不触发引导（含令牌已缓存时）
+✓ apiText 文本端点：裸 fetch，无令牌头、无引导
+✓ 403 单次重试：重取到新令牌 → 换令牌重发一次并成功
+✓ 403 重试后再 403 → 即失败（HTTP 403 抛出，无第三发）
+✓ 仅令牌变化才重发：重取同值令牌 → 不重试，403 原样抛出
+✓ 仅令牌变化才重发：跨站重取不可得（token 置空）→ 不重试
+✓ 引导失败（_csrf 不可用）→ 变更请求裸发，403 后不重试（fail closed）
+
+=== events.test.mjs ===
+✓ SseHub：订阅→广播送达，退订后不再送达
+✓ SseHub：写失败的订阅者被移除，不阻塞其余广播
+✓ writeRegistry：任何注册表/状态变更都广播 bots 事件
+✓ events 端点：GET 接 SSE 协议，广播送达连接，close 退订
+✓ events 端点：非 GET 方法 → 405
+✓ events 端点：跨站请求 → 403（与 JSON API 一致）
+✓ id='events' 的 bot 详情不被 SSE 端点吞掉（路径无冲突）
+✓ B5 帧格式：广播帧带 id: 行且跨事件类型单调（mail 消费方 includes 过滤不受影响）
+✓ B5 首连兜底：无 Last-Event-ID → 先发 reload 全量刷新（统一初始化路径）
+✓ B5 断线补发：窗口内重连 → 先按序收错过事件再接实时
+✓ B5 无错过重连：last-event-id 恰为最新 → 无补发无 reload，无感接实时
+✓ B5 未知/未来 id：非数字与服务重启式未来 id → 兜底 reload
+✓ B5 窗口上限：ledger 淘汰最旧，补发不越过窗口起点（不补半窗）
+✓ B5 心跳：注释帧原文 : ping、不带 id、不推进序号（桩 setInterval 立即触发）
+
+=== evidence-packager.test.mjs ===
+✓ 四禁①：打包前后输入零写入（raw/capture/registry 逐字节不变）
+✓ 四禁②：必填结构化字段缺失即失败（fullRegression／deploymentImpact／provenance）；退役段缺省合法、畸形仍拒
+✓ 四禁③：provenance 不完整即失败——registry 非 completed／runId 非 UUID／raw hash 非 64hex
+✓ 四禁④＋人工字段白名单：executionEvidence 带人工字段/historical conclusion 即失败；human 多余字段拒绝
+✓ deploymentImpact：manualOverride 必须含 value/reason/authorizedBy/timestamp；parity 派生字段齐备
+✓ basePackage 合同：完整 64hex＋可读取路径＋hash 账实一致；省略号/截断/缺文件拒绝
+✓ E4：包内摘要只能引用已存在产物——缺失/字节不符/hash 不符即失败
+✓ 版本化写出：wx 排他（同名重写失败＝旧包不得被覆盖）＋文件名内嵌 sha8
+✓ registry 端到端：claim 无终态 → packager 拒绝；终态追加后 → 可打包（真实 registry 目录）
+✓ v2 包内容：executionEvidence 与 human 分离；schema/scope/basePackage 字段就位
+✓ O-6.6 deriveDeploymentImpactFromParity：事实唯一来源 raw.parity，机械派生 deploySyncNeeded/restartNeeded（host 入口规则）
+✓ O-6.6 crossVerifyLegacyDeploymentImpact：一致通过；任一字段/文件集合漂移即拒绝
+✓ O-6.4 七项绑定核验：全等通过；七项任一断裂即 PackagerValidationError
+✓ O-6.9 buildArchiveBinding：逐文件 sha/byteLength 核验；篡改归档文件即失败
+✓ /4 台账证据段必填：缺段即失败（禁二）；runId 与 provenance 不符即失败
+✓ /4 台账证据复验：事件被篡改／digest 被改／自陈被改／自陈红 → 拒绝打包
+✓ /4 E4：台账证据件的存在／长度／hash／内容四项账实核验
+✓ /4 演练 run：证据为空／自陈非绿／缺查询结论 → 拒绝打包
+
+=== evidence-runner-contract.test.mjs ===
+✓ O-6.1 evidence：approved root 内已存在根 → ok
+✓ O-6.1 负例①：--out-root 指向 DSH_HOME → OUTPUT_CONTRACT_VIOLATION
+✓ O-6.1 负例②：--out-root 指向部署目录 → 拒绝
+✓ O-6.1 负例③：--out-root 指向仓库代码区（lib/）→ 拒绝（approved root ≠ 仓库任意路径）
+✓ O-6.1 负例④：--out-root 路径含 symlink 组件 → 拒绝（逐组件 lstat；ephemeral 根合法时到达该层）
+✓ O-6.1 负例⑤：受保护路径的别名路径（symlink 别名指向 DSH_HOME）→ canonical 双口径拒绝
+✓ O-6.1 ephemeral：显式根在仓库外/保护区外且已存在 → ok；根＝DSH_HOME → 拒绝
+✓ O-6.1 approved 内缺失根 → PRECONDITION_FAILED（不自动创建）
+✓ O-6.1 packages 包区不得作为运行产物写面 → 拒绝（approved-root 归属规则先行拦截）
+✓ O-6.1 spawn：非法 --out-root → exit 2 结构化错误；registry 零新增 claim；不执行 probe
+✓ O-6.2 普通运行路径不自动建根：--out-root 指向不存在目录 → exit 2 且目录未创建
+✓ O-6.2 --init-registry：幂等（真实根已存在 → exit 0 零改动）；与其他参数混用 → exit 2
+✓ O-6.3 snapshotProtectedSurface：只读；豁免清单生效（epoch/nonces/leases/日志）
+✓ O-6.3 前后 diff：新增/修改/删除/新增 symlink 全部捕获
+✓ O-6.3 扫描失败 → ok=false（INCONCLUSIVE 依据），scanFailures 留痕
+✓ O-6.3 excluded 字段与实际生效的豁免清单一致（自定义豁免时不得误报默认清单）
+✓ O-6.3 真实面快照（真实 DSH_HOME）：只读核验可运行且零 scanFailures
+✓ /3 阶段链：runner 无 v1 段（并发压测／probe CLI）调用；payload 无退役段键；布局 digest 仍从 sentinel-shadow 绑定
+✓ 28 号票 台账坐标：演练根优先于 DSH_HOME；显式路径优先于两者
+✓ 28 号票 窗口下界观测：台账缺失＝0；有事件＝末位 seq（只读）
+✓ 28 号票 演练登记核验（经演练 CLI，不 import 组织图）：已登记可跑／未登记与未实现即拒
+✓ 28 号票 run 内证据件：真实台账窗口写出＋绑定账实相符；演练 run 空窗即拒
+
+=== fs-hygiene.test.mjs ===
+✓ tightenPath：文件→0600、目录→0700、幂等、符号链接跳过、缺路径 false
+✓ tightenBotTree：顶层目录＋四具名文件收紧，嵌套内容不递归
+✓ 注册表：写后 0600（含存量 0644 回收紧）
+✓ 集成：scaffoldBot builtin 路径——新件即紧＋存量 0644 重 scaffold 收回
+✓ 集成：scaffoldBot script 路径——create-bot 脚本产物同样收紧，幂等再 scaffold 可观测面零改动
+
+=== host-contract-gate.test.mjs ===
+TAP version 13
+# Subtest: V-A6.1：登记表在位，A/B/C 三类齐备，C 类显式列出并标注排除理由
+ok 1 - V-A6.1：登记表在位，A/B/C 三类齐备，C 类显式列出并标注排除理由
+  ---
+  duration_ms: 1.847589
+  type: 'test'
+  ...
+# Subtest: V-A6.1：字段集齐备（登记表机械校验零违例）
+ok 2 - V-A6.1：字段集齐备（登记表机械校验零违例）
+  ---
+  duration_ms: 0.801094
+  type: 'test'
+  ...
+# Subtest: V-A6.6：整层拒载仅限组织层身份面（其余面级降级或响亮直用）
+ok 3 - V-A6.6：整层拒载仅限组织层身份面（其余面级降级或响亮直用）
+  ---
+  duration_ms: 0.445811
+  type: 'test'
+  ...
+# Subtest: 登记表↔门一致性：非 C 非 pending 面的探针都有实现，反向也成立
+ok 4 - 登记表↔门一致性：非 C 非 pending 面的探针都有实现，反向也成立
+  ---
+  duration_ms: 1.103407
+  type: 'test'
+  ...
+# Subtest: pending 面清零：v2 台账两面随 05 号票接线，转入三态常驻
+ok 5 - pending 面清零：v2 台账两面随 05 号票接线，转入三态常驻
+  ---
+  duration_ms: 0.517371
+  type: 'test'
+  ...
+# Subtest: V-A6.3：三态汇总——FAIL 红门；部署面 SKIP 视同 FAIL；dev 面 SKIP 不阻断
+ok 6 - V-A6.3：三态汇总——FAIL 红门；部署面 SKIP 视同 FAIL；dev 面 SKIP 不阻断
+  ---
+  duration_ms: 0.455063
+  type: 'test'
+  ...
+# Subtest: V-A6.4：版本仅诊断——探针结果对象无版本字段（结构面断言）
+ok 7 - V-A6.4：版本仅诊断——探针结果对象无版本字段（结构面断言）
+  ---
+  duration_ms: 0.381184
+  type: 'test'
+  ...
+# Subtest: parseFaceMode：--face 旗标与 env 覆盖，默认 dev
+ok 8 - parseFaceMode：--face 旗标与 env 覆盖，默认 dev
+  ---
+  duration_ms: 0.352089
+  type: 'test'
+  ...
+# Subtest: findMarkerFile：候选文件内容标记检索（命中/未命中/缺文件）
+ok 9 - findMarkerFile：候选文件内容标记检索（命中/未命中/缺文件）
+  ---
+  duration_ms: 2.056307
+  type: 'test'
+  ...
+# Subtest: 假绿修法：跳过标记与汇总行不同形（⤼ SKIP: 前缀才计数）
+ok 10 - 假绿修法：跳过标记与汇总行不同形（⤼ SKIP: 前缀才计数）
+  ---
+  duration_ms: 0.727799
+  type: 'test'
+  ...
+# Subtest: 18号票 harness：runClientBundle 捕获 ModuleLoader 工厂、apply 记录型 ctx、inject 回调实调、DOM 桩在位
+ok 11 - 18号票 harness：runClientBundle 捕获 ModuleLoader 工厂、apply 记录型 ctx、inject 回调实调、DOM 桩在位
+  ---
+  duration_ms: 4.397627
+  type: 'test'
+  ...
+# Subtest: 18号票 harness：bundle 缺失或未走装载协议时响亮抛错（不静默）
+ok 12 - 18号票 harness：bundle 缺失或未走装载协议时响亮抛错（不静默）
+  ---
+  duration_ms: 1.802942
+  type: 'test'
+  ...
+# Subtest: P-HOST-RPC：原生会话方法缺失时，残留的 RPC 标记不能让宿主门通过
+ok 13 - P-HOST-RPC：原生会话方法缺失时，残留的 RPC 标记不能让宿主门通过
+  ---
+  duration_ms: 1.75825
+  type: 'test'
+  ...
+# Subtest: 18号票 P-CTX-SERVICES 行为化：官方服务类真实实例化断言服务名（合成 fixture）
+ok 14 - 18号票 P-CTX-SERVICES 行为化：官方服务类真实实例化断言服务名（合成 fixture）
+  ---
+  duration_ms: 4.79991
+  type: 'test'
+  ...
+# Subtest: 18号票：渲染期不可调起子坐标须显式降级声明（探针 describe＋登记表 readAccess 双落点）
+ok 15 - 18号票：渲染期不可调起子坐标须显式降级声明（探针 describe＋登记表 readAccess 双落点）
+  ---
+  duration_ms: 0.3479
+  type: 'test'
+  ...
+# Subtest: 18号票：升级探针保持三态协议——无宿主时 SKIP 且带原因与坐标
+ok 16 - 18号票：升级探针保持三态协议——无宿主时 SKIP 且带原因与坐标
+  ---
+  duration_ms: 0.276322
+  type: 'test'
+  ...
+# Subtest: 18号票 P-CONFIG-IDS：适配层 patch 构造与探针关键 id 清单无漂移
+ok 17 - 18号票 P-CONFIG-IDS：适配层 patch 构造与探针关键 id 清单无漂移
+  ---
+  duration_ms: 1.326738
+  type: 'test'
+  ...
+# Subtest: P-CONFIG-IDS：web-app tools 行 DSH_TOOLS_MODE 环境缝缺失时 FAIL（PTC 呈现静默失效面）
+ok 18 - P-CONFIG-IDS：web-app tools 行 DSH_TOOLS_MODE 环境缝缺失时 FAIL（PTC 呈现静默失效面）
+  ---
+  duration_ms: 5.734513
+  type: 'test'
+  ...
+# Subtest: P-CONFIG-IDS：patch 往返、官方 id、配置模型读回与旧命名空间漂移（合成 fixture）
+ok 19 - P-CONFIG-IDS：patch 往返、官方 id、配置模型读回与旧命名空间漂移（合成 fixture）
+  ---
+  duration_ms: 10.361195
+  type: 'test'
+  ...
+# Subtest: P-CONFIG-IDS：路由名仍在但宿主不提供配置中的模型时失败
+ok 20 - P-CONFIG-IDS：路由名仍在但宿主不提供配置中的模型时失败
+  ---
+  duration_ms: 5.204726
+  type: 'test'
+  ...
+# Subtest: 18号票 P-SESSION-LOG 行为化：真实格式日志经适配层读取解析（合成多帧 zstd 日志）
+ok 21 - 18号票 P-SESSION-LOG 行为化：真实格式日志经适配层读取解析（合成多帧 zstd 日志）
+  ---
+  duration_ms: 7.097896
+  type: 'test'
+  ...
+# Subtest: 18号票 P-CTX-SERVICES baseUrl：官方 boot() 空树产出经适配层回读（合成 fixture）
+ok 22 - 18号票 P-CTX-SERVICES baseUrl：官方 boot() 空树产出经适配层回读（合成 fixture）
+  ---
+  duration_ms: 6.563869
+  type: 'test'
+  ...
+# Subtest: 18号票 P-CLIENT-VISUAL 行为化：官方 theme bundle 令牌注入与 theme 服务形状（合成 fixture）
+ok 23 - 18号票 P-CLIENT-VISUAL 行为化：官方 theme bundle 令牌注入与 theme 服务形状（合成 fixture）
+  ---
+  duration_ms: 4.418785
+  type: 'test'
+  ...
+# Subtest: 18号票 P-CLIENT-SLOTS 行为化：官方 layout/sidebar bundle 槽树声明断言（合成 fixture）
+ok 24 - 18号票 P-CLIENT-SLOTS 行为化：官方 layout/sidebar bundle 槽树声明断言（合成 fixture）
+  ---
+  duration_ms: 7.329227
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 93.140751
+
+=== hygiene.test.mjs ===
+✓ 孤儿 docblock 检测（检测器自测三夹具 + 真实五文件零违规）
+
+=== jsonl.test.mjs ===
+✓ JSONL 容错解析 + 邮局语义（maxSeq/readAll/readOutbox/会话合并/since/taskId+replyTo 形态）
+✓ F-S15 修复：seq 写锁（唯一获取/陈旧接管/保守释放/死主快路与留痕【36 号票】＋4 子进程×25 条真并发 0 丢失 0 撞号）
+
+=== knowledge-shared-face.test.mjs ===
+✓ 洁净 fixture：仅豁免单实现命中 → violations=[] 且 scanned>0
+✓ org/bot-direct-write.js 直写 knowledge/index.jsonl → 违例具名行号
+✓ appendFileSync 到 knowledge/reports/ → 违例（任一写手段都不放过）
+✓ 豁免仅按模块文件名 `knowledge.js` 认路径；同名模块在其他目录不豁免
+✓ 豁免名单是冻结具名常量（扩缩须显式落档）；字面路径形态也回显于违例报文
+✓ 破坏型直写同样被抓：rmSync／unlinkSync／renameSync 命中即违例（不能只管 write*）
+✓ 容器协议四件单源：KNOWLEDGE_CONTAINER_ENTRIES 由 lib/knowledge.js 路径助手派生（改助手名即跟动）
+✓ 真实本仓库扫描：当前 violations=[]（验收 V-A4.5）
+✓ 知识库根：容器协议四件（index.jsonl／reports／REPORT_TEMPLATE.md／.lock）为合法顶层级
+✓ 知识库根：长出第三面（team-memory.jsonl／notes/／memory/）即违例并具名（V-A7.5 共享侧无第三面）
+✓ 知识库根不存在 → 不是违例（尚未安装），但报告 exists=false
+✓ knowledgeFaceShape 只读：扫描未安装的知识库根不得创建它
+✓ 登记写者名单闭合：登记与废弃调用者只有 lib/index.js，新增即违例
+✓ bot 侧注册面不得直写：registerKnowledgeTools / registerOrgTools 函数体内无登记或废弃调用
+✓ 登记写者扫描是负例可辨的：违规调用者（新模块）被抓出
+✓ 废弃写者负例：deprecateReport 与 registerReport 共用 host 名单，定义不算调用
+✓ bot 侧注册面零直写：两个注册函数都拒绝登记与废弃调用
+✓ 扫描面覆盖 JS/MJS/CJS 大小写变体：文件直写与命令写者均不可漏扫
+✓ 目录符号链接：跟随外部目录，祖先环与重复目录只扫描一次
+
+=== knowledge.test.mjs ===
+✓ ensureKnowledgeBase：目录+模板创建，幂等且不覆盖用户模板
+✓ nextReportId：空库 R-<年>-001；已有递增；跨年重置
+✓ registerReport 新建：索引行+报告文件+自动字段
+✓ registerReport 校验：缺必填 → ok:false 且不动索引/报告
+✓ registerReport supersedes：旧条目标 updated + supersededBy（保留痕迹）
+✓ registerReport：supersedes 指向不存在的 id → ok:false（防悬空指针）
+✓ registerReport reused：旧条目 reusedBy 追加且去重；未知 id 忽略
+✓ registerReport 双填兼容：同一旧 id 同时 supersedes + reused → updated+supersededBy+reusedBy 三标记齐备（O-2 明文化）
+✓ registerReport 存储失败（目录不可写）→ ok:false，不吞错
+✓ deprecateReport：显式废弃登记——append 语义翻状态、不物理删除、旧痕迹保留
+✓ deprecateReport：未知 id / 已废弃 / 非法入参 → ok:false 且不动索引
+✓ deprecateReport：并发下不丢更新（同锁协议）
+✓ searchIndex：标题/标签/摘要/结论子串命中，大小写不敏感
+✓ searchIndex：status 过滤；空 query 全列、登记倒序截 10
+✓ readIndex：跳过损坏行，文件缺失 → []
+✓ acquireIndexLock：唯一获取；持锁时自旋超时；释放后可再获取
+✓ registerReport：陈旧锁（持有者死亡未释放）自动接管，登记不阻塞
+✓ registerReport：索引损坏/非对象行重写后原样保留（K-2 不吞修复线索）
+✓ acquireIndexLock：owner.json 不可读时 release 不删锁（F-E：防误删他人接管的新锁）
+✓ acquireIndexLock（36 号票 A9）：死主锁不等 staleMs 即接管；活主锁不抢
+✓ registerReport（36 号票 A9）：锁争用经 logger 留痕——无争用零告警，接管留一行
+✓ deprecateReport（36 号票 A9）：与登记同一留痕口径（同一把索引锁）
+✓ registerReport（36 号票 A9）：默认冻结上限 1.5s（旧缺省 6s）——超时留痕且零落盘
+✓ knowledge_search 工具：命中超过 10 条 → truncated=true 且恰返 10（F-C +1 哨兵）
+✓ registerReport 并发：4 子进程真并行登记，索引零丢失/零撞号
+✓ 检索面维持索引级子串：报告正文不参与检索（否决全文检索；10 号票 §G 检索面口径）
+✓ registerKnowledgeTools：**只**注册读取工具 knowledge_search（写口已命令化，读取面照旧；V-A4.5）
+✓ F-R4-1（命令化后的延续形态）：knowledge.register 描述经 describeOp 现读嵌入 REPORT_TEMPLATE.md；模板缺失降级
+✓ A7a 稀疏序号的最高号索引损坏：已有报告占号，预览与登记均不覆盖正文
+✓ A7a 索引缺失、修复删行或 id 字段损坏时，未登记报告仍占当年序号
+✓ A7a 损坏行占序号水位：索引仅剩损坏行＋既有报告文件 → 新登记不复用 id、不覆盖正文
+✓ A7a nextReportId 与 registerReport 同水位：单损坏行 → R-2026-002
+✓ A7b 废弃→取代即拒：已 deprecated 条目不可再被取代，不动任何文件
+✓ A7b 取代→废弃即拒：已 updated（有后继）条目不可再被废弃，不动索引
+✓ A7b 已 updated 条目不可二次取代：后继指针不被改写
+✓ A7b 未知状态 fail closed：非 valid／updated／deprecated 条目取代废弃一律拒
+✓ auditKnowledgeIndex：只读报损坏行＋混合态＋未知状态，不写盘
+✓ auditKnowledgeIndex：文件缺失 → 空榜单（ok:true）
+
+=== ledger-drill.test.mjs ===
+✓ drill-ledger-rebuild：隔离根上端到端跑通，报告结论与事件日志账实相符
+✓ 纪律负例：保护根／未登记／已登记未实现／缺参 → exit 2 且零产物
+✓ 不覆盖与不混窗：已有报告／已有台账即拒
+
+=== ledger-events.test.mjs ===
+✓ 叶件 import 面：只许 ./store-base.js（证据闭包不得被组织图污染）
+✓ 单一原语：task-ledger／human-inbox 再导出的是同一个对象
+✓ 校验器行为：链上位置、taskId/actor 形状、两张事实表词表逐项把守
+
+=== ledger-evidence-verify.test.mjs ===
+✓ 包外独立复算：一个包文件即可验绿（台账不在场也成立）
+✓ 显式附件交叉核验：原附件账实一致才通过，单件仍可独立复算
+✓ 结论以复算为准：篡改事件体／digest／绑定件／自陈逐项红
+✓ 台账在场：同窗交叉核验绿；台账在包后增长不算坏；窗口内容不符即红
+✓ 路径缺值不得吞掉显式附件核验开关，空窗包也必须拒绝
+✓ 用法与缺段：无参数／两者同给 → exit 2；包内无台账证据段 → exit 2
+
+=== ledger-evidence.test.mjs ===
+✓ 窗口切分：seq ∈ (fromSeq, toSeq] 开闭精确；窗口收全（挑一条即断链）
+✓ 复制进包：窗口事件逐条入件，digest 可复算；台账不在场＝记录事实而非空字段
+✓ 窗口＝runId 窗口：fromSeq 之前的既有事实不进包，但整文件规模在 source 里不隐藏
+✓ 复验＝复用台账校验器：篡改体／换类型／断 seq／改自陈／改 digest／改计数逐项被检出
+✓ 台账在场时的交叉核验：同窗重切一致；append-only 台账在包后增长不算证据坏
+✓ 演练 run：窗口为空即拒（requireEvents）；演练块形状把守
+✓ fail closed 口径：kind 封闭枚举与 fromSeq 必填（无静默缺省）；演练 run 必为隔离根
+✓ 坏行不静默跳过：台账文件含损坏行 → 采集 fail closed
+✓ 形状校验：present=false 必须记 absentReason；source/runId/digest 缺即拒
+✓ 窗口复算的独立入口（verifyLedgerWindow）：不经 capture 也能核一段记录
+
+=== ledger-host.test.mjs ===
+TAP version 13
+# Subtest: 宿主巡检：FAIL 与运行面 SKIP 自动进入 duty 台账，重复结果只记一次（16 号票）
+ok 1 - 宿主巡检：FAIL 与运行面 SKIP 自动进入 duty 台账，重复结果只记一次（16 号票）
+  ---
+  duration_ms: 27.836902
+  type: 'test'
+  ...
+# Subtest: 宿主巡检不可执行或报告畸形：响亮入账，下次巡检可恢复，租约扫描仍可用
+ok 2 - 宿主巡检不可执行或报告畸形：响亮入账，下次巡检可恢复，租约扫描仍可用
+  ---
+  duration_ms: 8.054781
+  type: 'test'
+  ...
+# Subtest: 宿主巡检用独立子进程：零退出码的空报告不能放行，超时被终止并入账
+ok 3 - 宿主巡检用独立子进程：零退出码的空报告不能放行，超时被终止并入账
+  ---
+  duration_ms: 571.224806
+  type: 'test'
+  ...
+# Subtest: 异常汇入：收单积压截断与回合失败不再静默——处置任务＋异常事件＋用户通知（V-A2.11）
+ok 4 - 异常汇入：收单积压截断与回合失败不再静默——处置任务＋异常事件＋用户通知（V-A2.11）
+  ---
+  duration_ms: 21.082748
+  type: 'test'
+  ...
+# Subtest: 异常汇入只报本窗新增：旧条目（上一时间窗）不重复告警
+ok 5 - 异常汇入只报本窗新增：旧条目（上一时间窗）不重复告警
+  ---
+  duration_ms: 5.138489
+  type: 'test'
+  ...
+# Subtest: 值守轮询：实例死亡回收租约并广播台账投影，无变化不广播（V-A2.5／V-A2.12）
+ok 6 - 值守轮询：实例死亡回收租约并广播台账投影，无变化不广播（V-A2.5／V-A2.12）
+  ---
+  duration_ms: 18.500671
+  type: 'test'
+  ...
+# Subtest: HTTP 面：读投影／通知投影／命令面；未接线 404、非 GET 读 405
+ok 7 - HTTP 面：读投影／通知投影／命令面；未接线 404、非 GET 读 405
+  ---
+  duration_ms: 9.191631
+  type: 'test'
+  ...
+# Subtest: 人间收件箱投递面：待裁项带裁定包与终裁动作、告知项并列；读面不写台账（V-A5.2／V-A5.3）
+ok 8 - 人间收件箱投递面：待裁项带裁定包与终裁动作、告知项并列；读面不写台账（V-A5.2／V-A5.3）
+  ---
+  duration_ms: 39.629934
+  type: 'test'
+  ...
+# Subtest: HTTP 命令面是唯一写入口：台账事件只由命令面产生（V-A2.1）
+ok 9 - HTTP 命令面是唯一写入口：台账事件只由命令面产生（V-A2.1）
+  ---
+  duration_ms: 2.526518
+  type: 'test'
+  ...
+# Subtest: 接线：宿主实例注册台账值守，bot 实例不构造台账（无直写通道，V-A2.1）
+ok 10 - 接线：宿主实例注册台账值守，bot 实例不构造台账（无直写通道，V-A2.1）
+  ---
+  duration_ms: 8.262261
+  type: 'test'
+  ...
+# Subtest: HTTP 命令面拒绝缺 actor 的命令且台账保持可读（写入前校验，防事实源被写坏）；host 冒名被通道策略拒（06 号票）
+ok 11 - HTTP 命令面拒绝缺 actor 的命令且台账保持可读（写入前校验，防事实源被写坏）；host 冒名被通道策略拒（06 号票）
+  ---
+  duration_ms: 5.787504
+  type: 'test'
+  ...
+# Subtest: HTTP 命令面经 dispatchCommand 出手并透传 capability 信封（06 号票签发联动通道）
+ok 12 - HTTP 命令面经 dispatchCommand 出手并透传 capability 信封（06 号票签发联动通道）
+  ---
+  duration_ms: 1.318319
+  type: 'test'
+  ...
+# Subtest: 值守 disposer 释放台账写锁（宿主停机/热重载不留悬空写锁）
+ok 13 - 值守 disposer 释放台账写锁（宿主停机/热重载不留悬空写锁）
+  ---
+  duration_ms: 4.790522
+  type: 'test'
+  ...
+# Subtest: 复核面 HTTP：移交件读与报告提交经帽信封门；未携帽 403；报告响应携带续签帽
+ok 14 - 复核面 HTTP：移交件读与报告提交经帽信封门；未携帽 403；报告响应携带续签帽
+  ---
+  duration_ms: 20.567004
+  type: 'test'
+  ...
+# Subtest: 复核面续签（21 号票 ①）：报告被台账拒绝（review-not-requested）也续签帽——连报不断链
+ok 15 - 复核面续签（21 号票 ①）：报告被台账拒绝（review-not-requested）也续签帽——连报不断链
+  ---
+  duration_ms: 19.941012
+  type: 'test'
+  ...
+# Subtest: 复核面消费点在台账腿（27 号票）：同一信封二次提交即 capability-replayed；入口预筛不消费帽
+ok 16 - 复核面消费点在台账腿（27 号票）：同一信封二次提交即 capability-replayed；入口预筛不消费帽
+  ---
+  duration_ms: 13.062342
+  type: 'test'
+  ...
+# Subtest: knowledge.register 命令腿：索引锁留痕经宿主 logger 出栈（36 号票 A9）
+ok 17 - knowledge.register 命令腿：索引锁留痕经宿主 logger 出栈（36 号票 A9）
+  ---
+  duration_ms: 42.831743
+  type: 'test'
+  ...
+# Subtest: 知识命令腿 actor 形状门：无 actor／畸形 actor 一律拒（与台账 invalid-actor 同源；零落盘、不消耗信封）
+ok 18 - 知识命令腿 actor 形状门：无 actor／畸形 actor 一律拒（与台账 invalid-actor 同源；零落盘、不消耗信封）
+  ---
+  duration_ms: 4.84026
+  type: 'test'
+  ...
+# Subtest: 知识命令腿 actor 归属门：user 只许声明 user principal 本人，他人 id 即伪造归属（user 正例不回退）
+ok 19 - 知识命令腿 actor 归属门：user 只许声明 user principal 本人，他人 id 即伪造归属（user 正例不回退）
+  ---
+  duration_ms: 3.784993
+  type: 'test'
+  ...
+# Subtest: knowledge.register 命令化：授权过的岗位实例经 host 执行登记（bot 侧无直写通道）
+ok 20 - knowledge.register 命令化：授权过的岗位实例经 host 执行登记（bot 侧无直写通道）
+  ---
+  duration_ms: 3.012265
+  type: 'test'
+  ...
+# Subtest: knowledge.deprecate：命令化废弃腿——授权后走 host 执行，未接线/未授权一律 fail closed
+ok 21 - knowledge.deprecate：命令化废弃腿——授权后走 host 执行，未接线/未授权一律 fail closed
+  ---
+  duration_ms: 4.179178
+  type: 'test'
+  ...
+# Subtest: 知识命令面未接线 → 503 fail closed（不得跳过鉴权直落盘）
+ok 22 - 知识命令面未接线 → 503 fail closed（不得跳过鉴权直落盘）
+  ---
+  duration_ms: 1.158816
+  type: 'test'
+  ...
+# Subtest: 探针失效以 class=duty 例程任务落台账承载：不新增事件类型、随投影告知、重复失效不另开任务（V-A6.7）
+ok 23 - 探针失效以 class=duty 例程任务落台账承载：不新增事件类型、随投影告知、重复失效不另开任务（V-A6.7）
+  ---
+  duration_ms: 5.157089
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 861.630785
+
+=== locale-runtime.test.mjs ===
+✓ 真实注册：apply 后 bind 查询 zh 命中 / 参数模板 / common 回退
+✓ 真实冲突检测：活跃期重复注册同名 ns 必抛（响亮失败非静默串词）
+✓ 真实语言切换：setLocale('en') 后同一闭包即时翻转 + revision 递增
+✓ 真实卸载注销：dispose 后 ns 消失，查询回退键自身；重挂无残留
+
+=== locale.test.mjs ===
+✓ localeDicts / LOCALE_NS 导出存在，命名空间为 bots
+✓ zh/en 键集完全一致
+✓ 字典规模 ≥ 80 键（覆盖全部 UI 文案）
+✓ 模板占位符 zh/en 一致（{name} 类参数化文本）
+✓ 样本快照（防措辞漂移，取自迁移前原文）
+✓ client.js 源码：tr/t 调用键全部有定义（含 common 允许集）
+✓ 模型切换时按目标模型归一化 reasoning effort
+✓ 无残留旧形态：tr(zh, en) 二元字符串 / 模块级 isZh 常量 / 旧二元 tr 签名
+
+=== lock-dir.test.mjs ===
+TAP version 13
+# Subtest: LOCK_DEFAULTS：两个锁同一常量——spinMs 1500（冻结上限）／staleMs 1000／tickMs 10
+ok 1 - LOCK_DEFAULTS：两个锁同一常量——spinMs 1500（冻结上限）／staleMs 1000／tickMs 10
+  ---
+  duration_ms: 1.852862
+  type: 'test'
+  ...
+# Subtest: 快路径：无争用可获取、无接管、不回调 onWait，释放后目录清理
+ok 2 - 快路径：无争用可获取、无接管、不回调 onWait，释放后目录清理
+  ---
+  duration_ms: 2.229115
+  type: 'test'
+  ...
+# Subtest: 死主快路：持有者 pid 已死 → 不等 staleMs 即接管（staleMs 拉大关掉慢路）
+ok 3 - 死主快路：持有者 pid 已死 → 不等 staleMs 即接管（staleMs 拉大关掉慢路）
+  ---
+  duration_ms: 42.49114
+  type: 'test'
+  ...
+# Subtest: 活主不被抢：pid 存活（本进程）且 mtime 未陈旧 → 超时报错，锁目录保持
+ok 4 - 活主不被抢：pid 存活（本进程）且 mtime 未陈旧 → 超时报错，锁目录保持
+  ---
+  duration_ms: 307.372062
+  type: 'test'
+  ...
+# Subtest: 跨进程活主互斥：两种锁超过陈旧阈值仍不可抢，持有者释放后可再获取
+    # Subtest: acquireIndexLock
+    ok 1 - acquireIndexLock
+      ---
+      duration_ms: 262.378098
+      type: 'test'
+      ...
+    # Subtest: acquireMailSeqLock
+    ok 2 - acquireMailSeqLock
+      ---
+      duration_ms: 254.866807
+      type: 'test'
+      ...
+    1..2
+ok 5 - 跨进程活主互斥：两种锁超过陈旧阈值仍不可抢，持有者释放后可再获取
+  ---
+  duration_ms: 518.173457
+  type: 'test'
+  ...
+# Subtest: 归属不明不被抢：owner.json 缺失且未陈旧 → 保守等待（超时），锁目录保持
+ok 6 - 归属不明不被抢：owner.json 缺失且未陈旧 → 保守等待（超时），锁目录保持
+  ---
+  duration_ms: 304.520378
+  type: 'test'
+  ...
+# Subtest: 陈旧锁的 pid 越界：归属不明时仍可恢复，不误判成存活进程
+ok 7 - 陈旧锁的 pid 越界：归属不明时仍可恢复，不误判成存活进程
+  ---
+  duration_ms: 2.753807
+  type: 'test'
+  ...
+# Subtest: 未知归属恢复：无 owner 且 mtime 超 staleMs 时沿用陈旧接管
+ok 8 - 未知归属恢复：无 owner 且 mtime 超 staleMs 时沿用陈旧接管
+  ---
+  duration_ms: 0.89394
+  type: 'test'
+  ...
+# Subtest: 保守释放：owner 不可证明属本进程时不删锁目录（F-E 语义不变）
+ok 9 - 保守释放：owner 不可证明属本进程时不删锁目录（F-E 语义不变）
+  ---
+  duration_ms: 0.593241
+  type: 'test'
+  ...
+# Subtest: 超时文案：沿用「锁超时」且带锁名与本次参数（调用方据此 fail closed 可重试）
+ok 10 - 超时文案：沿用「锁超时」且带锁名与本次参数（调用方据此 fail closed 可重试）
+  ---
+  duration_ms: 159.009769
+  type: 'test'
+  ...
+# Subtest: 留痕口径：单行含 lock/waitMs/outcome/takeover/holderPid/dir 六个可解析字段
+ok 11 - 留痕口径：单行含 lock/waitMs/outcome/takeover/holderPid/dir 六个可解析字段
+  ---
+  duration_ms: 0.332496
+  type: 'test'
+  ...
+# Subtest: 留痕策略：亚阈不告警；超阈／接管／超时无条件告警；无 logger 静默不炸
+ok 12 - 留痕策略：亚阈不告警；超阈／接管／超时无条件告警；无 logger 静默不炸
+  ---
+  duration_ms: 0.349509
+  type: 'test'
+  ...
+# Subtest: 留痕策略可调：warnMs 覆盖（阈值是调用方口径，不是写死的）
+ok 13 - 留痕策略可调：warnMs 覆盖（阈值是调用方口径，不是写死的）
+  ---
+  duration_ms: 0.12134
+  type: 'test'
+  ...
+# Subtest: 留痕出口抛错不得成为新失败点：取锁照常返回，超时仍抛「锁超时」
+ok 14 - 留痕出口抛错不得成为新失败点：取锁照常返回，超时仍抛「锁超时」
+  ---
+  duration_ms: 189.712297
+  type: 'test'
+  ...
+# Subtest: 接管删除持续失败（EACCES）：不得无界紧循环，deadline 内 fail closed（隔离子进程，防挂死）
+ok 15 - 接管删除持续失败（EACCES）：不得无界紧循环，deadline 内 fail closed（隔离子进程，防挂死）
+  ---
+  duration_ms: 387.079273
+  type: 'test'
+  ...
+# Subtest: 锁目录内容：owner.json 记本进程 pid（跨进程归属判定的唯一凭据）
+ok 16 - 锁目录内容：owner.json 记本进程 pid（跨进程归属判定的唯一凭据）
+  ---
+  duration_ms: 0.672374
+  type: 'test'
+  ...
+1..16
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1937.759696
+
+=== mail-at-least-once.test.mjs ===
+✓ appendMessage 生成不可猜测 id（base64url 22 字符，100 条全唯一）
+✓ messageIdFor：有 id 用 id；无 id（历史行）回退 in-<botId>-<seq> 且稳定
+✓ receipt 写入/水位：max(基线, 最大 receipt)；损坏 receipt 跳过
+✓ pruneReceipts：超保留上限按 mtime 淘汰最旧，水位只增不减
+✓ initialMailCursor：目录未建 → 0 且不创建目录（语义不变）
+✓ initialMailCursor：旧数据迁移——无 receipt 有消息 → 基线＝文件最大，不回放
+✓ initialMailCursor：零 receipt＋存量＋receipts 目录已存在（create 预建痕迹）→ 回放不落基线
+✓ initialMailCursor：零 receipt＋responses 有崩溃残留（claim 后 finalize 前）→ 回放不落基线
+✓ initialMailCursor：迁移判定只认 receipts/responses 痕迹——目录是中继投递建的≠新语义（回归锚）
+✓ initialMailCursor：receipt 水位落后文件 → replay（停机积压回放）；追平 → 不回放
+✓ 响应标记生命周期：none → claim → claimed → finalize → finalized
+✓ appendOutbox 幂等：同 replyToMessageId 二次追加不落盘，返回既有行
+✓ 崩溃窗口端到端：claim→outbox 落盘→（崩溃）→重放→无重复回复→finalize
+✓ inboxResponseTo：回信锚按 from 与 replyTo=seq 命中，kind 不参与判定
+✓ 回归：会话缓存按真实签名失效（追加后可见新消息；缺陷态恒返旧值）
+✓ 回归：readLastMessage 返回末条正文（缺陷态恒 null）
+✓ readConversation：新消息用实 id（形状校验），历史行回退合成 id
+
+=== mail-notice.test.mjs ===
+✓ outbox 事件 → 「{name}」回复：{text}（botId 映射显示名）
+✓ inbox 事件 → 「{name}」来信（{from}）：{text}（from 映射显示名）
+✓ 未知名回落原始 id（已删除的 bot / 外部发件人）
+✓ zh/en 键存在且占位符集合一致
+✓ text 内的花括号 / 特殊字符不被模板替换误伤
+
+=== mail-notify.test.mjs ===
+✓ mailPreview：短文原样、长文截断加省略号、空白压缩、空值防御
+✓ 首见基线：存量 inbox + outbox 全静默，且状态被记录
+✓ inbox 追加：新消息变事件（dir/from/text 预览/at/seq）
+✓ inbox 自动回信（自带 replyTo 锚）→ 静默；v1 遗留行（kind+replyTo）同样静默
+✓ inbox host 自发 send（ownSends 精确 seq）：自身写入静默，后续 bot 邮件照常
+✓ F-4：同 tick 夹层外来邮件不被单值 max-seq 抑制误吞（ownSends 精确匹配）
+✓ inbox 文件重写（maxSeq 回退）→ 静默重置，之后新增恢复
+✓ outbox 新文件 → 全量事件；同文件追加 → 仅新行
+✓ outbox 多文件按文件名序出事件（文件名=时间戳变体）
+✓ outbox 文件截断 → 静默重置；删除 → 基线清除
+✓ bot 从注册表移除 → 状态清理；同 id 重建 → 重新静默基线
+✓ createMailMonitor：poll 一次建立基线，两次见增量；ownSends Set 生效
+✓ scanMailState：ownSeq 缺省（undefined）→ 不抑制
+✓ F-2：inbox 瞬态读失败保持基线，恢复后只报新增不重放（附 readErrors 诊断）
+✓ F-2 变体：inbox 首见即读失败 → 保持未首见，恢复后静默基线（存量不回放）
+✓ F-3：outbox 单文件瞬态读失败保持计数，恢复后不重放（附 readErrors 诊断）
+✓ startMailNotifyMonitor：新邮件经 tick 广播 mail 帧，dispose 后停止
+
+=== notify-diff.test.mjs ===
+✓ 首快照（prev=[]）→ 静默基线，零通知
+✓ 无翻转 → 零通知
+✓ 在线→离线 / 离线→在线 → 各出一条通知（含名字与新状态）
+✓ 新建 / 删除 → 静默（用户自己在 UI 建/删，看得到）
+✓ 账本命中（期望态一致且窗口内）→ 吞掉
+✓ 账本过期 → 照常通知（10s 窗口外的翻转视为新事件）
+✓ 账本不匹配（期望上线却实际离线）→ 照常通知（意外事件）
+✓ 非法输入（prev/next 非数组）→ 空数组（防御）
+
+=== org-acceptance-coordinates.test.mjs ===
+TAP version 13
+# Subtest: 坐标表：A 组 60 条齐备、id 集与冻结字面量集合等值、级别在词表内（14 号票）
+ok 1 - 坐标表：A 组 60 条齐备、id 集与冻结字面量集合等值、级别在词表内（14 号票）
+  ---
+  duration_ms: 3.413405
+  type: 'test'
+  ...
+# Subtest: 坐标可解析：60 条逐记号解析到真实落点，零违例（A 组坐标无空缺）
+ok 2 - 坐标可解析：60 条逐记号解析到真实落点，零违例（A 组坐标无空缺）
+  ---
+  duration_ms: 55.278583
+  type: 'test'
+  ...
+# Subtest: 坐标解析为负例可辨：指向空气的坐标各按其类报违例（不静默通过）
+ok 3 - 坐标解析为负例可辨：指向空气的坐标各按其类报违例（不静默通过）
+  ---
+  duration_ms: 3.416864
+  type: 'test'
+  ...
+# Subtest: 规格锁定（正例）：附录 A 与本表逐条同拍、id 集等值、判据文本非空
+ok 4 - 规格锁定（正例）：附录 A 与本表逐条同拍、id 集等值、判据文本非空
+  ---
+  duration_ms: 13.283284
+  type: 'test'
+  ...
+# Subtest: 规格锁定（负例可辨）：坐标漂移／缺条／小节缺失各报违例；回写可复原
+ok 5 - 规格锁定（负例可辨）：坐标漂移／缺条／小节缺失各报违例；回写可复原
+  ---
+  duration_ms: 2.553064
+  type: 'test'
+  ...
+# Subtest: 实验期一次的条目已登记执行窗口：演练四件齐备且反向点名判据在册
+ok 6 - 实验期一次的条目已登记执行窗口：演练四件齐备且反向点名判据在册
+  ---
+  duration_ms: 0.660236
+  type: 'test'
+  ...
+# Subtest: 人工判据白名单恰两类且核验人状态自洽（白名单外的人工确认＝判据缺口）
+ok 7 - 人工判据白名单恰两类且核验人状态自洽（白名单外的人工确认＝判据缺口）
+  ---
+  duration_ms: 35.93915
+  type: 'test'
+  ...
+# Subtest: 挂标条目单列计数维持 1：V-A1.4 仍带挂标且坐标补齐不改计数（规格侧）
+ok 8 - 挂标条目单列计数维持 1：V-A1.4 仍带挂标且坐标补齐不改计数（规格侧）
+  ---
+  duration_ms: 0.352794
+  type: 'test'
+  ...
+# Subtest: 回写脚本（门内坐标，子进程取退出码）：在册同拍即 0；漂移即 1；--write 对规格副本回写到位
+ok 9 - 回写脚本（门内坐标，子进程取退出码）：在册同拍即 0；漂移即 1；--write 对规格副本回写到位
+  ---
+  duration_ms: 472.196647
+  type: 'test'
+  ...
+# Subtest: 判据语义摘要冻结：改判据一字即红、坐标列改动不进摘要、基线形状非法即红
+ok 10 - 判据语义摘要冻结：改判据一字即红、坐标列改动不进摘要、基线形状非法即红
+  ---
+  duration_ms: 2.873783
+  type: 'test'
+  ...
+# Subtest: 演练登记↔判据行双向对账：登记在册但无判据行引用＝登记表漂移即红
+ok 11 - 演练登记↔判据行双向对账：登记在册但无判据行引用＝登记表漂移即红
+  ---
+  duration_ms: 41.450552
+  type: 'test'
+  ...
+# Subtest: 判级不变量：常驻判据坐标须含测试模块（tests/…），只有门号即空缺
+ok 12 - 判级不变量：常驻判据坐标须含测试模块（tests/…），只有门号即空缺
+  ---
+  duration_ms: 40.363655
+  type: 'test'
+  ...
+# Subtest: 门号实读验证：preflight 源内无对应门结论行模板即红（不靠本地常量自觉）
+ok 13 - 门号实读验证：preflight 源内无对应门结论行模板即红（不靠本地常量自觉）
+  ---
+  duration_ms: 0.672806
+  type: 'test'
+  ...
+# Subtest: 模块符号验证收紧：子串命中不算命中（词边界），假符号即红
+ok 14 - 模块符号验证收紧：子串命中不算命中（词边界），假符号即红
+  ---
+  duration_ms: 1.10566
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 691.966639
+
+=== org-bootstrap-channel.test.mjs ===
+TAP version 13
+# Subtest: 派单首张能力只递送承接者：无需测试手工签发即可接单，并继续执行下一命令
+ok 1 - 派单首张能力只递送承接者：无需测试手工签发即可接单，并继续执行下一命令
+  ---
+  duration_ms: 43.10032
+  type: 'test'
+  ...
+# Subtest: 复核请求召集空闲统筹戴帽：每轮全新会话，只见复核工具与移交件，报告经通道入账
+ok 2 - 复核请求召集空闲统筹戴帽：每轮全新会话，只见复核工具与移交件，报告经通道入账
+  ---
+  duration_ms: 109.440108
+  type: 'test'
+  ...
+# Subtest: 复核未能运行或实例退出时显式入异常账，旧帽不再读写该次复核
+ok 3 - 复核未能运行或实例退出时显式入异常账，旧帽不再读写该次复核
+  ---
+  duration_ms: 14.521706
+  type: 'test'
+  ...
+# Subtest: 能力领取只读既发信封：冒名、自请岗位与 op、错误凭据及旧代际均拒绝且不产生签发
+ok 4 - 能力领取只读既发信封：冒名、自请岗位与 op、错误凭据及旧代际均拒绝且不产生签发
+  ---
+  duration_ms: 5.606817
+  type: 'test'
+  ...
+# Subtest: 统筹初始角色能力支持连续命令和授权后拒绝的续签；空闲跨 TTL 后由宿主 tick 续期
+ok 5 - 统筹初始角色能力支持连续命令和授权后拒绝的续签；空闲跨 TTL 后由宿主 tick 续期
+  ---
+  duration_ms: 14.634044
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 193.243501
+
+=== org-brief.test.mjs ===
+TAP version 13
+# Subtest: 合法基线简报通过校验（四要素＋判据齐备）
+ok 1 - 合法基线简报通过校验（四要素＋判据齐备）
+  ---
+  duration_ms: 2.146547
+  type: 'test'
+  ...
+# Subtest: 四要素各非空：goal／deliverables／sources／boundaries 缺一即拒（V-A2.4）
+ok 2 - 四要素各非空：goal／deliverables／sources／boundaries 缺一即拒（V-A2.4）
+  ---
+  duration_ms: 0.738935
+  type: 'test'
+  ...
+# Subtest: 简报非对象／数组／null 一律拒（fail closed）
+ok 3 - 简报非对象／数组／null 一律拒（fail closed）
+  ---
+  duration_ms: 0.207796
+  type: 'test'
+  ...
+# Subtest: 顶层键封闭：未定义键即拒（防转述与语义决定藏进侧门字段）
+ok 4 - 顶层键封闭：未定义键即拒（防转述与语义决定藏进侧门字段）
+  ---
+  duration_ms: 0.214085
+  type: 'test'
+  ...
+# Subtest: 交付物条目＝{format, location} 坐标形：缺坐标或夹带正文字段即拒（方法论 \#16／\#17）
+ok 5 - 交付物条目＝{format, location} 坐标形：缺坐标或夹带正文字段即拒（方法论 \#16／\#17）
+  ---
+  duration_ms: 0.387825
+  type: 'test'
+  ...
+# Subtest: 来源条目＝{tool, ref} ID-only：夹带摘录字段即拒
+ok 6 - 来源条目＝{tool, ref} ID-only：夹带摘录字段即拒
+  ---
+  duration_ms: 0.338867
+  type: 'test'
+  ...
+# Subtest: reviewPoints 可省略可空数组；给出时须为必审清单边界 id（08 号票三判据封闭枚举）
+ok 7 - reviewPoints 可省略可空数组；给出时须为必审清单边界 id（08 号票三判据封闭枚举）
+  ---
+  duration_ms: 0.634278
+  type: 'test'
+  ...
+# Subtest: dueAt（边界要素的业务截止时间）可选：给出须为可解析时间戳，缺省＝无到期投影（09 号票）
+ok 8 - dueAt（边界要素的业务截止时间）可选：给出须为可解析时间戳，缺省＝无到期投影（09 号票）
+  ---
+  duration_ms: 0.502697
+  type: 'test'
+  ...
+# Subtest: 判据冻结期即按执行侧同口径校验参数键：错形判据不得冻结成永不满足的死判据
+ok 9 - 判据冻结期即按执行侧同口径校验参数键：错形判据不得冻结成永不满足的死判据
+  ---
+  duration_ms: 0.767194
+  type: 'test'
+  ...
+# Subtest: promotion（晋升强制性预声明）可选：给出须为 {required: boolean} 封闭形状（10 号票 V-A7.7）
+ok 10 - promotion（晋升强制性预声明）可选：给出须为 {required: boolean} 封闭形状（10 号票 V-A7.7）
+  ---
+  duration_ms: 1.104252
+  type: 'test'
+  ...
+# Subtest: reviewPoints 省略口径（2026-09-19 用户裁定，19 号票⑥）：整体省略＝零必审交付合法（注记留派单方自觉，校验不加码）
+ok 11 - reviewPoints 省略口径（2026-09-19 用户裁定，19 号票⑥）：整体省略＝零必审交付合法（注记留派单方自觉，校验不加码）
+  ---
+  duration_ms: 0.369251
+  type: 'test'
+  ...
+# Subtest: droppedReviewPoints（19 号票①）：amend 置换件对冻结复核点的删减判定——省略该键＝删全部，加审不在删减列
+ok 12 - droppedReviewPoints（19 号票①）：amend 置换件对冻结复核点的删减判定——省略该键＝删全部，加审不在删减列
+  ---
+  duration_ms: 0.441531
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 30.741236
+
+=== org-capability-base.test.mjs ===
+TAP version 13
+# Subtest: 签名/验签：键序无关、篡改必拒、载体形状严格
+ok 1 - 签名/验签：键序无关、篡改必拒、载体形状严格
+  ---
+  duration_ms: 3.938617
+  type: 'test'
+  ...
+# Subtest: nonce 单次消费：wx 独占、二次消费拒绝、非法 nonce 文件名拒绝
+ok 2 - nonce 单次消费：wx 独占、二次消费拒绝、非法 nonce 文件名拒绝
+  ---
+  duration_ms: 3.110526
+  type: 'test'
+  ...
+# Subtest: nonce 过期清理：过期删、保留期内留、不可解析留、目录缺失空扫
+ok 3 - nonce 过期清理：过期删、保留期内留、不可解析留、目录缺失空扫
+  ---
+  duration_ms: 2.784156
+  type: 'test'
+  ...
+# Subtest: secret 文件：0600 独占创建、非 0600/空文件拒绝
+ok 4 - secret 文件：0600 独占创建、非 0600/空文件拒绝
+  ---
+  duration_ms: 3.444465
+  type: 'test'
+  ...
+# Subtest: capability 账：追加可读回、损坏行 fail closed
+ok 5 - capability 账：追加可读回、损坏行 fail closed
+  ---
+  duration_ms: 1.461151
+  type: 'test'
+  ...
+# Subtest: 实例身份注册表：五字段齐备、旧格式/损坏 fail closed、注入视图同源
+ok 6 - 实例身份注册表：五字段齐备、旧格式/损坏 fail closed、注入视图同源
+  ---
+  duration_ms: 1.599095
+  type: 'test'
+  ...
+# Subtest: 共享 id helper：safeBotId/validStartedAt/pidAlive 边界
+ok 7 - 共享 id helper：safeBotId/validStartedAt/pidAlive 边界
+  ---
+  duration_ms: 0.410307
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 30.944924
+
+=== org-capability-issue.test.mjs ===
+TAP version 13
+# Subtest: 任务能力：assign 转移点签发——信封形状、短 TTL、任务域绑定、op 为承接执行集（V-A3.5）
+ok 1 - 任务能力：assign 转移点签发——信封形状、短 TTL、任务域绑定、op 为承接执行集（V-A3.5）
+  ---
+  duration_ms: 18.470703
+  type: 'test'
+  ...
+# Subtest: 单次消费：同一信封第二次验签即拒（重放无效，V-A3.5）
+ok 2 - 单次消费：同一信封第二次验签即拒（重放无效，V-A3.5）
+  ---
+  duration_ms: 9.053931
+  type: 'test'
+  ...
+# Subtest: 短 TTL 过期：时钟推过 exp 即拒，且过期判定先于 nonce 消费（V-A3.5）
+ok 3 - 短 TTL 过期：时钟推过 exp 即拒，且过期判定先于 nonce 消费（V-A3.5）
+  ---
+  duration_ms: 4.847983
+  type: 'test'
+  ...
+# Subtest: 任务域绑定：能力绑定 TK-A 不得用于 TK-B（V-A3.5）
+ok 4 - 任务域绑定：能力绑定 TK-A 不得用于 TK-B（V-A3.5）
+  ---
+  duration_ms: 7.404386
+  type: 'test'
+  ...
+# Subtest: 实例绑定：冒用（payload.botId ≠ 请求者）与代际轮换（注册表换代）即拒（V-A3.5）
+ok 5 - 实例绑定：冒用（payload.botId ≠ 请求者）与代际轮换（注册表换代）即拒（V-A3.5）
+  ---
+  duration_ms: 6.708289
+  type: 'test'
+  ...
+# Subtest: 实例活态：注册表最新行 pid 已死即拒（V-A3.5 活态槽比对）
+ok 6 - 实例活态：注册表最新行 pid 已死即拒（V-A3.5 活态槽比对）
+  ---
+  duration_ms: 37.786895
+  type: 'test'
+  ...
+# Subtest: 自动吊销（生命周期联动）：租约回收／交付后能力即死，不靠显式吊销动作（V-A3.5）
+ok 7 - 自动吊销（生命周期联动）：租约回收／交付后能力即死，不靠显式吊销动作（V-A3.5）
+  ---
+  duration_ms: 11.583492
+  type: 'test'
+  ...
+# Subtest: 自动吊销（交付）：accept→start→report→deliver 后能力失效（V-A3.5）
+ok 8 - 自动吊销（交付）：accept→start→report→deliver 后能力失效（V-A3.5）
+  ---
+  duration_ms: 11.916058
+  type: 'test'
+  ...
+# Subtest: 角色能力：taskId 为空、只携岗位表内组织运营 op；不得充当任务域授权（V-A1.4）
+ok 9 - 角色能力：taskId 为空、只携岗位表内组织运营 op；不得充当任务域授权（V-A1.4）
+  ---
+  duration_ms: 3.421534
+  type: 'test'
+  ...
+# Subtest: 越表签发 fail closed：op 越出岗位表／给复核帽签发任何 op／给保留 op 签发均拒（V-A3.3）
+ok 10 - 越表签发 fail closed：op 越出岗位表／给复核帽签发任何 op／给保留 op 签发均拒（V-A3.3）
+  ---
+  duration_ms: 2.030103
+  type: 'test'
+  ...
+# Subtest: 续签＝重签：旧信封 nonce 已消费、新信封独立有效；审计链逐笔在案（V-A3.5 心跳续签）
+ok 11 - 续签＝重签：旧信封 nonce 已消费、新信封独立有效；审计链逐笔在案（V-A3.5 心跳续签）
+  ---
+  duration_ms: 8.378104
+  type: 'test'
+  ...
+# Subtest: 递送不经 mail（结构面）：签发只触 capability 目录，投递面零痕迹（V-A3.7 前提）
+ok 12 - 递送不经 mail（结构面）：签发只触 capability 目录，投递面零痕迹（V-A3.7 前提）
+  ---
+  duration_ms: 5.280246
+  type: 'test'
+  ...
+# Subtest: 复核帽签发（08 号票）：role 信封携复核面 op；任务能力腿只携 evidence.probe
+ok 13 - 复核帽签发（08 号票）：role 信封携复核面 op；任务能力腿只携 evidence.probe
+  ---
+  duration_ms: 0.868085
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 145.50164
+
+=== org-closed-loop-smoke.test.mjs ===
+TAP version 13
+# Subtest: 闭环烟测 ①：五段全链贯通——主干十态按序出现且终态为 closed（V-A2.3／§I 切换点判据④）
+ok 1 - 闭环烟测 ①：五段全链贯通——主干十态按序出现且终态为 closed（V-A2.3／§I 切换点判据④）
+  ---
+  duration_ms: 7.377481
+  type: 'test'
+  ...
+# Subtest: 闭环烟测 ②：台账投影可核——换只读门面重新投影同一数据根，与在跑投影一致（V-A2.2 钉桩）
+ok 2 - 闭环烟测 ②：台账投影可核——换只读门面重新投影同一数据根，与在跑投影一致（V-A2.2 钉桩）
+  ---
+  duration_ms: 2.137488
+  type: 'test'
+  ...
+# Subtest: 闭环烟测 ③：通知＝台账事件投影——派单达被派方、复核请求达复核者、关闭达派单方（V-A2.12）
+ok 3 - 闭环烟测 ③：通知＝台账事件投影——派单达被派方、复核请求达复核者、关闭达派单方（V-A2.12）
+  ---
+  duration_ms: 3.754072
+  type: 'test'
+  ...
+# Subtest: 闭环烟测 ④：复核帽由当次空闲实例佩戴，产出方自任即被机械拒绝（V-A1.3／V-A2.7）
+ok 4 - 闭环烟测 ④：复核帽由当次空闲实例佩戴，产出方自任即被机械拒绝（V-A1.3／V-A2.7）
+  ---
+  duration_ms: 0.390016
+  type: 'test'
+  ...
+# Subtest: 闭环烟测 ⑤：实施段持真能力链——单次消费＋链式续签，交付即自动吊销（V-A3.2／V-A4.3）
+ok 5 - 闭环烟测 ⑤：实施段持真能力链——单次消费＋链式续签，交付即自动吊销（V-A3.2／V-A4.3）
+  ---
+  duration_ms: 0.608316
+  type: 'test'
+  ...
+# Subtest: 闭环烟测 ⑥：关闭前置成立且终态只读——产出登记锚本任务，重开被拒（§B／V-A2.9）
+ok 6 - 闭环烟测 ⑥：关闭前置成立且终态只读——产出登记锚本任务，重开被拒（§B／V-A2.9）
+  ---
+  duration_ms: 1.120138
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 32.421114
+
+=== org-cutover-check.test.mjs ===
+TAP version 13
+# Subtest: 旧四席或未部署状态返回非零，报告准确列出缺口且运行面零写入
+ok 1 - 旧四席或未部署状态返回非零，报告准确列出缺口且运行面零写入
+  ---
+  duration_ms: 167.266906
+  type: 'test'
+  ...
+# Subtest: 切换 CLI 只在部署、双席代际通道与近期 deploy 探针全齐时就绪；缺测试资源或多旧席都阻断
+ok 2 - 切换 CLI 只在部署、双席代际通道与近期 deploy 探针全齐时就绪；缺测试资源或多旧席都阻断
+  ---
+  duration_ms: 2003.427779
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2178.788115
+
+=== org-dispatch-config.test.mjs ===
+TAP version 13
+# Subtest: 构建期校验：例程登记表与收单规则表全量合法（模板展开即合法简报）
+ok 1 - 构建期校验：例程登记表与收单规则表全量合法（模板展开即合法简报）
+  ---
+  duration_ms: 2.22855
+  type: 'test'
+  ...
+# Subtest: 例程登记表登记的是例程形状：id／触发／模板／预算缝四件齐备且 id 唯一
+ok 2 - 例程登记表登记的是例程形状：id／触发／模板／预算缝四件齐备且 id 唯一
+  ---
+  duration_ms: 1.497699
+  type: 'test'
+  ...
+# Subtest: 异常处置例程在册（ledger-host 异常汇入的现役消费方）：两类异常源各有登记
+ok 3 - 异常处置例程在册（ledger-host 异常汇入的现役消费方）：两类异常源各有登记
+  ---
+  duration_ms: 0.208056
+  type: 'test'
+  ...
+# Subtest: 模板展开：{{var}} 全深度代入，展开产物过 validateBrief（含判据参数位）
+ok 4 - 模板展开：{{var}} 全深度代入，展开产物过 validateBrief（含判据参数位）
+  ---
+  duration_ms: 0.750093
+  type: 'test'
+  ...
+# Subtest: 模板展开：未知例程 id 即拒（fail closed，不静默产出空简报）；缺变量保留原样占位
+ok 5 - 模板展开：未知例程 id 即拒（fail closed，不静默产出空简报）；缺变量保留原样占位
+  ---
+  duration_ms: 0.589064
+  type: 'test'
+  ...
+# Subtest: 收单规则匹配：命中返回规则、未命中返回 null（语义判断上浮值班统筹的机械前提）
+ok 6 - 收单规则匹配：命中返回规则、未命中返回 null（语义判断上浮值班统筹的机械前提）
+  ---
+  duration_ms: 0.195286
+  type: 'test'
+  ...
+# Subtest: 探针失效例程的触发源核验：在册即过；缺位／非事件型／来源不符各按其道拒（V-A6.7 承重声明）
+ok 7 - 探针失效例程的触发源核验：在册即过；缺位／非事件型／来源不符各按其道拒（V-A6.7 承重声明）
+  ---
+  duration_ms: 0.218125
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 17.784247
+
+=== org-dispatch-decision.test.mjs ===
+TAP version 13
+# Subtest: 派单决策：空闲且可承接者首中＋理由可核（V-A2.6）
+ok 1 - 派单决策：空闲且可承接者首中＋理由可核（V-A2.6）
+  ---
+  duration_ms: 2.276748
+  type: 'test'
+  ...
+# Subtest: 派单决策：在忙跳过＋全忙即 null（V-A2.6 一实例一任务同口径）
+ok 2 - 派单决策：在忙跳过＋全忙即 null（V-A2.6 一实例一任务同口径）
+  ---
+  duration_ms: 0.3775
+  type: 'test'
+  ...
+# Subtest: 派单决策：承接能力与 op-set 同源（非承接岗不可派）
+ok 3 - 派单决策：承接能力与 op-set 同源（非承接岗不可派）
+  ---
+  duration_ms: 0.308672
+  type: 'test'
+  ...
+# Subtest: 派单决策：注册表 id 形状兼容＋holdingsFor 缺失即抛
+ok 4 - 派单决策：注册表 id 形状兼容＋holdingsFor 缺失即抛
+  ---
+  duration_ms: 0.438345
+  type: 'test'
+  ...
+# Subtest: 派单决策：编制缺口只进理由不改排序＋INTAKE_RULES 保持空集
+ok 5 - 派单决策：编制缺口只进理由不改排序＋INTAKE_RULES 保持空集
+  ---
+  duration_ms: 0.354282
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 14.487128
+
+=== org-durability.test.mjs ===
+TAP version 13
+# Subtest: V-A7.1 白名单封闭枚举齐备：七类组织层件逐条在册、id 唯一且与冻结类别一一对应
+ok 1 - V-A7.1 白名单封闭枚举齐备：七类组织层件逐条在册、id 唯一且与冻结类别一一对应
+  ---
+  duration_ms: 3.521539
+  type: 'test'
+  ...
+# Subtest: V-A7.1 逐条过换模型试金石：每条都有试金石问答记录与「存活理由」
+ok 2 - V-A7.1 逐条过换模型试金石：每条都有试金石问答记录与「存活理由」
+  ---
+  duration_ms: 0.507052
+  type: 'test'
+  ...
+# Subtest: V-A7.1 白名单条目的规格锚与容器坐标可解析（锚串在规格 §J 内、模块文件在仓内）
+ok 3 - V-A7.1 白名单条目的规格锚与容器坐标可解析（锚串在规格 §J 内、模块文件在仓内）
+  ---
+  duration_ms: 1.247571
+  type: 'test'
+  ...
+# Subtest: V-A7.1 白名单坐标校验为负例可辨：锚串消失或模块缺位即报违例（不静默通过）
+ok 4 - V-A7.1 白名单坐标校验为负例可辨：锚串消失或模块缺位即报违例（不静默通过）
+  ---
+  duration_ms: 1.16574
+  type: 'test'
+  ...
+# Subtest: V-A7.1／V-A7.2 扫描当前树：白名单齐备、组织层件内零模型特定假设
+ok 5 - V-A7.1／V-A7.2 扫描当前树：白名单齐备、组织层件内零模型特定假设
+  ---
+  duration_ms: 19.588605
+  type: 'test'
+  ...
+# Subtest: V-A7.2 模型假设扫描可判：注入模型名即报违例、注释行豁免（说明≠假设）
+ok 6 - V-A7.2 模型假设扫描可判：注入模型名即报违例、注释行豁免（说明≠假设）
+  ---
+  duration_ms: 1.10531
+  type: 'test'
+  ...
+# Subtest: V-A7.2 词元表覆盖国产模型族名（doubao／ernie／hunyuan／minimax 及中文通称）
+ok 7 - V-A7.2 词元表覆盖国产模型族名（doubao／ernie／hunyuan／minimax 及中文通称）
+  ---
+  duration_ms: 0.505824
+  type: 'test'
+  ...
+# Subtest: V-A7.1 宿主适配面只扫**容器协议**区（条目内容＝运行时资产，模型 pin 不属假设）
+ok 8 - V-A7.1 宿主适配面只扫**容器协议**区（条目内容＝运行时资产，模型 pin 不属假设）
+  ---
+  duration_ms: 1.768177
+  type: 'test'
+  ...
+# Subtest: V-A7.1 知识库容器协议扫描面含共享面写者审计件（D6 判据坐标已点名）
+ok 9 - V-A7.1 知识库容器协议扫描面含共享面写者审计件（D6 判据坐标已点名）
+  ---
+  duration_ms: 3.102287
+  type: 'test'
+  ...
+# Subtest: V-A7.2 岗位细节三处封闭枚举齐备，且各自坐标可解析
+ok 10 - V-A7.2 岗位细节三处封闭枚举齐备，且各自坐标可解析
+  ---
+  duration_ms: 2.661576
+  type: 'test'
+  ...
+# Subtest: V-A7.2 岗位卡第 7 字段在契约面留空（用户域）——模型档位不写进组织层件
+ok 11 - V-A7.2 岗位卡第 7 字段在契约面留空（用户域）——模型档位不写进组织层件
+  ---
+  duration_ms: 1.186254
+  type: 'test'
+  ...
+# Subtest: V-A7.2 提示段是派生物：卡面档位非空时入段、为空时不出段（同一渲染器）
+ok 12 - V-A7.2 提示段是派生物：卡面档位非空时入段、为空时不出段（同一渲染器）
+  ---
+  duration_ms: 1.980854
+  type: 'test'
+  ...
+# Subtest: V-A7.3 D1–D11 逐条在册：每条有表述、规格锚与落地坐标；被覆写的 D5／D8 记覆写出处
+ok 13 - V-A7.3 D1–D11 逐条在册：每条有表述、规格锚与落地坐标；被覆写的 D5／D8 记覆写出处
+  ---
+  duration_ms: 0.691389
+  type: 'test'
+  ...
+# Subtest: V-A7.3 文档扫描：规格 §J 逐条有对应表述、覆写出处注明、无表外判据号
+ok 14 - V-A7.3 文档扫描：规格 §J 逐条有对应表述、覆写出处注明、无表外判据号
+  ---
+  duration_ms: 0.816017
+  type: 'test'
+  ...
+# Subtest: V-A7.3 文档扫描为负例可辨：表述消失／覆写出处缺失／表外判据号各报违例
+ok 15 - V-A7.3 文档扫描为负例可辨：表述消失／覆写出处缺失／表外判据号各报违例
+  ---
+  duration_ms: 7.381458
+  type: 'test'
+  ...
+# Subtest: 价值表述与放大验证设计在规格 §J 中可核（裸实例＝同基础工具面、无组织命令）
+ok 16 - 价值表述与放大验证设计在规格 §J 中可核（裸实例＝同基础工具面、无组织命令）
+  ---
+  duration_ms: 3.482144
+  type: 'test'
+  ...
+# Subtest: V-A7.4 岗位评测集形状成立：五类角色类别各有 1–3 个冻结样本、id 唯一、版本在档
+ok 17 - V-A7.4 岗位评测集形状成立：五类角色类别各有 1–3 个冻结样本、id 唯一、版本在档
+  ---
+  duration_ms: 3.408341
+  type: 'test'
+  ...
+# Subtest: V-A7.4 每岗至少一个可执行评测项：判据在白名单内、参数键逐字一致、样本派生于岗位卡契约
+ok 18 - V-A7.4 每岗至少一个可执行评测项：判据在白名单内、参数键逐字一致、样本派生于岗位卡契约
+  ---
+  duration_ms: 0.753745
+  type: 'test'
+  ...
+# Subtest: 样本本身过换模型试金石：模型记号／散文式判据／缺试金石记录各报违例
+ok 19 - 样本本身过换模型试金石：模型记号／散文式判据／缺试金石记录各报违例
+  ---
+  duration_ms: 1.960739
+  type: 'test'
+  ...
+# Subtest: 判据与输出格式单源：fs.contains 文本恰为声明格式的结构记号（未登记记号即违例）
+ok 20 - 判据与输出格式单源：fs.contains 文本恰为声明格式的结构记号（未登记记号即违例）
+  ---
+  duration_ms: 4.05408
+  type: 'test'
+  ...
+# Subtest: 评测集样本的判据记号派生自真源枚举（四要素／裁定包五件／复核报告键）
+ok 21 - 评测集样本的判据记号派生自真源枚举（四要素／裁定包五件／复核报告键）
+  ---
+  duration_ms: 5.726225
+  type: 'test'
+  ...
+# Subtest: V-A7.4 评测例程登记项齐备：每样本一例程、触发源＝模型指派变更、展开产物过简报校验
+ok 22 - V-A7.4 评测例程登记项齐备：每样本一例程、触发源＝模型指派变更、展开产物过简报校验
+  ---
+  duration_ms: 3.101511
+  type: 'test'
+  ...
+# Subtest: 升级例程四步在案：①触发登记 ②新模型跑评测集 ③做减法（只动三处）④用户终裁，每步有落地坐标
+ok 23 - 升级例程四步在案：①触发登记 ②新模型跑评测集 ③做减法（只动三处）④用户终裁，每步有落地坐标
+  ---
+  duration_ms: 0.612351
+  type: 'test'
+  ...
+# Subtest: ①触发计划：该岗位全部评测样本各开一张 duty 任务，幂等窗＝实例×样本×目标指派
+ok 24 - ①触发计划：该岗位全部评测样本各开一张 duty 任务，幂等窗＝实例×样本×目标指派
+  ---
+  duration_ms: 0.807824
+  type: 'test'
+  ...
+# Subtest: ①触发负例：未绑岗位／目标指派为空／缺实例 id 一律显式 skip（不静默、不产生任务）
+ok 25 - ①触发负例：未绑岗位／目标指派为空／缺实例 id 一律显式 skip（不静默、不产生任务）
+  ---
+  duration_ms: 0.788366
+  type: 'test'
+  ...
+# Subtest: V-A7.4 ④用户终裁必审钩：评测样本简报 reviewPoints 含 before-external-visibility
+ok 26 - V-A7.4 ④用户终裁必审钩：评测样本简报 reviewPoints 含 before-external-visibility
+  ---
+  duration_ms: 0.148805
+  type: 'test'
+  ...
+# Subtest: plan 跳过理由逐前提列名：多前提同缺不合并成单条（reasons 全列、reason 取首条兼容）
+ok 27 - plan 跳过理由逐前提列名：多前提同缺不合并成单条（reasons 全列、reason 取首条兼容）
+  ---
+  duration_ms: 0.134884
+  type: 'test'
+  ...
+# Subtest: ①触发：host 登记腿把评测任务落成 class=duty 任务；同窗重放不产生第二张（V-A2.10 幂等）
+ok 28 - ①触发：host 登记腿把评测任务落成 class=duty 任务；同窗重放不产生第二张（V-A2.10 幂等）
+  ---
+  duration_ms: 19.04199
+  type: 'test'
+  ...
+# Subtest: ①触发：登记失败也广播投影——失败留痕不等下一拍（人间收件箱即时可见）
+ok 29 - ①触发：登记失败也广播投影——失败留痕不等下一拍（人间收件箱即时可见）
+  ---
+  duration_ms: 1.192133
+  type: 'test'
+  ...
+# Subtest: V-A7.4 端到端：patch 改实例模型指派 → 台账自动登记 duty 评测任务（不依赖用户记得手动跑）
+ok 30 - V-A7.4 端到端：patch 改实例模型指派 → 台账自动登记 duty 评测任务（不依赖用户记得手动跑）
+  ---
+  duration_ms: 9.357983
+  type: 'test'
+  ...
+# Subtest: V-A7.1 封闭枚举带负例：删一类即报「缺类别」（清单是冻结字面量，不是自我派生）
+ok 31 - V-A7.1 封闭枚举带负例：删一类即报「缺类别」（清单是冻结字面量，不是自我派生）
+  ---
+  duration_ms: 0.891977
+  type: 'test'
+  ...
+# Subtest: V-A7.1 扫描区 fail closed：容器协议区标记消失即报违例，且该件不与 PASS 同形
+ok 32 - V-A7.1 扫描区 fail closed：容器协议区标记消失即报违例，且该件不与 PASS 同形
+  ---
+  duration_ms: 3.757717
+  type: 'test'
+  ...
+# Subtest: V-A7.4 记号真源可解析带负例：锚不在册／枚举被另抄一份各报违例
+ok 33 - V-A7.4 记号真源可解析带负例：锚不在册／枚举被另抄一份各报违例
+  ---
+  duration_ms: 3.081611
+  type: 'test'
+  ...
+# Subtest: V-A7.4 派生声明须落到真在册卡面（不再只正则查形状）
+ok 34 - V-A7.4 派生声明须落到真在册卡面（不再只正则查形状）
+  ---
+  duration_ms: 2.077098
+  type: 'test'
+  ...
+# Subtest: V-A7.3 判据坐标可解析带负例：坐标模块不在仓内即违例（坐标不再只查非空）
+ok 35 - V-A7.3 判据坐标可解析带负例：坐标模块不在仓内即违例（坐标不再只查非空）
+  ---
+  duration_ms: 0.937911
+  type: 'test'
+  ...
+# Subtest: V-A7.3 覆写出处可回核到裁定件带负例：裁定件不在册／锚不在裁定正文即违例
+ok 36 - V-A7.3 覆写出处可回核到裁定件带负例：裁定件不在册／锚不在裁定正文即违例
+  ---
+  duration_ms: 1.367774
+  type: 'test'
+  ...
+# Subtest: V-A7.4 触发源声明是承重的（登记腿前置门）：来源不符／非事件型即拒
+ok 37 - V-A7.4 触发源声明是承重的（登记腿前置门）：来源不符／非事件型即拒
+  ---
+  duration_ms: 0.175506
+  type: 'test'
+  ...
+# Subtest: V-A7.4 评测集版本与覆盖面在结论件里可读（冻结件版本有消费面，不是自说自话）
+ok 38 - V-A7.4 评测集版本与覆盖面在结论件里可读（冻结件版本有消费面，不是自说自话）
+  ---
+  duration_ms: 0.647495
+  type: 'test'
+  ...
+1..38
+# tests 38
+# suites 0
+# pass 38
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 181.344575
+
+=== org-human-inbox.test.mjs ===
+TAP version 13
+# Subtest: 只有三类裁定可进 waiting-user：封闭枚举三条，各带判据文本（V-A5.1）
+ok 1 - 只有三类裁定可进 waiting-user：封闭枚举三条，各带判据文本（V-A5.1）
+  ---
+  duration_ms: 1.666488
+  type: 'test'
+  ...
+# Subtest: 永不可代三项：模型指派／越权处置／冲突仲裁＝封闭枚举，且与裁定类不混用（V-A5.4）
+ok 2 - 永不可代三项：模型指派／越权处置／冲突仲裁＝封闭枚举，且与裁定类不混用（V-A5.4）
+  ---
+  duration_ms: 0.558748
+  type: 'test'
+  ...
+# Subtest: 上浮原因＝封闭枚举：在案两路（复核两轮未闭合、队列滞留/租约链）与冲突/越权/初审拒绝同在表内（V-A5.1）
+ok 3 - 上浮原因＝封闭枚举：在案两路（复核两轮未闭合、队列滞留/租约链）与冲突/越权/初审拒绝同在表内（V-A5.1）
+  ---
+  duration_ms: 0.492663
+  type: 'test'
+  ...
+# Subtest: 永不可代的归属判定：用户域挂起与冲突／越权上浮只许 user 终裁，其余挂起点不误伤（V-A5.4）
+ok 4 - 永不可代的归属判定：用户域挂起与冲突／越权上浮只许 user 终裁，其余挂起点不误伤（V-A5.4）
+  ---
+  duration_ms: 1.110065
+  type: 'test'
+  ...
+# Subtest: 业务截止时间到期只投影「已过期」：缺省与坏值都不算到期，且不构成自动动作（V-A5.3）
+ok 5 - 业务截止时间到期只投影「已过期」：缺省与坏值都不算到期，且不构成自动动作（V-A5.3）
+  ---
+  duration_ms: 0.786564
+  type: 'test'
+  ...
+# Subtest: 初审代理边界：未命中必审清单可处置（通过／回笼）；命中未闭合只可整理裁定包（V-A5.4）
+ok 6 - 初审代理边界：未命中必审清单可处置（通过／回笼）；命中未闭合只可整理裁定包（V-A5.4）
+  ---
+  duration_ms: 0.868495
+  type: 'test'
+  ...
+# Subtest: 初审拒绝或判据两轮未闭合＝强制上浮；未知裁决 fail closed 按拒绝处置（V-A5.4）
+ok 7 - 初审拒绝或判据两轮未闭合＝强制上浮；未知裁决 fail closed 按拒绝处置（V-A5.4）
+  ---
+  duration_ms: 0.503967
+  type: 'test'
+  ...
+# Subtest: 终裁四式＝台账命令的特化视图：命令全部落在台账命令词表内，不另起命令面（V-A5.5）
+ok 8 - 终裁四式＝台账命令的特化视图：命令全部落在台账命令词表内，不另起命令面（V-A5.5）
+  ---
+  duration_ms: 0.558916
+  type: 'test'
+  ...
+# Subtest: 终裁只能由 user 行使；mail 回文之类的来路不构成裁定（V-A5.2／V-A5.5）
+ok 9 - 终裁只能由 user 行使；mail 回文之类的来路不构成裁定（V-A5.2／V-A5.5）
+  ---
+  duration_ms: 1.055178
+  type: 'test'
+  ...
+# Subtest: 终裁缺幂等键或必填输入即拒；幂等键带 taskId 分量，不跨任务串键（V-A5.5）
+ok 10 - 终裁缺幂等键或必填输入即拒；幂等键带 taskId 分量，不跨任务串键（V-A5.5）
+  ---
+  duration_ms: 0.827912
+  type: 'test'
+  ...
+# Subtest: 推迟＝零台账事件：不改状态、不触台账（V-A5.5 与规格 §F 节律口径）
+ok 11 - 推迟＝零台账事件：不改状态、不触台账（V-A5.5 与规格 §F 节律口径）
+  ---
+  duration_ms: 0.241861
+  type: 'test'
+  ...
+# Subtest: 终裁动作表按挂起态给出可选动作：非挂起任务无可裁定动作（V-A5.2 内嵌裁定操作）
+ok 12 - 终裁动作表按挂起态给出可选动作：非挂起任务无可裁定动作（V-A5.2 内嵌裁定操作）
+  ---
+  duration_ms: 0.154135
+  type: 'test'
+  ...
+# Subtest: 裁定包五件齐备：冻结简报／判据事实／双方立场＋全轨迹指针／可选动作／模型身份（V-A5.6）
+ok 13 - 裁定包五件齐备：冻结简报／判据事实／双方立场＋全轨迹指针／可选动作／模型身份（V-A5.6）
+  ---
+  duration_ms: 1.990033
+  type: 'test'
+  ...
+# Subtest: 立场补齐句带机械事实标注（24 号票③裁定＝补齐句合规＋显式标注）：补齐句不以立场名义冒充，真实立场句不受影响
+ok 14 - 立场补齐句带机械事实标注（24 号票③裁定＝补齐句合规＋显式标注）：补齐句不以立场名义冒充，真实立场句不受影响
+  ---
+  duration_ms: 1.027185
+  type: 'test'
+  ...
+# Subtest: 裁定包缺件即拒（fail closed）：缺模型身份／缺冻结简报／非挂起态／无任务（V-A5.6）
+ok 15 - 裁定包缺件即拒（fail closed）：缺模型身份／缺冻结简报／非挂起态／无任务（V-A5.6）
+  ---
+  duration_ms: 0.731304
+  type: 'test'
+  ...
+# Subtest: 告知投影：交付回笼／取消失败／越权计数三类各有来路；越权按连续计数汇总，绝不挂起（V-A5.1）
+ok 16 - 告知投影：交付回笼／取消失败／越权计数三类各有来路；越权按连续计数汇总，绝不挂起（V-A5.1）
+  ---
+  duration_ms: 1.298163
+  type: 'test'
+  ...
+# Subtest: 收件箱＝台账事件投影（只读）：待裁项带裁定包、可选动作、归属与到期标记，告知并列（V-A5.2／V-A5.3）
+ok 17 - 收件箱＝台账事件投影（只读）：待裁项带裁定包、可选动作、归属与到期标记，告知并列（V-A5.2／V-A5.3）
+  ---
+  duration_ms: 1.522016
+  type: 'test'
+  ...
+# Subtest: 到人告知三类＝交付回笼／取消失败／越权计数：纯告知、不挂起（与裁定类词表不交集，V-A5.1）
+ok 18 - 到人告知三类＝交付回笼／取消失败／越权计数：纯告知、不挂起（与裁定类词表不交集，V-A5.1）
+  ---
+  duration_ms: 0.340849
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 46.70576
+
+=== org-ledger-authz.test.mjs ===
+TAP version 13
+# Subtest: 腿一负例：岗位命令无信封即拒（capability-required），拒绝本身记台账事件并回错误回执（V-A3.2/V-A3.6）
+ok 1 - 腿一负例：岗位命令无信封即拒（capability-required），拒绝本身记台账事件并回错误回执（V-A3.2/V-A3.6）
+  ---
+  duration_ms: 21.626932
+  type: 'test'
+  ...
+# Subtest: 腿一负例：伪造签名／坏形状信封即拒，无有效信封不得探得任务状态（V-A3.2）
+ok 2 - 腿一负例：伪造签名／坏形状信封即拒，无有效信封不得探得任务状态（V-A3.2）
+  ---
+  duration_ms: 8.352632
+  type: 'test'
+  ...
+# Subtest: 腿二负例：实施者（持 TK 任务能力）调 task.triage → op-not-in-opset（V-A3.2）
+ok 3 - 腿二负例：实施者（持 TK 任务能力）调 task.triage → op-not-in-opset（V-A3.2）
+  ---
+  duration_ms: 6.401213
+  type: 'test'
+  ...
+# Subtest: 腿三负例：TK-A 的能力用于 TK-B → task-domain-mismatch；角色能力充当任务域 → capability-task-scope（V-A3.2）
+ok 4 - 腿三负例：TK-A 的能力用于 TK-B → task-domain-mismatch；角色能力充当任务域 → capability-task-scope（V-A3.2）
+  ---
+  duration_ms: 5.077955
+  type: 'test'
+  ...
+# Subtest: 越权投递面负例（邮件零权威 V-A3.7 的权限侧）：伪造「已授权」邮件不给任何权限——无信封照旧拒
+ok 5 - 越权投递面负例（邮件零权威 V-A3.7 的权限侧）：伪造「已授权」邮件不给任何权限——无信封照旧拒
+  ---
+  duration_ms: 3.403747
+  type: 'test'
+  ...
+# Subtest: user principal 台账全权：kind=user 无信封可发一切台账命令、不经岗位表（V-A3.10）
+ok 6 - user principal 台账全权：kind=user 无信封可发一切台账命令、不经岗位表（V-A3.10）
+  ---
+  duration_ms: 3.893502
+  type: 'test'
+  ...
+# Subtest: host 内部通行：sweep/ticker 的 host 命令不经信封（既有语义保持）
+ok 7 - host 内部通行：sweep/ticker 的 host 命令不经信封（既有语义保持）
+  ---
+  duration_ms: 9.403002
+  type: 'test'
+  ...
+# Subtest: happy path：统筹角色能力发 triage；承接任务能力接单——动态不变量 home∪签发成立（V-A3.2）
+ok 8 - happy path：统筹角色能力发 triage；承接任务能力接单——动态不变量 home∪签发成立（V-A3.2）
+  ---
+  duration_ms: 8.253599
+  type: 'test'
+  ...
+# Subtest: 签发联动：dispatch 的 assign 命令返回件携带被派方任务能力；accept/heartbeat 续签重签（V-A3.5）
+ok 9 - 签发联动：dispatch 的 assign 命令返回件携带被派方任务能力；accept/heartbeat 续签重签（V-A3.5）
+  ---
+  duration_ms: 8.792007
+  type: 'test'
+  ...
+# Subtest: 链式能力：start→report 用返回件接力——每个成功命令都带下一张，执行中不断链（V-A3.5 短 TTL＋续签）
+ok 10 - 链式能力：start→report 用返回件接力——每个成功命令都带下一张，执行中不断链（V-A3.5 短 TTL＋续签）
+  ---
+  duration_ms: 21.082828
+  type: 'test'
+  ...
+# Subtest: 拒绝幂等：同幂等键重放拒绝命令返回首次结论（replayed）且不重复落事件（V-A3.6）
+ok 11 - 拒绝幂等：同幂等键重放拒绝命令返回首次结论（replayed）且不重复落事件（V-A3.6）
+  ---
+  duration_ms: 4.164351
+  type: 'test'
+  ...
+# Subtest: 结构性拒绝仍不落账（unknown-op 等，守 05 号票语义；06 号票处置：四类无可信锚点，维持不落账）
+ok 12 - 结构性拒绝仍不落账（unknown-op 等，守 05 号票语义；06 号票处置：四类无可信锚点，维持不落账）
+  ---
+  duration_ms: 6.055165
+  type: 'test'
+  ...
+# Subtest: 吊销投影腿（装具级）：host 取消任务后，原任务能力经鉴权面验签即 capability-revoked（V-A3.2 投影吊销）
+ok 13 - 吊销投影腿（装具级）：host 取消任务后，原任务能力经鉴权面验签即 capability-revoked（V-A3.2 投影吊销）
+  ---
+  duration_ms: 7.644558
+  type: 'test'
+  ...
+# Subtest: 读面 gate：ledger.read 岗位实例须持有效信封且不消费 nonce（读重放无害）
+ok 14 - 读面 gate：ledger.read 岗位实例须持有效信封且不消费 nonce（读重放无害）
+  ---
+  duration_ms: 1.864529
+  type: 'test'
+  ...
+# Subtest: 读面 gate 腿二（21 号票 ②）：ledger.read 须在 availableOps(home, 信封) 内——复核帽（无 ledger.read）即拒
+ok 15 - 读面 gate 腿二（21 号票 ②）：ledger.read 须在 availableOps(home, 信封) 内——复核帽（无 ledger.read）即拒
+  ---
+  duration_ms: 2.007934
+  type: 'test'
+  ...
+# Subtest: 续签条件＝授权有效且信封已消费（21 号票 ①）：授权通过而被拒的常态拒绝（cas-mismatch）同样续签下一张
+ok 16 - 续签条件＝授权有效且信封已消费（21 号票 ①）：授权通过而被拒的常态拒绝（cas-mismatch）同样续签下一张
+  ---
+  duration_ms: 12.578518
+  type: 'test'
+  ...
+# Subtest: 续签边界（21 号票 ①）：鉴权拒绝不续签——越表 op 回执不带 authorized、不携新信封，且原信封已消费
+ok 17 - 续签边界（21 号票 ①）：鉴权拒绝不续签——越表 op 回执不带 authorized、不携新信封，且原信封已消费
+  ---
+  duration_ms: 4.385977
+  type: 'test'
+  ...
+# Subtest: 关闭前置的拒绝同样带 authorized 标记（21 号票①机械证据面）：判据门拒绝≠鉴权门之前的拒绝，续签不得断
+ok 18 - 关闭前置的拒绝同样带 authorized 标记（21 号票①机械证据面）：判据门拒绝≠鉴权门之前的拒绝，续签不得断
+  ---
+  duration_ms: 31.541399
+  type: 'test'
+  ...
+# Subtest: 复核面帽腿在消费之前（27 号票）：非复核帽信封不被烧——同一张任务能力随后在命令面照常可用
+ok 19 - 复核面帽腿在消费之前（27 号票）：非复核帽信封不被烧——同一张任务能力随后在命令面照常可用
+  ---
+  duration_ms: 9.679306
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 198.469653
+
+=== org-mail-client.test.mjs ===
+TAP version 13
+# Subtest: 投递成功：actor 身份由通道注入、CSRF 令牌随头携带、结论原样回传（零 capability 门槛）
+ok 1 - 投递成功：actor 身份由通道注入、CSRF 令牌随头携带、结论原样回传（零 capability 门槛）
+  ---
+  duration_ms: 2.976591
+  type: 'test'
+  ...
+# Subtest: 通道不可用＝错误回执＋有限重试；鉴权拒绝与语义失败不重试（V-A4.7 三分支）
+ok 2 - 通道不可用＝错误回执＋有限重试；鉴权拒绝与语义失败不重试（V-A4.7 三分支）
+  ---
+  duration_ms: 1.794595
+  type: 'test'
+  ...
+# Subtest: 消费汇报与游标腿：claim／finalize／skip／cursor 均走 POST 认证命令（35 号票：cursor 经 POST＋actor＋CSRF，GET 下线）
+ok 3 - 消费汇报与游标腿：claim／finalize／skip／cursor 均走 POST 认证命令（35 号票：cursor 经 POST＋actor＋CSRF，GET 下线）
+  ---
+  duration_ms: 1.638241
+  type: 'test'
+  ...
+# Subtest: CSRF 令牌轮换：403 csrf-* 重取令牌重试一次（与命令面同纪律）
+ok 4 - CSRF 令牌轮换：403 csrf-* 重取令牌重试一次（与命令面同纪律）
+  ---
+  duration_ms: 0.368757
+  type: 'test'
+  ...
+# Subtest: 工具面升表：mail.send 归四常设岗、入执行面与变异集、复核帽不持（V-A4.1／V-A3.4）
+ok 5 - 工具面升表：mail.send 归四常设岗、入执行面与变异集、复核帽不持（V-A4.1／V-A3.4）
+  ---
+  duration_ms: 0.456668
+  type: 'test'
+  ...
+# Subtest: mail.send 工具腿：dispatch 经邮件中继（不经组织命令面），通道未接线 fail closed
+ok 6 - mail.send 工具腿：dispatch 经邮件中继（不经组织命令面），通道未接线 fail closed
+  ---
+  duration_ms: 4.924369
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 30.856508
+
+=== org-mail-relay.test.mjs ===
+TAP version 13
+# Subtest: mail.send：host 唯一写者——投递落收件人 inbox，消息键封闭且不承载任务状态（V-A4.4／V-A2.13）
+ok 1 - mail.send：host 唯一写者——投递落收件人 inbox，消息键封闭且不承载任务状态（V-A4.4／V-A2.13）
+  ---
+  duration_ms: 3.614884
+  type: 'test'
+  ...
+# Subtest: 消费汇报 host 落盘：claim → finalize＋receipt 水位；skipped-stale 只记水位；参数非法 fail closed（at-least-once）
+ok 2 - 消费汇报 host 落盘：claim → finalize＋receipt 水位；skipped-stale 只记水位；参数非法 fail closed（at-least-once）
+  ---
+  duration_ms: 5.273995
+  type: 'test'
+  ...
+# Subtest: cursor：host 侧算起始游标——存量无 water mark 即落基线不回放；水位落后 → replay
+ok 3 - cursor：host 侧算起始游标——存量无 water mark 即落基线不回放；水位落后 → replay
+  ---
+  duration_ms: 3.935299
+  type: 'test'
+  ...
+# Subtest: 幂等回复与投递去重：同 replyToMessageId／同 replyTo／同 idempotencyKey 重放不落第二条
+ok 4 - 幂等回复与投递去重：同 replyToMessageId／同 replyTo／同 idempotencyKey 重放不落第二条
+  ---
+  duration_ms: 2.970089
+  type: 'test'
+  ...
+# Subtest: 回信锚按发信人分域：B、C 同序号各自投递，重启后各自重放仍去重
+ok 5 - 回信锚按发信人分域：B、C 同序号各自投递，重启后各自重放仍去重
+  ---
+  duration_ms: 1.87415
+  type: 'test'
+  ...
+# Subtest: 投递幂等键按发信人分域：B、C 同键各自投递，同发信人重放只返回自己的消息
+ok 6 - 投递幂等键按发信人分域：B、C 同键各自投递，同发信人重放只返回自己的消息
+  ---
+  duration_ms: 0.985988
+  type: 'test'
+  ...
+# Subtest: 历史裸锚读取已有 from 分域，缺发信人的行不去重，旧行字节不变
+ok 7 - 历史裸锚读取已有 from 分域，缺发信人的行不去重，旧行字节不变
+  ---
+  duration_ms: 1.92144
+  type: 'test'
+  ...
+# Subtest: HTTP 投递按 actor 注入的发信人分域，自带回信锚与幂等键均保留
+ok 8 - HTTP 投递按 actor 注入的发信人分域，自带回信锚与幂等键均保留
+  ---
+  duration_ms: 5.814852
+  type: 'test'
+  ...
+# Subtest: 语义失败各按其道（V-A4.7 分支三）：未知收件人／自发／空正文／夹带键／发信者不在册一律拒且零写入
+ok 9 - 语义失败各按其道（V-A4.7 分支三）：未知收件人／自发／空正文／夹带键／发信者不在册一律拒且零写入
+  ---
+  duration_ms: 16.32494
+  type: 'test'
+  ...
+# Subtest: 鉴权拒绝留痕（V-A4.7 分支二）：回执＋有任务锚时落 command-rejected，无锚时只留日志
+ok 10 - 鉴权拒绝留痕（V-A4.7 分支二）：回执＋有任务锚时落 command-rejected，无锚时只留日志
+  ---
+  duration_ms: 5.56572
+  type: 'test'
+  ...
+# Subtest: HTTP 投递：inbox seq 锁留痕经中继 logger 出栈（36 号票 A9）
+ok 11 - HTTP 投递：inbox seq 锁留痕经中继 logger 出栈（36 号票 A9）
+  ---
+  duration_ms: 39.902156
+  type: 'test'
+  ...
+# Subtest: HTTP cursor：继承属性不是在册实例，拒绝不落基线并留下正确操作名
+ok 12 - HTTP cursor：继承属性不是在册实例，拒绝不落基线并留下正确操作名
+  ---
+  duration_ms: 2.777512
+  type: 'test'
+  ...
+# Subtest: HTTP 邮件在册口径一致：继承属性不能发信、消费或作为收件人 ID
+ok 13 - HTTP 邮件在册口径一致：继承属性不能发信、消费或作为收件人 ID
+  ---
+  duration_ms: 2.187962
+  type: 'test'
+  ...
+# Subtest: HTTP 在册判断不禁用名字：注册表自身登记的同名实例仍可投递、消费和读游标
+ok 14 - HTTP 在册判断不禁用名字：注册表自身登记的同名实例仍可投递、消费和读游标
+  ---
+  duration_ms: 7.602002
+  type: 'test'
+  ...
+# Subtest: HTTP cursor（35 号票）：POST actor 认证落基线，GET 下线 405 且零写
+ok 15 - HTTP cursor（35 号票）：POST actor 认证落基线，GET 下线 405 且零写
+  ---
+  duration_ms: 9.339031
+  type: 'test'
+  ...
+# Subtest: HTTP cursor 条件触发三路径（35 号票）：prune 只经认证 POST／迁移写一次／二次纯读不覆写
+ok 16 - HTTP cursor 条件触发三路径（35 号票）：prune 只经认证 POST／迁移写一次／二次纯读不覆写
+  ---
+  duration_ms: 59.908822
+  type: 'test'
+  ...
+# Subtest: HTTP 面：actor 认证（注册实例＋kind=post）——未在册／host 冒名／负载夹带 from 一律拒且零写入
+ok 17 - HTTP 面：actor 认证（注册实例＋kind=post）——未在册／host 冒名／负载夹带 from 一律拒且零写入
+  ---
+  duration_ms: 3.375739
+  type: 'test'
+  ...
+# Subtest: HTTP 面：中继内部异常＝投递面故障→503（通道不可用分支），不裸 500
+ok 18 - HTTP 面：中继内部异常＝投递面故障→503（通道不可用分支），不裸 500
+  ---
+  duration_ms: 1.288278
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 192.635698
+
+=== org-mail-shared-face.test.mjs ===
+✓ 投递面写者名单闭合：真实仓库里只有中继面写 mail 面（V-A4.4）
+✓ 身份头字面量单源：x-dsh-bots-bot-id 恰一处（host-channel.js 登记源，消费面一律引用 BOT_ID_HEADER）
+✓ 内容键封闭：真实仓库写函数造键与调用点传键都在封闭枚举内（V-A2.13）
+✓ 邮件键与台账状态／事件／命令词表不相交：邮件不承载任务状态（V-A2.13）
+✓ 扫描器自身与写原语名单是冻结枚举（扩缩须落档）
+✓ 负例可辨①：名单外模块直写投递面（writeReceipt／appendMessage）即违例
+✓ 负例可辨②：bot 侧面函数体内出现直写即违例（含触达＋文件写临界区）
+✓ 负例可辨③：通道腿出现 fs import 或文件写即违例（V-A4.7 无降级直写）
+✓ 负例可辨④：mail-plane 写函数造键越界／调用点夹带状态键即违例（V-A2.13）
+
+=== org-memory-layer.test.mjs ===
+✓ 三问分流：本任务历史事实 → 台账（Q①）
+✓ 三问分流：换一个不同任务仍成立 → 知识库（Q②）
+✓ 三问分流：中间产物 → taskId 键工件存档（Q③）
+✓ 中间产物缺 taskId → 判 needs（工件以 taskId 为键，无键即无法路由）
+✓ 推理过程任何面都不进——即便同时标为可复用/本任务事实（V-A7.6 末句，优先级最高）
+✓ 三问优先级：任务历史优先于可复用（Q①→Q② 顺序不可倒）
+✓ 无可路由面 → route:null 且理由说明（并非所有内容都有承载面）
+✓ 路由值域封闭：MEMORY_ROUTES 恰为三面（共享侧无第三面）
+✓ 分流输入非对象 → 一律抛（fail closed，不静默路由）
+✓ 晋升门槛三条齐备即通过；门槛 id 封闭枚举
+✓ 晋升门槛：任一不过即 ok:false 并点名缺哪条（可查）
+✓ 晋升门槛：缺省（未评估）＝不过（默认保守，不得静默放行）
+✓ 晋升门槛输入非对象 → 抛（fail closed）
+✓ 晋升强制性读面：缺省＝未声明（不强制）；false 与 true 分别可辨（V-A7.7）
+✓ 登记不构成任务完成依据：晋升门槛与强制性读面互不代偿（V-A7.7 末句）
+✓ 失效动作值域封闭：恰为显式取代／废弃两种（V-A7.8）
+✓ 取代登记：须给后继 id，产出 append 语义补丁（旧痕迹保留、不物理删除）
+✓ 废弃登记：不给后继，产出 status=deprecated 补丁
+✓ 取代缺后继 id → 拒（取代必有收口对象；防「取代成一个洞」）
+✓ 自动失效形态一律拒：expire/ttl/delete/purge/auto-* 不在动作值域（V-A7.8「不做自动失效」）
+✓ 无自动失效（时间无关）：planInvalidation 对时间输入不敏感——同输入不同时刻产出同一补丁
+✓ 无访问热字段：补丁键封闭——只许 id/status/supersededBy，计数字段进不来
+✓ 失效登记输入非对象 / 缺 targetId → 拒（fail closed）
+✓ 裁决面词表封闭：恰三面（规格只定义其中两对，本模块不自定序）
+✓ 知识与台账冲突 → 台账胜（V-A7.9 上半）
+✓ 知识与岗位卡冲突 → 岗位卡胜（V-A7.9 下半）
+✓ 规格未定义的冲突对（台账×岗位卡）→ 拒，不发明优先级（§G 只定义两对）
+✓ 三面同冲含未定义对 → 同样拒（不静默择一）
+✓ 不是冲突的情形拒：单面 / 空 / 重复同面（不得把「自比」当冲突处理）
+✓ 值域外面名一律拒（裁决表封闭）
+✓ 裁决输入非对象 / faces 非数组 → 抛（fail closed）
+✓ 记忆三层：岗位私有＝workspace 自由笔记；共享面无第三面；**组织常量在配置面**
+✓ 组织常量导出确实存在：按坐标逐个解析（防坐标漂移成空指针）
+✓ 移交件＝三件指针：任务 id ＋ 工件坐标 ＋ 知识条目 id；模式恒为拉取
+✓ 移交只传指针：坐标条目夹带正文（body/content/excerpt/summary）即拒（V-A7.10 不复制内容）
+✓ 移交只传指针：知识条目 id 不得以内联摘要数组形态夹带（只给 id）
+✓ 工件归档不删档、无保留期上限：夹带 retention/expiresAt/ttl 字段一律拒（V-A7.10）
+✓ 移交件单源形状：坐标条目键封闭为 location（不给格式之外的转述位）
+✓ 缺 taskId → 拒（任务 id 是指针根，无根不成移交）
+✓ 移交输入非对象 → 抛（fail closed）
+
+=== org-op-set.test.mjs ===
+TAP version 13
+# Subtest: op-set 表覆盖五类角色类别，键与岗位卡 slug 集一致（V-A3.3 前置）
+ok 1 - op-set 表覆盖五类角色类别，键与岗位卡 slug 集一致（V-A3.3 前置）
+  ---
+  duration_ms: 2.14079
+  type: 'test'
+  ...
+# Subtest: ledger.read 四常设岗有、复核帽无（V-A3.3）
+ok 2 - ledger.read 四常设岗有、复核帽无（V-A3.3）
+  ---
+  duration_ms: 0.335733
+  type: 'test'
+  ...
+# Subtest: 表内 op 全部真实存在：台账命令面 op ∪ ledger.read ∪ 执行面；保留集**按岗位**单列不混入
+ok 3 - 表内 op 全部真实存在：台账命令面 op ∪ ledger.read ∪ 执行面；保留集**按岗位**单列不混入
+  ---
+  duration_ms: 0.299523
+  type: 'test'
+  ...
+# Subtest: 分类是封闭枚举：读写集覆盖命令面全词表∪ledger.read（08 起另含复核读面，单列在案），执行面单列，三类两两不交
+ok 4 - 分类是封闭枚举：读写集覆盖命令面全词表∪ledger.read（08 起另含复核读面，单列在案），执行面单列，三类两两不交
+  ---
+  duration_ms: 0.193796
+  type: 'test'
+  ...
+# Subtest: evidence.probe 升表（07 号票）：承接岗可执行；复核帽执行面已随 08 升表
+ok 5 - evidence.probe 升表（07 号票）：承接岗可执行；复核帽执行面已随 08 升表
+  ---
+  duration_ms: 0.176216
+  type: 'test'
+  ...
+# Subtest: 复核面 op 升表（08 号票）：复核帽可执行集＝移交件读＋探针＋报告；保留集收缩为裁定包/移交读
+ok 6 - 复核面 op 升表（08 号票）：复核帽可执行集＝移交件读＋探针＋报告；保留集收缩为裁定包/移交读
+  ---
+  duration_ms: 0.188477
+  type: 'test'
+  ...
+# Subtest: review.request 升表（08 号票）：project-lead 持之，属命令面写集（管理类）
+ok 7 - review.request 升表（08 号票）：project-lead 持之，属命令面写集（管理类）
+  ---
+  duration_ms: 0.173523
+  type: 'test'
+  ...
+# Subtest: task.decline 升表（07 号票带理由拒收）：承接岗可执行且属任务域执行集
+ok 8 - task.decline 升表（07 号票带理由拒收）：承接岗可执行且属任务域执行集
+  ---
+  duration_ms: 0.105887
+  type: 'test'
+  ...
+# Subtest: 复核帽不含任何写 op——可执行集与保留集双向机械检查（V-A3.4）
+ok 9 - 复核帽不含任何写 op——可执行集与保留集双向机械检查（V-A3.4）
+  ---
+  duration_ms: 0.368918
+  type: 'test'
+  ...
+# Subtest: 任务域 op 集（须绑定 taskId 的能力）：台账命令类属写集、执行面类属执行集，与承接岗执行面一致
+ok 10 - 任务域 op 集（须绑定 taskId 的能力）：台账命令类属写集、执行面类属执行集，与承接岗执行面一致
+  ---
+  duration_ms: 0.517805
+  type: 'test'
+  ...
+# Subtest: 工具面派生：一 op 一工具、工具名即 op 名、与 op-set 表逐项一致（V-A4.1）
+ok 11 - 工具面派生：一 op 一工具、工具名即 op 名、与 op-set 表逐项一致（V-A4.1）
+  ---
+  duration_ms: 0.950129
+  type: 'test'
+  ...
+# Subtest: 复核帽注册集不含写工具（不是「注册了但拒绝」）（V-A4.9）
+ok 12 - 复核帽注册集不含写工具（不是「注册了但拒绝」）（V-A4.9）
+  ---
+  duration_ms: 0.16392
+  type: 'test'
+  ...
+# Subtest: 执行面工具派生（07 号票）：evidence.probe 工具 kind＝probe-execute，与台账命令工具区分
+ok 13 - 执行面工具派生（07 号票）：evidence.probe 工具 kind＝probe-execute，与台账命令工具区分
+  ---
+  duration_ms: 0.18212
+  type: 'test'
+  ...
+# Subtest: 简报不进系统提示段（V-A4.3 后半）：提示段组装面无简报引用；命令通道不触提示服务
+ok 14 - 简报不进系统提示段（V-A4.3 后半）：提示段组装面无简报引用；命令通道不触提示服务
+  ---
+  duration_ms: 2.397532
+  type: 'test'
+  ...
+# Subtest: 动态工具面不变量：可用集＝home op 集 ∪ 当次签发 op 集（V-A1.4 借用不变量）
+ok 15 - 动态工具面不变量：可用集＝home op 集 ∪ 当次签发 op 集（V-A1.4 借用不变量）
+  ---
+  duration_ms: 0.670419
+  type: 'test'
+  ...
+# Subtest: bootstrap 锚点席位（值班统筹）的 home op 集与借用并集（13 号票／`V-A1.4`，挂「设计推理（无直接文献）」标注条目）
+ok 16 - bootstrap 锚点席位（值班统筹）的 home op 集与借用并集（13 号票／`V-A1.4`，挂「设计推理（无直接文献）」标注条目）
+  ---
+  duration_ms: 0.28719
+  type: 'test'
+  ...
+# Subtest: 对账：签发集 ⊆ 持有者岗位表；越表签发、复核帽写签发均报违例（V-A3.3）
+ok 17 - 对账：签发集 ⊆ 持有者岗位表；越表签发、复核帽写签发均报违例（V-A3.3）
+  ---
+  duration_ms: 0.39499
+  type: 'test'
+  ...
+# Subtest: validateOpSet：表被改坏（未知 op／复核帽写 op／常设岗缺 ledger.read）即报违例
+ok 18 - validateOpSet：表被改坏（未知 op／复核帽写 op／常设岗缺 ledger.read）即报违例
+  ---
+  duration_ms: 0.591181
+  type: 'test'
+  ...
+# Subtest: 岗位卡覆盖：表键不超出在册岗位卡 slug（表与卡同源，无孤儿岗位）
+ok 19 - 岗位卡覆盖：表键不超出在册岗位卡 slug（表与卡同源，无孤儿岗位）
+  ---
+  duration_ms: 0.127765
+  type: 'test'
+  ...
+# Subtest: knowledge.register 升表（10 号票 V-A4.5 命令化）：四常设岗持之、复核帽不持；属宿主侧执行面
+ok 20 - knowledge.register 升表（10 号票 V-A4.5 命令化）：四常设岗持之、复核帽不持；属宿主侧执行面
+  ---
+  duration_ms: 0.221438
+  type: 'test'
+  ...
+# Subtest: knowledge.register 工具派生（kind＝knowledge-register）
+ok 21 - knowledge.register 工具派生（kind＝knowledge-register）
+  ---
+  duration_ms: 0.133387
+  type: 'test'
+  ...
+# Subtest: 复核帽不含任何**变异** op——写集 ∪ 共享面写者（V-A3.4 的本义）
+ok 22 - 复核帽不含任何**变异** op——写集 ∪ 共享面写者（V-A3.4 的本义）
+  ---
+  duration_ms: 0.095938
+  type: 'test'
+  ...
+# Subtest: registerPostTools：注册集＝派生面（岗位表），复核帽注册集天然不含写工具（V-A4.1/V-A4.9）
+ok 23 - registerPostTools：注册集＝派生面（岗位表），复核帽注册集天然不含写工具（V-A4.1/V-A4.9）
+  ---
+  duration_ms: 0.768322
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 34.686975
+
+=== org-permissions.test.mjs ===
+TAP version 13
+# Subtest: L1：自身 workspace 内可写（V-A3.1 正例）
+ok 1 - L1：自身 workspace 内可写（V-A3.1 正例）
+  ---
+  duration_ms: 2.41424
+  type: 'test'
+  ...
+# Subtest: L1 负例：~/.dsh 全域与一切共享面零直写——注册表/profiles/他人 workspace/台账/capability/knowledge/mail（V-A3.1）
+ok 2 - L1 负例：~/.dsh 全域与一切共享面零直写——注册表/profiles/他人 workspace/台账/capability/knowledge/mail（V-A3.1）
+  ---
+  duration_ms: 0.725837
+  type: 'test'
+  ...
+# Subtest: L1 负例：知识库容器协议**真实面**路径全部界外（V-A3.1 与 10 号票 V-A7.5 的交点）
+ok 3 - L1 负例：知识库容器协议**真实面**路径全部界外（V-A3.1 与 10 号票 V-A7.5 的交点）
+  ---
+  duration_ms: 0.818115
+  type: 'test'
+  ...
+# Subtest: L1 负例：投递面**真实面**路径（inbox／outbox／receipts／responses）全部界外（V-A3.1 与 11 号票 V-A4.4 的交点）
+ok 4 - L1 负例：投递面**真实面**路径（inbox／outbox／receipts／responses）全部界外（V-A3.1 与 11 号票 V-A4.4 的交点）
+  ---
+  duration_ms: 0.354746
+  type: 'test'
+  ...
+# Subtest: L1 负例：路径遍历（workspace 内的 ../ 跳出）与非法 botId 一律拒（V-A3.1）
+ok 5 - L1 负例：路径遍历（workspace 内的 ../ 跳出）与非法 botId 一律拒（V-A3.1）
+  ---
+  duration_ms: 0.171469
+  type: 'test'
+  ...
+# Subtest: 组织命令面零路径工具：派生注册集不含任何文件写工具——L1 的组织侧靠「不给通道」成立（V-A3.1/V-A4.1）
+ok 6 - 组织命令面零路径工具：派生注册集不含任何文件写工具——L1 的组织侧靠「不给通道」成立（V-A3.1/V-A4.1）
+  ---
+  duration_ms: 0.777611
+  type: 'test'
+  ...
+# Subtest: V-A3.8：岗位卡文本扫描——danger-full-access 只许以禁用句式出现，不得作为履约前提
+ok 7 - V-A3.8：岗位卡文本扫描——danger-full-access 只许以禁用句式出现，不得作为履约前提
+  ---
+  duration_ms: 1.186946
+  type: 'test'
+  ...
+# Subtest: V-A3.9 正交（基底侧）：实例基底再宽（注册表行携带 danger 模式字段）也替代不了任务域授权
+ok 8 - V-A3.9 正交（基底侧）：实例基底再宽（注册表行携带 danger 模式字段）也替代不了任务域授权
+  ---
+  duration_ms: 0.761499
+  type: 'test'
+  ...
+# Subtest: V-A3.9 正交（能力侧）：真 capability 扩不出文件面——共享面写路径仍被 L1 拒
+ok 9 - V-A3.9 正交（能力侧）：真 capability 扩不出文件面——共享面写路径仍被 L1 拒
+  ---
+  duration_ms: 1.12063
+  type: 'test'
+  ...
+# Subtest: 知识命令腿 actor 门（30 号票）：形状／归属判定表；台账放行口径不动（同一 actor 两门两判）
+ok 10 - 知识命令腿 actor 门（30 号票）：形状／归属判定表；台账放行口径不动（同一 actor 两门两判）
+  ---
+  duration_ms: 1.650169
+  type: 'test'
+  ...
+# Subtest: 权限装配件工厂（23 号票③）：{issuer, postForBot, logger} 一处装配——authorize 直通鉴权器、createDispatcher 成套取出 dispatcher
+ok 11 - 权限装配件工厂（23 号票③）：{issuer, postForBot, logger} 一处装配——authorize 直通鉴权器、createDispatcher 成套取出 dispatcher
+  ---
+  duration_ms: 0.721137
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 28.605809
+
+=== org-post-channel.test.mjs ===
+TAP version 13
+# Subtest: ledger.read：GET 台账投影读面，返回视图本体
+ok 1 - ledger.read：GET 台账投影读面，返回视图本体
+  ---
+  duration_ms: 2.025135
+  type: 'test'
+  ...
+# Subtest: 台账命令：POST 命令面，body 携带 op／actor(kind=post)／CAS／payload；令牌头随请求
+ok 2 - 台账命令：POST 命令面，body 携带 op／actor(kind=post)／CAS／payload；令牌头随请求
+  ---
+  duration_ms: 1.699184
+  type: 'test'
+  ...
+# Subtest: 链式能力持有：响应携带的 capability 随下一命令回传（持有侧不断链）
+ok 3 - 链式能力持有：响应携带的 capability 随下一命令回传（持有侧不断链）
+  ---
+  duration_ms: 0.49422
+  type: 'test'
+  ...
+# Subtest: 接单即得契约＋判据真源：accept 响应携带简报，探针按台账预登记判据对 probeCtx 执行（V-A4.3 前半／V-A4.6）
+ok 4 - 接单即得契约＋判据真源：accept 响应携带简报，探针按台账预登记判据对 probeCtx 执行（V-A4.3 前半／V-A4.6）
+  ---
+  duration_ms: 1.805516
+  type: 'test'
+  ...
+# Subtest: 探针路由 fail closed：台账无任务／任务无简报／索引越界／本地持有件与台账不符即拒
+ok 5 - 探针路由 fail closed：台账无任务／任务无简报／索引越界／本地持有件与台账不符即拒
+  ---
+  duration_ms: 1.759483
+  type: 'test'
+  ...
+# Subtest: CSRF 轮换：403（csrf-*）后重取令牌并重试一次
+ok 6 - CSRF 轮换：403（csrf-*）后重取令牌并重试一次
+  ---
+  duration_ms: 1.233109
+  type: 'test'
+  ...
+# Subtest: 复核面路由：review.report 走 POST /reviews；响应捕获复核帽；artifact.read 随头携帽读移交件
+ok 7 - 复核面路由：review.report 走 POST /reviews；响应捕获复核帽；artifact.read 随头携帽读移交件
+  ---
+  duration_ms: 1.832427
+  type: 'test'
+  ...
+# Subtest: artifact.read 参数守门：缺 taskId 即拒（不发起请求）
+ok 8 - artifact.read 参数守门：缺 taskId 即拒（不发起请求）
+  ---
+  duration_ms: 0.559964
+  type: 'test'
+  ...
+# Subtest: brief.refresh（19 号票②）：amend 后持有件重同步为台账真源、evidence.probe 恢复可用；非归属者/无简报/缺参即拒
+ok 9 - brief.refresh（19 号票②）：amend 后持有件重同步为台账真源、evidence.probe 恢复可用；非归属者/无简报/缺参即拒
+  ---
+  duration_ms: 3.803331
+  type: 'test'
+  ...
+# Subtest: knowledge.register 路由：走 POST /commands（含 capability／payload），**不走**本地探针腿（V-A4.5）
+ok 10 - knowledge.register 路由：走 POST /commands（含 capability／payload），**不走**本地探针腿（V-A4.5）
+  ---
+  duration_ms: 1.795368
+  type: 'test'
+  ...
+# Subtest: knowledge.register 未携 payload：仍走命令面（形状由 host 侧登记执行面判，bot 侧不预判）
+ok 11 - knowledge.register 未携 payload：仍走命令面（形状由 host 侧登记执行面判，bot 侧不预判）
+  ---
+  duration_ms: 0.924141
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 38.232865
+
+=== org-probe.test.mjs ===
+TAP version 13
+# Subtest: 白名单是封闭枚举：名字集与表一致，表外命令查不到（fail closed 的判定原语）
+ok 1 - 白名单是封闭枚举：名字集与表一致，表外命令查不到（fail closed 的判定原语）
+  ---
+  duration_ms: 1.770148
+  type: 'test'
+  ...
+# Subtest: runCriterion：表外命令拒（probe-whitelist）；缺 dshHome 拒（probe-ctx）
+ok 2 - runCriterion：表外命令拒（probe-whitelist）；缺 dshHome 拒（probe-ctx）
+  ---
+  duration_ms: 0.933607
+  type: 'test'
+  ...
+# Subtest: runCriterion：参数键逐字一致——多键／少键／错键即拒，不执行
+ok 3 - runCriterion：参数键逐字一致——多键／少键／错键即拒，不执行
+  ---
+  duration_ms: 0.361235
+  type: 'test'
+  ...
+# Subtest: fs.contains：dshHome 相对坐标命中即过、未命中即败；绝对路径与越界坐标拒（probe-path）
+ok 4 - fs.contains：dshHome 相对坐标命中即过、未命中即败；绝对路径与越界坐标拒（probe-path）
+  ---
+  duration_ms: 1.983635
+  type: 'test'
+  ...
+# Subtest: node.tests：隔离子进程跑临时仓库形的单测试文件，退出码 0 即过；形状不符拒
+ok 5 - node.tests：隔离子进程跑临时仓库形的单测试文件，退出码 0 即过；形状不符拒
+  ---
+  duration_ms: 81.822819
+  type: 'test'
+  ...
+# Subtest: node.tests：结论绑定快照（文件级＋树级）；缺文件在采集步 fail closed（probe-read）
+ok 6 - node.tests：结论绑定快照（文件级＋树级）；缺文件在采集步 fail closed（probe-read）
+  ---
+  duration_ms: 60.142357
+  type: 'test'
+  ...
+# Subtest: node.tests：快照排除所有层级的 .git 大小写变体，摘要只绑定保留文件
+ok 7 - node.tests：快照排除所有层级的 .git 大小写变体，摘要只绑定保留文件
+  ---
+  duration_ms: 41.596778
+  type: 'test'
+  ...
+# Subtest: node.tests：执行落在物化快照副本内（字面达成）——子进程 cwd ∉ 活树根、相对 import 落在副本；活树执行窗口内自改不影响结论（drift 守卫退役）
+ok 8 - node.tests：执行落在物化快照副本内（字面达成）——子进程 cwd ∉ 活树根、相对 import 落在副本；活树执行窗口内自改不影响结论（drift 守卫退役）
+  ---
+  duration_ms: 68.30698
+  type: 'test'
+  ...
+# Subtest: node.tests：树级绑定对内容敏感——树内容变化后重跑 tree 摘要随之变化（可核验、不虚指）
+ok 9 - node.tests：树级绑定对内容敏感——树内容变化后重跑 tree 摘要随之变化（可核验、不虚指）
+  ---
+  duration_ms: 125.2653
+  type: 'test'
+  ...
+# Subtest: ledger.no-anomalies：注入假读面——该来源无异常即过、有异常即败
+ok 10 - ledger.no-anomalies：注入假读面——该来源无异常即过、有异常即败
+  ---
+  duration_ms: 1.755617
+  type: 'test'
+  ...
+# Subtest: fs.contains：结论绑定快照——sha256/bytes 对坐标内容可核验，正例负例都带（沙箱快照形态）
+ok 11 - fs.contains：结论绑定快照——sha256/bytes 对坐标内容可核验，正例负例都带（沙箱快照形态）
+  ---
+  duration_ms: 1.03456
+  type: 'test'
+  ...
+# Subtest: ledger.no-anomalies：结论绑定快照——sha256 与结论引用的捕获清单逐字可核验
+ok 12 - ledger.no-anomalies：结论绑定快照——sha256 与结论引用的捕获清单逐字可核验
+  ---
+  duration_ms: 0.681837
+  type: 'test'
+  ...
+# Subtest: 结论携带顶层 snapshotSha256：接受方不必自解 snapshot 形状即可复验／转述（25 号票：关闭前置的通过记录带摘要）
+ok 13 - 结论携带顶层 snapshotSha256：接受方不必自解 snapshot 形状即可复验／转述（25 号票：关闭前置的通过记录带摘要）
+  ---
+  duration_ms: 0.75528
+  type: 'test'
+  ...
+# Subtest: node.tests：超时单列（probe-timeout，超时≠测试真跑红），且结论摘要＝树级摘要
+ok 14 - node.tests：超时单列（probe-timeout，超时≠测试真跑红），且结论摘要＝树级摘要
+  ---
+  duration_ms: 259.556224
+  type: 'test'
+  ...
+# Subtest: criterionMatches：判据 canonical JSON 相等即逐字同一；键序差异不算差异
+ok 15 - criterionMatches：判据 canonical JSON 相等即逐字同一；键序差异不算差异
+  ---
+  duration_ms: 0.298594
+  type: 'test'
+  ...
+# Subtest: 33号票A5：node.tests 输出含 SKIP 标记且 exit 0 → 判不过（probe-skip，跳过≠通过）
+ok 16 - 33号票A5：node.tests 输出含 SKIP 标记且 exit 0 → 判不过（probe-skip，跳过≠通过）
+  ---
+  duration_ms: 43.182082
+  type: 'test'
+  ...
+# Subtest: 33号票A5：stderr 无换行诊断不遮蔽 stdout 的 SKIP 行
+ok 17 - 33号票A5：stderr 无换行诊断不遮蔽 stdout 的 SKIP 行
+  ---
+  duration_ms: 155.913666
+  type: 'test'
+  ...
+# Subtest: 33号票A5：任一流的 UTF-8 SKIP 标记跨块、后跟长输出仍判跳过
+ok 18 - 33号票A5：任一流的 UTF-8 SKIP 标记跨块、后跟长输出仍判跳过
+  ---
+  duration_ms: 290.44412
+  type: 'test'
+  ...
+# Subtest: 33号票A5：非零退出优先于 SKIP，保留测试失败归因
+ok 19 - 33号票A5：非零退出优先于 SKIP，保留测试失败归因
+  ---
+  duration_ms: 46.979737
+  type: 'test'
+  ...
+# Subtest: 33号票A6：非法参数值 fail closed——location 非串与 cwd 非串不再穿透抛错
+ok 20 - 33号票A6：非法参数值 fail closed——location 非串与 cwd 非串不再穿透抛错
+  ---
+  duration_ms: 0.931091
+  type: 'test'
+  ...
+# Subtest: 33号票B4：子进程 TMP/TEMP 回退——ctx.tmpdir 同时写入三键（Windows 口径）
+ok 21 - 33号票B4：子进程 TMP/TEMP 回退——ctx.tmpdir 同时写入三键（Windows 口径）
+  ---
+  duration_ms: 73.406886
+  type: 'test'
+  ...
+# Subtest: 33号票B4：临时目录解析链——ctx.tmpdir 优先，否则 TMPDIR→TEMP→TMP，全缺即 undefined
+ok 22 - 33号票B4：临时目录解析链——ctx.tmpdir 优先，否则 TMPDIR→TEMP→TMP，全缺即 undefined
+  ---
+  duration_ms: 0.725008
+  type: 'test'
+  ...
+# Subtest: 33号票A6：不可串化参数值仍 fail closed（probe-args，理由串化不得抛）
+ok 23 - 33号票A6：不可串化参数值仍 fail closed（probe-args，理由串化不得抛）
+  ---
+  duration_ms: 0.498462
+  type: 'test'
+  ...
+# Subtest: 33号票B4：快照物化基座服从同一解析链（ctx.tmpdir 下落副本）
+ok 24 - 33号票B4：快照物化基座服从同一解析链（ctx.tmpdir 下落副本）
+  ---
+  duration_ms: 70.72441
+  type: 'test'
+  ...
+# Subtest: 33号票A5：超时优先于 SKIP（超时归因不变）
+ok 25 - 33号票A5：超时优先于 SKIP（超时归因不变）
+  ---
+  duration_ms: 257.127714
+  type: 'test'
+  ...
+# Subtest: 33号票A4：陈旧快照清扫器——TTL 外残留被扫，新鲜与异名不动
+ok 26 - 33号票A4：陈旧快照清扫器——TTL 外残留被扫，新鲜与异名不动
+  ---
+  duration_ms: 1.14487
+  type: 'test'
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 26
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1597.463379
+
+=== org-review-kit.test.mjs ===
+TAP version 13
+# Subtest: 必审清单＝三条客观判据的封闭枚举（不可逆／对外可见／跨实例移交）
+ok 1 - 必审清单＝三条客观判据的封闭枚举（不可逆／对外可见／跨实例移交）
+  ---
+  duration_ms: 4.385726
+  type: 'test'
+  ...
+# Subtest: 报告结论与严重度取值封闭
+ok 2 - 报告结论与严重度取值封闭
+  ---
+  duration_ms: 0.593252
+  type: 'test'
+  ...
+# Subtest: 合法报告通过形状校验（gaps＋严重度＋证据坐标＋模型身份）
+ok 3 - 合法报告通过形状校验（gaps＋严重度＋证据坐标＋模型身份）
+  ---
+  duration_ms: 0.591093
+  type: 'test'
+  ...
+# Subtest: 报告非对象／缺 subject／verdict 越表即拒
+ok 4 - 报告非对象／缺 subject／verdict 越表即拒
+  ---
+  duration_ms: 0.23
+  type: 'test'
+  ...
+# Subtest: gap 条目键封闭且严重度越表／空字段即拒（报告形状＝gaps＋严重度＋证据坐标）
+ok 5 - gap 条目键封闭且严重度越表／空字段即拒（报告形状＝gaps＋严重度＋证据坐标）
+  ---
+  duration_ms: 0.29773
+  type: 'test'
+  ...
+# Subtest: verdict 与 gaps 一致性：closed 带 gaps／gaps-open 空列表即拒
+ok 6 - verdict 与 gaps 一致性：closed 带 gaps／gaps-open 空列表即拒
+  ---
+  duration_ms: 0.318852
+  type: 'test'
+  ...
+# Subtest: 复核者只读的形状层：报告不得携带改工件／改判据／改口径字段（顶层键封闭）
+ok 7 - 复核者只读的形状层：报告不得携带改工件／改判据／改口径字段（顶层键封闭）
+  ---
+  duration_ms: 0.174429
+  type: 'test'
+  ...
+# Subtest: modelIdentity 必填非空（报告须记录模型身份）；criteriaGaps 在场须为非空字符串数组
+ok 8 - modelIdentity 必填非空（报告须记录模型身份）；criteriaGaps 在场须为非空字符串数组
+  ---
+  duration_ms: 0.418996
+  type: 'test'
+  ...
+# Subtest: 状态折叠：简报冻结点∪强制请求＝必审集；各 subject 记轮次与连续未闭合数
+ok 9 - 状态折叠：简报冻结点∪强制请求＝必审集；各 subject 记轮次与连续未闭合数
+  ---
+  duration_ms: 1.015024
+  type: 'test'
+  ...
+# Subtest: 简报点无需请求事件即入必审集；未复核＝开启（命中即强制）
+ok 10 - 简报点无需请求事件即入必审集；未复核＝开启（命中即强制）
+  ---
+  duration_ms: 0.637578
+  type: 'test'
+  ...
+# Subtest: closed 报告闭合该点；后续再报 gaps-open 即重开（trailing 口径）
+ok 11 - closed 报告闭合该点；后续再报 gaps-open 即重开（trailing 口径）
+  ---
+  duration_ms: 0.291195
+  type: 'test'
+  ...
+# Subtest: 强制加审（mandatory 请求）入必审集；咨询性请求（topic）不入、不阻断
+ok 12 - 强制加审（mandatory 请求）入必审集；咨询性请求（topic）不入、不阻断
+  ---
+  duration_ms: 0.20583
+  type: 'test'
+  ...
+# Subtest: 折叠只看本任务事件：他任务事件不串账
+ok 13 - 折叠只看本任务事件：他任务事件不串账
+  ---
+  duration_ms: 0.178264
+  type: 'test'
+  ...
+# Subtest: 帽选择：台账查询腿（在手非空＝不空闲）＋排除产出方＋确定性首中（V-A1.3）
+ok 14 - 帽选择：台账查询腿（在手非空＝不空闲）＋排除产出方＋确定性首中（V-A1.3）
+  ---
+  duration_ms: 0.401914
+  type: 'test'
+  ...
+# Subtest: 帽选择：排除产出方后确定性首中候选
+ok 15 - 帽选择：排除产出方后确定性首中候选
+  ---
+  duration_ms: 0.108655
+  type: 'test'
+  ...
+# Subtest: 移交件＝冻结简报＋复核史：judgement 推理轨迹机械不可达（独立性）
+ok 16 - 移交件＝冻结简报＋复核史：judgement 推理轨迹机械不可达（独立性）
+  ---
+  duration_ms: 0.300008
+  type: 'test'
+  ...
+# Subtest: 复核面 gate：帽信封须 post=verifier＋op 在帽内；读／写两条面都不消费帽（消费点在台账腿，27 号票）
+ok 17 - 复核面 gate：帽信封须 post=verifier＋op 在帽内；读／写两条面都不消费帽（消费点在台账腿，27 号票）
+  ---
+  duration_ms: 0.312907
+  type: 'test'
+  ...
+# Subtest: 复核面 gate：非帽信封（post≠verifier）／帽缺 op／未被指定复核者即拒
+ok 18 - 复核面 gate：非帽信封（post≠verifier）／帽缺 op／未被指定复核者即拒
+  ---
+  duration_ms: 0.186801
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 28.040888
+
+=== org-store-base.test.mjs ===
+TAP version 13
+# Subtest: writeFileDurable＋readJsonl＋appendJsonlLine：原子写往返与损坏行不静默丢弃
+ok 1 - writeFileDurable＋readJsonl＋appendJsonlLine：原子写往返与损坏行不静默丢弃
+  ---
+  duration_ms: 2.993682
+  type: 'test'
+  ...
+# Subtest: audit：追加带时刻戳；任一损坏行 readAuditFailClosed 抛错
+ok 2 - audit：追加带时刻戳；任一损坏行 readAuditFailClosed 抛错
+  ---
+  duration_ms: 2.808422
+  type: 'test'
+  ...
+# Subtest: 锁域隔离：同一 dshHome 下两把独立锁域互不排队、互不顶替
+ok 3 - 锁域隔离：同一 dshHome 下两把独立锁域互不排队、互不顶替
+  ---
+  duration_ms: 2.950888
+  type: 'test'
+  ...
+# Subtest: requireLockOwnership：释放后写入被拒且留痕（fencing）
+ok 4 - requireLockOwnership：释放后写入被拒且留痕（fencing）
+  ---
+  duration_ms: 2.476227
+  type: 'test'
+  ...
+# Subtest: 事件溯源（自定义表）：合法链折叠、非法转移拒绝、hash 篡改拒绝
+ok 5 - 事件溯源（自定义表）：合法链折叠、非法转移拒绝、hash 篡改拒绝
+  ---
+  duration_ms: 1.464818
+  type: 'test'
+  ...
+# Subtest: 幂等预留索引：同 key 同请求可续、目录非法项 fail closed、commit 幂等
+ok 6 - 幂等预留索引：同 key 同请求可续、目录非法项 fail closed、commit 幂等
+  ---
+  duration_ms: 4.19022
+  type: 'test'
+  ...
+# Subtest: canonicalJson：键序稳定（与字面顺序无关），hash 可复现
+ok 7 - canonicalJson：键序稳定（与字面顺序无关），hash 可复现
+  ---
+  duration_ms: 0.566992
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 32.303236
+
+=== org-unauthorized-count.test.mjs ===
+TAP version 13
+# Subtest: 缝① 共用原语：count 累计／ignore 不计数不打断／reset 清零，串界 firstSeq/lastSeq 随折叠给出
+ok 1 - 缝① 共用原语：count 累计／ignore 不计数不打断／reset 清零，串界 firstSeq/lastSeq 随折叠给出
+  ---
+  duration_ms: 2.116723
+  type: 'test'
+  ...
+# Subtest: 缝① 共用原语：cursor 只回放其后的 seq；无键（keyOf null）事件不触碰任何串
+ok 2 - 缝① 共用原语：cursor 只回放其后的 seq；无键（keyOf null）事件不触碰任何串
+  ---
+  duration_ms: 0.330351
+  type: 'test'
+  ...
+# Subtest: 缝② 计数按岗位实例折叠：跨任务串可数、taskIds 按首次被越权序去重、按实例 id 确定性排序
+ok 3 - 缝② 计数按岗位实例折叠：跨任务串可数、taskIds 按首次被越权序去重、按实例 id 确定性排序
+  ---
+  duration_ms: 0.563171
+  type: 'test'
+  ...
+# Subtest: 缝② 口径：运维性能力面码不计数也不洗链；角色类拒绝与合法操作打断重计；user/host 事件不计数
+ok 4 - 缝② 口径：运维性能力面码不计数也不洗链；角色类拒绝与合法操作打断重计；user/host 事件不计数
+  ---
+  duration_ms: 0.488807
+  type: 'test'
+  ...
+# Subtest: 缝② 达阈投影：通知按被越权任务路由到派单方（不在任务表即 null）；阈值非正整数即抛
+ok 5 - 缝② 达阈投影：通知按被越权任务路由到派单方（不在任务表即 null）；阈值非正整数即抛
+  ---
+  duration_ms: 1.14783
+  type: 'test'
+  ...
+# Subtest: 缝② 每越权串至多一次：串内已有本面写出的 out-of-bounds 上浮即抑制；串前的、他人写出的、他因的不抑制
+ok 6 - 缝② 每越权串至多一次：串内已有本面写出的 out-of-bounds 上浮即抑制；串前的、他人写出的、他因的不抑制
+  ---
+  duration_ms: 0.617804
+  type: 'test'
+  ...
+# Subtest: 缝② 阈值缺省＝用户域数值常量（注入缝在台账 lease，缝③ 验证覆盖）
+ok 7 - 缝② 阈值缺省＝用户域数值常量（注入缝在台账 lease，缝③ 验证覆盖）
+  ---
+  duration_ms: 0.162383
+  type: 'test'
+  ...
+# Subtest: 缝③ 达阈上浮：sweep 落 escalated（cause=out-of-bounds）入 waiting-user、越权处置永不可代；通知派单方投影随 sweep 结果
+ok 8 - 缝③ 达阈上浮：sweep 落 escalated（cause=out-of-bounds）入 waiting-user、越权处置永不可代；通知派单方投影随 sweep 结果
+  ---
+  duration_ms: 28.621652
+  type: 'test'
+  ...
+# Subtest: 缝③ 每越权串至多一次：二次 sweep 与续犯（同串内继续越权）都不重复上浮、不重复通知
+ok 9 - 缝③ 每越权串至多一次：二次 sweep 与续犯（同串内继续越权）都不重复上浮、不重复通知
+  ---
+  duration_ms: 17.188747
+  type: 'test'
+  ...
+# Subtest: 缝③ 无在手任务的越权串：只通知派单方不上浮（拒绝本就 fail closed、不改他人任务状态）
+ok 10 - 缝③ 无在手任务的越权串：只通知派单方不上浮（拒绝本就 fail closed、不改他人任务状态）
+  ---
+  duration_ms: 17.764429
+  type: 'test'
+  ...
+# Subtest: 缝③ 运维性码不计数不洗链（台账级）：过期信封夹在越权串中不 reset、单独运维性串不上浮
+ok 11 - 缝③ 运维性码不计数不洗链（台账级）：过期信封夹在越权串中不 reset、单独运维性串不上浮
+  ---
+  duration_ms: 18.348071
+  type: 'test'
+  ...
+# Subtest: 缝③ 合法操作打断重计（台账级）：本人合法心跳清零越权串
+ok 12 - 缝③ 合法操作打断重计（台账级）：本人合法心跳清零越权串
+  ---
+  duration_ms: 11.623463
+  type: 'test'
+  ...
+# Subtest: 缝③ 阈值＝用户域缝：LEASE_DEFAULTS 缺省在案，lease.unauthorizedThreshold 覆盖注入生效
+ok 13 - 缝③ 阈值＝用户域缝：LEASE_DEFAULTS 缺省在案，lease.unauthorizedThreshold 覆盖注入生效
+  ---
+  duration_ms: 15.876259
+  type: 'test'
+  ...
+# Subtest: 缝⑤ 达阈通知落台账事件：每被越权任务一条 unauthorized-notified（非状态事件），通知投影经 NOTIFY_TO 可达派单方
+ok 14 - 缝⑤ 达阈通知落台账事件：每被越权任务一条 unauthorized-notified（非状态事件），通知投影经 NOTIFY_TO 可达派单方
+  ---
+  duration_ms: 12.064607
+  type: 'test'
+  ...
+# Subtest: 缝⑤ 无在手任务路径的事件落点：只通知不上浮但也有事件；同串下一拍不重发（锚点＝事件本体，跨拍稳定）
+ok 15 - 缝⑤ 无在手任务路径的事件落点：只通知不上浮但也有事件；同串下一拍不重发（锚点＝事件本体，跨拍稳定）
+  ---
+  duration_ms: 11.784724
+  type: 'test'
+  ...
+# Subtest: 缝⑤ 纯函数面：通知事件锚定本串（instanceId＋seq ≥ firstSeq）；串前的、他实例写出的通知不抑制本串
+ok 16 - 缝⑤ 纯函数面：通知事件锚定本串（instanceId＋seq ≥ firstSeq）；串前的、他实例写出的通知不抑制本串
+  ---
+  duration_ms: 0.407615
+  type: 'test'
+  ...
+# Subtest: 缝④ 宿主 tick：达阈串进结果与广播载荷、changed 计入；同串已处置后零变化（广播由值守 ticker 触发）
+ok 17 - 缝④ 宿主 tick：达阈串进结果与广播载荷、changed 计入；同串已处置后零变化（广播由值守 ticker 触发）
+  ---
+  duration_ms: 11.798251
+  type: 'test'
+  ...
+# Subtest: 缝④ 值守 ticker：changed 拍广播投影并回报达阈日志；disposer 释放台账写锁
+ok 18 - 缝④ 值守 ticker：changed 拍广播投影并回报达阈日志；disposer 释放台账写锁
+  ---
+  duration_ms: 22.328522
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 181.247104
+
+=== org-vocabulary-face.test.mjs ===
+✓ 真实仓库：v2 词表无 skill、无非字面动态 import（V-A4.8）
+✓ 禁用记号与豁免名单是冻结枚举
+✓ 负例可辨①：词表夹带 skill／技能（含界面文案）即违例，注释说明不误报
+✓ 负例可辨②：非字面说明符的动态 import 即违例；字面说明符放行
+
+=== p6-5-sentinel-guards.test.mjs ===
+✓ 缺机械授权 env → exit 2（不降级 shadow、不落盘）
+✓ 缺专用 marker → exit 2
+✓ 根路径自身为 symlink → exit 2（守卫 ③ 维持）
+✓ sentinel 指向真实 DSH_HOME → exit 2（受保护根拒绝，零写入）
+✓ 子路径 symlink：dsh-home/ → 外部目录 → exit 2 + 外部零新增 + 无 result 文件
+✓ 子路径 symlink：project/ → 外部目录 → exit 2 + 外部零新增 + 无 result 文件
+✓ 子路径 symlink：deploy-copy/ → 外部目录 → exit 2 + 外部零新增 + 无 result 文件
+✓ 子路径 symlink：other-bot-workspaces/ → 外部目录 → exit 2 + 外部零新增 + 无 result 文件
+✓ 子路径 symlink：system-config/ → 外部目录 → exit 2 + 外部零新增 + 无 result 文件
+✓ marker 自身为 symlink（内容合法）→ exit 2（预检先于 marker 读取）
+✓ 深层嵌套 symlink（dsh-home/inner/link → 外部）→ exit 2（递归全树预检）
+✓ 正例：五个布局目录全真实 → exit 0，守卫链含 no-subpath-symlink，副本断言 clean
+✓ 布局非空：dsh-home/bots/bots.json 预置 → exit 2 + 内容逐字节不变 + 无 result 文件 + 布局未建
+✓ 布局非空：project/allowed.txt 预置 → exit 2 + 内容逐字节不变 + 无 result 文件 + 布局未建
+✓ 布局非空：deploy-copy/index.js 预置 → exit 2 + 内容逐字节不变 + 无 result 文件 + 布局未建
+✓ 布局非空：system-config/settings.yaml 预置 → exit 2 + 内容逐字节不变 + 无 result 文件 + 布局未建
+✓ 布局非空：other-bot-workspaces/probe.txt 预置 → exit 2 + 内容逐字节不变 + 无 result 文件 + 布局未建
+✓ 布局深层杂散文件（dsh-home/stray/deep.txt）→ exit 2 且内容不变（任何非空即拒）
+✓ 布局路径存在但为普通文件（dsh-home 为文件）→ exit 2（非真实目录）
+✓ 排他创建契约：正例运行后 marker 与 real-copy 文件逐字节不变（wx 契约 + 守卫链全录）
+✓ 保护根别名：DSH_HOME 为 symlink 且 sentinel 位于其真实子树 → exit 2 + 子树零新增 + 无结果文件
+✓ --out 位于 sentinel 根内 → exit 2 + 根内零新增 + 无结果文件（快照后写入绕过 treeDiff 被禁）
+✓ --out 指向真实 DSH_HOME 子树 → exit 2 + 零写入（真实运行面不可作为证据输出目的地）
+✓ --out 最终组件为 dangling symlink 且目标位于真实 DSH_HOME → exit 2 + 目标零写入
+✓ --out 父目录为 symlink → exit 2 + 外部目录零写入
+✓ --out 最终组件为 hardlink 且指向真实 DSH_HOME 文件 → exit 2 + 受保护 inode 零修改
+
+=== pid-bind.test.mjs ===
+✓ parseStartTicks：comm 含空格/括号也能对准第 22 字段；畸形返回 null
+✓ readStartTicks：本进程实读为非负整数；非法 pid → null
+✓ pidIsSameGeneration 三态：旧记录不调 reader 即 true／读失败退化 true／比对定真伪
+✓ computeStatus 接线：代际不符判陈旧；旧记录/匹配判在役
+✓ 集成：真 spawn 记录 pidStartTicks，stop 成对清理
+
+=== preflight.test.mjs ===
+TAP version 13
+# Subtest: latestPackage：取最大序号包（非字典序陷阱）
+ok 1 - latestPackage：取最大序号包（非字典序陷阱）
+  ---
+  duration_ms: 2.374417
+  type: 'test'
+  ...
+# Subtest: latestPackage：空目录返回 null
+ok 2 - latestPackage：空目录返回 null
+  ---
+  duration_ms: 0.426371
+  type: 'test'
+  ...
+# Subtest: verifyFrozenFace：sha＋byteLength 一致返回满绿
+ok 3 - verifyFrozenFace：sha＋byteLength 一致返回满绿
+  ---
+  duration_ms: 2.793158
+  type: 'test'
+  ...
+# Subtest: verifyFrozenFace：sha 或 byteLength 漂移记入 failures
+ok 4 - verifyFrozenFace：sha 或 byteLength 漂移记入 failures
+  ---
+  duration_ms: 0.671708
+  type: 'test'
+  ...
+# Subtest: statusLint：词表内合法、词表外违例
+ok 5 - statusLint：词表内合法、词表外违例
+  ---
+  duration_ms: 2.055733
+  type: 'test'
+  ...
+# Subtest: statusLint：claimed 仅限 wayfinder 票（effort 有 map.md）；列表形态 Status 亦被扫描
+ok 6 - statusLint：claimed 仅限 wayfinder 票（effort 有 map.md）；列表形态 Status 亦被扫描
+  ---
+  duration_ms: 2.028793
+  type: 'test'
+  ...
+# Subtest: preflight 第③门：Status 与知识写者违例汇入同一出口
+ok 7 - preflight 第③门：Status 与知识写者违例汇入同一出口
+  ---
+  duration_ms: 7.605819
+  type: 'test'
+  ...
+# Subtest: statusLint：历史豁免基线不报警
+ok 8 - statusLint：历史豁免基线不报警
+  ---
+  duration_ms: 0.717601
+  type: 'test'
+  ...
+# Subtest: 门序（V-A6.5）：宿主契约门挂在冻结面门之后——四道门结论行压入顺序即门序
+ok 9 - 门序（V-A6.5）：宿主契约门挂在冻结面门之后——四道门结论行压入顺序即门序
+  ---
+  duration_ms: 0.933064
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 36.386378
+
+=== project-context.test.mjs ===
+TAP version 13
+# Subtest: 读取票面状态与跨目录规格，保留多行留界，不采用 Comments 中的旧状态
+ok 1 - 读取票面状态与跨目录规格，保留多行留界，不采用 Comments 中的旧状态
+  ---
+  duration_ms: 6.318012
+  type: 'test'
+  ...
+# Subtest: 未关闭视图保留缺失或冲突状态；显式查询可读取关闭票，不借用其它票的规格
+ok 2 - 未关闭视图保留缺失或冲突状态；显式查询可读取关闭票，不借用其它票的规格
+  ---
+  duration_ms: 20.015858
+  type: 'test'
+  ...
+# Subtest: 编号属于 feature；不存在、重复或非法查询明确失败
+ok 3 - 编号属于 feature；不存在、重复或非法查询明确失败
+  ---
+  duration_ms: 3.133994
+  type: 'test'
+  ...
+# Subtest: 近期查询同时识别带事件编号的标题和旧列表条目，保留条目全文
+ok 4 - 近期查询同时识别带事件编号的标题和旧列表条目，保留条目全文
+  ---
+  duration_ms: 2.748522
+  type: 'test'
+  ...
+# Subtest: 即时反映未提交状态和新包，来源摘要变化；查询不改写输入或生成缓存
+ok 5 - 即时反映未提交状态和新包，来源摘要变化；查询不改写输入或生成缓存
+  ---
+  duration_ms: 2.619277
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 45.92608
+
+=== registry.test.mjs ===
+✓ 原子写 + 读回 roundtrip
+✓ 缺失/空文件 → {}；损坏 JSON → 抛错（apply 侧负责移开重建）
+✓ uniqueId：slug 冲突追加序号；纯中文名回退时间戳 id
+✓ allocatePort：跳过已占用端口，从 3101 起顺序分配
+✓ 端口竞争防护语义：并发快照分配同端口后，重查需换端口
+✓ uniqueId：原型链名（constructor 等）不再被继承属性误判占用；slug 化天然排除 __proto__
+✓ 管理面守卫：原型链名 id 一律 404，不再伪成功/伪放行
+✓ detectBotInstance：原型链名不误判在册（env 路径）；真在册仍识别
+
+=== reply-route.test.mjs ===
+✓ bot→bot 回信路由经 host 中继（任务邮件闭环/replyTo 防乒乓/user 与未注册不路由/自愈重试保前缀且回路由/通道不可用止步）
+
+=== review-enforcement-retired.test.mjs ===
+✓ 退役两件＋矩阵测试不存在（文件级）
+✓ 活面零 review-enforcement 引用（lib/ scripts/ tests/ 逐文件扫描；本扫描器自排除）
+✓ 回归入口不再装配矩阵测试（tests/ 无矩阵测试文件；本扫描器除外）
+
+=== role-cards.test.mjs ===
+TAP version 13
+# Subtest: V-A1.1a 五类角色类别各有岗位卡：slug 集齐、八字段齐备、放大机制非空
+ok 1 - V-A1.1a 五类角色类别各有岗位卡：slug 集齐、八字段齐备、放大机制非空
+  ---
+  duration_ms: 5.487308
+  type: 'test'
+  ...
+# Subtest: V-A1.2 改显示名后工具与权限命名空间不变（负例）
+ok 2 - V-A1.2 改显示名后工具与权限命名空间不变（负例）
+  ---
+  duration_ms: 0.927442
+  type: 'test'
+  ...
+# Subtest: 提示段是卡的派生物：字段进段、改字段即改段、面 id 只引不抄坐标
+ok 3 - 提示段是卡的派生物：字段进段、改字段即改段、面 id 只引不抄坐标
+  ---
+  duration_ms: 0.696941
+  type: 'test'
+  ...
+# Subtest: 不单设岗裁定落实：五条职责的归属岗位与卡面一致
+ok 4 - 不单设岗裁定落实：五条职责的归属岗位与卡面一致
+  ---
+  duration_ms: 0.509418
+  type: 'test'
+  ...
+# Subtest: 第 8 字段只引登记在册的宿主面：A/B 类可引、C 类非宿主面不可引
+ok 5 - 第 8 字段只引登记在册的宿主面：A/B 类可引、C 类非宿主面不可引
+  ---
+  duration_ms: 0.464172
+  type: 'test'
+  ...
+# Subtest: V-A4.2 构建期漂移校验：在册无漂移、改卡即报漂移、脚本退出码即结论
+ok 6 - V-A4.2 构建期漂移校验：在册无漂移、改卡即报漂移、脚本退出码即结论
+  ---
+  duration_ms: 93.140119
+  type: 'test'
+  ...
+# Subtest: V-A1.1b 岗位卡校验器：缺字段／空放大机制／重复 slug 各成违例
+ok 7 - V-A1.1b 岗位卡校验器：缺字段／空放大机制／重复 slug 各成违例
+  ---
+  duration_ms: 0.492461
+  type: 'test'
+  ...
+# Subtest: 提示段由卡渲染派生（插件接线）：home 岗位决定岗位段，未知 slug 响亮告警
+ok 8 - 提示段由卡渲染派生（插件接线）：home 岗位决定岗位段，未知 slug 响亮告警
+  ---
+  duration_ms: 63.026712
+  type: 'test'
+  ...
+# Subtest: home 岗位字段入口校验：留空＝未绑岗位、未知 slug fail closed
+ok 9 - home 岗位字段入口校验：留空＝未绑岗位、未知 slug fail closed
+  ---
+  duration_ms: 1.317045
+  type: 'test'
+  ...
+# Subtest: home 岗位写入口：patch 校验 fail closed、落表与解绑
+ok 10 - home 岗位写入口：patch 校验 fail closed、落表与解绑
+  ---
+  duration_ms: 3.12541
+  type: 'test'
+  ...
+# Subtest: V-A4.2 卡面不合规时拒绝生成基准（违规不得被冻成新基准）
+ok 11 - V-A4.2 卡面不合规时拒绝生成基准（违规不得被冻成新基准）
+  ---
+  duration_ms: 1.288133
+  type: 'test'
+  ...
+# Subtest: V-A1.2 命名空间漂移即报（构建期把守，不只靠单元测试）
+ok 12 - V-A1.2 命名空间漂移即报（构建期把守，不只靠单元测试）
+  ---
+  duration_ms: 2.168501
+  type: 'test'
+  ...
+# Subtest: home 岗位只许常设岗：复核帽不入常驻编制（V-A1.3）
+ok 13 - home 岗位只许常设岗：复核帽不入常驻编制（V-A1.3）
+  ---
+  duration_ms: 0.24469
+  type: 'test'
+  ...
+# Subtest: 检索引导只进调研承载岗：「开工先 search」在研究员卡面（派生段）且不在全员共享段（10 号票 §G 检索引导）
+ok 14 - 检索引导只进调研承载岗：「开工先 search」在研究员卡面（派生段）且不在全员共享段（10 号票 §G 检索引导）
+  ---
+  duration_ms: 1.018365
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 192.290176
+
+=== route.test.mjs ===
+✓ dispatch：list/detail 200，未知路径 404，错误方法 405，未知 action 404
+✓ dispatch：跨站请求被拒（CSRF，fail-open 缺头放行）
+✓ patch 校验失败：400 + 注册表不变
+✓ patch 端口冲突：400
+✓ patch 未知 id：404
+✓ patch group（changed=false）：不触发脚手架，注册表更新
+✓ patch permission（changed=true）：200 + 注册表权限更新（scaffold 先于写）
+✓ patch 回滚：脚手架失败 → 500 + 注册表不变（scaffold-before-write 不变量）
+✓ patch reasoningEffort（model 联动）：200 + 注册表 + settings.yaml 活源 + pin 行
+✓ patch reasoningEffort 清空：注册表置空 + settings.yaml 段去 effort 行 + pin 去 effort 行
+✓ patch 清空 model：settings.yaml 的 agent-default-model 段整体删除
+✓ patch reasoningEffort 非法类型：400 + 注册表不变
+✓ create 携带 reasoningEffort：201 + 注册表 + settings.yaml 活源
+✓ alignContextWindowForBot：日志模型与当前模型一致且无显式配置 → 保留上报值
+✓ alignContextWindowForBot：显式 settings contextWindow 始终优先（F-T9，同模型日志旧值不绕过）
+✓ alignContextWindowForBot：日志模型与当前模型不同 → 按当前模型 DSH 解析值覆盖
+✓ alignContextWindowForBot：当前模型显式配置 contextWindow → 用显式值
+✓ alignContextWindowForBot：deepseek-official 无显式 → 默认 1M
+
+=== rpc-envelope.test.mjs ===
+✓ RPC 信封形状与 agent 回合状态机（含 session 复用）
+✓ 浏览器认证开启时，原生会话仍完成回合并保留上下文
+✓ 错误终止的回合立即带出供应商错误，不再死等超时
+
+=== run-erofs-hint.test.mjs ===
+TAP version 13
+# Subtest: tmpdirHint：可写目录返回 null
+ok 1 - tmpdirHint：可写目录返回 null
+  ---
+  duration_ms: 3.186827
+  type: 'test'
+  ...
+# Subtest: tmpdirHint：只读目录返回含 TMPDIR=/dev/shm 的定向提示
+ok 2 - tmpdirHint：只读目录返回含 TMPDIR=/dev/shm 的定向提示
+  ---
+  duration_ms: 0.838893
+  type: 'test'
+  ...
+# Subtest: tmpdirHint：隔离子进程调用路径一致（探测→提示输出可观测）
+ok 3 - tmpdirHint：隔离子进程调用路径一致（探测→提示输出可观测）
+  ---
+  duration_ms: 37.890159
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 53.050304
+
+=== sentinel-layout-manifest.test.mjs ===
+✓ 双层 freeze：数组与逐元素均不可变
+✓ path 安全：唯一、相对 POSIX、非绝对、无 ..、非空段
+✓ content 类型与 fileMode 明确：file 必带 content+fileMode，directory 不得带 content
+✓ digest 与测试内独立 canonical 实现对拍，且 JSON 往返稳定
+✓ lib 派生：prepareShadowTargets 落地集合恰为 manifest 全部条目
+✓ validateLayoutManifest：重复/绝对/../空段/file 缺 content/未知 kind 全部拒绝
+✓ 脚本无第二份布局字面量：O-5 分层后管线（runner 库）由 manifest 派生＋digest 入 payload
+✓ real-sentinel payload 携带 manifest digest（与 lib digest 相等）＋invariants（I1～I4）
+✓ shadow payload 兼容字段：cleanSemantics 如实标注；treeIntegrity 不虚增强断言
+✓ SENTINEL_WRITE_INVARIANTS I1～I4 冻结且覆盖 guardChain 名；EVIDENCE_INVARIANTS E1～E5 独立定义
+
+=== sentinel-output-contract.test.mjs ===
+✓ evidence 正例：--out 落 <repoRoot>/artifacts → exit 0（测试后清理）
+✓ evidence 默认：--out 落 /tmp → exit 2 OUTPUT_CONTRACT_VIOLATION（/tmp 不自动合法）
+✓ evidence：--out 落仓库代码区（lib/）→ exit 2（approved root ≠ 仓库任意路径放行）
+✓ 未知 --out-profile 值 → exit 2 OUTPUT_CONTRACT_VIOLATION
+✓ ephemeral 正例：显式根＋out 在根下 → exit 0
+✓ ephemeral 缺 --ephemeral-out-root → exit 2 PRECONDITION_FAILED（phase 0）
+✓ ephemeral 根位于仓库内（artifacts/）→ exit 2（根不在仓库内）
+✓ ephemeral 根位于 DSH_HOME 之内 → exit 2（根不在保护区内）
+✓ ephemeral 根含 symlink 组件 → exit 2（逐组件 lstat）
+✓ 输出父目录不存在 → PRECONDITION_FAILED（不自动创建；Phase 0 失败无探针运行无落盘）
+✓ 输出父目录为普通文件 → OUTPUT_CONTRACT_VIOLATION
+✓ 输出最终组件已存在（普通文件）→ OUTPUT_CONTRACT_VIOLATION（排他创建，拒绝覆盖）
+✓ Phase 4 emit 失败（父目录不可写）→ exit 1 EVIDENCE_EMIT_FAILURE；shadow 默认 auto-clean（现场已清理）
+✓ Phase 4 emit 失败＋--preserve-failure-scene → 现场保留（且证明 emit 先于删场——顺序冻结）
+{
+  "mode": "shadow",
+  "shadowRoot": "/dev/shm/dsh-enforcement-shadow-j5lMTG",
+  "clean": true,
+  "cleanSemantics": "legacy probe-residue check only",
+  "treeIntegrity": {
+    "value": null,
+    "source": "assertShadowClean only（shadow 模式无全树快照/树差异/布局完整性复核，不虚增强断言）"
+  },
+  "scenePolicy": "auto-clean",
+  "results": [
+    {
+      "botId": "coder-probe",
+      "pid": 122507,
+      "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-j5lMTG/project",
+      "action": "write:bots.json",
+      "result": "ALLOWED",
+      "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-j5lMTG/dsh-home/bots/bots.json）——若为拒绝路径则需真实 enforcement 主体",
+      "observedAt": "2026-09-29T08:08:09.640Z"
+    },
+    {
+      "botId": "coder-probe",
+      "pid": 122507,
+      "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-j5lMTG/project",
+      "action": "write:inbox/",
+      "result": "ALLOWED",
+      "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-j5lMTG/dsh-home/bots/inbox）——若为拒绝路径则需真实 enforcement 主体",
+      "observedAt": "2026-09-29T08:08:09.640Z"
+    },
+    {
+      "botId": "coder-probe",
+      "pid": 122507,
+      "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-j5lMTG/project",
+      "action": "write:outbox/",
+      "result": "ALLOWED",
+      "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-j5lMTG/dsh-home/bots/outbox）——若为拒绝路径则需真实 enforcement 主体",
+      "observedAt": "2026-09-29T08:08:09.640Z"
+    },
+    {
+      "botId": "coder-probe",
+      "pid": 122507,
+      "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-j5lMTG/project",
+      "action": "write:started/",
+      "result": "ALLOWED",
+      "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-j5lMTG/dsh-home/bots/started）——若为拒绝路径则需真实 enforcement 主体",
+      "observedAt": "2026-09-29T08:08:09.641Z"
+    },
+    {
+      "botId": "coder-probe",
+      "pid": 122507,
+      "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-j5lMTG/project",
+      "action": "write:profiles/",
+      "result": "ALLOWED",
+      "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-j5lMTG/dsh-home/profiles）——若为拒绝路径则需真实 enforcement 主体",
+      "observedAt": "2026-09-29T08:08:09.641Z"
+    },
+    {
+      "botId": "coder-probe",
+      "pid": 122507,
+      "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-j5lMTG/project",
+      "action": "write:deploy-copy",
+      "result": "ALLOWED",
+      "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-j5lMTG/deploy-copy）——若为拒绝路径则需真实 enforcement 主体",
+      "observedAt": "2026-09-29T08:08:09.641Z"
+    },
+    {
+      "botId": "coder-probe",
+      "pid": 122507,
+      "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-j5lMTG/project",
+      "action": "write:system-config",
+      "result": "ALLOWED",
+      "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-j5lMTG/system-config）——若为拒绝路径则需真实 enforcement 主体",
+      "observedAt": "2026-09-29T08:08:09.641Z"
+    },
+    {
+      "botId": "coder-probe",
+      "pid": 122507,
+      "workspaceRoot": "/dev/shm/dsh-enforcement-shadow-j5lMTG/project",
+      "action": "write:other-bot-workspaces",
+      "result": "ALLOWED",
+      "reason": "写入未受阻（/dev/shm/dsh-enforcement-shadow-j5lMTG/other-bot-workspaces）——若为拒绝路径则需真实 enforcement 主体",
+      "observedAt": "2026-09-29T08:08:09.641Z"
+    }
+  ],
+  "observedAt": "2026-09-29T08:08:09.641Z",
+  "note": "shadow 环境写入通常畅通——ALLOWED 表示「未受阻」的真实观测；矩阵格子在 P6-3 实测前保持 pending，不得据此改写为「已实现默认拒绝」"
+}
+✓ 成功路径恒清理：无 --out stdout 模式 exit 0 且零 shadow 残留
+✓ real-sentinel Phase 4 失败 → preserve-for-caller（布局现场保留）＋ exit 1 结构化错误
+✓ prepare 默认＝overwrite-shadow（既有兼容语义：无条件覆盖）
+✓ prepare=none：目标齐备 → 只读核验通过、零写入（树 hash 前后一致）
+✓ prepare=none：目标缺失 → ProbeError PRECONDITION_FAILED（phase 1）
+✓ prepare=none：目标类型错误（bots.json 为目录）→ PRECONDITION_FAILED
+✓ runShadowProbeSuite prepare 透传：none 在空根上抛、在齐备根上通过
+✓ 错误对象强制五字段（§4.3）＋toProbeError 未知异常归 UNEXPECTED_IO（exit 1）
+✓ shadow --out 位于 shadowRoot 内：直接／已有子目录 → exit 2 语义（OUTPUT_CONTRACT_VIOLATION）
+✓ shadow --out 位于 shadowRoot 内：别名路径（symlink 指入副本）→ exit 2 语义（路径含symlink）
+✓ 调用图静态检查：real-sentinel 管线（runner 库）不得触达覆盖型 prepare（runShadowProbeSuite/prepareShadowTargets）
+
+=== sentinel-provenance.test.mjs ===
+✓ 真实入口：sourceManifest 恰为［脚本＋依赖闭包］，sha256/byteLength 正确，node:/裸说明符排除
+✓ 非字符串字面量动态 import → ProvenanceValidationError（provenance validation failure）
+✓ 不可解析的本地动态 import → ProvenanceValidationError
+✓ node_modules 裸说明符排除（不解析、不失败）
+✓ buildProbeRaw：schema 字段齐备；evidenceRunnerHash 与源清单一致；layoutManifestSha256 绑定
+✓ buildProbeRaw：layoutManifestDigest 平铺键（runner 集成面）绑定；两键皆缺 → null
+✓ raw 不得携带 artifactWriteCompletedAt（由 capture manifest 持有）；runId 必须 UUID
+✓ timing 顺序不变量：正序 ok；逆序报 violations
+✓ 篡改检出①②：raw 改一字节／capture manifest 改一字节 → hash 绑定断开
+✓ 篡改检出③④：script 改一字节／lib 改一字节 → sourceManifestSha256 变化
+✓ 篡改检出⑤：ledger runId 重复 → 校验失败
+✓ claim 正例：wx 创建＋内容合法；同 runId 第二次 claim 被拒且原内容不变
+✓ claim 非法 runId（非 UUID）→ 拒绝且零创建
+✓ 部分写入语义：claim 后内容截断 → invalid tombstone，claim 保留、runId 不可复用
+✓ claim 无终态 ledger 记录 → running（近时）／abandoned（超时），均不得判成功
+✓ ledger：既有文件可追加（不因存在而 wx 拒绝）；symlink/目录/危险 hardlink 拒绝
+✓ ledger JSONL：损坏尾行 → 显式 incomplete（不失败）；中间损坏 → 校验失败不得静默忽略
+✓ ledger 记录无对应 claim → 流程违约；ledger 追加失败不得产生完整记录
+✓ 并发：同 runId 竞争 → 恰一成功；不同 runId 并发 → 记录数正确、无撕裂行
+✓ O-6.4 claim 负例：null/缺失/省略号/截断/大写/非hex 哈希全部拒绝且零创建
+✓ O-6.4 ledger /2 负例：缺绑定字段/非法 hash/非终态 → 拒绝写入
+✓ O-6.5 执行闭包：runner∪packager 闭包恰为 10 文件（含台账事件契约叶件，不含组织图）；evidenceRunnerHash 绑定 runner
+✓ O-6.5 闭包容错：清单内文件变更 → sourceManifestSha256 失配检出
+
+=== session-driver.test.mjs ===
+✓ fresh＋缺省：RPC 序列 create→history(baseline)→prompt→轮询 history（普通路径序）
+✓ fresh＋skipBaselineHistoryWhenFresh：序列 create→prompt→history（评审等价序）
+✓ reused sessionId：不 create，先 history 算 baseline 再 prompt
+✓ baseline 不变量：旧回合（turn 3）的 assistant 不得污染提取
+✓ selectModel 条件：model 完整才调用；部分配置跳过
+✓ 提取规则：多 text part 依序拼接，非 text part 过滤
+✓ 错误终止：baseline 后 turn/end reason.kind=error 且无 assistant → 立即抛错，不死等超时
+✓ 错误终止不吞既有形态：reason 缺 error 对象时仍抛出可定位错误
+✓ 错误终止先让位 assistant：病态「有文本又 error 收尾」的回合返回模型真实产出
+✓ 非 error 终止不误伤：blocked 无 assistant 时保持旧语义（轮询至超时，不抛终止错误）
+✓ 超时：errorLabel 文案；轮询消耗虚拟时间不真等
+✓ checkAlive 三锚点：环头抛 → 不再发任何 rpc；取史后抛 → 不返回已得结果
+✓ onSessionCreated：create 后立即回调（先于 selectModel）
+✓ sleep 按剩余预算截断：timeoutMs=1500/pollMs=1000 → 第二次 sleep ≤500
+✓ 参数校验与信封异常：cwd 空/timeoutMs 非法 → TypeError；create 无 sessionId → errorLabel 抛
+
+session-driver 测试全部通过
+
+=== spawn-env.test.mjs ===
+✓ 基集并集：基础设施变量与 LC_ 系透传，其余一律不透传
+✓ 拒绝形状绝对性：KEY/TOKEN/SECRET/PASSWORD/NODE_OPTIONS 连逃生阀也不放行
+✓ overrides＝DSH 显式集：在位且最高优先（可覆盖基集同名）
+✓ overrides 同受拒绝形状约束：显式给值也不透传（Spec「一律」覆盖 overrides）
+✓ 逃生阀：按需附加＋缺名安全忽略（不产生 undefined 项）
+✓ 集成：真 spawn 经假 dsh bin——子进程实得环境＝白名单产物（B4-01 现场）
+
+=== stats.test.mjs ===
+✓ deriveStats 合成事件精确断言（usage 去重/耗时/压力/构成缩放）
+✓ offlineStats 多帧 zstd（逐帧解压/撕裂尾帧容错/无日志全零/缓存稳定）
+
+=== task-ledger.test.mjs ===
+TAP version 13
+# Subtest: 状态表：主干十态＋四旁路齐备，每态答「下一步谁负责、超时怎么办」
+ok 1 - 状态表：主干十态＋四旁路齐备，每态答「下一步谁负责、超时怎么办」
+  ---
+  duration_ms: 4.214804
+  type: 'test'
+  ...
+# Subtest: 台账文件坐标：落在 dshHome 台账域内；taskId 校验拒绝旧评审前缀
+ok 2 - 台账文件坐标：落在 dshHome 台账域内；taskId 校验拒绝旧评审前缀
+  ---
+  duration_ms: 0.868358
+  type: 'test'
+  ...
+# Subtest: 主干转移：intake→triaged→planned→assigned→accepted→running 状态为事件投影
+ok 3 - 主干转移：intake→triaged→planned→assigned→accepted→running 状态为事件投影
+  ---
+  duration_ms: 12.458371
+  type: 'test'
+  ...
+# Subtest: 非法转移被确定性层拒绝且 fail closed：状态不变、拒绝留痕
+ok 4 - 非法转移被确定性层拒绝且 fail closed：状态不变、拒绝留痕
+  ---
+  duration_ms: 2.95687
+  type: 'test'
+  ...
+# Subtest: CAS：期望状态不符即拒（并发写者不得盲写）
+ok 5 - CAS：期望状态不符即拒（并发写者不得盲写）
+  ---
+  duration_ms: 8.680983
+  type: 'test'
+  ...
+# Subtest: 命令自带幂等键：重复提交返回首次结论且不再落事件
+ok 6 - 命令自带幂等键：重复提交返回首次结论且不再落事件
+  ---
+  duration_ms: 4.590488
+  type: 'test'
+  ...
+# Subtest: 状态是事件投影：清空内存态重启后从未闭合队列重建（V-A2.2）
+ok 7 - 状态是事件投影：清空内存态重启后从未闭合队列重建（V-A2.2）
+  ---
+  duration_ms: 15.135017
+  type: 'test'
+  ...
+# Subtest: 单一写者：宿主持有台账写锁时，第二个写者被拒（bot 无直写通道，V-A2.1）
+ok 8 - 单一写者：宿主持有台账写锁时，第二个写者被拒（bot 无直写通道，V-A2.1）
+  ---
+  duration_ms: 2.903553
+  type: 'test'
+  ...
+# Subtest: 关闭不可重开、归档不删档；改动用 supersedesTaskId 开新任务（V-A2.9）
+ok 9 - 关闭不可重开、归档不删档；改动用 supersedesTaskId 开新任务（V-A2.9）
+  ---
+  duration_ms: 22.355894
+  type: 'test'
+  ...
+# Subtest: 一实例同时只持一个进行中任务：第二次归属机械拒绝（V-A2.6）
+ok 10 - 一实例同时只持一个进行中任务：第二次归属机械拒绝（V-A2.6）
+  ---
+  duration_ms: 16.993306
+  type: 'test'
+  ...
+# Subtest: 派单租约：逾期未接释放回队列并通知派单方；租约到期回收；实例死亡回收（V-A2.5）
+ok 11 - 派单租约：逾期未接释放回队列并通知派单方；租约到期回收；实例死亡回收（V-A2.5）
+  ---
+  duration_ms: 19.735381
+  type: 'test'
+  ...
+# Subtest: 重派达封顶则上浮用户（waiting-user）且异常不丢（V-A2.5／V-A2.11）
+ok 12 - 重派达封顶则上浮用户（waiting-user）且异常不丢（V-A2.5／V-A2.11）
+  ---
+  duration_ms: 7.57509
+  type: 'test'
+  ...
+# Subtest: 心跳续签：租约按心跳延长，未超时的任务不被回收
+ok 13 - 心跳续签：租约按心跳延长，未超时的任务不被回收
+  ---
+  duration_ms: 11.111951
+  type: 'test'
+  ...
+# Subtest: 值守例程幂等键＝例程 id＋时间窗：同窗重复触发不产生第二个任务（V-A2.10）
+ok 14 - 值守例程幂等键＝例程 id＋时间窗：同窗重复触发不产生第二个任务（V-A2.10）
+  ---
+  duration_ms: 2.774686
+  type: 'test'
+  ...
+# Subtest: LLM 岗位只提交判断输入：judgement 不改状态；管理类转移的角色类粗门放行 post（细分白名单归 06 号票鉴权器）
+ok 15 - LLM 岗位只提交判断输入：judgement 不改状态；管理类转移的角色类粗门放行 post（细分白名单归 06 号票鉴权器）
+  ---
+  duration_ms: 6.753786
+  type: 'test'
+  ...
+# Subtest: wait-user 挂起：host／user 上浮裁定放行，post 触发须归属者本人（postOwnerOnly）
+ok 16 - wait-user 挂起：host／user 上浮裁定放行，post 触发须归属者本人（postOwnerOnly）
+  ---
+  duration_ms: 9.980441
+  type: 'test'
+  ...
+# Subtest: 只有三类裁定进 waiting-user：class 必填且封闭，缺省／枚举外即拒（V-A5.1）
+ok 17 - 只有三类裁定进 waiting-user：class 必填且封闭，缺省／枚举外即拒（V-A5.1）
+  ---
+  duration_ms: 22.779075
+  type: 'test'
+  ...
+# Subtest: 异常四类统一走台账：非法类别拒、四类均可登记且不改状态（V-A2.11）
+ok 18 - 异常四类统一走台账：非法类别拒、四类均可登记且不改状态（V-A2.11）
+  ---
+  duration_ms: 3.554687
+  type: 'test'
+  ...
+# Subtest: 通知＝台账事件投影：无事件不通知、无事件不产生新通知（V-A2.12）
+ok 19 - 通知＝台账事件投影：无事件不通知、无事件不产生新通知（V-A2.12）
+  ---
+  duration_ms: 4.54755
+  type: 'test'
+  ...
+# Subtest: 事件链防改动：事实源被篡改后读侧 fail closed
+ok 20 - 事件链防改动：事实源被篡改后读侧 fail closed
+  ---
+  duration_ms: 1.244094
+  type: 'test'
+  ...
+# Subtest: 写入前校验：缺 actor／未定义键的事件不得入事实源，台账保持可读
+ok 21 - 写入前校验：缺 actor／未定义键的事件不得入事实源，台账保持可读
+  ---
+  duration_ms: 1.216701
+  type: 'test'
+  ...
+# Subtest: CAS 序号必填：只有期望状态同样拒（§D 期望状态与序号两件）
+ok 22 - CAS 序号必填：只有期望状态同样拒（§D 期望状态与序号两件）
+  ---
+  duration_ms: 1.154576
+  type: 'test'
+  ...
+# Subtest: 分诊四值：直办／立项／澄清／拒收各落确定状态，未知取值即拒（§B）
+ok 23 - 分诊四值：直办／立项／澄清／拒收各落确定状态，未知取值即拒（§B）
+  ---
+  duration_ms: 11.638892
+  type: 'test'
+  ...
+# Subtest: amend：追加事件并通知**承接方**（不是修改人），简报冻结语义归 07
+ok 24 - amend：追加事件并通知**承接方**（不是修改人），简报冻结语义归 07
+  ---
+  duration_ms: 8.29057
+  type: 'test'
+  ...
+# Subtest: intake：简报在场即必须合法（fail closed，零事件落账）；简报缺席合法（立项时经 plan 补）
+ok 25 - intake：简报在场即必须合法（fail closed，零事件落账）；简报缺席合法（立项时经 plan 补）
+  ---
+  duration_ms: 2.093852
+  type: 'test'
+  ...
+# Subtest: plan 携带简报（立项产出四要素简报）；简报随事件入投影
+ok 26 - plan 携带简报（立项产出四要素简报）；简报随事件入投影
+  ---
+  duration_ms: 3.325817
+  type: 'test'
+  ...
+# Subtest: 派出即冻结：assign 时简报必须已在且合法；无简报派单即拒（V-A2.4）
+ok 27 - 派出即冻结：assign 时简报必须已在且合法；无简报派单即拒（V-A2.4）
+  ---
+  duration_ms: 6.327153
+  type: 'test'
+  ...
+# Subtest: 接单响应携带简报（V-A4.3）：task.accept 成功结论内含冻结简报本体
+ok 28 - 接单响应携带简报（V-A4.3）：task.accept 成功结论内含冻结简报本体
+  ---
+  duration_ms: 4.477427
+  type: 'test'
+  ...
+# Subtest: amend 只收合法简报：非法替换件即拒（冻结件只允许被合法件置换）
+ok 29 - amend 只收合法简报：非法替换件即拒（冻结件只允许被合法件置换）
+  ---
+  duration_ms: 9.877793
+  type: 'test'
+  ...
+# Subtest: 带理由拒收：assigned→planned 归队、清除归属、通知派单方；理由可选但给出须非空（规格 §B「可带理由拒收」）
+ok 30 - 带理由拒收：assigned→planned 归队、清除归属、通知派单方；理由可选但给出须非空（规格 §B「可带理由拒收」）
+  ---
+  duration_ms: 20.095956
+  type: 'test'
+  ...
+# Subtest: 队列滞留超时：intake 上浮用户／triaged 退回分诊／planned 上浮，时限 stallMs 属用户域缝（05 留界 \#7 执行面）
+ok 31 - 队列滞留超时：intake 上浮用户／triaged 退回分诊／planned 上浮，时限 stallMs 属用户域缝（05 留界 \#7 执行面）
+  ---
+  duration_ms: 12.211777
+  type: 'test'
+  ...
+# Subtest: 上浮终裁原因封闭：escalated 的 cause 与 wait-user 的 class 同受 schema 把守（V-A5.1）
+ok 32 - 上浮终裁原因封闭：escalated 的 cause 与 wait-user 的 class 同受 schema 把守（V-A5.1）
+  ---
+  duration_ms: 4.039087
+  type: 'test'
+  ...
+# Subtest: 永不可代三项：用户域挂起点只许 user 终裁——post／host 代裁（含取消）一律拒（V-A5.4）
+ok 33 - 永不可代三项：用户域挂起点只许 user 终裁——post／host 代裁（含取消）一律拒（V-A5.4）
+  ---
+  duration_ms: 13.296684
+  type: 'test'
+  ...
+# Subtest: 挂起语义：waiting-user 不占租约、无超时自动动作、可原样恢复（V-A5.3）
+ok 34 - 挂起语义：waiting-user 不占租约、无超时自动动作、可原样恢复（V-A5.3）
+  ---
+  duration_ms: 17.5844
+  type: 'test'
+  ...
+# Subtest: 结算/关闭超时：delivered／settled 滞留＝登记异常并上浮用户，绝不自动结算/自动关闭（V-A5.3）
+ok 35 - 结算/关闭超时：delivered／settled 滞留＝登记异常并上浮用户，绝不自动结算/自动关闭（V-A5.3）
+  ---
+  duration_ms: 37.804796
+  type: 'test'
+  ...
+# Subtest: 终裁＝台账命令特化视图：接单／驳回／授权修复落既有命令，幂等键、CAS 与审计随台账继承（V-A5.5）
+ok 36 - 终裁＝台账命令特化视图：接单／驳回／授权修复落既有命令，幂等键、CAS 与审计随台账继承（V-A5.5）
+  ---
+  duration_ms: 16.416999
+  type: 'test'
+  ...
+# Subtest: review.request：点须在必审枚举；简报点降级（免审）即拒；加审须归因
+ok 37 - review.request：点须在必审枚举；简报点降级（免审）即拒；加审须归因
+  ---
+  duration_ms: 6.225863
+  type: 'test'
+  ...
+# Subtest: review.request：排除产出方与不空闲实例（复核帽＝当次空闲、非产出方）
+ok 38 - review.request：排除产出方与不空闲实例（复核帽＝当次空闲、非产出方）
+  ---
+  duration_ms: 13.986819
+  type: 'test'
+  ...
+# Subtest: 必审拦截（V-A2.7）：简报点未闭合时交付转移被拒；闭合后放行
+ok 39 - 必审拦截（V-A2.7）：简报点未闭合时交付转移被拒；闭合后放行
+  ---
+  duration_ms: 9.659013
+  type: 'test'
+  ...
+# Subtest: 清单外咨询性不阻断交付：gaps-open 报告在案 deliver 照常通过
+ok 40 - 清单外咨询性不阻断交付：gaps-open 报告在案 deliver 照常通过
+  ---
+  duration_ms: 7.719829
+  type: 'test'
+  ...
+# Subtest: recordReviewReport：形状不符／未被指定／产出方自任／未请求的 subject 即拒（均持帽）
+ok 41 - recordReviewReport：形状不符／未被指定／产出方自任／未请求的 subject 即拒（均持帽）
+  ---
+  duration_ms: 8.565022
+  type: 'test'
+  ...
+# Subtest: 连续两轮未闭合上浮用户终裁：第二轮 gaps-open 自动 escalated（waiting-user、清归属、通知 user）
+ok 42 - 连续两轮未闭合上浮用户终裁：第二轮 gaps-open 自动 escalated（waiting-user、清归属、通知 user）
+  ---
+  duration_ms: 9.5184
+  type: 'test'
+  ...
+# Subtest: 复核事件入事实源且可重建：事件 schema 校验通过、投影不串状态
+ok 43 - 复核事件入事实源且可重建：事件 schema 校验通过、投影不串状态
+  ---
+  duration_ms: 6.504231
+  type: 'test'
+  ...
+# Subtest: 复核报告入账验帽（27 号票台账腿权威门）：无帽／他人帽／非复核帽／帽缺 op／非指定即拒，帽腿拒即不烧帽
+ok 44 - 复核报告入账验帽（27 号票台账腿权威门）：无帽／他人帽／非复核帽／帽缺 op／非指定即拒，帽腿拒即不烧帽
+  ---
+  duration_ms: 8.794952
+  type: 'test'
+  ...
+# Subtest: 复核报告入账：帽验签面未接线即拒（fail closed——不做「没接线就跳过验帽」的降级）
+ok 45 - 复核报告入账：帽验签面未接线即拒（fail closed——不做「没接线就跳过验帽」的降级）
+  ---
+  duration_ms: 0.793661
+  type: 'test'
+  ...
+# Subtest: 复核报告入账单次消费（27 号票）：一次提交恰好消费一次——帽腿通过即消费，已消费帽重放即拒
+ok 46 - 复核报告入账单次消费（27 号票）：一次提交恰好消费一次——帽腿通过即消费，已消费帽重放即拒
+  ---
+  duration_ms: 9.159489
+  type: 'test'
+  ...
+# Subtest: 初审裁决执行面：命中必审清单不可处置；通过＝只留痕；初审拒绝＝强制上浮（V-A5.4）
+ok 47 - 初审裁决执行面：命中必审清单不可处置；通过＝只留痕；初审拒绝＝强制上浮（V-A5.4）
+  ---
+  duration_ms: 26.290549
+  type: 'test'
+  ...
+# Subtest: 轮询处置的异常登记失败响亮可核：sweep 回报 exceptionFailures，不静默（V-A2.11 同口径）
+ok 48 - 轮询处置的异常登记失败响亮可核：sweep 回报 exceptionFailures，不静默（V-A2.11 同口径）
+  ---
+  duration_ms: 10.015866
+  type: 'test'
+  ...
+# Subtest: 19① amend 置换件删减已冻结 reviewPoints 即拒（可加审不可免审在 amend 通道兑现）；整体省略＝删全部同拒，加审放行
+ok 49 - 19① amend 置换件删减已冻结 reviewPoints 即拒（可加审不可免审在 amend 通道兑现）；整体省略＝删全部同拒，加审放行
+  ---
+  duration_ms: 5.734586
+  type: 'test'
+  ...
+# Subtest: 19④ 判据缺口与结构违规分码：gap-only＝criteria-gap、结构违规＝invalid-brief，两类同时在案时结构优先但缺口原因仍可见
+ok 50 - 19④ 判据缺口与结构违规分码：gap-only＝criteria-gap、结构违规＝invalid-brief，两类同时在案时结构优先但缺口原因仍可见
+  ---
+  duration_ms: 4.853058
+  type: 'test'
+  ...
+# Subtest: 19⑤ recordNeedsUser：判据缺口分解不出上浮 waiting-user（cause=needs-user、judgement 留痕、通知 user；triaged 来态新腿）
+ok 51 - 19⑤ recordNeedsUser：判据缺口分解不出上浮 waiting-user（cause=needs-user、judgement 留痕、通知 user；triaged 来态新腿）
+  ---
+  duration_ms: 3.612106
+  type: 'test'
+  ...
+# Subtest: 19⑤ recordNeedsUser 机械锚与幂等：无在案 criteria-gap 拒绝即拒；已挂起不重复上浮
+ok 52 - 19⑤ recordNeedsUser 机械锚与幂等：无在案 criteria-gap 拒绝即拒；已挂起不重复上浮
+  ---
+  duration_ms: 2.741857
+  type: 'test'
+  ...
+# Subtest: 19⑤ needs-user 挂起的恢复回路：user 补可执行判据（amend）→ resume 回 triaged → plan 成功
+ok 53 - 19⑤ needs-user 挂起的恢复回路：user 补可执行判据（amend）→ resume 回 triaged → plan 成功
+  ---
+  duration_ms: 4.190218
+  type: 'test'
+  ...
+# Subtest: 关闭前置（§B；V-A2.7／V-A2.9，14 号票）：产出未按「谁产出谁登记」登记即拒；本人登记本任务产出后放行
+ok 54 - 关闭前置（§B；V-A2.7／V-A2.9，14 号票）：产出未按「谁产出谁登记」登记即拒；本人登记本任务产出后放行
+  ---
+  duration_ms: 15.125223
+  type: 'test'
+  ...
+# Subtest: 关闭前置（§B；V-A2.7，14 号票）：命中必审点未闭合即拒——交付门不得在关闭处被绕过
+ok 55 - 关闭前置（§B；V-A2.7，14 号票）：命中必审点未闭合即拒——交付门不得在关闭处被绕过
+  ---
+  duration_ms: 13.671325
+  type: 'test'
+  ...
+# Subtest: 关闭前置（§B；V-A2.9，14 号票）：duty 例程任务不适用产出登记门（承载面＝台账本身）
+ok 56 - 关闭前置（§B；V-A2.9，14 号票）：duty 例程任务不适用产出登记门（承载面＝台账本身）
+  ---
+  duration_ms: 6.790889
+  type: 'test'
+  ...
+# Subtest: 关闭前置（§B；V-A2.7，14 号票）：产出登记面不可读＝fail closed；注入面同样受「锚定＋产出方」两件判定
+ok 57 - 关闭前置（§B；V-A2.7，14 号票）：产出登记面不可读＝fail closed；注入面同样受「锚定＋产出方」两件判定
+  ---
+  duration_ms: 16.775179
+  type: 'test'
+  ...
+1..57
+# tests 57
+# suites 0
+# pass 57
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 575.343444
+
+=== watcher.test.mjs ===
+✓ inbox watcher 增量游标（追加恰一次/撕裂行跨读/截断重置存量跳过/通道中断回滚恰一次；投递与水位经 host 中继）
+
+73/73 个测试文件通过
+宿主契约门（face=dev）：
+  [诊断] 宿主版本 0.2.0-rc.1（仅归因用，不参与门判定）
+  PASS P-PLUGIN-IDENTITY [HF-PLUGIN-IDENTITY]：组织层身份面：cordis CLI 在位＋client inject 清单可解析＋ModuleLoader 装载协议标记
+  PASS P-CONFIG-IDS [HF-CONFIG-IDS]：配置面 id/key：行为探针——我方 patch 经官方装载器往返＋官方组合 id 对照＋模型 pin 读回与合成 provider 模型解析（旧宿主核命名空间，不绑定用户模型值）＋web patch tools 行 DSH_TOOLS_MODE 环境缝形状（PTC 呈现静默失效面）
+  PASS P-CLIENT-SLOTS [HF-CLIENT-SLOTS]：前端槽位：行为探针——真实 apply 官方 layout/sidebar bundle，断言声明槽树（sidebar single／main keyed／shell.overlay list／sidebar.footer.action list）；渲染期 priority/abdicate 语义与 conversation entryKey 归属无头不可调起——显式降级归 V-A6.8 人工目视清单
+  PASS P-CLIENT-VISUAL [HF-CLIENT-VISUAL]：视觉件：行为探针——真实 apply 官方 theme bundle，断言运行期 --dsw-* 令牌注入与 theme 服务形状；primitives 导出形状与 ownerProps（collapsed/wide）无头不可调起（primitives 仅存于 shell 种子表、无实体包）——显式降级，存在性归 P-PLUGIN-IDENTITY（B 类）、形状归 V-A6.8 人工目视清单
+  PASS P-CLIENT-LOCALE [HF-CLIENT-LOCALE]：本地化面：真实调起官方 LocaleRuntime（行为探针——装载 bundle、apply、断言服务形状）
+  PASS P-CTX-SERVICES [HF-CTX-SERVICES]：宿主服务容器：行为探针——真实实例化官方 ToolRuntime/SystemPrompt 断言服务名，＋官方 boot() 空树产出 baseUrl 经适配层回读
+  PASS P-HOST-RPC [HF-HOST-RPC]：宿主会话调用：公开 SessionController 经原生 adapter 校验 create/selectModel/prompt/inspect 形状，HTTP client-request 信封在位
+  PASS P-REVIEW-SESSION [HF-REVIEW-SESSION]：原生独立复核会话：AgentRegistry.create 与 scoped tools.restrict/register 公开形状在位
+  PASS P-SPAWN-CLI [HF-SPAWN-CLI]：spawn CLI：dsh --profile＋web-app --no-open＋DSH_HOME 语义标记在位
+  PASS P-V2-LEDGER-FORMAT [HF-V2-LEDGER-FORMAT]：v2 台账落盘格式：events.jsonl 行级 append-only＋事件 schema/hash 链可复算＋投影可从盘重建
+  PASS P-LEDGER-COMMANDS [HF-LEDGER-COMMANDS]：v2 台账命令面：host 路由在位＋命令信封与拒绝形状（fail closed）＋bot 无台账直写通道
+  PASS P-SESSION-LOG [HF-SESSION-LOG]：会话日志面：行为探针——本机最新真实会话日志经 lib/stats.js 读取解析实调（多帧 zstd→事件形状→四大投影）
+宿主契约门: 12 PASS / 0 FAIL / 0 SKIP
+preflight ①回归: 73/73 ✅
+preflight ②冻结面（0010 包）: 10/10 ✅
+preflight ③status-lint: 0 违例（扫 79 个 md；知识库扫描 62 个脚本，登记／废弃调用者 1 个） ✅
+preflight ④宿主契约: 12 PASS / 0 FAIL / 0 SKIP ✅
+preflight: PASS

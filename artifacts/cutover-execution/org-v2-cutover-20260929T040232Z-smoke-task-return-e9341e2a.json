@@ -1,0 +1,110 @@
+{
+  "schema": "org-v2/cutover-smoke-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T06:18:31.568Z",
+  "stage": "smoke-task-return",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r5-a9d8cd49.json",
+    "sha256": "a9d8cd493702789e08c6ccc9aefc6e54a13ac5c0f4496151880e8ea1bacc8716",
+    "byteLength": 97503
+  },
+  "taskId": "TK-20260929",
+  "input": {
+    "op": "task.return",
+    "taskId": "TK-20260929",
+    "actor": {
+      "kind": "user",
+      "id": "user"
+    },
+    "idempotencyKey": "org-v2-cutover-20260929T040232Z:provider-r1:task.return",
+    "payload": {
+      "reason": "Provider configuration migration repaired; return the original task to the coordinator for actual triage."
+    },
+    "expectedStatus": "triaged",
+    "expectedSeq": 6
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "taskId": "TK-20260929",
+      "status": "intake",
+      "seq": 7,
+      "task": {
+        "taskId": "TK-20260929",
+        "class": "project",
+        "status": "intake",
+        "owner": null,
+        "dispatcher": null,
+        "lease": {
+          "acceptBy": null,
+          "expiresAt": null,
+          "heartbeats": 0
+        },
+        "dispatchCount": 0,
+        "brief": {
+          "goal": "用真实双席完成一条预登记任务的收单、派单、登记工件、独立复核与结算。",
+          "deliverables": [
+            {
+              "format": "markdown",
+              "location": "bots/knowledge/reports/R-2026-010.md"
+            }
+          ],
+          "sources": [
+            {
+              "tool": "user",
+              "ref": "org-v2-cutover-20260929T040232Z:brief"
+            }
+          ],
+          "boundaries": "仅经组织命令提交工件与状态，不直接写 ~/.dsh；不改产品、部署、冻结件或旧知识条目。报告简述实际完成的动作并含本批标记。",
+          "acceptance": [
+            {
+              "probe": "fs.contains",
+              "args": {
+                "location": "bots/knowledge/reports/R-2026-010.md",
+                "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+              }
+            }
+          ],
+          "reviewPoints": [
+            "before-external-visibility"
+          ]
+        },
+        "acceptance": [
+          {
+            "probe": "fs.contains",
+            "args": {
+              "location": "bots/knowledge/reports/R-2026-010.md",
+              "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+            }
+          }
+        ],
+        "routineId": null,
+        "window": null,
+        "supersedesTaskId": null,
+        "parentTaskId": null,
+        "createdAt": "2026-09-29T04:56:40.755Z",
+        "updatedAt": "2026-09-29T06:18:31.558Z",
+        "lastSeq": 7,
+        "resumeFrom": null,
+        "waitingClass": null,
+        "escalationCause": null,
+        "lastRejection": null
+      },
+      "event": {
+        "seq": 7,
+        "eventId": "mumacf0m-b583eff5",
+        "type": "return",
+        "at": "2026-09-29T06:18:31.558Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 3,
+        "reason": "Provider configuration migration repaired; return the original task to the coordinator for actual triage.",
+        "eventHash": "38377c233362e351b977a5ba07e7342ccf303f96904a5d23efc11f8dc52f0693"
+      }
+    }
+  }
+}

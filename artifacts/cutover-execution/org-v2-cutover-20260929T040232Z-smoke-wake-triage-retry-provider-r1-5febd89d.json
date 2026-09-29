@@ -1,0 +1,21 @@
+{
+  "schema": "org-v2/cutover-smoke-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T06:18:31.585Z",
+  "stage": "smoke-wake-triage-retry-provider-r1",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r5-a9d8cd49.json",
+    "sha256": "a9d8cd493702789e08c6ccc9aefc6e54a13ac5c0f4496151880e8ea1bacc8716",
+    "byteLength": 97503
+  },
+  "taskId": "TK-20260929",
+  "botId": "duty-coordinator",
+  "message": "TK-20260929",
+  "response": {
+    "status": 200,
+    "body": {
+      "delivered": true,
+      "seq": 3
+    }
+  }
+}

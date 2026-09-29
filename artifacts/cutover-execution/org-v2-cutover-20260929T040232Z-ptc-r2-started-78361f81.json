@@ -1,0 +1,19 @@
+{
+  "schema": "org-v2/cutover-increment-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "batch": "ptc-r2",
+  "capturedAt": "2026-09-29T09:57:48.658Z",
+  "stage": "started",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r7-2f1b8113.json"
+  },
+  "process": {
+    "pid": 146847,
+    "pidStartTicks": "2982470",
+    "profile": "web",
+    "port": 3100
+  },
+  "logPath": "/home/beijong/.dsh/backups/dsh-bots/org-v2-cutover-20260929T040232Z-ptc-r2/execution-host.log",
+  "botStartup": "host-owned private IPC with DSH_TOOLS_MODE=ptc overrides and inject-wait faces",
+  "modelPromptSent": false
+}

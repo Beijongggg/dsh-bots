@@ -1,0 +1,295 @@
+{
+  "schema": "org-v2/cutover-diagnostic@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T07:22:16.126Z",
+  "sourceCommit": "80187dc6cbe2d881a880b7a96e194c348e6d1f1a",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r5-a9d8cd49.json",
+    "sha256": "a9d8cd493702789e08c6ccc9aefc6e54a13ac5c0f4496151880e8ea1bacc8716",
+    "byteLength": 97503
+  },
+  "task": {
+    "taskId": "TK-20260929",
+    "status": "waiting-user",
+    "lastSeq": 8,
+    "resumeFrom": "intake",
+    "waitingClass": "escalation"
+  },
+  "session": {
+    "sessionId": "session-e21b956a-bfcf-489c-8c3a-124958f085ab",
+    "log": {
+      "path": "/home/beijong/.dsh/sessions/--home-beijong-.dsh-bot-workspaces-duty-coordinator--/session-e21b956a-bfcf-489c-8c3a-124958f085ab/session.v4.jsonl.zstd",
+      "sha256": "fe8d346434c30592454838f74d889e774ab0a6a97f6654a3bd2ce641247c5313",
+      "byteLength": 20147
+    },
+    "eventCounts": {
+      "session": 1,
+      "permission/preset": 1,
+      "sandbox/mode": 1,
+      "approval/policy": 1,
+      "session/end-seed": 1,
+      "model/selection": 1,
+      "agent/inbox/spliced": 2,
+      "turn/start": 1,
+      "step/start": 1,
+      "system/message": 1,
+      "user/message": 3,
+      "request/header": 1,
+      "request/context": 1,
+      "session/title": 2,
+      "session/title-llm-request": 1,
+      "assistant/attempt": 2,
+      "llm/retry": 1,
+      "llm/retry-started": 1,
+      "step/end": 1,
+      "turn/end": 1
+    },
+    "models": [
+      {
+        "provider": "niko",
+        "model": "gpt-5.6-sol"
+      }
+    ],
+    "policies": [
+      {
+        "type": "permission/preset",
+        "data": {
+          "preset": "read-only"
+        }
+      },
+      {
+        "type": "sandbox/mode",
+        "data": {
+          "mode": "read-only"
+        }
+      },
+      {
+        "type": "approval/policy",
+        "data": {
+          "policy": "ask"
+        }
+      }
+    ],
+    "tools": [
+      {
+        "index": 0,
+        "name": "ask_user_question",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 1,
+        "name": "bash",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 2,
+        "name": "create_goal",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 3,
+        "name": "edit",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 4,
+        "name": "exit_plan_mode",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 5,
+        "name": "get_goal",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 6,
+        "name": "glob",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 7,
+        "name": "grep",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 8,
+        "name": "interrupt_agent",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 9,
+        "name": "job_kill",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 10,
+        "name": "job_list",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 11,
+        "name": "job_output",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 12,
+        "name": "knowledge.deprecate",
+        "acceptedByProviderNamePattern": false
+      },
+      {
+        "index": 13,
+        "name": "knowledge.register",
+        "acceptedByProviderNamePattern": false
+      },
+      {
+        "index": 14,
+        "name": "knowledge_search",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 15,
+        "name": "ledger.read",
+        "acceptedByProviderNamePattern": false
+      },
+      {
+        "index": 16,
+        "name": "list_agents",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 17,
+        "name": "mail.send",
+        "acceptedByProviderNamePattern": false
+      },
+      {
+        "index": 18,
+        "name": "present",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 19,
+        "name": "read",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 20,
+        "name": "read_image",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 21,
+        "name": "send_message",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 22,
+        "name": "skill",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 23,
+        "name": "subagent",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 24,
+        "name": "subagent_fork",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 25,
+        "name": "task.exception",
+        "acceptedByProviderNamePattern": false
+      },
+      {
+        "index": 26,
+        "name": "task.intake",
+        "acceptedByProviderNamePattern": false
+      },
+      {
+        "index": 27,
+        "name": "task.triage",
+        "acceptedByProviderNamePattern": false
+      },
+      {
+        "index": 28,
+        "name": "todo_write",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 29,
+        "name": "update_goal",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 30,
+        "name": "web_fetch",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 31,
+        "name": "web_search",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 32,
+        "name": "workflow",
+        "acceptedByProviderNamePattern": true
+      },
+      {
+        "index": 33,
+        "name": "write",
+        "acceptedByProviderNamePattern": true
+      }
+    ],
+    "terminal": [
+      {
+        "turn": 1,
+        "at": "2026-09-29T06:19:36.992Z",
+        "reason": {
+          "kind": "error",
+          "error": {
+            "message": "400: {\"message\":\"Invalid 'tools[12].name': string does not match pattern. Expected a string that matches the pattern '^[a-zA-Z0-9_-]+$'.\",\"type\":\"invalid_request_error\",\"param\":\"tools[12].name\",\"code\":\"invalid_value\"}",
+            "code": "INVALID_REQUEST"
+          }
+        }
+      }
+    ],
+    "tokenUsage": {
+      "uncachedInputTokens": 0,
+      "outputTokens": 0,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "successfulTaskOutput": false
+  },
+  "officialSources": [
+    {
+      "path": "/usr/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-tools/lib/index.js",
+      "sha256": "40f47709337c3c205d4e09e647f8588f4977e66f6d52f019b3cc7ef81159d84f",
+      "byteLength": 157954
+    },
+    {
+      "path": "/usr/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-tools/lib/types/index.d.ts",
+      "sha256": "3536b173ec22361dcda85c05281921fc850db49984813b138d05395c4fe4510f",
+      "byteLength": 44449
+    },
+    {
+      "path": "/usr/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js",
+      "sha256": "b49de2029fc843b1212e5df1324e875f0cf38aef8789d84ff5fa8bba378aa56e",
+      "byteLength": 113953
+    },
+    {
+      "path": "/usr/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-base/cordis.patch.yml",
+      "sha256": "9c2be64f46a193eff3cca190c26e697e8e8eee25c9b40149dfdb56f8142c252d",
+      "byteLength": 20780
+    }
+  ],
+  "findings": [
+    "Current provider/model configuration resolves and the actual request reaches the selected provider.",
+    "The provider rejects raw dotted tool names with HTTP 400 INVALID_REQUEST before any assistant/message.",
+    "Official native tool presentation and the provider adapter preserve registered names without aliasing.",
+    "The existing session driver waits for an assistant/message after turn/end; this error-only turn therefore waits until its timeout.",
+    "The same smoke task and frozen brief are retained; host queue-stall suspension history remains intact."
+  ]
+}

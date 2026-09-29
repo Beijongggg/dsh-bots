@@ -1,0 +1,120 @@
+{
+  "schema": "org-v2/cutover-smoke-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T10:22:51.484Z",
+  "stage": "review-request-ptc-r2",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r7-2f1b8113.json"
+  },
+  "taskId": "TK-20260929",
+  "input": {
+    "op": "review.request",
+    "point": "before-external-visibility",
+    "reviewer": "duty-coordinator",
+    "expectedStatus": "produced",
+    "expectedSeq": 23
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "taskId": "TK-20260929",
+      "status": "produced",
+      "seq": 26,
+      "task": {
+        "taskId": "TK-20260929",
+        "class": "project",
+        "status": "produced",
+        "owner": "implementer",
+        "dispatcher": "user",
+        "lease": {
+          "acceptBy": null,
+          "expiresAt": "2026-09-29T10:36:24.487Z",
+          "heartbeats": 0,
+          "leaseMs": 900000
+        },
+        "dispatchCount": 1,
+        "brief": {
+          "goal": "用真实双席完成一条预登记任务的收单、派单、登记工件、独立复核与结算。",
+          "deliverables": [
+            {
+              "format": "markdown",
+              "location": "bots/knowledge/reports/R-2026-010.md"
+            }
+          ],
+          "sources": [
+            {
+              "tool": "user",
+              "ref": "org-v2-cutover-20260929T040232Z:brief"
+            }
+          ],
+          "boundaries": "仅经组织命令提交工件与状态，不直接写 ~/.dsh；不改产品、部署、冻结件或旧知识条目。报告简述实际完成的动作并含本批标记。",
+          "acceptance": [
+            {
+              "probe": "fs.contains",
+              "args": {
+                "location": "bots/knowledge/reports/R-2026-010.md",
+                "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+              }
+            }
+          ],
+          "reviewPoints": [
+            "before-external-visibility"
+          ]
+        },
+        "acceptance": [
+          {
+            "probe": "fs.contains",
+            "args": {
+              "location": "bots/knowledge/reports/R-2026-010.md",
+              "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+            }
+          }
+        ],
+        "routineId": null,
+        "window": null,
+        "supersedesTaskId": null,
+        "parentTaskId": null,
+        "createdAt": "2026-09-29T04:56:40.755Z",
+        "updatedAt": "2026-09-29T10:22:51.446Z",
+        "lastSeq": 26,
+        "resumeFrom": null,
+        "waitingClass": null,
+        "escalationCause": null,
+        "lastRejection": {
+          "at": "2026-09-29T10:22:40.328Z",
+          "op": "review.request",
+          "code": "reviewer-required",
+          "reason": "复核请求须指定 reviewer（复核帽＝当次空闲实例佩戴，按需召集）"
+        }
+      },
+      "event": {
+        "seq": 26,
+        "eventId": "mumj2mnq-1a390b82",
+        "type": "review-requested",
+        "at": "2026-09-29T10:22:51.446Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 4,
+        "point": "before-external-visibility",
+        "mandatory": true,
+        "reviewer": "duty-coordinator",
+        "eventHash": "1f0847db9f92d141ead1ab9d99e5633d7c0848196add6dc24ee948ca265bc2f3"
+      },
+      "reviewDispatch": {
+        "ok": true,
+        "taskId": "TK-20260929",
+        "subject": "before-external-visibility",
+        "requestSeq": 26,
+        "reviewer": "duty-coordinator"
+      }
+    }
+  },
+  "priorAttempt": {
+    "code": "reviewer-required",
+    "resolved": "added reviewer"
+  }
+}

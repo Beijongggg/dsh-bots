@@ -1,0 +1,24 @@
+{
+  "schema": "org-v2/cutover-smoke-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T10:22:40.340Z",
+  "stage": "review-request-ptc-r2",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r7-2f1b8113.json"
+  },
+  "taskId": "TK-20260929",
+  "input": {
+    "op": "review.request",
+    "point": "before-external-visibility",
+    "expectedStatus": "produced",
+    "expectedSeq": 23
+  },
+  "response": {
+    "status": 409,
+    "body": {
+      "ok": false,
+      "code": "reviewer-required",
+      "reason": "复核请求须指定 reviewer（复核帽＝当次空闲实例佩戴，按需召集）"
+    }
+  }
+}
