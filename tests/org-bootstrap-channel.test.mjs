@@ -288,7 +288,7 @@ test("复核 followup 的消息 source 须为 v4 producer-owned 形（16 号票�
       await options.setup({ get: () => ({ restrict: () => () => {}, register: () => () => {} }) });
       return { agent: { followup(message) { captured = message; }, whenIdle: () => Promise.resolve() }, dispose() {} };
     } }) };
-    const review = runFreshReview({ ctx, bot: r.registry.coordinator ?? { modelProvider: "p", model: "m" },
+    const review = runFreshReview({ ctx, bot: { modelProvider: "p", model: "m" },
       cwd: r.home, review: { taskId: r.taskId, subject: "before-external-visibility", requestSeq: 1 },
       dispatch: async () => ({ ok: true }) }).catch(() => "fixture 无报告提交，预期结束");
     await new Promise((resolve) => setImmediate(resolve));

@@ -592,3 +592,32 @@ duty／09:57:56 implementer）——服务等待修复在真实面生效。
 | [用户派单](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-task-assign-ptc-r2-ef5e2c3f.json) | 877 | `ef5e2c3f1e587b2bee0d8e26c96da7dfda3e4560e5a9182f4d2fa9e6ec1a2c51` |
 | [实施者唤醒](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-wake-implementer-retry-ptc-r2-f875d7fa.json) | 592 | `f875d7fadeb7fd8311ba850fdde5f4a6ecef0772cc0714390c9a863c1faa6dd7` |
 | [复核请求](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-review-request-ptc-r2-50bdbd65.json) | 3,721 | `50bdbd651fa77ff768bf6212112c474e17067f4cb64c8f196c93aca85fc3f766` |
+
+### 2026-09-29 用户确认后复核空转根因修复完成仓库验证（v4 source 退役形）
+
+用户回复「确认并继续处理」，确认 HF-REVIEW-SESSION 接缝处置。**归因修正**：
+票面前疑「agents.create 一次性会话与 PTC 呈现（或 scoped verifier 工具面）
+的组合」——经实证排除，与 PTC 无关；真实根因为 **followup 消息的
+`source:{kind:"plugin",plugin:"dsh-bots"}` 被宿主 v4 会话格式 admission
+拒绝**（`format v4 message requires a producer-owned source kind`），且官方
+agent loop 的 kick 对 turn 抛错静默吞掉——会话只剩 session/permission/
+sandbox/approval 四事件、无 turn/start、token 0、whenIdle 立即空转。v4 宿主
+上复核腿从未成功过（native-r1 时代阻断在模型配置，未及复核）。
+
+**诊断链**（镜像方法两次关键修正后才拿到决定性打点）：插件解析锚＝profile
+`node_modules/dsh-bots` symlink（指向真实部署目录），镜像打点此前从未被加
+载；修正 symlink 指向镜像插件后，`agent/error` 监听捕获被吞错误原文；source
+修复后镜像内回合真实启动（后续 provider/model 报错为二分最小化引入，参数
+恢复后不复现）。镜像期间另证：host 以 /tmp 为 cwd 启动会让 bot 的 PTC 装配
+整体卡死（真实面 host cwd=repo 不受影响，留界记录）。
+
+**仓库修复**（`1d51669`＋返修）：followup source 改官方 producerKind 映射形
+`plugin:dsh-bots`（保留 id/role/content 原样）；TDD 先红后绿
+（tests/org-bootstrap-channel.test.mjs 新用例钉 source.kind 与无 plugin
+包装键双断言）。**验证**：完整 preflight 退出码 0——**74/74 测试文件**、
+0010 冻结面 **10/10**、status-lint **0 违例**、宿主契约 **12 PASS／0 FAIL／
+0 SKIP**。双轴合并评审：Spec 精确无越权（形状钉住待部署后 smoke 证实）；
+Standards 落档缺失与测试死分支已返修（本节＋CHANGELOG 事件随返修提交入库）。
+
+下一步：rv1 增量部署（单文件变更）后重发 review.request 验证真实复核腿，
+通过则继续 settle/close 收口 smoke。
