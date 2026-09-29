@@ -1,0 +1,24 @@
+{
+  "schema": "org-v2/cutover-increment-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "batch": "native-r1",
+  "capturedAt": "2026-09-29T05:43:24.772Z",
+  "stage": "deployed",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r4-d99cf616.json",
+    "sha256": "d99cf61611f425ec1b7c07d65e43a819bd2e063148e35b79b28341c87aaf5d5b",
+    "byteLength": 92764
+  },
+  "sourceCommit": "2ff7e321538a4c0e524208613197252f1f6805b7",
+  "sourceDigest": "545f3ac15d72b9321155e190789b3112ea9fa2b83f8beede18ae3e63e93c8226",
+  "filesVerified": 181,
+  "changedPaths": [
+    "lib/host-faces.js",
+    "lib/index.js",
+    "lib/native-session-rpc.js",
+    "scripts/host-contract-probe.mjs",
+    "tests/host-contract-gate.test.mjs",
+    "tests/rpc-envelope.test.mjs"
+  ],
+  "preservedFiles": 19
+}

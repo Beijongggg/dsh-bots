@@ -327,3 +327,62 @@ adapter 校验四个方法，不再用 selectModel 字符串残留代替原生�
 真实 host 于 05:26:41Z 按原有队列停滞时限将 smoke 转为 `waiting-user`，
 seq 2、waitingClass=escalation、resumeFrom=intake。该事件保留，修复后经
 既有用户命令恢复同一任务，不抹掉等待历史或改动简报、判据与必审点。
+
+### 2026-09-29 原生会话增量已部署，模型配置迁移仍阻断 smoke
+
+Standards 与 Spec 对 `8007875..2ff7e32` 的增量复审均为 0 发现，原先已关闭
+的发现保持关闭。源码提交 `2ff7e321538a4c0e524208613197252f1f6805b7` 经
+干净导出绑定计划 r4。沿原五项运行授权，于 05:43:23Z 排他备份五件旧部署
+文件，停止已核代际的 host 与双席，更新六件文件后重启。新增原生 adapter
+在旧部署中不存在。库外增量备份位于
+`/home/beijong/.dsh/backups/dsh-bots/org-v2-cutover-20260929T040232Z-native-r1/`。
+
+新 host 为 PID `98097`、start ticks `1456082`，双席由 host 通过私有 IPC
+启动。05:44:19Z 就绪通过，部署为 82 件运行文件及 99 件测试／规格资源，
+进程加载摘要为
+`545f3ac15d72b9321155e190789b3112ea9fa2b83f8beede18ae3e63e93c8226`。
+执行前后的台账前缀、instances 历史前缀、知识库及唤醒前邮件均已核验。
+
+`task.resume` 的合法目标不含 `intake`，因此经用户命令先恢复至 `triaged`
+再 `task.return` 至 `intake`，分别入账 seq 3、4。05:44:42Z 再次仅以
+`TK-20260929` 唤醒统筹，未重复立项或改验收。此次成功创建持久 session，
+随后 `SessionController.selectModel` 报
+`Select an available model before sending a message.`。05:51:37Z 诊断
+采集时 task 仍为 `intake`，会话的 turn/start、request/header、
+assistant/message、turn/end 均为 0；无真实模型回合或产出工件。
+
+根因已定位：双席 provider 仍在旧 `settings.yaml` 中，当前有效 patch 没有
+`llm-pi-ai` 配置。新版 SettingsForms 只迁移 `profile.home/settings.yaml`，
+不再使用旧 per-bot `settings.config.path` 重定向。原全局兼容文件由官方
+迁移流程改名为 `settings.yaml.imported`，224 字节、SHA-256
+`c4db01b4a90db8a9b86dd1fef29d94683f3d4d3f26950804e6b5dc7905358cff`，
+与原批准文件逐字节一致。此为已核实的宿主迁移行为，不重新创建或覆盖该文件。
+
+新增不可覆盖凭据如下，旧包和原始归档保持只读。
+
+| 凭据 | 字节数 | SHA-256 |
+|---|---:|---|
+| [计划 r4](../../../artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r4-d99cf616.json) | 92,764 | `d99cf61611f425ec1b7c07d65e43a819bd2e063148e35b79b28341c87aaf5d5b` |
+| [原生修复 preflight](../../../artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-native-r1-preflight-b2ba53f2.log) | 180,096 | `b2ba53f2a79af675ea75296a91e8c4ac161761f1eea1e3bbad13d4bec0e2c97e` |
+| [增量执行脚本](../../../artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-native-r1-executor-44d14c66.mjs) | 15,688 | `44d14c66d591abdd6e777826f3d9a6544669df7eaa785e0489a7799368357363` |
+| [备份核验](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-native-r1-backup-verified-a06dcb3f.json) | 1,946 | `a06dcb3fa104407666e79f33ac8f14eef7cb8ef1aaf950feb9205e3f1e5910d4` |
+| [停止记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-native-r1-quiesced-b411fb17.json) | 862 | `b411fb17aec14ec298a0611762a09f86956a97e3a229e1a1574e7076d75ebb9d` |
+| [部署记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-native-r1-deployed-7a885c18.json) | 824 | `7a885c189464860a7389ecda409b30dc9e25a1d2b64c80f643bbb6d03fade950` |
+| [启动记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-native-r1-started-3083abf1.json) | 702 | `3083abf1d9126b440b5154f288aeeb1521d55d4ef3629301e9c7b5b374199c11` |
+| [增量就绪](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-native-r1-readiness-36bb27b6.json) | 89,905 | `36bb27b611461e3043cf565b9ff4333db97bd6f15e3314e3b8e9426617c26d4c` |
+| [恢复命令](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-task-resume-1b9d4e39.json) | 3,271 | `1b9d4e398143f4a94fc21a435754ddc9d8cac1f7e86fc9a8832f693a1f91a907` |
+| [退回收单](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-task-return-00dd51f9.json) | 3,448 | `00dd51f9dc97b52db7a35408f1226d96f6de38b22695796ef5a83b6fc7e32fb1` |
+| [再次唤醒](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-wake-triage-retry-native-r1-d2e1bba7.json) | 594 | `d2e1bba7a9e298e48ca0450e547c916a0cff4468fe6bab7834ec8ccc17aeb362` |
+| [模型配置阻断](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-model-blocked-53e4beec.json) | 5,565 | `53e4beec400ba420c261d3318de5f3bde800388a193605f305f2452241e79293` |
+
+### 2026-09-29 用户裁定模型配置细节按可变配置处理
+
+针对已提出的「bot profile 生成与宿主配置读取」补充测试接缝，用户要求模型
+配置细节宽松处理，避免固定细节导致原配置变动后比对报错。据此继续此接缝的
+TDD 修复。供应商、型号与模型参数按当前配置读取，用户有效配置优先，保留
+可变字段；测试和探针验证宿主能读取配置及提供模型，不将本批某个固定模型
+值或旧配置全文作为永久门槛。实际调用所用的模型仍须记录。
+
+该裁定不改变岗位、权限、实例代际和已冻结 smoke 简报、判据与必审点，也不
+授权代理另选模型。原五项运行授权持续有效，回滚决定权仍归用户。配置修复
+尚未实施；本票继续等待真实 smoke 与最终切换证据，不记验收通过。

@@ -1,0 +1,55 @@
+{
+  "schema": "org-v2/cutover-increment-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "batch": "native-r1",
+  "capturedAt": "2026-09-29T05:43:23.834Z",
+  "stage": "backup-verified",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r4-d99cf616.json",
+    "sha256": "d99cf61611f425ec1b7c07d65e43a819bd2e063148e35b79b28341c87aaf5d5b",
+    "byteLength": 92764
+  },
+  "executor": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-native-r1-executor-44d14c66.mjs",
+    "sha256": "44d14c66d591abdd6e777826f3d9a6544669df7eaa785e0489a7799368357363",
+    "byteLength": 15688
+  },
+  "backup": {
+    "path": "/home/beijong/.dsh/backups/dsh-bots/org-v2-cutover-20260929T040232Z-native-r1",
+    "files": [
+      {
+        "path": "plugins/dsh-bots/lib/host-faces.js",
+        "sha256": "3b8f1358d9ab7ee822cf87373e376258fa78144fc9dd0c6c1e749aada9620658",
+        "byteLength": 16836,
+        "mode": "0644"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/index.js",
+        "sha256": "dad40c01cbb3db32ef0699aa0e4896a99fe5d799664df02b209806e2a61bc20c",
+        "byteLength": 147118,
+        "mode": "0644"
+      },
+      {
+        "path": "plugins/dsh-bots/scripts/host-contract-probe.mjs",
+        "sha256": "9040330e13f113b758ee4a69f888b4be4f92441b15b718b86da25d45bfa7bce7",
+        "byteLength": 56052,
+        "mode": "0644"
+      },
+      {
+        "path": "plugins/dsh-bots/tests/host-contract-gate.test.mjs",
+        "sha256": "77b9aa020a4f6daea37ea3c7564709bd78bd9ba4ca50d8c336815fb3b2780e33",
+        "byteLength": 28457,
+        "mode": "0644"
+      },
+      {
+        "path": "plugins/dsh-bots/tests/rpc-envelope.test.mjs",
+        "sha256": "c702bb1db3937fb2aff56cdb9fcecc2cb6b63918126684679cd5b33bb15ad434",
+        "byteLength": 4916,
+        "mode": "0644"
+      }
+    ],
+    "absentBefore": [
+      "plugins/dsh-bots/lib/native-session-rpc.js"
+    ]
+  }
+}

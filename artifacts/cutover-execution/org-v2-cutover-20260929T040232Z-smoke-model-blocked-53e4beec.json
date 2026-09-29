@@ -1,0 +1,156 @@
+{
+  "schema": "org-v2/cutover-model-diagnosis@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T05:51:37.839Z",
+  "plan": {
+    "path": "/home/beijong/project/dsh-bots/artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r4-d99cf616.json",
+    "sha256": "d99cf61611f425ec1b7c07d65e43a819bd2e063148e35b79b28341c87aaf5d5b",
+    "byteLength": 92764
+  },
+  "sourceCommit": "2ff7e321538a4c0e524208613197252f1f6805b7",
+  "task": {
+    "taskId": "TK-20260929",
+    "class": "project",
+    "status": "intake",
+    "owner": null,
+    "dispatcher": null,
+    "lease": {
+      "acceptBy": null,
+      "expiresAt": null,
+      "heartbeats": 0
+    },
+    "dispatchCount": 0,
+    "brief": {
+      "goal": "用真实双席完成一条预登记任务的收单、派单、登记工件、独立复核与结算。",
+      "deliverables": [
+        {
+          "format": "markdown",
+          "location": "bots/knowledge/reports/R-2026-010.md"
+        }
+      ],
+      "sources": [
+        {
+          "tool": "user",
+          "ref": "org-v2-cutover-20260929T040232Z:brief"
+        }
+      ],
+      "boundaries": "仅经组织命令提交工件与状态，不直接写 ~/.dsh；不改产品、部署、冻结件或旧知识条目。报告简述实际完成的动作并含本批标记。",
+      "acceptance": [
+        {
+          "probe": "fs.contains",
+          "args": {
+            "location": "bots/knowledge/reports/R-2026-010.md",
+            "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+          }
+        }
+      ],
+      "reviewPoints": [
+        "before-external-visibility"
+      ]
+    },
+    "acceptance": [
+      {
+        "probe": "fs.contains",
+        "args": {
+          "location": "bots/knowledge/reports/R-2026-010.md",
+          "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+        }
+      }
+    ],
+    "routineId": null,
+    "window": null,
+    "supersedesTaskId": null,
+    "parentTaskId": null,
+    "createdAt": "2026-09-29T04:56:40.755Z",
+    "updatedAt": "2026-09-29T05:44:42.436Z",
+    "lastSeq": 4,
+    "resumeFrom": null,
+    "waitingClass": null,
+    "escalationCause": null,
+    "lastRejection": null
+  },
+  "failures": [
+    {
+      "from": "bot",
+      "timestamp": "2026-09-29T05:44:43.113Z",
+      "text": "[bot error] Select an available model before sending a message."
+    }
+  ],
+  "models": [
+    {
+      "id": "duty-coordinator",
+      "pin": {
+        "provider": "niko",
+        "model": "gpt-5.6-sol"
+      },
+      "patch": {
+        "path": "/home/beijong/.dsh/profiles/duty-coordinator/cordis.patch.yml",
+        "sha256": "4270263f25815ae255fd6399003622e689159a0e418dc7f7c6d1ca4c649c0d43",
+        "byteLength": 1935
+      },
+      "settings": {
+        "path": "/home/beijong/.dsh/profiles/duty-coordinator/settings.yaml",
+        "sha256": "56116bc9aa3f04f9f59f574aa020edf844a3a6ab4862f75a708096ce80151bcd",
+        "byteLength": 265
+      },
+      "activePatchProviderNames": [],
+      "legacySettingsProviderNames": [
+        "niko"
+      ],
+      "sessionId": "session-e21b956a-bfcf-489c-8c3a-124958f085ab",
+      "sessionLog": {
+        "path": "/home/beijong/.dsh/sessions/--home-beijong-.dsh-bot-workspaces-duty-coordinator--/session-e21b956a-bfcf-489c-8c3a-124958f085ab/session.v4.jsonl.zstd",
+        "sha256": "51e537142b4bed72258c98382ab385bc5e10b86cd66895b6d0156e6f454e4bde",
+        "byteLength": 340,
+        "eventCounts": {
+          "turn/start": 0,
+          "request/header": 0,
+          "assistant/message": 0,
+          "turn/end": 0
+        }
+      }
+    },
+    {
+      "id": "implementer",
+      "pin": {
+        "provider": "niko",
+        "model": "gpt-5.6-sol"
+      },
+      "patch": {
+        "path": "/home/beijong/.dsh/profiles/implementer/cordis.patch.yml",
+        "sha256": "3dc20abf661fb8cb40bc563187f2dbef77fadd50f2d2251c1703acf99334b87f",
+        "byteLength": 1160
+      },
+      "settings": {
+        "path": "/home/beijong/.dsh/profiles/implementer/settings.yaml",
+        "sha256": "56116bc9aa3f04f9f59f574aa020edf844a3a6ab4862f75a708096ce80151bcd",
+        "byteLength": 265
+      },
+      "activePatchProviderNames": [],
+      "legacySettingsProviderNames": [
+        "niko"
+      ],
+      "sessionId": null,
+      "sessionLog": null
+    }
+  ],
+  "importedGlobalSettings": {
+    "path": "/home/beijong/.dsh/settings.yaml.imported",
+    "sha256": "c4db01b4a90db8a9b86dd1fef29d94683f3d4d3f26950804e6b5dc7905358cff",
+    "byteLength": 224
+  },
+  "officialSources": [
+    {
+      "path": "/usr/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-settings/lib/index.js",
+      "sha256": "9432b872597b7a31473072eb38a55979ab23375c76bd1d86d751388a692a0136",
+      "byteLength": 22636
+    },
+    {
+      "path": "/usr/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-api-session-controller/lib/index.js",
+      "sha256": "fb0f7b96130f595db20809eeb77a195b05f4a039f931d1e67692f1f74a4dd269",
+      "byteLength": 124151
+    }
+  ],
+  "finding": "Native session creation succeeded. SessionController.selectModel rejects before prompt because the assigned provider is absent from the active profile. Legacy per-bot settings still contain niko; current SettingsForms imports only profile.home/settings.yaml and ignores the legacy settings.config.path redirection.",
+  "nextAction": "Confirm the bot-profile generation and host-configuration test seam, then copy the existing provider configuration into the current profile contract through both scaffold paths. Preserve model, permissions, task and acceptance."
+}

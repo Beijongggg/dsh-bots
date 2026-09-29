@@ -1,0 +1,35 @@
+{
+  "schema": "org-v2/cutover-increment-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "batch": "native-r1",
+  "capturedAt": "2026-09-29T05:43:24.745Z",
+  "stage": "quiesced",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r4-d99cf616.json",
+    "sha256": "d99cf61611f425ec1b7c07d65e43a819bd2e063148e35b79b28341c87aaf5d5b",
+    "byteLength": 92764
+  },
+  "stopped": [
+    {
+      "pid": 62405,
+      "pidStartTicks": "1164488",
+      "profile": "web",
+      "port": 3100,
+      "signal": "SIGTERM"
+    },
+    {
+      "pid": 62481,
+      "pidStartTicks": "1164720",
+      "profile": "duty-coordinator",
+      "port": 3101,
+      "signal": "SIGTERM"
+    },
+    {
+      "pid": 62639,
+      "pidStartTicks": "1164873",
+      "profile": "implementer",
+      "port": 3102,
+      "signal": "SIGTERM"
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "schema": "org-v2/cutover-smoke-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T05:44:42.447Z",
+  "stage": "smoke-task-return",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r4-d99cf616.json",
+    "sha256": "d99cf61611f425ec1b7c07d65e43a819bd2e063148e35b79b28341c87aaf5d5b",
+    "byteLength": 92764
+  },
+  "taskId": "TK-20260929",
+  "input": {
+    "op": "task.return",
+    "taskId": "TK-20260929",
+    "actor": {
+      "kind": "user",
+      "id": "user"
+    },
+    "idempotencyKey": "org-v2-cutover-20260929T040232Z:task.return",
+    "payload": {
+      "reason": "Native session compatibility repaired; return the original task to the coordinator for actual triage."
+    },
+    "expectedStatus": "triaged",
+    "expectedSeq": 3
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "taskId": "TK-20260929",
+      "status": "intake",
+      "seq": 4,
+      "task": {
+        "taskId": "TK-20260929",
+        "class": "project",
+        "status": "intake",
+        "owner": null,
+        "dispatcher": null,
+        "lease": {
+          "acceptBy": null,
+          "expiresAt": null,
+          "heartbeats": 0
+        },
+        "dispatchCount": 0,
+        "brief": {
+          "goal": "用真实双席完成一条预登记任务的收单、派单、登记工件、独立复核与结算。",
+          "deliverables": [
+            {
+              "format": "markdown",
+              "location": "bots/knowledge/reports/R-2026-010.md"
+            }
+          ],
+          "sources": [
+            {
+              "tool": "user",
+              "ref": "org-v2-cutover-20260929T040232Z:brief"
+            }
+          ],
+          "boundaries": "仅经组织命令提交工件与状态，不直接写 ~/.dsh；不改产品、部署、冻结件或旧知识条目。报告简述实际完成的动作并含本批标记。",
+          "acceptance": [
+            {
+              "probe": "fs.contains",
+              "args": {
+                "location": "bots/knowledge/reports/R-2026-010.md",
+                "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+              }
+            }
+          ],
+          "reviewPoints": [
+            "before-external-visibility"
+          ]
+        },
+        "acceptance": [
+          {
+            "probe": "fs.contains",
+            "args": {
+              "location": "bots/knowledge/reports/R-2026-010.md",
+              "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+            }
+          }
+        ],
+        "routineId": null,
+        "window": null,
+        "supersedesTaskId": null,
+        "parentTaskId": null,
+        "createdAt": "2026-09-29T04:56:40.755Z",
+        "updatedAt": "2026-09-29T05:44:42.436Z",
+        "lastSeq": 4,
+        "resumeFrom": null,
+        "waitingClass": null,
+        "escalationCause": null,
+        "lastRejection": null
+      },
+      "event": {
+        "seq": 4,
+        "eventId": "mum94xc4-06493691",
+        "type": "return",
+        "at": "2026-09-29T05:44:42.436Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 2,
+        "reason": "Native session compatibility repaired; return the original task to the coordinator for actual triage.",
+        "eventHash": "4d4cc0ed82873d5a3b32c4c2507fa22cd32e67122b8109bdefd5f0c78621098b"
+      }
+    }
+  }
+}
