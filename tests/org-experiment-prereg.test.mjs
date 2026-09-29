@@ -20,9 +20,10 @@ import assert from "node:assert/strict";
 
 import { LEDGER_COMMAND_OPS } from "../lib/org/op-set.js";
 import {
-  COST_TOKEN_COMPONENTS, EXPERIMENT_MECHANISMS, MECHANISM_IDS, ORG_COMMAND_OPS,
+  EXPERIMENT_MECHANISMS, MECHANISM_IDS, ORG_COMMAND_OPS, THRESHOLD_KEYS,
   admitBareSet, freezePreregistration, preregistrationUnchanged, validatePreregistration
 } from "../lib/org/experiment-prereg.js";
+import { COST_TOKEN_COMPONENTS } from "../lib/org/experiment-shape.js";
 import { ORG_OPS, bareRun, briefFor, preregFixture } from "./helpers/prereg-fixture.mjs";
 
 /** 违例串里点名某词（用例读法统一：不锁死整句措辞）。 */
@@ -104,22 +105,30 @@ test("顶层键封闭：预登记件之外的键即拒（防口径藏进侧门�
   assert.ok(names(verdict.violations, "note"));
 });
 
-test("数值门槛属用户域：未填即判缺口、非正数即违例（均 fail closed，不发明数值）", () => {
-  const unregistered = validatePreregistration(preregFixture({ thresholds: { budgetB: null, magnitudeMultiple: null } }));
+test("数值门槛属用户域：规格点名的五项未填即判缺口、非正数即违例（均 fail closed，不发明数值）", () => {
+  const blank = Object.fromEntries(THRESHOLD_KEYS.map((key) => [key, null]));
+  const unregistered = validatePreregistration(preregFixture({ thresholds: blank }));
   assert.equal(unregistered.ok, false);
   assert.deepEqual(unregistered.violations, []);
-  assert.ok(names(unregistered.gaps, "budgetB"));
+  // 规格 §Testing Decisions：绝对预算 B、量级倍数、重派封顶、初审与越权阈值逐条点名
+  assert.deepEqual([...THRESHOLD_KEYS], ["budgetB", "magnitudeMultiple", "redispatchCap", "reviewRoundsToEscalate", "unauthorizedAttempts"]);
+  for (const key of THRESHOLD_KEYS) assert.ok(names(unregistered.gaps, key), `缺口须点名 ${key}`);
   assert.ok(names(unregistered.gaps, "用户域"));
 
-  const nonPositive = validatePreregistration(preregFixture({ thresholds: { budgetB: 0, magnitudeMultiple: -1 } }));
+  const nonPositive = validatePreregistration(preregFixture({
+    thresholds: { budgetB: 0, magnitudeMultiple: -1, redispatchCap: 0, reviewRoundsToEscalate: null, unauthorizedAttempts: 3 }
+  }));
   assert.equal(nonPositive.ok, false);
   assert.ok(names(nonPositive.violations, "budgetB") && names(nonPositive.violations, "magnitudeMultiple"));
+  assert.ok(names(nonPositive.violations, "redispatchCap"));
+  assert.ok(names(nonPositive.gaps, "reviewRoundsToEscalate"));
+  assert.equal(names(nonPositive.gaps, "unauthorizedAttempts"), false, "填了的项不进缺口");
 });
 
 test("两臂预算同属用户域：未填即缺口（只判缺口不判违例），填了非正数才是违例", () => {
   const base = preregFixture();
   const blank = validatePreregistration(preregFixture({
-    thresholds: { budgetB: null, magnitudeMultiple: null },
+    thresholds: { budgetB: null, magnitudeMultiple: null, redispatchCap: null, reviewRoundsToEscalate: null, unauthorizedAttempts: null },
     profiles: {
       bare: { ...base.profiles.bare, budgetB: null },
       org: { ...base.profiles.org, budgetB: null }
@@ -186,30 +195,38 @@ test("对照口径：同模型、同基础工具面、无组织命令 op、无�
 });
 
 test("冻结：非法件拒冻（fail closed）；合法件摘要对键序稳定、内容改动即变", () => {
-  const refused = freezePreregistration(preregFixture({ thresholds: { budgetB: null, magnitudeMultiple: null } }));
+  const refused = freezePreregistration(preregFixture({
+    thresholds: { budgetB: null, magnitudeMultiple: null, redispatchCap: null, reviewRoundsToEscalate: null, unauthorizedAttempts: null }
+  }));
   assert.equal(refused.ok, false);
-  assert.equal(refused.digest, null);
+  assert.equal(refused.record, null);
   assert.ok(names(refused.gaps, "budgetB"));
 
   const first = freezePreregistration(preregFixture());
   assert.equal(first.ok, true);
-  assert.match(first.digest, /^[a-f0-9]{64}$/);
-  assert.match(first.frozenAt, /^\d{4}-\d{2}-\d{2}T/);
+  assert.match(first.record.digest, /^[a-f0-9]{64}$/);
+  assert.match(first.record.frozenAt, /^\d{4}-\d{2}-\d{2}T/);
+  assert.equal(first.record.experimentId, preregFixture().experimentId);
 
   // 键序不同＝同摘要（canonical JSON）；门槛改动＝新摘要
   const reordered = preregFixture();
   const shuffled = { costMetrics: reordered.costMetrics, thresholds: reordered.thresholds, profiles: reordered.profiles, tasks: reordered.tasks, experimentId: reordered.experimentId, schemaVersion: reordered.schemaVersion };
-  assert.equal(freezePreregistration(shuffled).digest, first.digest);
+  assert.equal(freezePreregistration(shuffled).record.digest, first.record.digest);
 
-  const changed = freezePreregistration(preregFixture({ thresholds: { budgetB: 500000, magnitudeMultiple: 4 } }));
-  assert.notEqual(changed.digest, first.digest);
+  const changed = freezePreregistration(preregFixture({
+    thresholds: { budgetB: 500000, magnitudeMultiple: 4, redispatchCap: 3, reviewRoundsToEscalate: 2, unauthorizedAttempts: 3 }
+  }));
+  assert.notEqual(changed.record.digest, first.record.digest);
 });
 
 test("跑完未改：摘要同即过；门槛或任务集改动即拒并点名 prereg-mutated", () => {
   const frozen = freezePreregistration(preregFixture());
-  assert.deepEqual(preregistrationUnchanged(preregFixture(), frozen.digest), { ok: true, digest: frozen.digest });
+  assert.deepEqual(preregistrationUnchanged(preregFixture(), frozen.record.digest), { ok: true, digest: frozen.record.digest });
 
-  const mutated = preregistrationUnchanged(preregFixture({ thresholds: { budgetB: 800000, magnitudeMultiple: 4 } }), frozen.digest);
+  const mutated = preregistrationUnchanged(
+    preregFixture({ thresholds: { budgetB: 800000, magnitudeMultiple: 4, redispatchCap: 3, reviewRoundsToEscalate: 2, unauthorizedAttempts: 3 } }),
+    frozen.record.digest
+  );
   assert.equal(mutated.ok, false);
   assert.equal(mutated.code, "prereg-mutated");
   assert.match(mutated.digest, /^[a-f0-9]{64}$/);

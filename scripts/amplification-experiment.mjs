@@ -11,13 +11,16 @@
  *   node scripts/amplification-experiment.mjs validate --prereg <件>
  *   node scripts/amplification-experiment.mjs freeze   --prereg <件> [--out <冻结记录>]
  *   node scripts/amplification-experiment.mjs verify   --prereg <件> --digest <64hex>
- *   node scripts/amplification-experiment.mjs verdict  --prereg <件> --digest <64hex> --runs <两臂跑分>
+ *   node scripts/amplification-experiment.mjs verdict  --prereg <件> --frozen <冻结记录> --runs <两臂跑分>
  *                                                       [--artifacts <增量包绑定数组>]
+ *                                                       --task-id <TK-…> --actor <kind:id> --idempotency-key <键>
  *
  * 退出码：0＝通过（`validate` 合法／`verify` 未改／`verdict` 判定通过）；
- *         1＝**有结论的拒绝**（预登记不合法、已改、判定不通过；报告照出）；
- *         2＝用法或前置错误（未知命令／缺参／路径不可读／JSON 非法）。
- * 写盘只在显式 `--out`（冻结记录）一处；其余路径零写入。
+ *         1＝**有结论的拒绝**（预登记不合法、已改、判定不通过、冻结记录已存在；
+ *         报告照出）；2＝用法或前置错误（未知命令／缺参／路径不可读／JSON 非法）。
+ *
+ * 写盘只在显式 `--out` 一处，且**排他创建**（已存在即拒——冻结件不覆盖不重写，
+ * `AGENTS.md` §3）；其余路径零写入。
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -25,20 +28,20 @@ import { resolve } from "node:path";
 import { freezePreregistration, preregistrationUnchanged, validatePreregistration } from "../lib/org/experiment-prereg.js";
 import { experimentRecords, judgeExperiment } from "../lib/org/experiment-verdict.js";
 
-const USAGE = "用法：amplification-experiment.mjs <validate|freeze|verify|verdict> --prereg <件> [--digest <64hex>] [--runs <两臂跑分>] [--artifacts <增量包绑定数组>] [--out <冻结记录>]";
+const USAGE = "用法：amplification-experiment.mjs <validate|freeze|verify|verdict> --prereg <件> [--frozen <冻结记录>] [--digest <64hex>] [--runs <两臂跑分>] [--artifacts <增量包绑定数组>] [--task-id <TK-…>] [--actor <kind:id>] [--idempotency-key <键>] [--out <冻结记录>]";
 const COMMANDS = ["validate", "freeze", "verify", "verdict"];
 /** 每个命令允许的选项（未列出的选项＝用法错误；缺值同判）。 */
 const ALLOWED = Object.freeze({
   validate: ["--prereg"],
   freeze: ["--prereg", "--out"],
   verify: ["--prereg", "--digest"],
-  verdict: ["--prereg", "--digest", "--runs", "--artifacts"]
+  verdict: ["--prereg", "--frozen", "--runs", "--artifacts", "--task-id", "--actor", "--idempotency-key"]
 });
 const REQUIRED = Object.freeze({
   validate: ["--prereg"],
   freeze: ["--prereg"],
   verify: ["--prereg", "--digest"],
-  verdict: ["--prereg", "--digest", "--runs"]
+  verdict: ["--prereg", "--frozen", "--runs", "--task-id", "--actor", "--idempotency-key"]
 });
 
 /** 机器可读报告 + 退出码（一切路径都出 JSON，空 stdout 等于调用方无法归因）。 */
@@ -78,6 +81,12 @@ function readJson(path) {
   }
 }
 
+/** `kind:id` 形状的 actor（台账 actor 三值封闭；形状不合即用法错误）。 */
+function parseActor(raw) {
+  const match = /^(host|user|post):(\S+)$/.exec(String(raw));
+  return match === null ? { error: `--actor 须为 <host|user|post>:<id>（收到 ${String(raw)}）` } : { value: { kind: match[1], id: match[2] } };
+}
+
 const [, , rawCommand, ...argv] = process.argv;
 if (rawCommand === undefined || !COMMANDS.includes(rawCommand)) {
   usageError(rawCommand ?? null, `命令须为 ${COMMANDS.join("／")} 之一（收到 ${String(rawCommand)}）`);
@@ -100,22 +109,19 @@ if (rawCommand === "freeze") {
   const report = {
     command: "freeze",
     ok: frozen.ok,
-    digest: frozen.digest,
-    frozenAt: frozen.frozenAt,
-    experimentId: prereg?.experimentId ?? null,
+    record: frozen.record,
     violations: frozen.violations,
     gaps: frozen.gaps
   };
   if (frozen.ok && options["--out"] !== undefined) {
     const outPath = resolve(options["--out"]);
-    report.frozenRecord = outPath;
-    writeFileSync(outPath, `${JSON.stringify({
-      schemaVersion: prereg.schemaVersion,
-      experimentId: prereg.experimentId,
-      digest: frozen.digest,
-      frozenAt: frozen.frozenAt,
-      preregPath: resolve(options["--prereg"])
-    }, null, 2)}\n`, "utf8");
+    try {
+      // 排他创建：冻结记录已存在即拒（不覆盖不重写），避免「同一路径换一份冻结」
+      writeFileSync(outPath, `${JSON.stringify({ ...frozen.record, preregPath: resolve(options["--prereg"]) }, null, 2)}\n`, { encoding: "utf8", flag: "wx" });
+      report.frozenRecord = outPath;
+    } catch (error) {
+      emit(1, { ...report, ok: false, frozenRecord: outPath, error: `冻结记录写入失败（排他创建）：${error.message}` });
+    }
   }
   emit(frozen.ok ? 0 : 1, report);
 }
@@ -133,16 +139,28 @@ if (rawCommand === "verify") {
 }
 
 // verdict
+const frozenFile = readJson(options["--frozen"]);
+if (frozenFile.error !== undefined) usageError("verdict", frozenFile.error);
 const runsFile = readJson(options["--runs"]);
 if (runsFile.error !== undefined) usageError("verdict", runsFile.error);
+const actor = parseActor(options["--actor"]);
+if (actor.error !== undefined) usageError("verdict", actor.error);
 let artifacts = [];
 if (options["--artifacts"] !== undefined) {
   const artifactsFile = readJson(options["--artifacts"]);
   if (artifactsFile.error !== undefined) usageError("verdict", artifactsFile.error);
   artifacts = artifactsFile.value;
 }
-const verdict = judgeExperiment({ prereg, frozen: options["--digest"], runs: runsFile.value });
-const records = experimentRecords({ prereg, frozen: options["--digest"], verdict, artifacts });
+const verdict = judgeExperiment({ prereg, frozen: frozenFile.value, runs: runsFile.value });
+const records = experimentRecords({
+  prereg,
+  frozen: frozenFile.value,
+  verdict,
+  artifacts,
+  taskId: options["--task-id"],
+  actor: actor.value,
+  idempotencyKey: options["--idempotency-key"]
+});
 emit(verdict.ok && verdict.passed ? 0 : 1, {
   command: "verdict",
   ok: verdict.ok && verdict.passed,

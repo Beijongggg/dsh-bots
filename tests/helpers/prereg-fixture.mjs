@@ -1,13 +1,11 @@
 /**
  * 放大验收实验（17 号票）预登记件与运行记录的测试共用夹具。
  *
- * 单一事实源：各用例在 `VALID_PREREG` 之上做单点破坏。夹具里的 op 名与工具名
+ * 单一事实源：各用例在 `preregFixture()` 之上做单点破坏。夹具里的 op 名与工具名
  * 是**手工抄的仓内真实词**（不是从被测模块 import 的）——这样「裸侧持组织命令
  * op 即拒」等用例才有红的意义；被测模块的组织命令词表另由
  * `tests/org-experiment-prereg.test.mjs` 与 `lib/org/op-set.js` 单源对账锁定。
  */
-import { VALID_BRIEF } from "./brief-fixture.mjs";
-
 /** 一条真能表达为探针白名单命令的验收判据（坐标＝任务自己的交付物）。 */
 function executableAcceptance(location, text) {
   return [{ probe: "fs.contains", args: { location, text } }];
@@ -51,7 +49,13 @@ export function preregFixture(overrides = {}) {
       bare: { model: "niko/gpt-5.6-sol", baseTools: [...BASE_TOOLS], ops: [], scaffolding: [], budgetB: 400000 },
       org: { model: "niko/gpt-5.6-sol", baseTools: [...BASE_TOOLS], ops: [...ORG_OPS], scaffolding: ["task-ledger", "review-kit"], budgetB: 400000 }
     },
-    thresholds: { budgetB: 400000, magnitudeMultiple: 4 },
+    thresholds: {
+      budgetB: 400000,
+      magnitudeMultiple: 4,
+      redispatchCap: 3,
+      reviewRoundsToEscalate: 2,
+      unauthorizedAttempts: 3
+    },
     costMetrics: {
       tokens: ["uncachedInputTokens", "outputTokens", "cacheReadTokens", "cacheWriteTokens"],
       wallClock: "wallClockMs",
@@ -74,4 +78,49 @@ export function bareRun(taskId, outcome = "failed", overrides = {}) {
   };
 }
 
-export { VALID_BRIEF };
+/** 一条会话日志：恰一组 usage 样本（token 总量按分量给；官方会话日志形状）。 */
+export function sessionOf(tokens = {}) {
+  const { input = 0, output = 0, cacheRead = 0, cacheWrite = 0 } = tokens;
+  return {
+    sessionId: "s-1",
+    events: [
+      {
+        type: "assistant/chunk",
+        time: 1000,
+        data: { turn: 1, step: 1, chunk: { type: "usage", usage: { inputTokens: input, outputTokens: output, cacheReadTokens: cacheRead, cacheWriteTokens: cacheWrite } } }
+      },
+      { type: "step/end", time: 2000, data: { turn: 1, step: 1 } }
+    ]
+  };
+}
+
+/**
+ * 运行记录：判据逐条沿用简报登记件（`V-B3`）；`acceptance` 可整体替换做负例。
+ * 两臂共用同一形状，`failureReason` 在判不过时必填（记录面 fail closed）。
+ */
+export function runRecord(taskId, arm, { at, outcome = "passed", acceptance, tokens = { input: 100 }, failureReason } = {}) {
+  const task = ABLATION_TASKS.find((entry) => entry.taskId === taskId);
+  return {
+    runId: `run-${arm}-${taskId}`,
+    taskId,
+    arm,
+    at,
+    startedAt: "2026-09-30T02:00:00.000Z",
+    endedAt: "2026-09-30T02:05:00.000Z",
+    outcome,
+    ...(failureReason === undefined ? {} : { failureReason }),
+    acceptance: acceptance ?? task.brief.acceptance.map((entry) => ({ ...entry, ok: outcome === "passed", reason: outcome === "passed" ? null : "未产出合格件" })),
+    sessions: [sessionOf(tokens)]
+  };
+}
+
+/** 三任务两臂的合法跑分：裸对照先跑且失败入集，组织内在预算内通过。 */
+export function greenRuns() {
+  const bare = ABLATION_TASKS.map((task) => runRecord(task.taskId, "bare", {
+    at: "2026-09-30T03:00:00.000Z",
+    outcome: "failed",
+    failureReason: "裸实例超预算未产出合格判据"
+  }));
+  const org = ABLATION_TASKS.map((task) => runRecord(task.taskId, "org", { at: "2026-09-30T04:00:00.000Z" }));
+  return [...bare, ...org];
+}

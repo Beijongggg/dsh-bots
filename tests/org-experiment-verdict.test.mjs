@@ -18,58 +18,20 @@ import assert from "node:assert/strict";
 
 import { freezePreregistration } from "../lib/org/experiment-prereg.js";
 import { experimentRecords, judgeExperiment } from "../lib/org/experiment-verdict.js";
-import { ABLATION_TASKS, bareRun, preregFixture } from "./helpers/prereg-fixture.mjs";
+import { ABLATION_TASKS, greenRuns, preregFixture, runRecord, sessionOf } from "./helpers/prereg-fixture.mjs";
 
 const names = (lines, needle) => lines.some((line) => line.includes(needle));
 
-/** 一条会话日志：恰一组 usage 样本（token 总量按分量给）。 */
-function sessionOf(tokens = {}) {
-  const { input = 0, output = 0, cacheRead = 0, cacheWrite = 0 } = tokens;
-  return {
-    sessionId: "s-1",
-    events: [
-      {
-        type: "assistant/chunk",
-        time: 1000,
-        data: { turn: 1, step: 1, chunk: { type: "usage", usage: { inputTokens: input, outputTokens: output, cacheReadTokens: cacheRead, cacheWriteTokens: cacheWrite } } }
-      },
-      { type: "step/end", time: 2000, data: { turn: 1, step: 1 } }
-    ]
-  };
-}
-
-/** 运行记录：判据逐条沿用简报登记件（`V-B3`），可整体改判据做负例。 */
-function runRecord(taskId, arm, { at, outcome = "passed", acceptance, tokens = { input: 100 }, failureReason } = {}) {
-  const task = ABLATION_TASKS.find((entry) => entry.taskId === taskId);
-  return {
-    runId: `run-${arm}-${taskId}`,
-    taskId,
-    arm,
-    at,
-    startedAt: "2026-09-30T02:00:00.000Z",
-    endedAt: "2026-09-30T02:05:00.000Z",
-    outcome,
-    ...(failureReason === undefined ? {} : { failureReason }),
-    acceptance: acceptance ?? task.brief.acceptance.map((entry) => ({ ...entry, ok: outcome === "passed", reason: outcome === "passed" ? null : "未产出合格件" })),
-    sessions: [sessionOf(tokens)]
-  };
-}
-
-/** 三任务两臂的合法跑分：裸对照先跑且失败入集，组织内在预算内通过。 */
-function greenRuns() {
-  const bare = ABLATION_TASKS.map((task) => runRecord(task.taskId, "bare", {
-    at: "2026-09-30T03:00:00.000Z",
-    outcome: "failed",
-    failureReason: "裸实例超预算未产出合格判据"
-  }));
-  const org = ABLATION_TASKS.map((task) => runRecord(task.taskId, "org", { at: "2026-09-30T04:00:00.000Z" }));
-  return [...bare, ...org];
-}
-
 function frozenFixture() {
   const prereg = preregFixture();
-  return { prereg, frozen: freezePreregistration(prereg) };
+  const frozen = freezePreregistration(prereg);
+  assert.equal(frozen.ok, true);
+  return { prereg, frozen: frozen.record };
 }
+
+/** 台账目标：结论记录须挂得回一张真任务（record `V-B6`）。 */
+const LEDGER_TARGET = Object.freeze({ taskId: "TK-17a00009", actor: { kind: "host", id: "web" }, idempotencyKey: "exp-17-verdict" });
+
 
 test("全绿：门槛已登记、预登记未改、裸先跑失败入集、组织内在预算内通过即判过（V-B6）", () => {
   const { prereg, frozen } = frozenFixture();
@@ -78,7 +40,8 @@ test("全绿：门槛已登记、预登记未改、裸先跑失败入集、组�
   assert.equal(verdict.passed, true);
   assert.deepEqual(verdict.reasons, []);
   assert.equal(verdict.preregDigest, frozen.digest);
-  assert.deepEqual(verdict.thresholds, { budgetB: 400000, magnitudeMultiple: 4 });
+  assert.equal(verdict.frozenAt, frozen.frozenAt);
+  assert.deepEqual(verdict.thresholds, { budgetB: 400000, magnitudeMultiple: 4, redispatchCap: 3, reviewRoundsToEscalate: 2, unauthorizedAttempts: 3 });
   assert.deepEqual(verdict.admission.admitted, ABLATION_TASKS.map((task) => task.taskId));
   assert.deepEqual(verdict.admission.excluded, []);
   const first = verdict.perTask[0];
@@ -90,7 +53,9 @@ test("全绿：门槛已登记、预登记未改、裸先跑失败入集、组�
 
 test("预登记已改即拒：冻结摘要与盘面不符时无结论可出（跑完不得改）", () => {
   const { frozen } = frozenFixture();
-  const mutated = preregFixture({ thresholds: { budgetB: 800000, magnitudeMultiple: 4 } });
+  const mutated = preregFixture({
+    thresholds: { budgetB: 800000, magnitudeMultiple: 4, redispatchCap: 3, reviewRoundsToEscalate: 2, unauthorizedAttempts: 3 }
+  });
   const verdict = judgeExperiment({ prereg: mutated, frozen, runs: greenRuns() });
   assert.equal(verdict.ok, false);
   assert.equal(verdict.passed, false);
@@ -156,6 +121,35 @@ test("组织内跑判据未过即判不过：判据不过不得靠归因或说�
   assert.ok(names(entry.reasons, "判据") || names(entry.reasons, "未通过"));
 });
 
+test("实验前冻结：冻结晚于跑分、或只给摘要没给冻结时点，一律无结论可出（fail closed）", () => {
+  const { prereg, frozen } = frozenFixture();
+  const late = { ...frozen, frozenAt: "2026-10-31T00:00:00.000Z" };
+  const after = judgeExperiment({ prereg, frozen: late, runs: greenRuns() });
+  assert.equal(after.ok, false);
+  assert.equal(after.passed, false);
+  assert.ok(names(after.reasons, "冻结"));
+
+  const digestOnly = judgeExperiment({ prereg, frozen: frozen.digest, runs: greenRuns() });
+  assert.equal(digestOnly.ok, false);
+  assert.ok(names(digestOnly.reasons, "冻结记录不成立"));
+});
+
+test("同任务同臂跑分唯一：多条即记录不成立，结论不得被记录顺序左右", () => {
+  const { prereg, frozen } = frozenFixture();
+  const task = ABLATION_TASKS[1];
+  const failing = { ...greenRuns().find((run) => run.taskId === task.taskId && run.arm === "org"), outcome: "failed", failureReason: "判据未过", acceptance: task.brief.acceptance.map((entry) => ({ ...entry, ok: false, reason: "未产出" })) };
+  const passing = greenRuns().find((run) => run.taskId === task.taskId && run.arm === "org");
+  const runs = greenRuns();
+  for (const extra of [
+    [...runs, failing],
+    [...runs, passing]
+  ]) {
+    const verdict = judgeExperiment({ prereg, frozen, runs: extra });
+    assert.equal(verdict.ok, false, "重复组织内跑分须判记录不成立");
+    assert.ok(names(verdict.reasons, "唯一"));
+  }
+});
+
 test("机制归因不进判定：判定面输入键封闭，归因数据进不来（V-B5）", () => {
   const { prereg, frozen } = frozenFixture();
   const withAttribution = judgeExperiment({
@@ -171,12 +165,15 @@ test("记录面：judgement 事实负载＋CHANGELOG 四要件＋增量包文件
   const { prereg, frozen } = frozenFixture();
   const verdict = judgeExperiment({ prereg, frozen, runs: greenRuns() });
   const records = experimentRecords({
-    prereg, frozen, verdict,
+    prereg, frozen, verdict, ...LEDGER_TARGET,
     artifacts: [{ path: "artifacts/runs/run-20260930/raw.json", sha256: "a".repeat(64), bytes: 1234 }]
   });
   assert.equal(records.ok, true);
   assert.equal(records.ledger.op, "task.judge");
   assert.equal(records.ledger.eventType, "judgement");
+  assert.equal(records.ledger.taskId, LEDGER_TARGET.taskId);
+  assert.deepEqual(records.ledger.actor, LEDGER_TARGET.actor);
+  assert.equal(records.ledger.idempotencyKey, LEDGER_TARGET.idempotencyKey);
   assert.equal(records.ledger.payload.intent, "amplification-experiment-verdict");
   assert.equal(records.ledger.payload.input.preregDigest, frozen.digest);
   assert.equal(records.ledger.payload.input.passed, true);
@@ -197,14 +194,20 @@ test("记录面：未过的实验一样留痕（两态都记），非法绑定�
     : run));
   const verdict = judgeExperiment({ prereg, frozen, runs });
   assert.equal(verdict.passed, false);
-  const records = experimentRecords({ prereg, frozen, verdict, artifacts: [] });
+  const records = experimentRecords({ prereg, frozen, verdict, ...LEDGER_TARGET, artifacts: [] });
   assert.equal(records.ok, true);
   assert.equal(records.ledger.payload.input.passed, false);
   assert.ok(records.changelog.change.includes("不通过") || records.changelog.change.includes("未通过"));
 
-  const badBinding = experimentRecords({ prereg, frozen, verdict, artifacts: [{ path: "x", sha256: "zz", bytes: 1 }] });
+  const badBinding = experimentRecords({ prereg, frozen, verdict, ...LEDGER_TARGET, artifacts: [{ path: "x", sha256: "zz", bytes: 1 }] });
   assert.equal(badBinding.ok, false);
   assert.ok(names(badBinding.violations, "sha256"));
+
+  // 台账腿必须挂得回一张真任务：任务号／actor／幂等键缺一即拒
+  for (const [key, value] of [["taskId", "task-9"], ["actor", { kind: "robot", id: "x" }], ["idempotencyKey", ""]]) {
+    const broken = experimentRecords({ prereg, frozen, verdict, ...LEDGER_TARGET, [key]: value, artifacts: [] });
+    assert.equal(broken.ok, false, `${key} 非法须拒`);
+  }
 });
 
 test("判不过的运行记录必带原因：缺原因即记录不成立，不得当「有结论的不过」", () => {
