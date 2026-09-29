@@ -1,0 +1,56 @@
+{
+  "schema": "org-v2/cutover-review-closure@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T17:03:55.201Z",
+  "issue": "org-v2-build/16",
+  "sourceReview": {
+    "baseline": "b4a1ca5348e4ec4e79cbb861430fe49b499256d6",
+    "revision": "a7e9091286ad9cdc49b5ca63894ac467127d2bf9",
+    "standardsOpen": 0,
+    "specOpen": 0,
+    "reviewers": {
+      "standards": {
+        "agent": "/root/standards_review",
+        "hardViolations": 0,
+        "judgmentItems": 0,
+        "result": "Existing review folding reused; regression covers closure after historical rejection and subsequent delivery; documentation and rv3 deployment executor follow repository rules."
+      },
+      "spec": {
+        "agent": "/root/spec_review",
+        "openItems": 0,
+        "result": "Ordinary ledger.read receives the event projection; projection and delivery gate share collectReviewState; lifecycle, review gates and authorization unchanged."
+      }
+    },
+    "scope": "Current increment through a7e9091, including the rv3 deployment executor; real delivery, settlement and closure remain unverified until executed."
+  },
+  "deploymentExecutor": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-rv3-executor-9ab6fa1b.mjs",
+    "sha256": "9ab6fa1beea9f8a58daf718dc9420462f8c6e6dfeea7540f7ca0c49dfa18d428",
+    "byteLength": 21245
+  },
+  "smokeExecutorReview": {
+    "standards": {
+      "agent": "/root/standards_review",
+      "openItems": 0,
+      "conclusion": "Host commands retain role responsibilities; source, brief and history bindings checked; evidence uses exclusive creation and redaction."
+    },
+    "spec": {
+      "agent": "/root/spec_review",
+      "initialOpenItems": 1,
+      "finalOpenItems": 0,
+      "finding": "The original executor checked the reviewed artifact digest only on the produced branch; direct delivered, settled or finish paths omitted it.",
+      "resolution": "artifactSnapshot now asserts the reviewed SHA-256 and 1146 bytes on every takeover and final capture; original axis confirmed closure.",
+      "supersededUnexecuted": {
+        "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-rv3-smoke-executor-9e702b14.mjs",
+        "sha256": "9e702b14c9fd618573fd3b6f933bf59adfcc45b5649398bb7949ed9f885bbf9f",
+        "byteLength": 12140
+      },
+      "approvedExecutor": {
+        "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-rv3-smoke-executor-229baab6.mjs",
+        "sha256": "229baab64cb103d4b72604af84ef77682aa1bdabcaa6099c027cf5e98d48e4b5",
+        "byteLength": 12453
+      }
+    }
+  },
+  "runtimeCompletionClaimed": false
+}

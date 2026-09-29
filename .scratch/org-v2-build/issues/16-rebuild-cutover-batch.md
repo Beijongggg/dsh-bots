@@ -15,11 +15,11 @@ bot workspaces／mail 与评审数据面）**归档至仓库归档目录后清�
 
 **Blocked by:** 01、12、14、15
 
-**Status:** ready-for-human
+**Status:** resolved
 
-- [ ] 切换点四条判据并行全绿：四道门 PASS／编制就绪探针 PASS／用户逐项点名授权到手／A 组坐标无空缺
+- [x] 切换点四条判据并行全绿：四道门 PASS／编制就绪探针 PASS／用户逐项点名授权到手／A 组坐标无空缺
 - [x] 旧四席撤销、v2 双席建立；非空注册表必有锚点在场
-- [ ] 就绪探针 PASS，且一次最小闭环 smoke 通过（收单→派单→实施→复核帽→结算）
+- [x] 就绪探针 PASS，且一次最小闭环 smoke 通过（收单→派单→实施→复核帽→结算）
 - [x] 旧席数据归档至仓库归档目录后清运行面（逐项点名）
 - [x] 回退面在位：库外部署件备份目录（带时戳、排他写、逐文件校验）＋ git 提交点
 - [x] 回滚决定权在用户、不演练
@@ -750,3 +750,57 @@ seq 61 成功闭合。工件仍为 1,146 字节、SHA-256
 接下来沿本票已确认基点 `b4a1ca5` 做 code-review 双轴复核，完成后以新计划 r10
 承接 r9，仅增量部署 `lib/org/task-ledger.js`、`lib/org/op-set.js` 和对应测试，
 继续原任务的交付、结算、关闭。本票仍为 `ready-for-human`，真实闭环验收框待续。
+
+### 2026-09-30 r10 增量部署与真实闭环完成，本票 resolved
+
+沿原五项运行授权与本次接手继续指令，完成双轴复核、r10 增量部署和原任务收口。
+`TK-20260929` 于 `2026-09-29T17:03:58.769Z` 进入 `closed`，最终 seq 71。
+切换点四条判据齐备，补勾最后两项验收框，本票由 `ready-for-human` 改为 `resolved`。
+
+评审基点仍为 `b4a1ca5348e4ec4e79cbb861430fe49b499256d6`，本轮重点为
+`6365c86..a7e9091`，源码终点为 `a7e9091286ad9cdc49b5ca63894ac467127d2bf9`。
+Standards 为 0 硬违例、0 判断项，Spec 为 0 开放项。补审 smoke 执行件时，Spec
+指出起始 delivered／settled 或直接 finish 路径会漏查已审工件摘要。返修把固定
+SHA-256 和 1,146 字节检查移入共用 `artifactSnapshot()`，覆盖接手与最终取证；
+原轴复验关闭，最终两轴开放项均为 0。旧执行件 `9e702b14` 留存且未执行，实际
+运行的是新冻结件 `229baab6`。完整处置与两件绑定见下列评审记录。
+
+r10 绑定上述提交，仅同步 `lib/org/op-set.js`、
+`lib/org/task-ledger.js`、`tests/task-ledger.test.mjs` 三件。先排他备份并逐件校验，
+再停止已绑定的 host／bot 代际，同步后由 host 拉起双席。两席仍为
+`duty-coordinator` 和 `implementer`，模型均为 `niko/gpt-5.6-sol`，锚点及权限
+配置保持。重启后 `/proc` 验得两个 bot 均带 `DSH_TOOLS_MODE=ptc`。
+仓库、源码导出与部署 183 件逐件相符，摘要为
+`0bd60d631011a83dc2744fbbac46bf9af0093f129607e3971af6f293db8fd67e`。
+部署后及 smoke 前后就绪均为 PASS，A 组坐标为 60/60。
+
+切换前任务因租约回收再次处于 waiting-user，seq 63。
+user 恢复 seq 64、派单 seq 65，仅以任务 ID 唤醒原实施者。真实模型经
+`ledger.read` 看见 `reviews.closed=true` 与成功报告 seq 61，明确识别历史拒绝
+已不构成当前阻塞。实施者随后 accept 66、start 67、复验预登记探针、report 68、
+deliver 69；user 经原 host 命令入口 settle 70、close 71。成功响应与事件 actor
+逐项一致。原 fresh 独立复核覆盖的 `R-2026-010` 始终保持原 SHA-256 与
+1,146 字节，复用该已接受结论；未新建收单、改简报、改判据或绕过交付门。
+实施者会话最后一次读取及最终回信均确认 closed 71，回合以 completed 结束。
+
+71 条台账事件的序号与事件摘要全部通过，r10 绑定的历史前缀
+保持。137 件保留文件逐字节相符；两个邮件流只追加本次两条 user 唤醒和一条
+实施者交付通知，历史前缀相符，邮件序号与命令／会话凭据对应。原部署备份
+52 件、旧席归档 97 件及各自 manifest 全部复验，新增备份完整，旧四席路径
+仍已清理。回退决定权仍归用户，本轮未演练回滚。取证只保留必要公开回复及
+白名单工具事实，未复制原始会话、能力凭据、提供方配置或推理内容。
+
+仓库验证沿用本次源码的 preflight 四门 PASS，74/74 测试文件、0010 冻结面
+10/10、lint 0、宿主 12 PASS／0 FAIL／0 SKIP。后续增量为执行证据与落档，
+没有再改部署源码。17 号票的能力放大实验和 18 号票的人工目视保持各自范围。
+
+| 凭据 | 字节数 | SHA-256 |
+|---|---:|---|
+| [计划 r10](../../../artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r10-5b6bda11.json) | 125,528 | `5b6bda117f000f5ea5088071e6f9929ad733c5f5d835b8ffc6c60ac9708d2d01` |
+| [双轴及执行件返修记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-review-closure-f1a72d3e.json) | 2,657 | `f1a72d3e7395e13566e54845b6f45d6dd7a9a6f8c68590e704a4e0e0ce13cee8` |
+| [最终就绪](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-smoke-final-readiness-7ef8d903.json) | 89,297 | `7ef8d903323d97266f4241532602c2c285dcc5ace65d2a155b4a08372d64044d` |
+| [最终任务与台账](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-smoke-final-task-ledger-bd930adc.json) | 44,506 | `bd930adc340e39087f6ee8642b651043ca932641d8d06d44db61ab4243c279a2` |
+| [完成核验汇总](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-completion-audit-6e69d4b2.json) | 21,953 | `6e69d4b2ecf07a6e7411d3baa6708fe8ac651e474e48e5213b3b532575d1172f` |
+
+汇总件还逐项绑定本次备份、停止、部署、启动、恢复、派单、唤醒、交付、结算与
+关闭记录的完整摘要及字节数，并保留核验程序绑定。历史失败与归因修正记录原样保留。

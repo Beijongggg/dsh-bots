@@ -1,0 +1,27 @@
+{
+  "schema": "org-v2/cutover-smoke-continuation@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "batch": "rv3-smoke",
+  "capturedAt": "2026-09-29T17:01:38.501Z",
+  "stage": "wake-produce",
+  "taskId": "TK-20260929",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r10-5b6bda11.json",
+    "sha256": "5b6bda117f000f5ea5088071e6f9929ad733c5f5d835b8ffc6c60ac9708d2d01",
+    "byteLength": 125528
+  },
+  "executor": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-rv3-smoke-executor-229baab6.mjs",
+    "sha256": "229baab64cb103d4b72604af84ef77682aa1bdabcaa6099c027cf5e98d48e4b5",
+    "byteLength": 12453
+  },
+  "botId": "implementer",
+  "message": "TK-20260929",
+  "response": {
+    "status": 200,
+    "body": {
+      "delivered": true,
+      "seq": 21
+    }
+  }
+}

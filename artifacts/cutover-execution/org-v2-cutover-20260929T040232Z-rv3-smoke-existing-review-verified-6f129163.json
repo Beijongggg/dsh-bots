@@ -1,0 +1,102 @@
+{
+  "schema": "org-v2/cutover-smoke-continuation@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "batch": "rv3-smoke",
+  "capturedAt": "2026-09-29T17:03:33.675Z",
+  "stage": "existing-review-verified",
+  "taskId": "TK-20260929",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r10-5b6bda11.json",
+    "sha256": "5b6bda117f000f5ea5088071e6f9929ad733c5f5d835b8ffc6c60ac9708d2d01",
+    "byteLength": 125528
+  },
+  "executor": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-rv3-smoke-executor-229baab6.mjs",
+    "sha256": "229baab64cb103d4b72604af84ef77682aa1bdabcaa6099c027cf5e98d48e4b5",
+    "byteLength": 12453
+  },
+  "review": {
+    "subject": "before-external-visibility",
+    "mandatory": true,
+    "reviewer": "duty-coordinator",
+    "rounds": 4,
+    "consecutiveUnclosed": 0,
+    "closed": true,
+    "reports": [
+      {
+        "verdict": "closed",
+        "gaps": [],
+        "criteriaGaps": [],
+        "modelIdentity": "niko/gpt-5.6-sol",
+        "reviewer": "duty-coordinator",
+        "seq": 36,
+        "at": "2026-09-29T13:34:38.646Z"
+      },
+      {
+        "verdict": "gaps-open",
+        "gaps": [
+          {
+            "severity": "blocker",
+            "summary": "移交件未登记，无法通过 artifact.read 读取并完成外部可见前的独立内容复核；预登记探针仅证明目标路径含批次标记。",
+            "evidence": "artifact.read(taskId=TK-20260929): body.artifacts=[]；evidence.probe(taskId=TK-20260929,index=0): 命中 bots/knowledge/reports/R-2026-010.md，snapshotSha256=42cce773129956250e413e8a5ab64ad5fa9e2576407abbc7492672690679fcf6，bytes=1146"
+          }
+        ],
+        "criteriaGaps": [],
+        "modelIdentity": "niko/gpt-5.6-sol",
+        "reviewer": "duty-coordinator",
+        "seq": 38,
+        "at": "2026-09-29T13:35:14.942Z"
+      },
+      {
+        "verdict": "closed",
+        "gaps": [],
+        "criteriaGaps": [],
+        "modelIdentity": "niko/gpt-5.6-sol",
+        "reviewer": "duty-coordinator",
+        "seq": 48,
+        "at": "2026-09-29T14:50:17.502Z"
+      },
+      {
+        "verdict": "closed",
+        "gaps": [],
+        "criteriaGaps": [],
+        "modelIdentity": "niko/gpt-5.6-sol",
+        "reviewer": "duty-coordinator",
+        "seq": 61,
+        "at": "2026-09-29T16:17:40.671Z"
+      }
+    ],
+    "requests": 5
+  },
+  "artifact": {
+    "entry": {
+      "id": "R-2026-010",
+      "title": "组织 v2 切换真实双席实施链路记录",
+      "tags": [
+        "org-v2",
+        "双席链路",
+        "实施记录"
+      ],
+      "summary": "TK-20260929 已由 user 正式指派给 implementer，并由 host 签发任务 capability。实施者通过 capability 与 CAS 门完成认领及启动，随后经组织知识登记命令提交本 Markdown 工件。工件保留本批次精确标记，并等待预登记探针验证与独立复核。",
+      "conclusions": [
+        "TK-20260929 已通过 host capability 与 CAS 完成认领和启动。",
+        "工件通过组织知识登记命令提交，未直接写入 ~/.dsh。",
+        "批次标记为 org-v2-cutover:org-v2-cutover-20260929T040232Z。"
+      ],
+      "sources": [
+        "TK-20260929 ledger",
+        "org-v2-cutover-20260929T040232Z:brief"
+      ],
+      "appliesTo": "",
+      "task": "TK-20260929",
+      "botId": "implementer",
+      "date": "2026-09-29T10:21:01.216Z",
+      "status": "valid"
+    },
+    "file": {
+      "path": "/home/beijong/.dsh/bots/knowledge/reports/R-2026-010.md",
+      "sha256": "42cce773129956250e413e8a5ab64ad5fa9e2576407abbc7492672690679fcf6",
+      "byteLength": 1146
+    }
+  }
+}

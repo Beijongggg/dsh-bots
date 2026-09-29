@@ -1,0 +1,1326 @@
+{
+  "schema": "org-v2/cutover-smoke-continuation@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "batch": "rv3-smoke",
+  "capturedAt": "2026-09-29T17:03:58.837Z",
+  "stage": "final-task-ledger",
+  "taskId": "TK-20260929",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r10-5b6bda11.json",
+    "sha256": "5b6bda117f000f5ea5088071e6f9929ad733c5f5d835b8ffc6c60ac9708d2d01",
+    "byteLength": 125528
+  },
+  "executor": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-rv3-smoke-executor-229baab6.mjs",
+    "sha256": "229baab64cb103d4b72604af84ef77682aa1bdabcaa6099c027cf5e98d48e4b5",
+    "byteLength": 12453
+  },
+  "task": {
+    "taskId": "TK-20260929",
+    "class": "project",
+    "status": "closed",
+    "owner": "implementer",
+    "producer": "implementer",
+    "dispatcher": "user",
+    "lease": {
+      "acceptBy": null,
+      "expiresAt": "2026-09-29T17:26:38.462Z",
+      "heartbeats": 0,
+      "leaseMs": 900000
+    },
+    "dispatchCount": 4,
+    "brief": {
+      "goal": "用真实双席完成一条预登记任务的收单、派单、登记工件、独立复核与结算。",
+      "deliverables": [
+        {
+          "format": "markdown",
+          "location": "bots/knowledge/reports/R-2026-010.md"
+        }
+      ],
+      "sources": [
+        {
+          "tool": "user",
+          "ref": "org-v2-cutover-20260929T040232Z:brief"
+        }
+      ],
+      "boundaries": "仅经组织命令提交工件与状态，不直接写 ~/.dsh；不改产品、部署、冻结件或旧知识条目。报告简述实际完成的动作并含本批标记。",
+      "acceptance": [
+        {
+          "probe": "fs.contains",
+          "args": {
+            "location": "bots/knowledge/reports/R-2026-010.md",
+            "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+          }
+        }
+      ],
+      "reviewPoints": [
+        "before-external-visibility"
+      ]
+    },
+    "acceptance": [
+      {
+        "probe": "fs.contains",
+        "args": {
+          "location": "bots/knowledge/reports/R-2026-010.md",
+          "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+        }
+      }
+    ],
+    "routineId": null,
+    "window": null,
+    "supersedesTaskId": null,
+    "parentTaskId": null,
+    "createdAt": "2026-09-29T04:56:40.755Z",
+    "updatedAt": "2026-09-29T17:03:58.769Z",
+    "lastSeq": 71,
+    "resumeFrom": null,
+    "waitingClass": null,
+    "escalationCause": null,
+    "lastRejection": {
+      "at": "2026-09-29T16:17:33.977Z",
+      "op": "review.report",
+      "code": "invalid-review-report",
+      "reason": "复核报告形状不符（fail closed）：报告含未定义键 evidence（复核者只读：报告不携带改工件／改判据字段）"
+    },
+    "reviews": [
+      {
+        "subject": "before-external-visibility",
+        "mandatory": true,
+        "reviewer": "duty-coordinator",
+        "rounds": 4,
+        "consecutiveUnclosed": 0,
+        "closed": true,
+        "reports": [
+          {
+            "verdict": "closed",
+            "gaps": [],
+            "criteriaGaps": [],
+            "modelIdentity": "niko/gpt-5.6-sol",
+            "reviewer": "duty-coordinator",
+            "seq": 36,
+            "at": "2026-09-29T13:34:38.646Z"
+          },
+          {
+            "verdict": "gaps-open",
+            "gaps": [
+              {
+                "severity": "blocker",
+                "summary": "移交件未登记，无法通过 artifact.read 读取并完成外部可见前的独立内容复核；预登记探针仅证明目标路径含批次标记。",
+                "evidence": "artifact.read(taskId=TK-20260929): body.artifacts=[]；evidence.probe(taskId=TK-20260929,index=0): 命中 bots/knowledge/reports/R-2026-010.md，snapshotSha256=42cce773129956250e413e8a5ab64ad5fa9e2576407abbc7492672690679fcf6，bytes=1146"
+              }
+            ],
+            "criteriaGaps": [],
+            "modelIdentity": "niko/gpt-5.6-sol",
+            "reviewer": "duty-coordinator",
+            "seq": 38,
+            "at": "2026-09-29T13:35:14.942Z"
+          },
+          {
+            "verdict": "closed",
+            "gaps": [],
+            "criteriaGaps": [],
+            "modelIdentity": "niko/gpt-5.6-sol",
+            "reviewer": "duty-coordinator",
+            "seq": 48,
+            "at": "2026-09-29T14:50:17.502Z"
+          },
+          {
+            "verdict": "closed",
+            "gaps": [],
+            "criteriaGaps": [],
+            "modelIdentity": "niko/gpt-5.6-sol",
+            "reviewer": "duty-coordinator",
+            "seq": 61,
+            "at": "2026-09-29T16:17:40.671Z"
+          }
+        ],
+        "requests": 5
+      }
+    ]
+  },
+  "ledger": {
+    "source": {
+      "path": "/home/beijong/.dsh/bots/ledger/events.jsonl",
+      "sha256": "89ab08cf57591efd64ff033e2f69feb4e1c0adcd432e3fc90b718f7618f58408",
+      "byteLength": 26842
+    },
+    "eventsValidated": 71,
+    "lastGlobalSeq": 71,
+    "planPrefixUnchanged": true,
+    "events": [
+      {
+        "seq": 1,
+        "eventId": "mum7f5tf-df74a236",
+        "type": "intake",
+        "at": "2026-09-29T04:56:40.755Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 1,
+        "class": "project",
+        "brief": {
+          "goal": "用真实双席完成一条预登记任务的收单、派单、登记工件、独立复核与结算。",
+          "deliverables": [
+            {
+              "format": "markdown",
+              "location": "bots/knowledge/reports/R-2026-010.md"
+            }
+          ],
+          "sources": [
+            {
+              "tool": "user",
+              "ref": "org-v2-cutover-20260929T040232Z:brief"
+            }
+          ],
+          "boundaries": "仅经组织命令提交工件与状态，不直接写 ~/.dsh；不改产品、部署、冻结件或旧知识条目。报告简述实际完成的动作并含本批标记。",
+          "acceptance": [
+            {
+              "probe": "fs.contains",
+              "args": {
+                "location": "bots/knowledge/reports/R-2026-010.md",
+                "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+              }
+            }
+          ],
+          "reviewPoints": [
+            "before-external-visibility"
+          ]
+        },
+        "eventHash": "26c0f5d4da553ea6004cf73bf6662f9cc64cdf8def4fe6b9790269aa20065754"
+      },
+      {
+        "seq": 2,
+        "eventId": "mum8hr39-0ff9e5f6",
+        "type": "wait-user",
+        "at": "2026-09-29T05:26:41.253Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "host",
+          "id": "web"
+        },
+        "writerEpoch": 1,
+        "class": "escalation",
+        "reason": "分诊时限内未分诊→上浮用户",
+        "previousStatus": "intake",
+        "eventHash": "98f5a8a71f427ca04c9f881e9e117fa04c00f5a0e54d1d42928db9d61290fb4d"
+      },
+      {
+        "seq": 3,
+        "eventId": "mum94xbf-211a5843",
+        "type": "resume",
+        "at": "2026-09-29T05:44:42.411Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 2,
+        "resumeTo": "triaged",
+        "eventHash": "27b5f0b1ca91d33197988d5074cce0f82da639809b2ca527a3937b8e50fc4795"
+      },
+      {
+        "seq": 4,
+        "eventId": "mum94xc4-06493691",
+        "type": "return",
+        "at": "2026-09-29T05:44:42.436Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 2,
+        "reason": "Native session compatibility repaired; return the original task to the coordinator for actual triage.",
+        "eventHash": "4d4cc0ed82873d5a3b32c4c2507fa22cd32e67122b8109bdefd5f0c78621098b"
+      },
+      {
+        "seq": 5,
+        "eventId": "muma7lzf-be9cda53",
+        "type": "wait-user",
+        "at": "2026-09-29T06:14:47.307Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "host",
+          "id": "web"
+        },
+        "writerEpoch": 2,
+        "class": "escalation",
+        "reason": "分诊时限内未分诊→上浮用户",
+        "previousStatus": "intake",
+        "eventHash": "a9c65e911d438511960486f8582cea4fe5c1682331befa79758703c097610eea"
+      },
+      {
+        "seq": 6,
+        "eventId": "mumacezu-31aa5975",
+        "type": "resume",
+        "at": "2026-09-29T06:18:31.530Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 3,
+        "resumeTo": "triaged",
+        "eventHash": "eb73b72b61b703c1a886ba4171bc7edae3ce16f6d2741d3e2ed46bc9b77764a7"
+      },
+      {
+        "seq": 7,
+        "eventId": "mumacf0m-b583eff5",
+        "type": "return",
+        "at": "2026-09-29T06:18:31.558Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 3,
+        "reason": "Provider configuration migration repaired; return the original task to the coordinator for actual triage.",
+        "eventHash": "38377c233362e351b977a5ba07e7342ccf303f96904a5d23efc11f8dc52f0693"
+      },
+      {
+        "seq": 8,
+        "eventId": "mumbf1x9-0614a06e",
+        "type": "wait-user",
+        "at": "2026-09-29T06:48:34.173Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "host",
+          "id": "web"
+        },
+        "writerEpoch": 3,
+        "class": "escalation",
+        "reason": "分诊时限内未分诊→上浮用户",
+        "previousStatus": "intake",
+        "eventHash": "befb7729a45c6afe539c2c6ea0b7a1208f45c0239ce690fb41e34eb53abcd910"
+      },
+      {
+        "seq": 9,
+        "eventId": "mumi85c4-05022be1",
+        "type": "resume",
+        "at": "2026-09-29T09:59:09.316Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 4,
+        "resumeTo": "triaged",
+        "eventHash": "42b8f2434e0f95af53979aceebaba87f4470c812f8a8072f651e34148a670a8b"
+      },
+      {
+        "seq": 10,
+        "eventId": "mumi85d1-524c79fa",
+        "type": "return",
+        "at": "2026-09-29T09:59:09.349Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 4,
+        "eventHash": "0ce05dff9c146f3926c7919552082616189600de2e5f07df553130d57bc6a32e"
+      },
+      {
+        "seq": 11,
+        "eventId": "mumic86u-747a61c6",
+        "type": "triage",
+        "at": "2026-09-29T10:02:19.638Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "duty-coordinator"
+        },
+        "writerEpoch": 4,
+        "decision": "立项",
+        "eventHash": "f5ebcee149bee0e7dec5d0d423a3c66630a12e7b4c8fc86e96ec3e731b796e35"
+      },
+      {
+        "seq": 12,
+        "eventId": "mumid2dd-222ba9f5",
+        "type": "command-rejected",
+        "at": "2026-09-29T10:02:58.753Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 4,
+        "op": "task.accept",
+        "code": "capability-required",
+        "reason": "岗位实例调用组织命令必须携带 host 签发的 capability 信封（bot 不能自请）",
+        "eventHash": "fcaf7c8c18629b93ae126bb72e322dc4e21ceab798dc143b2ccaa4fbb0ba8d32"
+      },
+      {
+        "seq": 13,
+        "eventId": "mumie47p-b60042d1",
+        "type": "command-rejected",
+        "at": "2026-09-29T10:03:47.797Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "duty-coordinator"
+        },
+        "writerEpoch": 4,
+        "op": "task.exception",
+        "code": "invalid-exception-kind",
+        "reason": "异常类别须为 instance-death|task-stalled|waiting-user|waiting-external：capability-dispatch-blocked",
+        "eventHash": "406d0d03a33bbb46f912f0eaa21d4ac75d958afb29385499445be0bee357e8e0"
+      },
+      {
+        "seq": 14,
+        "eventId": "mumiebra-4306df2e",
+        "type": "exception",
+        "at": "2026-09-29T10:03:57.574Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "duty-coordinator"
+        },
+        "writerEpoch": 4,
+        "kind": "task-stalled",
+        "detail": "任务停在 triaged，owner=null、dispatcher=null。implementer 调用 task.accept 被 capability-required 拒绝。值班统筹岗位 op-set 不含 task.assign 或 capability 签发，且岗位边界明确不派单；需 host/user 或 project-lead 执行 task.assign，并由 host 向 implementer 签发及转交本任务 capability 信封。",
+        "eventHash": "09c1e6eac62bd080e732c9621228ac7d59db53956fe12201681f1f3f01dc163e"
+      },
+      {
+        "seq": 15,
+        "eventId": "muminwkp-3eeb1d05",
+        "type": "plan",
+        "at": "2026-09-29T10:11:24.457Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 4,
+        "eventHash": "8b10ea437b59dfce817f4ae6d8d6bf47dab18243875e1a38e3c50cc0c057e4a4"
+      },
+      {
+        "seq": 16,
+        "eventId": "muminwlj-3049e142",
+        "type": "assign",
+        "at": "2026-09-29T10:11:24.487Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 4,
+        "assignee": "implementer",
+        "dispatcher": "user",
+        "lease": {
+          "acceptBy": "2026-09-29T10:21:24.487Z",
+          "expiresAt": "2026-09-29T10:36:24.487Z",
+          "leaseMs": 900000
+        },
+        "eventHash": "c6386bbbac15936fb59074f7bdf7240a70540acb1926408312c08f270dff0b42"
+      },
+      {
+        "seq": 17,
+        "eventId": "mumiojkt-ea935981",
+        "type": "exception",
+        "at": "2026-09-29T10:11:54.269Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "duty-coordinator"
+        },
+        "writerEpoch": 4,
+        "kind": "task-stalled",
+        "detail": "user 已将任务正式指派给 implementer（dispatcher=user，dispatchCount=1），但 implementer 尚未收到 host 签发的任务 capability；task.accept 仍返回 capability-required，暂不能开工。",
+        "eventHash": "fa768b677ccbefed063ae9aa0a6fd042bfff8daa5f96f4e6402b311e6d987476"
+      },
+      {
+        "seq": 18,
+        "eventId": "mumizf71-c3cc632e",
+        "type": "command-rejected",
+        "at": "2026-09-29T10:20:21.805Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 4,
+        "op": "task.accept",
+        "code": "cas-required",
+        "reason": "状态改写类命令必须携带期望状态与期望序号（CAS）",
+        "expectedStatus": null,
+        "expectedSeq": null,
+        "eventHash": "5090446fb61cd10e2bfc0e26c4d942b8eb069ed5b83a36b1fadf5591b04a6d26"
+      },
+      {
+        "seq": 19,
+        "eventId": "mumizjsj-10bf5d3b",
+        "type": "command-rejected",
+        "at": "2026-09-29T10:20:27.763Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 4,
+        "op": "task.accept",
+        "code": "cas-mismatch",
+        "reason": "期望序号 17 与当前 18 不符（CAS 拒绝）",
+        "expectedStatus": "assigned",
+        "expectedSeq": 17,
+        "eventHash": "e0c1444186f7fff6a7026d1554e02dc0901c3cfeefe4f8319b48923c75256969"
+      },
+      {
+        "seq": 20,
+        "eventId": "mumizsj5-607be0a6",
+        "type": "accept",
+        "at": "2026-09-29T10:20:39.089Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 4,
+        "eventHash": "e1485f73efcf50be5e5ede7613c308ed4efaeb66048ffce5d149b21c0939263b"
+      },
+      {
+        "seq": 21,
+        "eventId": "mumizzkh-424a7582",
+        "type": "start",
+        "at": "2026-09-29T10:20:48.209Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 4,
+        "eventHash": "8c9ef82245d7900fc9ba2a766f862e32d916b4be96b98de59a9793d6469a87db"
+      },
+      {
+        "seq": 22,
+        "eventId": "mumj0qs3-de2eb716",
+        "type": "report",
+        "at": "2026-09-29T10:21:23.475Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 4,
+        "eventHash": "b228f55c59a1df0943f89ab0fb5602866c41a4c7d4d7bed002a49c251600c9d4"
+      },
+      {
+        "seq": 23,
+        "eventId": "mumj0wcp-f029e984",
+        "type": "command-rejected",
+        "at": "2026-09-29T10:21:30.697Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 4,
+        "op": "task.deliver",
+        "code": "review-gaps-open",
+        "reason": "必审复核点未闭合（before-external-visibility）——gaps 未闭合不得交付／回笼",
+        "eventHash": "cc638b587c6ae1199ba9d0d8f4601476579ca16d18e896f6b377c4ea88a321af"
+      },
+      {
+        "seq": 24,
+        "eventId": "mumj1y7a-6e8aa5d4",
+        "type": "exception",
+        "at": "2026-09-29T10:22:19.750Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "duty-coordinator"
+        },
+        "writerEpoch": 4,
+        "kind": "waiting-user",
+        "detail": "值班统筹已完成验收初审：R-2026-010 工件存在、知识索引有效、精确批次标记命中、内容未见超出原简报边界；实施者报告的预登记探针为通过。但 before-external-visibility 必须由独立 verifier 使用 artifact.read/evidence.probe/review.report 闭合。当前实时名单仅有 implementer，值班统筹 op-set 不含上述复核帽能力，且不能冒充独立复核者。需 user/host 启用 verifier 并签发复核帽。",
+        "eventHash": "f5069145ac8e88840f1def6ba8a57f7692aba6a5854d084437f2a22a853c4880"
+      },
+      {
+        "seq": 25,
+        "eventId": "mumj2e2w-9a595a28",
+        "type": "command-rejected",
+        "at": "2026-09-29T10:22:40.328Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 4,
+        "op": "review.request",
+        "code": "reviewer-required",
+        "reason": "复核请求须指定 reviewer（复核帽＝当次空闲实例佩戴，按需召集）",
+        "eventHash": "76e0e9ed3ffdcd30a16c03b91a137e852b81a737e14ab014ccd27d2257dc65d6"
+      },
+      {
+        "seq": 26,
+        "eventId": "mumj2mnq-1a390b82",
+        "type": "review-requested",
+        "at": "2026-09-29T10:22:51.446Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 4,
+        "point": "before-external-visibility",
+        "mandatory": true,
+        "reviewer": "duty-coordinator",
+        "eventHash": "1f0847db9f92d141ead1ab9d99e5633d7c0848196add6dc24ee948ca265bc2f3"
+      },
+      {
+        "seq": 27,
+        "eventId": "mumj2mrm-ce1b96d2",
+        "type": "exception",
+        "at": "2026-09-29T10:22:51.586Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "host",
+          "id": "web"
+        },
+        "writerEpoch": 4,
+        "kind": "waiting-external",
+        "detail": {
+          "source": "review-session",
+          "reason": "复核会话未成功入账报告",
+          "requestSeq": 26
+        },
+        "eventHash": "2e80a90692e41d32dbdc77334ca442a7b1448241ea04f68783d30257147c3562"
+      },
+      {
+        "seq": 28,
+        "eventId": "mumj9wof-ca067345",
+        "type": "review-requested",
+        "at": "2026-09-29T10:28:31.023Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 4,
+        "point": "before-external-visibility",
+        "mandatory": true,
+        "reviewer": "duty-coordinator",
+        "eventHash": "e40ec13e52acda0ca8877d87c4a05a3a5c44fea110137cade14fce9b07287dcb"
+      },
+      {
+        "seq": 29,
+        "eventId": "mumj9wr3-389e207b",
+        "type": "exception",
+        "at": "2026-09-29T10:28:31.119Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "host",
+          "id": "web"
+        },
+        "writerEpoch": 4,
+        "kind": "waiting-external",
+        "detail": {
+          "source": "review-session",
+          "reason": "复核会话未成功入账报告",
+          "requestSeq": 28
+        },
+        "eventHash": "84f6124259badeb0e23ac4f78f630e16838d870b18f13001c1187387ea68b703"
+      },
+      {
+        "seq": 30,
+        "eventId": "mumjk4ij-d3c3d606",
+        "type": "exception",
+        "at": "2026-09-29T10:36:27.739Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "host",
+          "id": "web"
+        },
+        "writerEpoch": 4,
+        "kind": "task-stalled",
+        "detail": {
+          "cause": "lease-expired",
+          "previousOwner": "implementer",
+          "deadline": "2026-09-29T10:36:24.487Z",
+          "dispatchCount": 1
+        },
+        "eventHash": "798d6db1ab1702b6a8bf60e64c9679b027f1f8dae605c416efd3d3cdacb914fc"
+      },
+      {
+        "seq": 31,
+        "eventId": "mumjk4jf-0a95a4ae",
+        "type": "lease-reclaimed",
+        "at": "2026-09-29T10:36:27.770Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "host",
+          "id": "web"
+        },
+        "writerEpoch": 4,
+        "cause": "lease-expired",
+        "previousOwner": "implementer",
+        "dispatcher": "user",
+        "eventHash": "e5e2c316701c358aef0bd8c2f8d25700c9118d0c91155b58ed189ca43ff57780"
+      },
+      {
+        "seq": 32,
+        "eventId": "mumkmpih-df2b3654",
+        "type": "escalated",
+        "at": "2026-09-29T11:06:27.881Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "host",
+          "id": "web"
+        },
+        "writerEpoch": 4,
+        "cause": "queue-stall",
+        "dispatchCount": 1,
+        "previousOwner": null,
+        "eventHash": "d7f8362e98ced5202ff7e6b761d4e5a7e6324f5b359892f9b773b1e1d0b91ec5"
+      },
+      {
+        "seq": 33,
+        "eventId": "mumpu4vt-1cf58ac0",
+        "type": "review-requested",
+        "at": "2026-09-29T13:32:12.473Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 5,
+        "point": "before-external-visibility",
+        "mandatory": true,
+        "reviewer": "duty-coordinator",
+        "eventHash": "42abe5bad975b25d470e6f4ecef269f8a8eb3231aaf32b6634db9efe2fbc5be3"
+      },
+      {
+        "seq": 34,
+        "eventId": "mumpwarn-d551e50c",
+        "type": "command-rejected",
+        "at": "2026-09-29T13:33:53.411Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "duty-coordinator"
+        },
+        "writerEpoch": 5,
+        "op": "review.report",
+        "code": "invalid-review-report",
+        "reason": "复核报告形状不符（fail closed）：verdict 须为 gaps-open|closed 之一：undefined；gaps 须为数组（可为空数组）",
+        "eventHash": "cda3d1210bc4e9f9e3123952f8f8730fd2b862eab7816a91d2164925e5e1fca3"
+      },
+      {
+        "seq": 35,
+        "eventId": "mumpwxjx-0eb320d1",
+        "type": "command-rejected",
+        "at": "2026-09-29T13:34:22.941Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "duty-coordinator"
+        },
+        "writerEpoch": 5,
+        "op": "review.report",
+        "code": "invalid-review-report",
+        "reason": "复核报告形状不符（fail closed）：报告含未定义键 severity（复核者只读：报告不携带改工件／改判据字段）；报告含未定义键 evidence（复核者只读：报告不携带改工件／改判据字段）",
+        "eventHash": "f3b15ac821064ca5af0da2074a38e37c9a1d7f45b8b2040c454b9f127fe0cef0"
+      },
+      {
+        "seq": 36,
+        "eventId": "mumpx9o6-dc3635e4",
+        "type": "review-reported",
+        "at": "2026-09-29T13:34:38.646Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "duty-coordinator"
+        },
+        "writerEpoch": 5,
+        "subject": "before-external-visibility",
+        "verdict": "closed",
+        "gaps": [],
+        "modelIdentity": "niko/gpt-5.6-sol",
+        "reviewer": "duty-coordinator",
+        "eventHash": "04b66548a73757e7be28458ecbae17aedd34ccf5a3d457ee628409fc0adfa1d4"
+      },
+      {
+        "seq": 37,
+        "eventId": "mumpxnwl-422f67b9",
+        "type": "command-rejected",
+        "at": "2026-09-29T13:34:57.093Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "duty-coordinator"
+        },
+        "writerEpoch": 5,
+        "op": "review.report",
+        "code": "invalid-review-report",
+        "reason": "复核报告形状不符（fail closed）：gaps[0].severity 须为 blocker|major|minor 之一；gaps[0].summary 须为非空字符串；gaps[0].evidence（证据坐标）须为非空字符串",
+        "eventHash": "9011a5f5116e006fb398310c3b4a6868e92a0c49410815b2df569abd004638a2"
+      },
+      {
+        "seq": 38,
+        "eventId": "mumpy1oe-8b9c1609",
+        "type": "review-reported",
+        "at": "2026-09-29T13:35:14.942Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "duty-coordinator"
+        },
+        "writerEpoch": 5,
+        "subject": "before-external-visibility",
+        "verdict": "gaps-open",
+        "gaps": [
+          {
+            "severity": "blocker",
+            "summary": "移交件未登记，无法通过 artifact.read 读取并完成外部可见前的独立内容复核；预登记探针仅证明目标路径含批次标记。",
+            "evidence": "artifact.read(taskId=TK-20260929): body.artifacts=[]；evidence.probe(taskId=TK-20260929,index=0): 命中 bots/knowledge/reports/R-2026-010.md，snapshotSha256=42cce773129956250e413e8a5ab64ad5fa9e2576407abbc7492672690679fcf6，bytes=1146"
+          }
+        ],
+        "modelIdentity": "niko/gpt-5.6-sol",
+        "reviewer": "duty-coordinator",
+        "eventHash": "dce7823b131dc1991de6307e10ed4f9c0d28eacb9e3bce918781f1e37a48947b"
+      },
+      {
+        "seq": 39,
+        "eventId": "mumsi8ys-aeab97ae",
+        "type": "resume",
+        "at": "2026-09-29T14:46:56.739Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 6,
+        "resumeTo": "planned",
+        "eventHash": "871e24a6dafc4692de696045e8386d752edc8477b42b5bfcaed4a4b41b4c92eb"
+      },
+      {
+        "seq": 40,
+        "eventId": "mumsi94i-47119488",
+        "type": "assign",
+        "at": "2026-09-29T14:46:56.946Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 6,
+        "assignee": "implementer",
+        "dispatcher": "user",
+        "lease": {
+          "acceptBy": "2026-09-29T14:56:56.946Z",
+          "expiresAt": "2026-09-29T15:11:56.946Z",
+          "leaseMs": 900000
+        },
+        "eventHash": "99ea84c1089312c077603f830734ddc5402331f6a123cf04215fa1277c89f54a"
+      },
+      {
+        "seq": 41,
+        "eventId": "mumsiz4u-4a2ffa31",
+        "type": "accept",
+        "at": "2026-09-29T14:47:30.654Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 6,
+        "eventHash": "019172e839c15e1512248318aae9d46f161ea8c0bfcc50c84721530e88cdfe73"
+      },
+      {
+        "seq": 42,
+        "eventId": "mumsj8t2-edf14195",
+        "type": "start",
+        "at": "2026-09-29T14:47:43.190Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 6,
+        "eventHash": "e4bdbbb7a744cda419181885257e22a3afe7c0c6e1e0fa22d36c5168a89ea18d"
+      },
+      {
+        "seq": 43,
+        "eventId": "mumsjyob-e8bf3464",
+        "type": "report",
+        "at": "2026-09-29T14:48:16.715Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 6,
+        "eventHash": "828064534a09789e2a789c0133a76bd5ecfeb7c808d1178c8abdc428a768cd15"
+      },
+      {
+        "seq": 44,
+        "eventId": "mumsk7i4-386df345",
+        "type": "review-requested",
+        "at": "2026-09-29T14:48:28.156Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 6,
+        "point": "before-external-visibility",
+        "mandatory": true,
+        "reviewer": "duty-coordinator",
+        "eventHash": "fde2fbf2455d8d1e4adc0c35ac52ba23420b6f5360193907279d8413c0a7254b"
+      },
+      {
+        "seq": 45,
+        "eventId": "mumskvu7-14eaca36",
+        "type": "exception",
+        "at": "2026-09-29T14:48:59.695Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "duty-coordinator"
+        },
+        "writerEpoch": 6,
+        "kind": "waiting-user",
+        "detail": "第二轮实施已完成：assigned seq=40、accept seq=41、start seq=42、produced seq=43；预登记探针再次命中且工件快照哈希未变。现有 review.report 仅为 invalid-review-report 拒绝痕迹，未闭合 before-external-visibility。实时名单仍只有 implementer，需 user/host 启用独立 verifier 并签发 artifact.read/evidence.probe/review.report 复核帽。",
+        "eventHash": "1389ff46d016bef5623990653068934e0e649c7a62ed7f37a09a291733cae15f"
+      },
+      {
+        "seq": 46,
+        "eventId": "mumslsbs-9352fe2a",
+        "type": "command-rejected",
+        "at": "2026-09-29T14:49:41.800Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "duty-coordinator"
+        },
+        "writerEpoch": 6,
+        "op": "review.report",
+        "code": "invalid-review-report",
+        "reason": "复核报告形状不符（fail closed）：verdict 须为 gaps-open|closed 之一：undefined；gaps 须为数组（可为空数组）",
+        "eventHash": "22c7c188e68717a1d26d489f4272001343020ebde59d7241518572886782271b"
+      },
+      {
+        "seq": 47,
+        "eventId": "mumsm72h-acec3790",
+        "type": "command-rejected",
+        "at": "2026-09-29T14:50:00.905Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "duty-coordinator"
+        },
+        "writerEpoch": 6,
+        "op": "review.report",
+        "code": "invalid-review-report",
+        "reason": "复核报告形状不符（fail closed）：报告含未定义键 evidence（复核者只读：报告不携带改工件／改判据字段）",
+        "eventHash": "9a79839cb4ca9ebab5bfd8ea639f0b178e4a688634d88fb0f55d4f8ed1f03647"
+      },
+      {
+        "seq": 48,
+        "eventId": "mumsmjvi-f3946c15",
+        "type": "review-reported",
+        "at": "2026-09-29T14:50:17.502Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "duty-coordinator"
+        },
+        "writerEpoch": 6,
+        "subject": "before-external-visibility",
+        "verdict": "closed",
+        "gaps": [],
+        "criteriaGaps": [],
+        "modelIdentity": "niko/gpt-5.6-sol",
+        "reviewer": "duty-coordinator",
+        "eventHash": "209a6a4ab5e0f37930ce586fe359ef5d361f817189254f77b66f32bf42b5371b"
+      },
+      {
+        "seq": 49,
+        "eventId": "mumtefvv-91d4acd1",
+        "type": "exception",
+        "at": "2026-09-29T15:11:58.699Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "host",
+          "id": "web"
+        },
+        "writerEpoch": 6,
+        "kind": "task-stalled",
+        "detail": {
+          "cause": "lease-expired",
+          "previousOwner": "implementer",
+          "deadline": "2026-09-29T15:11:56.946Z",
+          "dispatchCount": 2
+        },
+        "eventHash": "7ac4fc59f82f765dc9dd4aa66d0193efd54189c9cc197bed6c0a63a71029c4b1"
+      },
+      {
+        "seq": 50,
+        "eventId": "mumtefwb-3ef03233",
+        "type": "lease-reclaimed",
+        "at": "2026-09-29T15:11:58.715Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "host",
+          "id": "web"
+        },
+        "writerEpoch": 6,
+        "cause": "lease-expired",
+        "previousOwner": "implementer",
+        "dispatcher": "user",
+        "eventHash": "a4239f5ca087e2a97eebb7ea3eab9da5a50e6dd8231625536d3dfadb95d178de"
+      },
+      {
+        "seq": 51,
+        "eventId": "mumuh0v2-b48612b9",
+        "type": "escalated",
+        "at": "2026-09-29T15:41:58.814Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "host",
+          "id": "web"
+        },
+        "writerEpoch": 6,
+        "cause": "queue-stall",
+        "dispatchCount": 2,
+        "previousOwner": null,
+        "eventHash": "2149b97b5ac7851d730f9a80228067fbc0407dcaf9b4ec524d0a97db0b35d618"
+      },
+      {
+        "seq": 52,
+        "eventId": "mumvkvp1-a4abf352",
+        "type": "resume",
+        "at": "2026-09-29T16:12:58.357Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 6,
+        "resumeTo": "planned",
+        "eventHash": "801d26af0b05f54e70854df620a88181ea9ec25e1b69fbd2d747f120835e9eb6"
+      },
+      {
+        "seq": 53,
+        "eventId": "mumvkvq9-862da7b5",
+        "type": "assign",
+        "at": "2026-09-29T16:12:58.401Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 6,
+        "assignee": "implementer",
+        "dispatcher": "user",
+        "lease": {
+          "acceptBy": "2026-09-29T16:22:58.401Z",
+          "expiresAt": "2026-09-29T16:37:58.401Z",
+          "leaseMs": 900000
+        },
+        "eventHash": "2dbc481a8618c430b94a7d467bc71d83d4e95ab2434ca09ff48a28d72256dccc"
+      },
+      {
+        "seq": 54,
+        "eventId": "mumvlxa7-9ac54ae7",
+        "type": "accept",
+        "at": "2026-09-29T16:13:47.071Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 6,
+        "eventHash": "68dcdfe298a6d12232b4f570a4edc40dae6290c7c363ee50f4dc7b74033422f3"
+      },
+      {
+        "seq": 55,
+        "eventId": "mumvm81s-2eebb9c8",
+        "type": "start",
+        "at": "2026-09-29T16:14:01.024Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 6,
+        "eventHash": "f92632e3830a49ee5f8cdf71f0818a70e8211f46b32e66dbbe21f7df45ccff0b"
+      },
+      {
+        "seq": 56,
+        "eventId": "mumvmgz9-dbafa29a",
+        "type": "report",
+        "at": "2026-09-29T16:14:12.597Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 6,
+        "eventHash": "e85647a7bfd4dbfd9141fd66d703da874b7d5bfda4a8f8b21cd043f2b8b7c3c6"
+      },
+      {
+        "seq": 57,
+        "eventId": "mumvmhpt-5b251911",
+        "type": "review-requested",
+        "at": "2026-09-29T16:14:13.553Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 6,
+        "point": "before-external-visibility",
+        "mandatory": true,
+        "reviewer": "duty-coordinator",
+        "eventHash": "56df544883637ba02cac9e9c77226df19356e7270b1506e41be686f2425c3842"
+      },
+      {
+        "seq": 58,
+        "eventId": "mumvn0vp-f33c424e",
+        "type": "exception",
+        "at": "2026-09-29T16:14:38.389Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "duty-coordinator"
+        },
+        "writerEpoch": 6,
+        "kind": "waiting-user",
+        "detail": "第三轮实施恢复已完成：assigned seq=53、accept seq=54、start seq=55、produced seq=56；预登记探针再次通过且工件哈希未变。现有 review.report 仍为 invalid-review-report 拒绝痕迹，before-external-visibility 未闭合。相同阻塞已持续三轮，实时名单仍仅有 implementer，现升级用户：需启用独立 verifier 并由 host 签发 artifact.read/evidence.probe/review.report 复核帽；在此之前不得继续重复指派实施者。",
+        "eventHash": "dd6cd043498c829371f533763dbd13b0b6274582379f0f83c049688e1d0a8156"
+      },
+      {
+        "seq": 59,
+        "eventId": "mumvpxmp-9ed1c4f0",
+        "type": "command-rejected",
+        "at": "2026-09-29T16:16:54.145Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "duty-coordinator"
+        },
+        "writerEpoch": 6,
+        "op": "review.report",
+        "code": "invalid-review-report",
+        "reason": "复核报告形状不符（fail closed）：verdict 须为 gaps-open|closed 之一：undefined；gaps 须为数组（可为空数组）",
+        "eventHash": "3f32b05028f0f45bd03641e2b72781a67445318f3ed059cb9223d08c9d60ad10"
+      },
+      {
+        "seq": 60,
+        "eventId": "mumvqsd5-6adeb471",
+        "type": "command-rejected",
+        "at": "2026-09-29T16:17:33.977Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "duty-coordinator"
+        },
+        "writerEpoch": 6,
+        "op": "review.report",
+        "code": "invalid-review-report",
+        "reason": "复核报告形状不符（fail closed）：报告含未定义键 evidence（复核者只读：报告不携带改工件／改判据字段）",
+        "eventHash": "68bcd875ddf773e607e45d201b003d8301a786b5ee40ce641b80b60f33d6754e"
+      },
+      {
+        "seq": 61,
+        "eventId": "mumvqxj3-f1ae64b3",
+        "type": "review-reported",
+        "at": "2026-09-29T16:17:40.671Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "duty-coordinator"
+        },
+        "writerEpoch": 6,
+        "subject": "before-external-visibility",
+        "verdict": "closed",
+        "gaps": [],
+        "criteriaGaps": [],
+        "modelIdentity": "niko/gpt-5.6-sol",
+        "reviewer": "duty-coordinator",
+        "eventHash": "d5ac4cc234bd38231df449a2f2af2ac6af10c4c00c9e1db5206ff73da3144661"
+      },
+      {
+        "seq": 62,
+        "eventId": "mumwh1nw-81249d3c",
+        "type": "exception",
+        "at": "2026-09-29T16:37:59.084Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "host",
+          "id": "web"
+        },
+        "writerEpoch": 6,
+        "kind": "task-stalled",
+        "detail": {
+          "cause": "lease-expired",
+          "previousOwner": "implementer",
+          "deadline": "2026-09-29T16:37:58.401Z",
+          "dispatchCount": 3
+        },
+        "eventHash": "5d9347a097a0895ba58c3a654b361914c80ec573809f5816bae35dd72c8b1ffc"
+      },
+      {
+        "seq": 63,
+        "eventId": "mumwh1o3-0605e7f7",
+        "type": "escalated",
+        "at": "2026-09-29T16:37:59.091Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "host",
+          "id": "web"
+        },
+        "writerEpoch": 6,
+        "cause": "lease-expired",
+        "dispatchCount": 3,
+        "previousOwner": "implementer",
+        "eventHash": "e6120f1294ff340dff4baaa73ae975c52101dc0064e9f3809a64a790e541ce81"
+      },
+      {
+        "seq": 64,
+        "eventId": "mumxbgu0-cd2ef4fb",
+        "type": "resume",
+        "at": "2026-09-29T17:01:38.424Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 7,
+        "resumeTo": "planned",
+        "eventHash": "a2477813b534d3a0919c4aa0cd736eb4c806f308637b4722c5bede61b9348adb"
+      },
+      {
+        "seq": 65,
+        "eventId": "mumxbgv3-d8f4a25a",
+        "type": "assign",
+        "at": "2026-09-29T17:01:38.462Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 7,
+        "assignee": "implementer",
+        "dispatcher": "user",
+        "lease": {
+          "acceptBy": "2026-09-29T17:11:38.462Z",
+          "expiresAt": "2026-09-29T17:26:38.462Z",
+          "leaseMs": 900000
+        },
+        "eventHash": "81e43f6aa2323d9469bc9691bfd50abc5fec794fad872e3c925794b5750f04a4"
+      },
+      {
+        "seq": 66,
+        "eventId": "mumxdfv3-da663eea",
+        "type": "accept",
+        "at": "2026-09-29T17:03:10.479Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 7,
+        "eventHash": "3942caed372d57dea5d76e979e17d34bb5dc48ed381a5efca71cfafdb32bb4c9"
+      },
+      {
+        "seq": 67,
+        "eventId": "mumxdn17-d61590b7",
+        "type": "start",
+        "at": "2026-09-29T17:03:19.771Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 7,
+        "eventHash": "534c807743119b07564fb2638fc5c3d499a03649d1f2f073a720600341bd0d08"
+      },
+      {
+        "seq": 68,
+        "eventId": "mumxdwqn-792f9f53",
+        "type": "report",
+        "at": "2026-09-29T17:03:32.351Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 7,
+        "eventHash": "9ac3b606dcdf1e78fc51d2a03cb598a08e74a32d048d95664d185a6e34fb15e4"
+      },
+      {
+        "seq": 69,
+        "eventId": "mumxeen7-6e0e07d7",
+        "type": "deliver",
+        "at": "2026-09-29T17:03:55.555Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 7,
+        "eventHash": "f6fe66ba2602cb7e37145a69d0a302a530d59679d97875a092894cecf3fa91e6"
+      },
+      {
+        "seq": 70,
+        "eventId": "mumxeh3o-f6066829",
+        "type": "settle",
+        "at": "2026-09-29T17:03:58.740Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 7,
+        "eventHash": "921cbf2ec209954435b6a36948eae60a0f54ef0e4140a6d314d7459702fdf2de"
+      },
+      {
+        "seq": 71,
+        "eventId": "mumxeh4h-1d4d355f",
+        "type": "close",
+        "at": "2026-09-29T17:03:58.769Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 7,
+        "eventHash": "c9d364149591168b551b0cb3644680ccd9c1d5f32327f8d40e4b4e98608127a3"
+      }
+    ]
+  },
+  "artifact": {
+    "entry": {
+      "id": "R-2026-010",
+      "title": "组织 v2 切换真实双席实施链路记录",
+      "tags": [
+        "org-v2",
+        "双席链路",
+        "实施记录"
+      ],
+      "summary": "TK-20260929 已由 user 正式指派给 implementer，并由 host 签发任务 capability。实施者通过 capability 与 CAS 门完成认领及启动，随后经组织知识登记命令提交本 Markdown 工件。工件保留本批次精确标记，并等待预登记探针验证与独立复核。",
+      "conclusions": [
+        "TK-20260929 已通过 host capability 与 CAS 完成认领和启动。",
+        "工件通过组织知识登记命令提交，未直接写入 ~/.dsh。",
+        "批次标记为 org-v2-cutover:org-v2-cutover-20260929T040232Z。"
+      ],
+      "sources": [
+        "TK-20260929 ledger",
+        "org-v2-cutover-20260929T040232Z:brief"
+      ],
+      "appliesTo": "",
+      "task": "TK-20260929",
+      "botId": "implementer",
+      "date": "2026-09-29T10:21:01.216Z",
+      "status": "valid"
+    },
+    "file": {
+      "path": "/home/beijong/.dsh/bots/knowledge/reports/R-2026-010.md",
+      "sha256": "42cce773129956250e413e8a5ab64ad5fa9e2576407abbc7492672690679fcf6",
+      "byteLength": 1146
+    }
+  }
+}

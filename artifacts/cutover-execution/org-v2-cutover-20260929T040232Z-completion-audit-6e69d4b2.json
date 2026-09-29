@@ -1,0 +1,590 @@
+{
+  "schema": "org-v2/cutover-completion-audit@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T17:09:10.668Z",
+  "issue": "org-v2-build/16",
+  "zcodeSession": "sess_526dd6d3-adef-4358-a64b-8e4e753a9d3b",
+  "sourceCommit": "a7e9091286ad9cdc49b5ca63894ac467127d2bf9",
+  "sourceDigest": "0bd60d631011a83dc2744fbbac46bf9af0093f129607e3971af6f293db8fd67e",
+  "collector": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-completion-auditor-6ec92a69.mjs",
+    "sha256": "6ec92a691bc20c2e8fc060d04ee8ff5457a6a1d5523ee1ccf2aa153aaf200ed5",
+    "byteLength": 10252
+  },
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r10-5b6bda11.json",
+    "sha256": "5b6bda117f000f5ea5088071e6f9929ad733c5f5d835b8ffc6c60ac9708d2d01",
+    "byteLength": 125528
+  },
+  "receipts": {
+    "authorization": {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-01-authorization-revalidation-d64ba98a.json",
+      "sha256": "d64ba98a0f929cb7194188a83b674cd2b4880b011fe285346f859ca51c0bfb8a",
+      "byteLength": 6811
+    },
+    "originalBackup": {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-02-backup-verified-42410714.json",
+      "sha256": "424107142348b0176e050f729016e6ac24ca4aab99daa1e17b975fc397f3c13e",
+      "byteLength": 13975
+    },
+    "originalArchive": {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-03-archive-verified-1f621295.json",
+      "sha256": "1f62129550e3d2490d26f55e5c4957ab78f1063ca42619141fff7dba3e432ba4",
+      "byteLength": 25353
+    },
+    "reviews": {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-review-closure-f1a72d3e.json",
+      "sha256": "f1a72d3e7395e13566e54845b6f45d6dd7a9a6f8c68590e704a4e0e0ce13cee8",
+      "byteLength": 2657
+    },
+    "independentReview": {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-review-projection-diagnosis-6a0b50ed.json",
+      "sha256": "6a0b50ed65c7d858f80de4f8775079c6b731d07e1dec0130e36528a3d99d2c2b",
+      "byteLength": 8179
+    },
+    "finalReadiness": {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-smoke-final-readiness-7ef8d903.json",
+      "sha256": "7ef8d903323d97266f4241532602c2c285dcc5ace65d2a155b4a08372d64044d",
+      "byteLength": 89297
+    },
+    "finalTask": {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-smoke-final-task-ledger-bd930adc.json",
+      "sha256": "bd930adc340e39087f6ee8642b651043ca932641d8d06d44db61ab4243c279a2",
+      "byteLength": 44506
+    }
+  },
+  "incrementReceipts": [
+    {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-backup-verified-4b657b06.json",
+      "sha256": "4b657b0664879e08c8407387fb054fe006c49e3a5411666c56e6d010158cf7bd",
+      "byteLength": 8546
+    },
+    {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-deployed-77925bca.json",
+      "sha256": "77925bcac50d48f061f041d75e64a98689c36f44309a9d8dbe5f883333e8b991",
+      "byteLength": 717
+    },
+    {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-quiesced-793d7aa4.json",
+      "sha256": "793d7aa4d6dede05e4e140202e22f3016c8502702fba3c59d7b6bd0654836e1d",
+      "byteLength": 861
+    },
+    {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-readiness-649ccf14.json",
+      "sha256": "649ccf14d2ababb32ae74b6886c312d4f9f4959907146ba4dc72bf2eb5448074",
+      "byteLength": 93554
+    },
+    {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-review-closure-f1a72d3e.json",
+      "sha256": "f1a72d3e7395e13566e54845b6f45d6dd7a9a6f8c68590e704a4e0e0ce13cee8",
+      "byteLength": 2657
+    },
+    {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-smoke-before-smoke-readiness-91fa9b3b.json",
+      "sha256": "91fa9b3b43fd3b8485c75fbb0ace53a05d284578613987adc21957d8698fbbc9",
+      "byteLength": 89304
+    },
+    {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-smoke-delivered-6dce8688.json",
+      "sha256": "6dce86882a153ffdf5d40a7c5442909981cb1bccb9f33878136b1485b3cea5b6",
+      "byteLength": 42490
+    },
+    {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-smoke-existing-review-verified-6f129163.json",
+      "sha256": "6f129163fd46835c3b509ca245d0707f92254b10617db587e0aa3a6eeb37cfca",
+      "byteLength": 3671
+    },
+    {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-smoke-final-readiness-7ef8d903.json",
+      "sha256": "7ef8d903323d97266f4241532602c2c285dcc5ace65d2a155b4a08372d64044d",
+      "byteLength": 89297
+    },
+    {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-smoke-final-task-ledger-bd930adc.json",
+      "sha256": "bd930adc340e39087f6ee8642b651043ca932641d8d06d44db61ab4243c279a2",
+      "byteLength": 44506
+    },
+    {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-smoke-rerun-produced-c9e6e4b7.json",
+      "sha256": "c9e6e4b74df6a7892e29321ddece0620a8a71b0409cc91b2831575cc6c4261f9",
+      "byteLength": 5980
+    },
+    {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-smoke-takeover-57e7911b.json",
+      "sha256": "57e7911b172447bd285a2f1a96529f7c5dabcf5ebe3f0d365895be2e7e73fbe0",
+      "byteLength": 43354
+    },
+    {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-smoke-task-assign-c416a812.json",
+      "sha256": "c416a81243d1664a6bd1b35089168b5b0392a624f04d6381dc2c24685812d4b3",
+      "byteLength": 6328
+    },
+    {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-smoke-task-close-cf01ccb4.json",
+      "sha256": "cf01ccb47e5bebae19e358bcc0fd6fc36226846b1442ee63e62dec22e562d081",
+      "byteLength": 6009
+    },
+    {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-smoke-task-resume-113a3cca.json",
+      "sha256": "113a3cca7ce607c50c35a72773cf9ef593acc91b4938edf96a608dcf70d31b6d",
+      "byteLength": 6053
+    },
+    {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-smoke-task-settle-944d71a9.json",
+      "sha256": "944d71a96f3a56b2a95bf19ce392a675e35571ee384a0bf84ed3abf2e7e75a7f",
+      "byteLength": 6017
+    },
+    {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-smoke-wake-deliver-f376495a.json",
+      "sha256": "f376495a59f66c2de0284b00c94985a416a06188058893ce54d571ee47fcda10",
+      "byteLength": 837
+    },
+    {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-smoke-wake-produce-bd4eb958.json",
+      "sha256": "bd4eb958ba9a754d9612452192f8759fdd5e3f21711977fbe6edd60e127f0186",
+      "byteLength": 837
+    },
+    {
+      "path": "artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv3-started-e7e962e7.json",
+      "sha256": "e7e962e7c11fff97f40fb01814e9156e4b232315bf95e681db3fb1c31dbcdcfd",
+      "byteLength": 727
+    }
+  ],
+  "complete": true,
+  "task": {
+    "taskId": "TK-20260929",
+    "status": "closed",
+    "lastSeq": 71,
+    "finalEvents": [
+      {
+        "seq": 64,
+        "eventId": "mumxbgu0-cd2ef4fb",
+        "type": "resume",
+        "at": "2026-09-29T17:01:38.424Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 7,
+        "resumeTo": "planned",
+        "eventHash": "a2477813b534d3a0919c4aa0cd736eb4c806f308637b4722c5bede61b9348adb"
+      },
+      {
+        "seq": 65,
+        "eventId": "mumxbgv3-d8f4a25a",
+        "type": "assign",
+        "at": "2026-09-29T17:01:38.462Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 7,
+        "assignee": "implementer",
+        "dispatcher": "user",
+        "lease": {
+          "acceptBy": "2026-09-29T17:11:38.462Z",
+          "expiresAt": "2026-09-29T17:26:38.462Z",
+          "leaseMs": 900000
+        },
+        "eventHash": "81e43f6aa2323d9469bc9691bfd50abc5fec794fad872e3c925794b5750f04a4"
+      },
+      {
+        "seq": 66,
+        "eventId": "mumxdfv3-da663eea",
+        "type": "accept",
+        "at": "2026-09-29T17:03:10.479Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 7,
+        "eventHash": "3942caed372d57dea5d76e979e17d34bb5dc48ed381a5efca71cfafdb32bb4c9"
+      },
+      {
+        "seq": 67,
+        "eventId": "mumxdn17-d61590b7",
+        "type": "start",
+        "at": "2026-09-29T17:03:19.771Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 7,
+        "eventHash": "534c807743119b07564fb2638fc5c3d499a03649d1f2f073a720600341bd0d08"
+      },
+      {
+        "seq": 68,
+        "eventId": "mumxdwqn-792f9f53",
+        "type": "report",
+        "at": "2026-09-29T17:03:32.351Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 7,
+        "eventHash": "9ac3b606dcdf1e78fc51d2a03cb598a08e74a32d048d95664d185a6e34fb15e4"
+      },
+      {
+        "seq": 69,
+        "eventId": "mumxeen7-6e0e07d7",
+        "type": "deliver",
+        "at": "2026-09-29T17:03:55.555Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "post",
+          "id": "implementer"
+        },
+        "writerEpoch": 7,
+        "eventHash": "f6fe66ba2602cb7e37145a69d0a302a530d59679d97875a092894cecf3fa91e6"
+      },
+      {
+        "seq": 70,
+        "eventId": "mumxeh3o-f6066829",
+        "type": "settle",
+        "at": "2026-09-29T17:03:58.740Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 7,
+        "eventHash": "921cbf2ec209954435b6a36948eae60a0f54ef0e4140a6d314d7459702fdf2de"
+      },
+      {
+        "seq": 71,
+        "eventId": "mumxeh4h-1d4d355f",
+        "type": "close",
+        "at": "2026-09-29T17:03:58.769Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 7,
+        "eventHash": "c9d364149591168b551b0cb3644680ccd9c1d5f32327f8d40e4b4e98608127a3"
+      }
+    ],
+    "reviewSeq": 61
+  },
+  "preflight": {
+    "log": {
+      "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-review-projection-preflight-b53a4fa5.log",
+      "sha256": "b53a4fa57fe95bd5665d918601d643aa0d5def979d55a09f9dc81cc33577aa9d",
+      "byteLength": 184174,
+      "mode": "0644"
+    },
+    "exitCode": 0,
+    "tests": "74/74",
+    "frozen": "10/10",
+    "lintViolations": 0,
+    "host": {
+      "pass": 12,
+      "fail": 0,
+      "skip": 0
+    },
+    "review": {
+      "baseline": "b4a1ca5348e4ec4e79cbb861430fe49b499256d6",
+      "revision": "a7e9091286ad9cdc49b5ca63894ac467127d2bf9",
+      "standardsOpen": 0,
+      "specOpen": 0,
+      "reviewers": {
+        "standards": {
+          "agent": "/root/standards_review",
+          "hardViolations": 0,
+          "judgmentItems": 0,
+          "result": "Existing review folding reused; regression covers closure after historical rejection and subsequent delivery; documentation and rv3 deployment executor follow repository rules."
+        },
+        "spec": {
+          "agent": "/root/spec_review",
+          "openItems": 0,
+          "result": "Ordinary ledger.read receives the event projection; projection and delivery gate share collectReviewState; lifecycle, review gates and authorization unchanged."
+        }
+      },
+      "scope": "Current increment through a7e9091, including the rv3 deployment executor; real delivery, settlement and closure remain unverified until executed."
+    }
+  },
+  "readiness": {
+    "ready": true,
+    "capturedAt": "2026-09-29T17:03:58.833Z",
+    "sourceFiles": 183,
+    "coordinates": 60,
+    "runtimeOk": true
+  },
+  "preservation": {
+    "unchangedFiles": 137,
+    "appendedMail": [
+      {
+        "path": "bots/inbox/duty-coordinator/messages.jsonl",
+        "prefix": {
+          "path": "bots/inbox/duty-coordinator/messages.jsonl",
+          "sha256": "bf79f52cfc59b590e247f847ba77b4e8d1e6dcc2147e369228711029baf7f728",
+          "byteLength": 8848,
+          "mode": "0600"
+        },
+        "current": {
+          "path": "/home/beijong/.dsh/bots/inbox/duty-coordinator/messages.jsonl",
+          "sha256": "37b3188d1d1733faf14374082a2c5d169e7040031587627454170894f34ac7fc",
+          "byteLength": 9529
+        },
+        "appended": [
+          {
+            "id": "BcwiJ9RasNHHvGg3zp-YhA",
+            "seq": 20,
+            "from": "implementer",
+            "text": "TK-20260929 已完成确定性交付：before-external-visibility 当前 closed=true（合法闭合 seq=61）；最终 evidence.probe 命中，snapshotSha256=42cce773129956250e413e8a5ab64ad5fa9e2576407abbc7492672690679fcf6，bytes=1146；最终恢复 accept seq=66、start seq=67、report seq=68、task.deliver 成功 seq=69，状态 delivered。工件为 bots/knowledge/reports/R-2026-010.md / 知识条目 R-2026-010。已知边界：历史 invalid-review-report 仍保留为拒绝痕迹，但当前 reviews.closed=true，未影响确定性交付门。",
+            "at": "2026-09-29T17:04:11.854Z",
+            "taskId": "TK-20260929"
+          }
+        ]
+      },
+      {
+        "path": "bots/inbox/implementer/messages.jsonl",
+        "prefix": {
+          "path": "bots/inbox/implementer/messages.jsonl",
+          "sha256": "c8f204a8e2f68491e2dde60aa31103befc83e971262d20fbc0b2931cad90cfb8",
+          "byteLength": 11502,
+          "mode": "0600"
+        },
+        "current": {
+          "path": "/home/beijong/.dsh/bots/inbox/implementer/messages.jsonl",
+          "sha256": "c4bd8ce3861625fa71d3a6cc629b78d28ccc378ba9aa948fe6ab3fd8b33a3e5c",
+          "byteLength": 11718
+        },
+        "appended": [
+          {
+            "id": "6cV5ClTAS5XC3bzEMhJevw",
+            "seq": 21,
+            "from": "user",
+            "text": "TK-20260929",
+            "at": "2026-09-29T17:01:38.495Z"
+          },
+          {
+            "id": "Yvw3Np7aNL6gpw5GndHsVA",
+            "seq": 22,
+            "from": "user",
+            "text": "TK-20260929",
+            "at": "2026-09-29T17:03:33.680Z"
+          }
+        ]
+      }
+    ],
+    "ledgerPrefixUnchanged": true,
+    "eventsValidated": 71,
+    "ledgerSnapshot": {
+      "path": "/home/beijong/.dsh/bots/ledger/events.jsonl",
+      "sha256": "89ab08cf57591efd64ff033e2f69feb4e1c0adcd432e3fc90b718f7618f58408",
+      "byteLength": 26842
+    },
+    "originalBackup": {
+      "path": "/home/beijong/.dsh/backups/dsh-bots/org-v2-cutover-20260929T040232Z",
+      "filesRevalidated": 52,
+      "manifest": {
+        "path": "_verified-manifest.json",
+        "sha256": "6ed9e8af6ecf007fd9874b6a6a436773950080f89cad821ca67de71f990f62aa",
+        "byteLength": 12152
+      }
+    },
+    "originalArchive": {
+      "path": "/home/beijong/project/dsh-bots/artifacts/runtime-archives/org-v2-cutover-20260929T040232Z",
+      "filesRevalidated": 97,
+      "manifest": {
+        "path": "_verified-manifest.json",
+        "sha256": "7dd81721b50383274ac61b48499796a5d8f710f62b7b48d407e6d75abd6add30",
+        "byteLength": 23065
+      }
+    },
+    "incrementBackup": {
+      "path": "/home/beijong/.dsh/backups/dsh-bots/org-v2-cutover-20260929T040232Z-rv3",
+      "filesRevalidated": 13
+    },
+    "retiredSeatPathsStillAbsent": [
+      "profiles/lead",
+      "bot-workspaces/lead",
+      "profiles/bot-mt0x6r0y",
+      "bot-workspaces/bot-mt0x6r0y",
+      "profiles/reviewer-lead",
+      "bot-workspaces/reviewer-lead",
+      "profiles/reviewer-second",
+      "bot-workspaces/reviewer-second"
+    ],
+    "rollbackRehearsed": false
+  },
+  "artifact": {
+    "entry": {
+      "id": "R-2026-010",
+      "title": "组织 v2 切换真实双席实施链路记录",
+      "tags": [
+        "org-v2",
+        "双席链路",
+        "实施记录"
+      ],
+      "summary": "TK-20260929 已由 user 正式指派给 implementer，并由 host 签发任务 capability。实施者通过 capability 与 CAS 门完成认领及启动，随后经组织知识登记命令提交本 Markdown 工件。工件保留本批次精确标记，并等待预登记探针验证与独立复核。",
+      "conclusions": [
+        "TK-20260929 已通过 host capability 与 CAS 完成认领和启动。",
+        "工件通过组织知识登记命令提交，未直接写入 ~/.dsh。",
+        "批次标记为 org-v2-cutover:org-v2-cutover-20260929T040232Z。"
+      ],
+      "sources": [
+        "TK-20260929 ledger",
+        "org-v2-cutover-20260929T040232Z:brief"
+      ],
+      "appliesTo": "",
+      "task": "TK-20260929",
+      "botId": "implementer",
+      "date": "2026-09-29T10:21:01.216Z",
+      "status": "valid"
+    },
+    "file": {
+      "path": "/home/beijong/.dsh/bots/knowledge/reports/R-2026-010.md",
+      "sha256": "42cce773129956250e413e8a5ab64ad5fa9e2576407abbc7492672690679fcf6",
+      "byteLength": 1146
+    }
+  },
+  "producerSession": {
+    "source": {
+      "path": "/home/beijong/.dsh/sessions/--home-beijong-.dsh-bot-workspaces-implementer--/session-e56304de-63bb-4644-a32b-51bcfcd10d52/session.v4.jsonl.zstd",
+      "sha256": "21428867c95b74ec2840f95a7d6225f8b1181280f0a96c23076601d414d5babd",
+      "byteLength": 267090
+    },
+    "model": {
+      "provider": "niko",
+      "model": "gpt-5.6-sol"
+    },
+    "toolFacts": [
+      {
+        "seq": 487,
+        "time": 1790701379615,
+        "name": "ledger.read",
+        "taskId": "TK-20260929",
+        "result": {
+          "task": {
+            "status": "assigned",
+            "lastSeq": 65,
+            "reviews": [
+              {
+                "subject": "before-external-visibility",
+                "closed": true,
+                "latestReportSeq": 61
+              }
+            ]
+          }
+        }
+      },
+      {
+        "seq": 496,
+        "time": 1790701390495,
+        "name": "task.accept",
+        "taskId": "TK-20260929",
+        "result": {
+          "ok": true,
+          "seq": 66,
+          "status": "accepted"
+        }
+      },
+      {
+        "seq": 503,
+        "time": 1790701399788,
+        "name": "task.start",
+        "taskId": "TK-20260929",
+        "result": {
+          "ok": true,
+          "seq": 67,
+          "status": "running"
+        }
+      },
+      {
+        "seq": 510,
+        "time": 1790701412334,
+        "name": "evidence.probe",
+        "taskId": "TK-20260929",
+        "result": {
+          "ok": true,
+          "snapshotSha256": "42cce773129956250e413e8a5ab64ad5fa9e2576407abbc7492672690679fcf6"
+        }
+      },
+      {
+        "seq": 512,
+        "time": 1790701412367,
+        "name": "task.report",
+        "taskId": "TK-20260929",
+        "result": {
+          "ok": true,
+          "seq": 68,
+          "status": "produced"
+        }
+      },
+      {
+        "seq": 528,
+        "time": 1790701435572,
+        "name": "task.deliver",
+        "taskId": "TK-20260929",
+        "result": {
+          "ok": true,
+          "seq": 69,
+          "status": "delivered"
+        }
+      },
+      {
+        "seq": 536,
+        "time": 1790701451860,
+        "name": "mail.send",
+        "taskId": "TK-20260929",
+        "result": {
+          "ok": true,
+          "seq": 20
+        }
+      },
+      {
+        "seq": 537,
+        "time": 1790701451867,
+        "name": "ledger.read",
+        "taskId": "TK-20260929",
+        "result": {
+          "task": {
+            "status": "closed",
+            "lastSeq": 71,
+            "reviews": [
+              {
+                "subject": "before-external-visibility",
+                "closed": true,
+                "latestReportSeq": 61
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "publicReplies": [
+      {
+        "seq": 491,
+        "time": 1790701390385,
+        "text": "台账已出现关键变化：`before-external-visibility` 当前为 `closed=true`，合法闭合事件为 `seq=61`。虽然任务随后再次被指派为 `assigned@65`，这次已满足“复核闭合后再继续”的条件；我将按 CAS 恢复并完成交付。"
+      },
+      {
+        "seq": 525,
+        "time": 1790701435480,
+        "text": "必审点已闭合，最终探针复验通过，当前为 `produced@68`。现执行确定性交付门。"
+      },
+      {
+        "seq": 541,
+        "time": 1790701467716,
+        "text": "- 做了什么：通过组织命令登记并交付 Markdown 工件 `bots/knowledge/reports/R-2026-010.md`，知识条目为 `R-2026-010`；报告包含精确标记 `org-v2-cutover:org-v2-cutover-20260929T040232Z`。必审点 `before-external-visibility` 已合法闭合，`task.deliver` 于 `seq=69` 成功。\n- 如何验证：预登记 `fs.contains` 探针最终复验通过；工件大小 `1146` bytes，SHA-256 为 `42cce773129956250e413e8a5ab64ad5fa9e2576407abbc7492672690679fcf6`。\n- 台账状态：任务现为 `closed`，最新事件序号 `lastSeq=71`。最终恢复链路为认领 `seq=66`、启动 `seq=67`、产出 `seq=68`、交付 `seq=69`。\n- 已知边界或残留风险：历史 `invalid-review-report` 仍作为拒绝痕迹保留，但当前 `reviews.closed=true`，不影响确定性交付与结算；未直接写 `~/.dsh`，未修改产品、部署、冻结件或旧知识条目。"
+      }
+    ],
+    "turnEnd": {
+      "seq": 543,
+      "time": 1790701467718,
+      "reason": "completed"
+    }
+  },
+  "boundaries": [
+    "Only org-v2-build/16 is closed by this audit.",
+    "Ticket 17 experiment and ticket 18 human visual verification remain separate.",
+    "No raw session, capability, provider configuration or reasoning content is copied into this record."
+  ]
+}
