@@ -29,6 +29,20 @@ function makeWaitingCtx({ services = {} } = {}) {
   };
 }
 
+/**
+ * 官方 cordis 语义（dsh 宿主 cordis/lib/index.js）：ctx.inject(names, cb)＝
+ * ctx.plugin({inject, apply})——回调收到注入了所等服务**且自带 effect** 的子
+ * ctx；服务提供方重启时该纤程卸载并重跑回调，子 ctx 的 effect disposer 随之
+ * 释放（防重复注册）。本 fixture 的就绪触发器按此形状构造子 ctx。
+ */
+function serviceReadyCtx(baseCtx, name, service) {
+  const childEffects = [];
+  return {
+    ctx: { ...baseCtx, get: (n) => (n === name ? service : undefined), effect: (fn, label) => { childEffects.push({ fn, label }); } },
+    childEffects
+  };
+}
+
 test("internals 导出 registerBotFacesOnReady（等待注册的单一坐标）", () => {
   assert.ok(internals, "lib/index.js internals 可导入");
   assert.equal(typeof internals.registerBotFacesOnReady, "function", "registerBotFacesOnReady 须导出");
@@ -45,15 +59,14 @@ test("三面经 ctx.inject 声明等待：systemPrompt 一次＋tools 一次，�
 test("tools 延迟就绪：回调触发时岗位面与知识库工具注册执行（apply 时点取空的静默跳过消失）", () => {
   const ctx = makeWaitingCtx(); // services 空——apply 等价时点 get("tools") 为空
   const registered = [];
-  const registrations = [];
   // 捕获注册函数被调用：借助 knowledge/org 注册都会先取 tools 服务的形状，
   // 这里用一个最小 tools 服务记录 register 调用（与官方 tools.register 形状一致）。
   const tools = { register(def) { registered.push(def.name); return () => {}; }, restrict() {} };
   internals.registerBotFacesOnReady(ctx, { readRegistry: () => ({}) }, "implementer", null, "");
   const toolsWait = ctx.injected.find((row) => row.names.includes("tools"));
   assert.ok(toolsWait, "tools 等待声明在位");
-  // 就绪触发：回调收到注入了 tools 的 ctx（官方 inject 语义），注册立即发生
-  toolsWait.cb({ ...ctx, get: (name) => (name === "tools" ? tools : undefined) });
+  // 就绪触发：回调收到注入了 tools 的子 ctx（官方 inject 语义），注册立即发生
+  toolsWait.cb(serviceReadyCtx(ctx, "tools", tools).ctx);
   assert.ok(registered.includes("knowledge_search"), "知识库工具在就绪后注册");
   // org 工具面无 home 岗位输入时静默不注册；有岗位时经 op-set 派生（下一条用例）
 });
@@ -65,7 +78,7 @@ test("岗位工具面随 tools 就绪注册：绑定 home 岗位的实例注册 
   const api = { readRegistry: () => ({ worker: { id: "worker", post: "implementer" } }), dshHome: "/tmp/dsh-none" };
   internals.registerBotFacesOnReady(ctx, api, "worker", null, "http://127.0.0.1:3100");
   const toolsWait = ctx.injected.find((row) => row.names.includes("tools"));
-  toolsWait.cb({ ...ctx, get: (name) => (name === "tools" ? tools : undefined) });
+  toolsWait.cb(serviceReadyCtx(ctx, "tools", tools).ctx);
   assert.ok(registered.length > 1, "岗位 op 工具按 op-set 派生注册");
 });
 
@@ -76,17 +89,23 @@ test("无该服务的宿主：inject 回调不触发即不注册（纯 web 跳�
   assert.equal(ctx.effects.length, 0);
 });
 
-test("disposer 经 ctx.effect 挂接：卸载时清理已注册面", () => {
+test("disposer 挂子 ctx 的 effect：服务提供方重启时随 inject 纤程释放（不重复注册）", () => {
   const ctx = makeWaitingCtx();
   const disposed = [];
   const tools = { register() { return () => disposed.push("tool"); }, restrict() {} };
   const systemPrompt = { variable() { return () => {}; }, section() { return () => disposed.push("section"); } };
   internals.registerBotFacesOnReady(ctx, { readRegistry: () => ({}) }, "implementer", null, "");
-  ctx.injected.find((row) => row.names.includes("tools")).cb({ ...ctx, get: (n) => (n === "tools" ? tools : undefined) });
-  ctx.injected.find((row) => row.names.includes("systemPrompt")).cb({ ...ctx, get: (n) => (n === "systemPrompt" ? systemPrompt : undefined) });
-  assert.ok(ctx.effects.length > 0, "注册产生的 disposer 挂入 effect");
-  for (const { fn } of ctx.effects) { const dispose = fn(); if (typeof dispose === "function") dispose(); }
-  assert.ok(disposed.length > 0, "effect 卸载时调用注册 disposer");
+  const toolsReady = serviceReadyCtx(ctx, "tools", tools);
+  ctx.injected.find((row) => row.names.includes("tools")).cb(toolsReady.ctx);
+  const promptReady = serviceReadyCtx(ctx, "systemPrompt", systemPrompt);
+  ctx.injected.find((row) => row.names.includes("systemPrompt")).cb(promptReady.ctx);
+  assert.equal(ctx.effects.length, 0, "disposer 不挂插件级 ctx.effect（那只在插件整体卸载时释放）");
+  assert.ok(toolsReady.childEffects.length > 0 && promptReady.childEffects.length > 0, "disposer 挂子 ctx effect");
+  for (const { fn } of [...toolsReady.childEffects, ...promptReady.childEffects]) {
+    const dispose = fn();
+    if (typeof dispose === "function") dispose();
+  }
+  assert.ok(disposed.length > 0, "纤程卸载（服务重启回调重跑前）调用注册 disposer");
 });
 
 test("装配面接线：apply 的 bot 分支三处 ctx.effect 注册已由等待注册替代（源码钉住）", () => {

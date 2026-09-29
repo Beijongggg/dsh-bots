@@ -499,3 +499,42 @@ status-lint **0 违例**、宿主契约 **12 PASS／0 FAIL／0 SKIP**（P-CONFIG
 下一步：从本提交干净导出、增量备份部署（沿原五项运行授权；执行时核对
 `/proc/<bot pid>/environ` 含 `DSH_TOOLS_MODE=ptc`）、恢复 `TK-20260929`
 继续同一闭环 smoke。不更换模型、不重复立项，简报、判据与必审点未改。
+
+### 2026-09-29 ptc-r1 增量已部署并暴露工具服务等待缺口，注册面修复完成仓库验证
+
+沿原五项运行授权绑定计划 r6（`dc96cde3`，源码 `d5efd67`，八件变更），排他
+备份 16 件部署与配置输入后停链、同步、重启。host 为 PID `122779`，双席由
+host 经私有 IPC 启动，`/proc/<pid>/environ` 实得 `DSH_TOOLS_MODE=ptc`
+（ptc-r1 的契约核对项，就绪记录含 botEnv）。台账前缀、instances 历史前缀
+与冻结面保持。
+
+**阻断（真实面实证）**：duty 席组织通道两次建立成功（08:10Z/08:22Z 各有
+role 签发审计行）后不再建立；implementer 席全程无签发行，且 08:28Z 出现
+两次 supervisor 崩溃自愈行。诊断期间一次副本清理的 `pkill` 模式过宽误杀
+真实面双席（host 与数据面无损），已即时经既有命令面拉回并如实记录。
+
+**根因（镜像副本实证）**：`DSH_TOOLS_MODE=ptc` 下官方 web patch 的 tools
+行等待 ptcRuntime 就绪，`ctx.get("tools")` 在 apply 时点可能取空——三面
+（团队提示段／知识库工具／岗位工具面）的立即 `ctx.effect` 注册静默跳过，
+org-ready 引导从未发出。隔离镜像副本（排除 sessions/backups 的 `~/.dsh`
+全镜像＋部署目录复制）复现「API start 后引导失败、audit 零行」，同副本
+手动 spawn 则成功；将三处注册改为官方 `ctx.inject` 等待后，副本 audit 出现
+implementer role 签发行。implementer 的崩溃史另计（未见复现，留观察）。
+
+**仓库修复**（`405285b`＋返修）：`registerBotFacesOnReady` 以
+`ctx.inject([HOST_SERVICE_NAMES.tools/systemPrompt], cb)` 等待服务就绪后
+注册；回调收注入服务的子 ctx（cordis 语义实查）；disposer 挂**子 ctx** 的
+effect——服务提供方重启时随 inject 纤程释放，防重复注册（双轴 Spec 评审
+据官方 cordis 源码指出的挂接错误已返修）；无该服务的宿主回调永不执行＝
+原静默跳过语义等价。TDD 先红后绿：延迟就绪注册、无服务等价跳过、子 ctx
+disposer 释放、装配面接线源码钉住（`tests/bot-faces-ready.test.mjs` 7 用例）。
+
+**已跑验证**：完整 preflight 退出码 0——**74/74 测试文件**、0010 冻结面
+**10/10**、status-lint **0 违例**、宿主契约 **12 PASS／0 FAIL／0 SKIP**。
+双轴增量复审（`d5efd67..405285b`＋返修）：Standards 裸服务名字面量、Spec
+父 ctx.effect 挂接与落档缺失均已返修关闭。留界：inject 无失败信号，
+「服务在位但装载失败」的形态仍静默；implementer 进程崩溃史未归因。
+
+下一步：出计划 r7 绑定本修复做增量部署，重跑就绪与 botEnv 核对，恢复
+`TK-20260929` 继续 smoke。任务现处 waiting-user、seq 8、resumeFrom=intake，
+等待历史全保留。
