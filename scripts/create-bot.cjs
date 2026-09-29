@@ -187,19 +187,8 @@ try {
   fs.mkdirSync(workspace, { recursive: true });
 
   fs.writeFileSync(pkgPath, buildPackageJson(botId));
-  fs.writeFileSync(patchPath, buildPatchYaml({
-    botId,
-    role: args.role,
-    provider: args.modelProvider,
-    model: args.model,
-    reasoningEffort: args.reasoningEffort,
-    permission,
-    workspace,
-    settingsPath: path.join(root, "profiles", botId, "settings.yaml")
-  }));
-
   // Ensure the per-bot settings file exists (idempotent; never overwrite user edits).
-  // The patch's `- id: settings` entry above redirects the bot's settings doc here.
+  // Older hosts use the patch's settings.path redirect; current hosts use Config.
   const botSettingsPath = path.join(profilesDir, "settings.yaml");
   if (!fs.existsSync(botSettingsPath)) {
     fs.writeFileSync(botSettingsPath, "agent-presets:\n  default: bot-nopersona\n", "utf8");
@@ -215,6 +204,19 @@ try {
   // Sync the global llm-pi-ai settings section into this bot's settings.yaml
   // (idempotent; implementation shared in ../lib/shared.cjs).
   syncPiAiSection(root, botId);
+
+  fs.writeFileSync(patchPath, buildPatchYaml({
+    botId,
+    role: args.role,
+    provider: args.modelProvider,
+    model: args.model,
+    reasoningEffort: args.reasoningEffort,
+    permission,
+    workspace,
+    settingsPath: botSettingsPath,
+    settingsText: fs.readFileSync(botSettingsPath, "utf8"),
+    previousPatch: patchExisted ? fs.readFileSync(patchPath, "utf8") : ""
+  }));
 
   // Report.
   console.log(`Bot profile "${botId}" scaffolded under ${profilesDir}`);

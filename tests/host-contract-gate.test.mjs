@@ -320,6 +320,8 @@ export function loadOverlayPatches(bin, file) {
 		if (field && entries.at(-1)?.id === "agent-default-model") {
 			(entries.at(-1).config ??= {})[field[1]] = field[2].replace(/''/g, "'");
 		}
+		const config = /^  config: (\\{.*\\})$/.exec(line);
+		if (config && entries.at(-1)) entries.at(-1).config = JSON.parse(config[1]);
 	}
 	return entries;
 }
@@ -327,6 +329,20 @@ export function loadOverlayPatches(bin, file) {
 
 /** 官方组合 patch fixture 按探针关键 id 清单生成（下方独立字面断言看守该清单的漂移）。 */
 const criticalIdsYaml = () => CONFIG_IDS_CRITICAL.map((id) => `- id: ${id}\n`).join("");
+
+const CONFIGURABLE_PI_AI = `
+export const name = "llm-pi-ai";
+export function Config(raw) { return { providers: { get: () => raw.providers ?? {} } }; }
+export function apply(ctx, config) {
+  const providers = config.providers.get();
+  ctx.llm.registerAdapter(Object.keys(providers), {
+    async resolveModel(provider, model) {
+      if (!providers[provider]?.models?.some(entry => entry.id === model)) throw new Error("model unavailable");
+      return { provider, id: model };
+    }
+  });
+}
+`;
 
 test("P-CONFIG-IDS：patch 往返、官方 id、配置模型读回与旧命名空间漂移（合成 fixture）", async () => {
   const root = mkdtempSync(join(tmpdir(), "dsh-gate-config-"));
@@ -342,7 +358,7 @@ export class AgentDefaultModelConfig {
   currentSelection() { return Object.fromEntries(Object.entries(this.config).map(([key, value]) => [key, value.get()])); }
 }
 `);
-    writeHostIndexFixture(root, "dsh-llm-pi-ai", `export const name = "llm-pi-ai";\n`);
+    writeHostIndexFixture(root, "dsh-llm-pi-ai", CONFIGURABLE_PI_AI);
     const ok = await probeConfigIdsStage([root]);
     assert.equal(ok.state, "PASS", JSON.stringify(ok));
 
@@ -396,6 +412,28 @@ export class AgentDefaultModelConfig {
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
+});
+
+test("P-CONFIG-IDS：路由名仍在但宿主不提供配置中的模型时失败", async () => {
+  const root = mkdtempSync(join(tmpdir(), "dsh-gate-provider-"));
+  try {
+    writeHostIndexFixture(root, "dsh-app-boot", MINI_PATCH_LOADER);
+    mkdirSync(join(root, "dsh-base"), { recursive: true });
+    writeFileSync(join(root, "dsh-base", "cordis.patch.yml"), criticalIdsYaml());
+    mkdirSync(join(root, "dsh-web-app"), { recursive: true });
+    writeFileSync(join(root, "dsh-web-app", "cordis.patch.yml"), "- id: tools\n");
+    writeHostIndexFixture(root, "dsh-agent-default-model", `
+export class AgentDefaultModelConfig {
+  constructor(ctx, config) { this.config = config; ctx.reflect.provide("agentDefaultModel", this); }
+  currentSelection() { return Object.fromEntries(Object.entries(this.config).map(([key, value]) => [key, value.get()])); }
+}
+`);
+    writeHostIndexFixture(root, "dsh-llm-pi-ai", CONFIGURABLE_PI_AI.replace(
+      "return { provider, id: model };", "throw new Error('Select an available model before sending a message.');"));
+    const result = await probeConfigIdsStage([root]);
+    assert.equal(result.state, "FAIL", "仅路由名存在不能代替模型可用性");
+    assert.match(result.reason, /provider|模型/);
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
 test("18号票 P-SESSION-LOG 行为化：真实格式日志经适配层读取解析（合成多帧 zstd 日志）", async () => {

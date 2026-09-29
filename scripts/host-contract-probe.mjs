@@ -560,8 +560,9 @@ function patchIdsOf(parsed) {
  * ② 官方组合 patch（dsh-base＋dsh-web-app）解析出官方 id 全集，关键 id
  *    逐一对照——宿主侧改名必 FAIL（patch loader 对未知 id 无害忽略，标记
  *    扫描抓不到这种静默）；
- * ③ 当前宿主经 AgentDefaultModelConfig 读回 patch 模型 pin；旧宿主仍核对
- *    AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE。模型路由另核 llm-pi-ai name。
+ * ③ 当前宿主经 AgentDefaultModelConfig 读回模型 pin，再由 llm-pi-ai 的
+ *    Config/apply/resolveModel 验证合成 provider 可用；旧宿主核命名空间。
+ *    只用隔离的合成模型，不依赖用户的供应商、型号、参数或网络。
  */
 export async function probeConfigIdsStage(roots) {
   const bootGate = await requireHostExport(roots, "dsh-app-boot", {
@@ -575,9 +576,13 @@ export async function probeConfigIdsStage(roots) {
   try {
     const patchFile = join(home, "cordis.patch.yml");
     const modelPin = { provider: "probe-provider", model: "probe-model", reasoningEffort: "high" };
+    const providerConfig = { providers: { [modelPin.provider]: {
+      api: "openai-completions", baseURL: "https://example.invalid/v1", models: [{ id: modelPin.model }]
+    } } };
     writeFileSync(patchFile, buildPatchYaml({
       botId: "dsh-contract-probe", role: "probe", ...modelPin,
-      permission: "workspace-write", workspace: "/tmp/dsh-contract-probe-ws", settingsPath: "/tmp/dsh-contract-probe-settings.yaml"
+      permission: "workspace-write", workspace: "/tmp/dsh-contract-probe-ws", settingsPath: "/tmp/dsh-contract-probe-settings.yaml",
+      settingsText: `llm-pi-ai: ${JSON.stringify(providerConfig)}\n`
     }));
     let ours;
     try { ours = boot.loadOverlayPatches("dsh-contract-probe", patchFile); }
@@ -586,7 +591,7 @@ export async function probeConfigIdsStage(roots) {
     }
     const ourIds = new Set(patchIdsOf(ours));
     // 注意与 CONFIG_IDS_CRITICAL 的刻意差异：本集含 insert 的 bots、不含按权限
-    // 条件出现的 llm-pi-ai 与 tool-*（那三者在官方全集对照段另核）。
+    // 条件出现的 llm-pi-ai 与 tool-*（provider 配置在下方真实读回）。
     for (const id of OUR_PATCH_MUST_RETAIN) {
       if (!ourIds.has(id)) {
         return { state: "FAIL", reason: `我方 patch 经官方装载器往返后丢失「${id}」`, coordinate: "lib/shared.cjs" };
@@ -639,7 +644,30 @@ export async function probeConfigIdsStage(roots) {
     if (piAiModule.name !== "llm-pi-ai") {
       return { state: "FAIL", reason: `官方模型路由服务名漂移：${JSON.stringify(piAiModule.name)}（期望 llm-pi-ai）`, coordinate: "dsh-llm-pi-ai/lib/index.js" };
     }
-    return { state: "PASS", coordinate: "官方装载器往返＋官方 id 全集对照＋模型 pin 与路由校验（三段真实调用）" };
+    if (agentDefaultModel.AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE === undefined) {
+      try {
+        let adapter;
+        await piAiModule.apply({
+          fiber: { entry: { options: { id: "llm-pi-ai" } } },
+          inject: () => () => {}, on: () => () => {}, get: () => undefined,
+          llm: {
+            registerConfigurableProviders: () => ({ replace() {} }),
+            registerModelDiscovery() {},
+            registerAdapter(routes, candidate) {
+              if (routes.includes(modelPin.provider)) adapter = candidate;
+              return { replace() {} };
+            }
+          }
+        }, piAiModule.Config(ours.find((entry) => entry.id === "llm-pi-ai")?.config ?? {}));
+        const selected = await adapter?.resolveModel(modelPin.provider, modelPin.model);
+        if (selected?.provider !== modelPin.provider || selected?.id !== modelPin.model) {
+          throw new Error("配置中的 provider/model 未由宿主提供");
+        }
+      } catch (error) {
+        return { state: "FAIL", reason: `官方 provider 配置读回失败：${errMsg(error)}`, coordinate: "dsh-llm-pi-ai/lib/index.js" };
+      }
+    }
+    return { state: "PASS", coordinate: "官方装载器往返＋官方 id 全集对照＋模型 pin 与 provider 配置真实读回" };
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
@@ -699,7 +727,7 @@ export const HOST_CONTRACT_PROBES = [
   {
     id: "P-CONFIG-IDS",
     face: "HF-CONFIG-IDS",
-    describe: "配置面 id/key：行为探针——我方 patch 构造经官方 dsh-app-boot 装载器往返复验＋官方组合 patch 全集对照＋官方模型服务读回 pin（旧宿主核命名空间）与路由名核对",
+    describe: "配置面 id/key：行为探针——我方 patch 经官方装载器往返＋官方组合 id 对照＋模型 pin 读回与合成 provider 模型解析（旧宿主核命名空间，不绑定用户模型值）",
     async run(ctx) {
       if (!ctx.hostInstalled) return noHostSkip();
       return probeConfigIdsStage(ctx.roots);
