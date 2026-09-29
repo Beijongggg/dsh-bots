@@ -1,0 +1,33 @@
+{
+  "schema": "org-v2/cutover-execution-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T04:53:21.420Z",
+  "stage": "02-host-quiesced",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r3-48d5f856.json",
+    "sha256": "48d5f856febab4136bdb444ec2b53b38b84a594486127ec6bcd8de147d368ad4",
+    "byteLength": 105510
+  },
+  "executor": {
+    "sha256": "5a785c0e6475de411cdeea94306ebee737ff5ef3e349e35ef03394623ff0d8b4",
+    "byteLength": 17724
+  },
+  "stopped": [
+    {
+      "pid": 30374,
+      "pidStartTicks": "589274",
+      "profile": "web",
+      "invocation": "dsh web",
+      "dshHome": "/home/beijong/.dsh",
+      "stopAfterBackup": true,
+      "signal": "SIGTERM",
+      "stoppedAt": "2026-09-29T04:53:21.416Z"
+    }
+  ],
+  "after": {
+    "processNamespace": "pid:[4026532229]",
+    "processes": [],
+    "listeners": [],
+    "stopped": []
+  }
+}

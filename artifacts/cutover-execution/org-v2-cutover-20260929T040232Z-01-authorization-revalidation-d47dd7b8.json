@@ -1,0 +1,188 @@
+{
+  "schema": "org-v2/cutover-execution-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T04:53:20.918Z",
+  "stage": "01-authorization-revalidation",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r3-48d5f856.json",
+    "sha256": "48d5f856febab4136bdb444ec2b53b38b84a594486127ec6bcd8de147d368ad4",
+    "byteLength": 105510
+  },
+  "executor": {
+    "sha256": "5a785c0e6475de411cdeea94306ebee737ff5ef3e349e35ef03394623ff0d8b4",
+    "byteLength": 17724
+  },
+  "authorization": {
+    "source": "User message 授权 after the concrete five-item execution request",
+    "items": [
+      {
+        "id": "deploy",
+        "action": "Create and verify the deployment/config backup; sync the manifest and remove its 19 obsolete deployment entries; create the selected-provider compatibility source and activate the bots web entry.",
+        "authorized": true
+      },
+      {
+        "id": "restart",
+        "action": "Stop the identified old host/bot generations if still alive. After archive and roster replacement, start web on 3100 and let it spawn the two new bots. No other processes are stopped.",
+        "authorized": true
+      },
+      {
+        "id": "replace-seats",
+        "action": "Retire lead, bot-mt0x6r0y, reviewer-lead and reviewer-second. Atomically establish exactly the two proposed v2 seats, with the coordinator anchor present in every nonempty registry.",
+        "authorized": true
+      },
+      {
+        "id": "archive-clear",
+        "action": "Archive only legacyArchive.inventory under the ignored repository directory, verify every copy, then clear those old runtime paths. Preserve knowledge, instance history, web profile, dependencies and unrelated data.",
+        "authorized": true
+      },
+      {
+        "id": "real-smoke",
+        "action": "Run the predeclared single task with real model turns, task-ID-only mail wakeups, a fresh review Agent, delivery, settlement and closure; retain redacted receipts and task ledger projections.",
+        "authorized": true
+      }
+    ],
+    "configurationApproved": {
+      "approvalRequired": false,
+      "host": {
+        "profile": "web",
+        "origin": "http://127.0.0.1:3100",
+        "port": 3100,
+        "startCommand": "dsh --profile web --port 3100 --no-open",
+        "botsStartedOnlyByHost": true
+      },
+      "seats": [
+        {
+          "id": "duty-coordinator",
+          "post": "duty-coordinator",
+          "bootstrapAnchor": true,
+          "modelProvider": "niko",
+          "model": "gpt-5.6-sol",
+          "permission": "read-only",
+          "port": 3101
+        },
+        {
+          "id": "implementer",
+          "post": "implementer",
+          "bootstrapAnchor": false,
+          "modelProvider": "niko",
+          "model": "gpt-5.6-sol",
+          "permission": "workspace-write",
+          "port": 3102
+        }
+      ],
+      "providerBridge": {
+        "source": {
+          "path": "profiles/web/cordis.patch.yml",
+          "sha256": "0deee442a44333db573eee726c4bb47b6a861739563dbb0ed2099a47e4327468",
+          "byteLength": 4641
+        },
+        "entryId": "llm-pi-ai",
+        "selectedProviders": [
+          "niko"
+        ],
+        "target": "/home/beijong/.dsh/settings.yaml",
+        "targetMustBeAbsent": true,
+        "mode": "0600",
+        "action": "Use the public loadOverlayPatches parser to copy only config.providers.niko into a new llm-pi-ai settings section. Existing scaffolding reads this compatibility source on every bot start; current DSH migrates each bot settings file into its profile. Do not print configuration values or commit them.",
+        "reason": "Current host moved provider configuration to web/cordis.patch.yml; both legacy global settings.yaml and web settings.yaml are absent."
+      },
+      "activation": "Enable only the existing commented bots/dsh-bots insertion in the web patch after the host is stopped; preserve all other entries."
+    },
+    "rollbackAuthorized": false
+  },
+  "sourceCommit": "855113eaf49bc50c2eecf8c1a22e2003a48b0a2a",
+  "sourceDigest": "589c7e6479782d8e7d74d1c94a82bbdf04dcbb60ed36b2f80b20637744e5f414",
+  "sourceFilesVerified": 180,
+  "deploymentFilesVerified": 51,
+  "legacyFilesVerified": 97,
+  "processesBeforeStop": {
+    "processNamespace": "pid:[4026532229]",
+    "processes": [
+      {
+        "pid": 30374,
+        "pidStartTicks": "589274",
+        "profile": "web",
+        "authorizedRestartTarget": true
+      }
+    ],
+    "listeners": [],
+    "stopped": []
+  },
+  "reportIdAvailable": "R-2026-010",
+  "taskIdAvailable": "TK-20260929",
+  "taskAvailabilityBasis": "bots/ledger does not exist",
+  "preserve": [
+    {
+      "path": "bots/knowledge/REPORT_TEMPLATE.md",
+      "sha256": "3ac1012de6ee80c98a2552978ead3e56a370bb00f88d16685a0053bbc23760cb",
+      "byteLength": 652,
+      "mode": "0644"
+    },
+    {
+      "path": "bots/knowledge/index.jsonl",
+      "sha256": "2b6905b82ff024ab6ea9477a402de6519a4280e2a148391a9e499a74e7825426",
+      "byteLength": 21960,
+      "mode": "0644"
+    },
+    {
+      "path": "bots/knowledge/reports/R-2026-001.md",
+      "sha256": "767e829580d6ea0ad444ff8e25e35d71f55b9e6ee4c3b3431755dccfe72f1d2e",
+      "byteLength": 5457,
+      "mode": "0644"
+    },
+    {
+      "path": "bots/knowledge/reports/R-2026-002.md",
+      "sha256": "1ffddc669c2c2bf4b3ff50d7f7f86962dbedbd4044847f13443bd0273b48e703",
+      "byteLength": 5782,
+      "mode": "0644"
+    },
+    {
+      "path": "bots/knowledge/reports/R-2026-003.md",
+      "sha256": "65d8f25b85e28b7f54e0066ef13ff0f9841a8d7e89e162be02af9d02d9e1601c",
+      "byteLength": 5569,
+      "mode": "0644"
+    },
+    {
+      "path": "bots/knowledge/reports/R-2026-004.md",
+      "sha256": "dbb2a982f67b4e13aeefd08d21905d6e62448b57d3304adb3bec241a56c1ce8c",
+      "byteLength": 7128,
+      "mode": "0644"
+    },
+    {
+      "path": "bots/knowledge/reports/R-2026-005.md",
+      "sha256": "de5b861174b9fdace30de14bd04d88624cb21ad5b195aff20c8ffcbf32b15c85",
+      "byteLength": 6026,
+      "mode": "0644"
+    },
+    {
+      "path": "bots/knowledge/reports/R-2026-006.md",
+      "sha256": "4c7254596906a3457dbff6ccad9fc2bf0b6df6bb763a05e917b8f61d49a29e1a",
+      "byteLength": 9135,
+      "mode": "0644"
+    },
+    {
+      "path": "bots/knowledge/reports/R-2026-007.md",
+      "sha256": "e96cd1d63a3fe02cd0ee3958c55e0ad67d3d37a4020c3549660b6dc00e27c0d7",
+      "byteLength": 8992,
+      "mode": "0644"
+    },
+    {
+      "path": "bots/knowledge/reports/R-2026-008.md",
+      "sha256": "23c92bfbeb239423499a282161fd44f5b68d06bdd3c8ab8c9a2fe1252e29cb22",
+      "byteLength": 4113,
+      "mode": "0644"
+    },
+    {
+      "path": "bots/knowledge/reports/R-2026-009.md",
+      "sha256": "46cc0fa37dfb13ca0d5694ff59712dab89424e7e1a0ba46c7e041a6b39688ac6",
+      "byteLength": 955,
+      "mode": "0644"
+    },
+    {
+      "path": "bots/started/instances.jsonl",
+      "sha256": "7e360ac11eefad606393adc2945494e0ed8fb58ecb3a6e29659cd6fc1254932d",
+      "byteLength": 14855,
+      "mode": "0644"
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "schema": "org-v2/cutover-diagnosis@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T05:13:03.635Z",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r3-48d5f856.json",
+    "sha256": "48d5f856febab4136bdb444ec2b53b38b84a594486127ec6bcd8de147d368ad4",
+    "byteLength": 105510
+  },
+  "symptom": {
+    "taskId": "TK-20260929",
+    "status": "intake",
+    "lastSeq": 1,
+    "errors": [
+      {
+        "id": "duty-coordinator-mum7f5w9-1",
+        "from": "bot",
+        "timestamp": "2026-09-29T04:56:40.857Z",
+        "text": "[bot error] DSH session.create HTTP 401"
+      }
+    ]
+  },
+  "sessionStateExists": {
+    "duty-coordinator": false,
+    "implementer": false
+  },
+  "anonymousRpc": {
+    "port": 3101,
+    "method": "session.history",
+    "httpStatus": 401,
+    "noModelPromptSent": true,
+    "expectedAfterRepair": "Anonymous HTTP remains denied; the own-process native turn must use an admitted or public native interface."
+  },
+  "readiness": {
+    "ok": true,
+    "sourceDigest": "589c7e6479782d8e7d74d1c94a82bbdf04dcbb60ed36b2f80b20637744e5f414",
+    "channels": [
+      {
+        "botId": "duty-coordinator",
+        "gen": "host-62481",
+        "sourceDigest": "589c7e6479782d8e7d74d1c94a82bbdf04dcbb60ed36b2f80b20637744e5f414",
+        "connected": true,
+        "delivered": true,
+        "roleReady": true
+      },
+      {
+        "botId": "implementer",
+        "gen": "host-62639",
+        "sourceDigest": "589c7e6479782d8e7d74d1c94a82bbdf04dcbb60ed36b2f80b20637744e5f414",
+        "connected": true,
+        "delivered": true,
+        "roleReady": true
+      }
+    ],
+    "probe": {
+      "counts": {
+        "pass": 12,
+        "fail": 0,
+        "skip": 0
+      },
+      "checkedAt": 1790658601472
+    }
+  },
+  "diagnosis": "Current native turn uses unauthenticated legacy HTTP RPC; host now requires browser authentication and exposes a different RPC contract. Existing marker-only RPC probe missed this incompatibility.",
+  "officialSources": [
+    {
+      "path": "/usr/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-client-connection/README.md",
+      "sha256": "107a9196bad60d694011eac25ff449ad13816bfa74259dd35153c64d01453c9d",
+      "byteLength": 11830,
+      "finding": "Every Host RPC requires a browser session; a missing cookie returns 401 before dispatch."
+    },
+    {
+      "path": "/usr/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-client-connection/lib/types/rpc-host.d.ts",
+      "sha256": "4655fdfdef83f155b6aa8d8240b8ae74972ddcc185e8873efde7b819fc0e7426",
+      "byteLength": 2743,
+      "finding": "Public shared Fetch handler is for trusted in-process carriers."
+    },
+    {
+      "path": "/usr/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-api-gateway/lib/index.js",
+      "sha256": "ab72e05df730f474737be99e0035f5bd7152433f8a817d3d037876087e993172",
+      "byteLength": 62665,
+      "finding": "Current Remote endpoints are namespace/method and require payload.args."
+    },
+    {
+      "path": "/usr/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-api-session-controller/lib/types/index.d.ts",
+      "sha256": "2ef63ce19073dde402bfeb9b4d95d8b04e9fc3e5bc4235afe4c9629e6a69d895",
+      "byteLength": 11443,
+      "finding": "Public native SessionController offers create/selectModel/prompt/inspect; legacy history RPC is absent."
+    },
+    {
+      "path": "/usr/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-api-session-controller/lib/types/types.d.ts",
+      "sha256": "1b4d81ed8f89ccd5d3c477a38fe2ab8c993f24af0e21539d0e0b7d22d7c2e7b8",
+      "byteLength": 23258,
+      "finding": "Current prompt request requires requestId."
+    }
+  ],
+  "decision": "Regression seam confirmation remains pending. No source repair, new regression test, task reset, rollback or second intake has been performed."
+}

@@ -1,0 +1,412 @@
+{
+  "schema": "org-v2/cutover-execution-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T04:53:21.212Z",
+  "stage": "02-backup-verified",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r3-48d5f856.json",
+    "sha256": "48d5f856febab4136bdb444ec2b53b38b84a594486127ec6bcd8de147d368ad4",
+    "byteLength": 105510
+  },
+  "executor": {
+    "sha256": "5a785c0e6475de411cdeea94306ebee737ff5ef3e349e35ef03394623ff0d8b4",
+    "byteLength": 17724
+  },
+  "backup": {
+    "path": "/home/beijong/.dsh/backups/dsh-bots/org-v2-cutover-20260929T040232Z",
+    "fileCount": 52,
+    "files": [
+      {
+        "path": "plugins/dsh-bots/CHANGELOG.md",
+        "sha256": "916c0720e85c7fadac9b91601fc4923fa5b33d1c336936f1c215061e1103f8b9",
+        "byteLength": 180582,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/PLAN-expanded-engineering.md",
+        "sha256": "e43685bc7b3b1b095a82d770897a2521a3bf62861b64f84e01bb104130ad8f8e",
+        "byteLength": 81011,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/PLAN-p6-4-real-instance-migration.md",
+        "sha256": "96fcb15ebc2997dbfc7d70ed31331aa5effb939d12a241db2679c7409ff2b9ad",
+        "byteLength": 4182,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/PROJECT_UNDERSTANDING.md",
+        "sha256": "202507bbac3efb0a9e711097c57ade49412777d8250dcff1628029ae1faa2311",
+        "byteLength": 41722,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/PROPOSAL-knowledge-base.md",
+        "sha256": "939a13e1f13efac481bdb958e08e2dd12735390f35a468ded9ad73ccf843ce26",
+        "byteLength": 6701,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/PROPOSAL-threads-and-clauses.md",
+        "sha256": "bcbaf28f88e2d06d1cdd9473f4d9a1604715b96c2d0c966fc64373da6210e1c7",
+        "byteLength": 16808,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/api-security.js",
+        "sha256": "cac7bf373d3904ce67699fc4dba0efc18b053e431ec48dcbfbf964aa770b3c0e",
+        "byteLength": 4416,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/bot-autostart.js",
+        "sha256": "746a6ff821579c297e0458a628bf0664824545d34196f4d8af2cdac47ed0b1b3",
+        "byteLength": 2883,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/bot-supervisor.js",
+        "sha256": "42896e46037891438440716132e78bc8176a15aa32533afa95bf9532dab766bd",
+        "byteLength": 11489,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/client.js",
+        "sha256": "033513344622277c9d0f4dc797040d96ab152a69b6d3604bee727d16d932026d",
+        "byteLength": 162200,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/evidence-packager.js",
+        "sha256": "0a0163a167aee3df4bc193a97f62edf18fe5bad0aff5f53652733c63ca5a6294",
+        "byteLength": 22689,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/fs-hygiene.js",
+        "sha256": "a801485261a6a7ab915c86ac277c8c45d4633be27e721a33e3469081a2db076e",
+        "byteLength": 2303,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/index.js",
+        "sha256": "2b02c2a1a746d56682be0020702af5f39803cf7d20c21d4d92d3871f954094f1",
+        "byteLength": 165167,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/knowledge.js",
+        "sha256": "99a76527e1b4f3353490c386ce2e13bdacee9676ad521cde132b933fea3f423e",
+        "byteLength": 15789,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/mail-plane.js",
+        "sha256": "3e5730c1da811b49e19fa26922363a8418b625d8e6e0d5e0333248cf2288a519",
+        "byteLength": 20189,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/mail-seq-lock.js",
+        "sha256": "3614872a9b8e2b9a49e0d9493cad6df77b340829c01cd8b0285c7d7b325d70e9",
+        "byteLength": 2867,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/parity-manifest.js",
+        "sha256": "165aee6ed4542177ef8cc619bdf492c8b36e88283077df1db03d51d0c24e06e2",
+        "byteLength": 2518,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/pid-bind.js",
+        "sha256": "d137475dbc9f627a44325f94afe27590eb6b7b6079509474e1971884a9d182a9",
+        "byteLength": 2412,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/review-capability.js",
+        "sha256": "fee70e87ba0d1e377e3560033be59564ef9345ee324b31cfa9c13a04e7a34877",
+        "byteLength": 31581,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/review-discussion.js",
+        "sha256": "4f5da186d6773d709d0da64a1454187556b2f4c3e7399e81ba962db06a3756bf",
+        "byteLength": 13703,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/review-enforcement.js",
+        "sha256": "5ee383294c33373bb9851c3415c61040d2e37f075f0717a168070790babfab91",
+        "byteLength": 20570,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/review-envelopes.js",
+        "sha256": "80d58463c7153e7e46c9fe9d436fc3ceec0c5ef9b616a9dccc7d6e85efe8784b",
+        "byteLength": 5294,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/review-evidence.js",
+        "sha256": "ef39f98d6ae3f8b509ac117195eba8547dfa25674133ed4c45004fc2e0338533",
+        "byteLength": 20851,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/review-flow.js",
+        "sha256": "fd0218dc9cf07eb0cec9d7042aa0421917bfeb7fd466a337b9761c4eab2ad7ec",
+        "byteLength": 22492,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/review-http-api.js",
+        "sha256": "1bb1510b6309617949fb56232a6f142e1e3a4c5f9ba95cac2e16249a7a6d2e7a",
+        "byteLength": 11179,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/review-intake.js",
+        "sha256": "7cdcef9836d0a1187e2bf4d6f0daee1638cb5941b83a3832c9e3c9be0e253110",
+        "byteLength": 6141,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/review-job-tools.js",
+        "sha256": "8074cfc2382816b793a6c949822bc6d0b52ae61c481d213c9c66dd5f69e2c890",
+        "byteLength": 33416,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/review-jobs.js",
+        "sha256": "5053b82e977ae744dbd7b42fe65662a7816394001e2a036cc471d5ff1297a7c4",
+        "byteLength": 36229,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/review-migration.js",
+        "sha256": "2f878a697794d397589865b848b7186178d2038e099350fa51a0bb1a4ed74433",
+        "byteLength": 9867,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/review-orchestrator.js",
+        "sha256": "0dd811c0882c755ca1a24b14efacfafec7d672e8d893dc3032e0385194cca32c",
+        "byteLength": 41034,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/review-protocol.js",
+        "sha256": "6da1b5f41cd7cc79897b6cb1f100f615035ae7da05a5553605c0cfbdc8bb67a3",
+        "byteLength": 7373,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/review-relay.js",
+        "sha256": "0ee26dc4f36735a5ac81a57cbe50c6b47ddbbcf6d4e949cc7dc0d33e977cfabb",
+        "byteLength": 22232,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/review-report.js",
+        "sha256": "d6202e0de035a0e2660321fb3d4e0e3afbb799b10bc7dec6bdc45dabb70ec1b3",
+        "byteLength": 5203,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/review-results.js",
+        "sha256": "dddb9937ac50d881303c6b6f5f62f29a59b50940f9ca33166f9f32b4d26a2b61",
+        "byteLength": 17959,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/review-store.js",
+        "sha256": "2c6fe933500f70436519795b1b9bcdcaf4b169b1742d4ee15c5383badaeb99e5",
+        "byteLength": 53243,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/sentinel-provenance.js",
+        "sha256": "8c3c3d2726b9fb03d4524498d591472028e3497f60520990cfac7676d6aa1ad5",
+        "byteLength": 22857,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/sentinel-runner.js",
+        "sha256": "463c731941ed6161bb209079923745e41411a03ccddbbd5aed02a5a9e73a8cfc",
+        "byteLength": 22902,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/sentinel-safety.js",
+        "sha256": "8d52fa3d674a0f0ee41131b3e7b74695b648407e51e61b40f59c2f68f0d9244a",
+        "byteLength": 11877,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/session-driver.js",
+        "sha256": "05c404ee894eca37556da5c356ac5288b4595136d58074c8042f31f861846d7a",
+        "byteLength": 7023,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/shared.cjs",
+        "sha256": "d03facdddbcfb1ac70ba16a2c895e1d7d85e6a124d17a442a46a5950ab31bd25",
+        "byteLength": 16090,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/spawn-env.js",
+        "sha256": "cc56c4ce9d32a4f477bc24464af591a13f0e276354dbcf5d17c498956966886d",
+        "byteLength": 3074,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/stats.js",
+        "sha256": "285a81c5bcdb003cc467b144ce6553e533ffff6a538b5c1958a33a54615e42fa",
+        "byteLength": 14370,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/package.json",
+        "sha256": "1451f7c250b93e06c0ef6566082726a7b89ae18e252ff0da5c370810441ca212",
+        "byteLength": 445,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/scripts/bot-health.cjs",
+        "sha256": "e50506dd93d85d6e8dfb4814a44560d413ad757eb9ebd12bddfd7e9faabe26c9",
+        "byteLength": 35269,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/scripts/c2-preparation.mjs",
+        "sha256": "b54ca8dfd59043b8c420323fc4c45f75bd2b373c096bb4296637fbc1a17c5d14",
+        "byteLength": 5049,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/scripts/create-bot.cjs",
+        "sha256": "ba2f30a4978b10fde1793c7d7bbca8018f5db25846a0ee745b706d43a9a2723f",
+        "byteLength": 8510,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/scripts/evidence-packager.mjs",
+        "sha256": "cfdfc97f6b2a8596258d2103d2a2f3cfa43c1256025e84e5cb7384fc983f4c75",
+        "byteLength": 9656,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/scripts/evidence-runner.mjs",
+        "sha256": "31257147063e11a6d6abc99c36bd0ef57ca92edd708be248937622253caf0092",
+        "byteLength": 25949,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/scripts/generate-evidence-package.mjs",
+        "sha256": "102c85c20e4da2dbdc2bc9f4cd953854120622c2d579f0ebe13f08cdcc9f7fa9",
+        "byteLength": 5258,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/scripts/p6-4-verify.mjs",
+        "sha256": "f3fd91bff49b4a17430a625d7b2c398fa6b081cc8a0f5867954539a1bb891b62",
+        "byteLength": 8389,
+        "mode": "0644",
+        "backupMode": "0600"
+      },
+      {
+        "path": "plugins/dsh-bots/scripts/review-enforcement-probe.cjs",
+        "sha256": "70a02afce5187e365406034cba5558d896110301bfc0e7bd0c57b38889f0b589",
+        "byteLength": 7494,
+        "mode": "0600",
+        "backupMode": "0600"
+      },
+      {
+        "path": "profiles/web/cordis.patch.yml",
+        "sha256": "0deee442a44333db573eee726c4bb47b6a861739563dbb0ed2099a47e4327468",
+        "byteLength": 4641,
+        "mode": "0600",
+        "backupMode": "0600"
+      }
+    ],
+    "manifest": {
+      "path": "_verified-manifest.json",
+      "sha256": "6ed9e8af6ecf007fd9874b6a6a436773950080f89cad821ca67de71f990f62aa",
+      "byteLength": 12152
+    },
+    "verified": true
+  },
+  "missingBefore": [
+    {
+      "path": "settings.yaml",
+      "exists": false
+    }
+  ],
+  "processesBeforeStop": {
+    "processNamespace": "pid:[4026532229]",
+    "processes": [
+      {
+        "pid": 30374,
+        "pidStartTicks": "589274",
+        "profile": "web",
+        "authorizedRestartTarget": true
+      }
+    ],
+    "listeners": [],
+    "stopped": []
+  },
+  "rollbackCommit": "b4a1ca5348e4ec4e79cbb861430fe49b499256d6",
+  "rollbackRehearsed": false
+}

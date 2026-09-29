@@ -18,12 +18,12 @@ bot workspaces／mail 与评审数据面）**归档至仓库归档目录后清�
 **Status:** ready-for-human
 
 - [ ] 切换点四条判据并行全绿：四道门 PASS／编制就绪探针 PASS／用户逐项点名授权到手／A 组坐标无空缺
-- [ ] 旧四席撤销、v2 双席建立；非空注册表必有锚点在场
+- [x] 旧四席撤销、v2 双席建立；非空注册表必有锚点在场
 - [ ] 就绪探针 PASS，且一次最小闭环 smoke 通过（收单→派单→实施→复核帽→结算）
-- [ ] 旧席数据归档至仓库归档目录后清运行面（逐项点名）
-- [ ] 回退面在位：库外部署件备份目录（带时戳、排他写、逐文件校验）＋ git 提交点
-- [ ] 回滚决定权在用户、不演练
-- [ ] 部署同步与重启链各为一次点名授权（`AGENTS.md` §2）
+- [x] 旧席数据归档至仓库归档目录后清运行面（逐项点名）
+- [x] 回退面在位：库外部署件备份目录（带时戳、排他写、逐文件校验）＋ git 提交点
+- [x] 回滚决定权在用户、不演练
+- [x] 部署同步与重启链各为一次点名授权（`AGENTS.md` §2）
 
 ## Comments
 
@@ -211,3 +211,94 @@ SHA-256 由计划绑定值变为
 为 914 字节，SHA-256
 `2af31894300d057b7846c66e9072bf3c056cb75ff71c70bfe8f9a8e861ed976f`。
 已向用户询问该并发编辑的来源；确认保留当前配置后才可重出绑定继续执行。
+
+### 2026-09-29 用户说明环境变化，更新执行绑定后继续
+
+用户回复「是的，我进行了 dsh 的版本更新，也可能来自于提前开始的票 17」。
+据此保留当前 web 配置，记录为用户已说明的环境变化；不将 17 号票认定为
+已证实的具体写者。17 号票当前尚无实施 Comments，本批运行面也尚无 v2
+台账、进程或新增知识报告。原五项授权与双席配置继续有效。
+
+当前宿主为 `0.2.0-rc.1`，隔离子进程复验宿主契约为 **12 PASS／0 FAIL／
+0 SKIP**。[宿主复验报告](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-host-revalidation-9af9c1ee.json)
+为 4,222 字节，SHA-256
+`9af9c1eed7fd7c9b4645326eda4c7f8b95c27c9206dd14bb01ca5b40bb05eee0`。
+仓库运行源码及 180 件部署源绑定未变，沿用已通过的完整 preflight。
+
+[执行计划 r2](../../../artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r2-fe641f43.json)
+为 104,681 字节，SHA-256
+`fe641f431ce368c0ba449440a4daf2aa352b414f91149d142211170c8f9efde8`。
+它以新文件承接旧计划，更新 web 配置摘要、用户授权和宿主复验绑定；保留
+原 runId、源码、备份及归档目的地、smoke 判据和双席配置。旧计划与中止
+记录保持原样。新计划的执行前复验通过，任务 `TK-20260929` 与报告
+`R-2026-010` 仍可用，后续按备份、归档、切换、就绪和 smoke 顺序执行。
+
+### 2026-09-29 完成归档与双席切换，真实 smoke 被宿主会话契约阻断
+
+**进程盘点更正**：前述「无存活 DSH 进程」只覆盖沙箱可见的 `/proc`，不能
+推出真实运行面无进程。沙箱外复验发现用户的 `dsh web`，PID `30374`、
+start ticks `589274`、cwd `/home/beijong`。核实隐式 web profile 与默认
+DSH_HOME 后，将该代际加入已授权的重启链。后续真实进程、端口与回环接口
+检查均在沙箱外执行。此更正承接上面三条执行前记录及日志事件
+`EV-20260929-cutover-authorized`、`EV-20260929-cutover-config-drift`、
+`EV-20260929-cutover-config-rebind`，不覆盖旧凭据。
+
+实际执行绑定[计划 r3](../../../artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r3-48d5f856.json)，
+105,510 字节，SHA-256
+`48d5f856febab4136bdb444ec2b53b38b84a594486127ec6bcd8de147d368ad4`。
+它只补充真实宿主代际与沙箱观测范围，源码、五项授权、双席配置、归档范围
+及冻结 smoke 简报继续沿用。执行顺序及结果如下。
+
+1. 排他建立库外备份，逐件复制并核验旧部署 51 件及 web patch 1 件。备份
+   为 `/home/beijong/.dsh/backups/dsh-bots/org-v2-cutover-20260929T040232Z/`。
+   备份完成后对已核代际的旧 host 发送 SIGTERM，并确认停止。
+2. 旧数据 97 件全部归档至
+   `artifacts/runtime-archives/org-v2-cutover-20260929T040232Z/`，逐文件验证
+   SHA-256 与字节数后才清除清单内运行路径。原始归档不入 Git。知识库、
+   instances 历史、其他 profile/workspace 与宿主依赖保留。
+3. 原子替换注册表，撤销旧四席并建立批准的双席，统筹带锚点标记。部署
+   `855113e` 的 81 件运行文件及 99 件测试／规格资源，移除 19 件旧部署文件。
+   仅启用已有 bots 插入，并从公开解析结果提取 `niko` 配置，排他建立权限
+   0600 的全局兼容来源。
+4. 以 `dsh --profile web --port 3100 --no-open` 启动 host，PID `62405`、
+   start ticks `1164488`。由 host 经私有 IPC 启动双席，统筹 PID `62481`，
+   实施者 PID `62639`。04:55:14Z 编制就绪 PASS，两个代际通道及首张能力
+   递送在位，进程加载摘要一致；宿主探针 12 PASS／0 FAIL／0 SKIP，A 组
+   60 个坐标齐备。此处是当时探针的结果，RPC 探针漏检见下段。
+5. 04:56:40Z 经真实用户命令入口创建 `TK-20260929`，再仅以任务 ID 唤醒
+   统筹。邮件被消费，但回信为 `[bot error] DSH session.create HTTP 401`。
+   05:13:03Z 诊断采集时任务仍为 `intake`、seq 1，两席均未建立持久会话，
+   尚无真实模型回合、产出工件或闭环成功凭据。未重复立项、重置台账或回滚。
+
+执行凭据均为新增不可覆盖件，完整自身绑定如下。
+
+| 凭据 | 字节数 | SHA-256 |
+|---|---:|---|
+| [r2 执行前复验](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-01-authorization-revalidation-3d0350b6.json) | 6,942 | `3d0350b6d22f255b1e392a1e3476e5244d9dd29c1ff522a22706c91a0bbfe7c1` |
+| [沙箱外执行前复验](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-01-authorization-revalidation-d47dd7b8.json) | 7,057 | `d47dd7b8f4fde50225353dbfe64631e19bb17bb722ad0bddaebef1ce57ac9b87` |
+| [备份核验](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-02-backup-verified-42410714.json) | 13,975 | `424107142348b0176e050f729016e6ac24ca4aab99daa1e17b975fc397f3c13e` |
+| [旧 host 停止](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-02-host-quiesced-ae813665.json) | 928 | `ae813665c8f9e3d0ecd29fa55a37d2a7ee6ea9028bb2ecfd44b7c8aae11e7d9b` |
+| [旧数据归档核验](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-03-archive-verified-1f621295.json) | 25,353 | `1f62129550e3d2490d26f55e5c4957ab78f1063ca42619141fff7dba3e432ba4` |
+| [撤旧建新](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-04-roster-replaced-1ff5ad38.json) | 7,956 | `1ff5ad38af7b89d6dd404abeca5a6a7633a792e69121b5cd32bbf510427f2a9b` |
+| [部署与配置](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-05-deployment-configured-f47ade23.json) | 73,058 | `f47ade235a3e01da05ce5620223aeca2d60d262c3323c4789758a4f42511aa08` |
+| [启动记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-06-host-started-b4dcfd2e.json) | 929 | `b4dcfd2eba7b402766fe323f3c323e7149f4bae96f9128e339d754dd945f092c` |
+| [首次就绪](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-07-readiness-before-smoke-4847ef4a.json) | 87,497 | `4847ef4a4c12e55b03cd6778079fa21e57cb38f6fc41bc6ce538c47522f77ac3` |
+| [立项前就绪复验](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-intake-readiness-93e8d916.json) | 87,494 | `93e8d916aadfa60c5bcbe50b2f31a04db98e827bdacd8cd100159a933901a6e7` |
+| [真实立项](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-task-intake-16211958.json) | 5,240 | `1621195862e50d75d0201350ee3ce588bd0f722e3ac38ddd9f696754bfe6b6a3` |
+| [统筹唤醒](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-wake-triage-3ce3a621.json) | 579 | `3ce3a621901b6fd6043be49379af1c68b0bb92b1a5711f6c7060ae22f911e680` |
+| [阻断诊断](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-rpc-blocked-878af4bc.json) | 3,910 | `878af4bcf0601b7179bec1bdbb96fbcf66b1bbe856674d72b6f9565b3ba226b6` |
+
+**诊断**：显式使用 diagnosing-bugs。实际匿名 RPC 复现 401；官方文档规定
+全部 HTTP RPC 均需浏览器会话认证，回环地址无豁免。现有普通回合仍调用旧
+匿名 `session.*` HTTP 端点。当前宿主还改用 `namespace/method` 与
+`payload.args`，历史读取已迁移，prompt 增加 `requestId`。只补 cookie
+不能补齐这组契约。官方公开 `sessionController` 的 create/selectModel/
+prompt/inspect 可承接进程内回合；已有 session driver 继续持有协议与
+baseline，不读取认证密钥或关闭外部认证。上述官方文件摘要绑定在诊断件中。
+
+原 `P-HOST-RPC` 仅检索信封与方法名标记，未检出认证和方法形状变化；因此
+前述宿主门 PASS 不等同本次真实回合可用。已提出在「原生会话回合接口」与
+「宿主 RPC 契约探针」补回归并修复的具体方案。tdd 要求
+“Test only at pre-agreed seams”，补充确认尚待用户答复，当前未写新增测试
+或修复源码。原五项运行授权继续有效。票面保留 `ready-for-human`，闭环与
+最终切换门尚未勾选；已核验的撤建、归档、备份和授权按凭据勾选。

@@ -1,0 +1,164 @@
+{
+  "schema": "org-v2/cutover-smoke-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T04:56:40.767Z",
+  "stage": "smoke-task-intake",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r3-48d5f856.json",
+    "sha256": "48d5f856febab4136bdb444ec2b53b38b84a594486127ec6bcd8de147d368ad4",
+    "byteLength": 105510
+  },
+  "taskId": "TK-20260929",
+  "input": {
+    "op": "task.intake",
+    "taskId": "TK-20260929",
+    "actor": {
+      "kind": "user",
+      "id": "user"
+    },
+    "idempotencyKey": "org-v2-cutover-20260929T040232Z:task.intake",
+    "payload": {
+      "class": "project",
+      "brief": {
+        "goal": "用真实双席完成一条预登记任务的收单、派单、登记工件、独立复核与结算。",
+        "deliverables": [
+          {
+            "format": "markdown",
+            "location": "bots/knowledge/reports/R-2026-010.md"
+          }
+        ],
+        "sources": [
+          {
+            "tool": "user",
+            "ref": "org-v2-cutover-20260929T040232Z:brief"
+          }
+        ],
+        "boundaries": "仅经组织命令提交工件与状态，不直接写 ~/.dsh；不改产品、部署、冻结件或旧知识条目。报告简述实际完成的动作并含本批标记。",
+        "acceptance": [
+          {
+            "probe": "fs.contains",
+            "args": {
+              "location": "bots/knowledge/reports/R-2026-010.md",
+              "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+            }
+          }
+        ],
+        "reviewPoints": [
+          "before-external-visibility"
+        ]
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "taskId": "TK-20260929",
+      "status": "intake",
+      "seq": 1,
+      "task": {
+        "taskId": "TK-20260929",
+        "class": "project",
+        "status": "intake",
+        "owner": null,
+        "dispatcher": null,
+        "lease": {
+          "acceptBy": null,
+          "expiresAt": null,
+          "heartbeats": 0
+        },
+        "dispatchCount": 0,
+        "brief": {
+          "goal": "用真实双席完成一条预登记任务的收单、派单、登记工件、独立复核与结算。",
+          "deliverables": [
+            {
+              "format": "markdown",
+              "location": "bots/knowledge/reports/R-2026-010.md"
+            }
+          ],
+          "sources": [
+            {
+              "tool": "user",
+              "ref": "org-v2-cutover-20260929T040232Z:brief"
+            }
+          ],
+          "boundaries": "仅经组织命令提交工件与状态，不直接写 ~/.dsh；不改产品、部署、冻结件或旧知识条目。报告简述实际完成的动作并含本批标记。",
+          "acceptance": [
+            {
+              "probe": "fs.contains",
+              "args": {
+                "location": "bots/knowledge/reports/R-2026-010.md",
+                "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+              }
+            }
+          ],
+          "reviewPoints": [
+            "before-external-visibility"
+          ]
+        },
+        "acceptance": [
+          {
+            "probe": "fs.contains",
+            "args": {
+              "location": "bots/knowledge/reports/R-2026-010.md",
+              "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+            }
+          }
+        ],
+        "routineId": null,
+        "window": null,
+        "supersedesTaskId": null,
+        "parentTaskId": null,
+        "createdAt": "2026-09-29T04:56:40.755Z",
+        "updatedAt": "2026-09-29T04:56:40.755Z",
+        "lastSeq": 1,
+        "resumeFrom": null,
+        "waitingClass": null,
+        "escalationCause": null,
+        "lastRejection": null
+      },
+      "event": {
+        "seq": 1,
+        "eventId": "mum7f5tf-df74a236",
+        "type": "intake",
+        "at": "2026-09-29T04:56:40.755Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 1,
+        "class": "project",
+        "brief": {
+          "goal": "用真实双席完成一条预登记任务的收单、派单、登记工件、独立复核与结算。",
+          "deliverables": [
+            {
+              "format": "markdown",
+              "location": "bots/knowledge/reports/R-2026-010.md"
+            }
+          ],
+          "sources": [
+            {
+              "tool": "user",
+              "ref": "org-v2-cutover-20260929T040232Z:brief"
+            }
+          ],
+          "boundaries": "仅经组织命令提交工件与状态，不直接写 ~/.dsh；不改产品、部署、冻结件或旧知识条目。报告简述实际完成的动作并含本批标记。",
+          "acceptance": [
+            {
+              "probe": "fs.contains",
+              "args": {
+                "location": "bots/knowledge/reports/R-2026-010.md",
+                "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+              }
+            }
+          ],
+          "reviewPoints": [
+            "before-external-visibility"
+          ]
+        },
+        "eventHash": "26c0f5d4da553ea6004cf73bf6662f9cc64cdf8def4fe6b9790269aa20065754"
+      }
+    }
+  }
+}
