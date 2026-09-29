@@ -1,0 +1,1500 @@
+{
+  "recordType": "org-v2-cutover-preparation",
+  "capturedAt": "2026-09-29T02:03:26.072810+00:00",
+  "scope": "Read-only inventory before ticket 16. This is not cutover approval, readiness evidence, or an evidence package.",
+  "sourceCommit": "b4a1ca5348e4ec4e79cbb861430fe49b499256d6",
+  "repoRoot": "/home/beijong/project/dsh-bots",
+  "dshHome": "/home/beijong/.dsh",
+  "deployRoot": "/home/beijong/.dsh/plugins/dsh-bots",
+  "registryBinding": {
+    "sha256": "dcd916c9dbef4cb95394053222b53c35dca9635704a922f6fa6b1995f52cc75f",
+    "byteLength": 2650
+  },
+  "legacySeats": [
+    {
+      "id": "lead",
+      "post": null,
+      "bootstrapAnchor": null,
+      "port": 3101,
+      "pid": 939,
+      "pidStartTicks": 1625,
+      "modelProvider": "niko",
+      "model": "gpt-5.6-sol",
+      "reasoningEffort": "",
+      "permission": "read-only"
+    },
+    {
+      "id": "bot-mt0x6r0y",
+      "post": null,
+      "bootstrapAnchor": null,
+      "port": 3102,
+      "pid": 965,
+      "pidStartTicks": 1780,
+      "modelProvider": "deepseek-official",
+      "model": "deepseek-v4-flash-vision-exp",
+      "reasoningEffort": null,
+      "permission": "read-only"
+    },
+    {
+      "id": "reviewer-lead",
+      "post": null,
+      "bootstrapAnchor": null,
+      "port": 3103,
+      "pid": 1007,
+      "pidStartTicks": 1935,
+      "modelProvider": "niko",
+      "model": "gpt-5.6-sol",
+      "reasoningEffort": "high",
+      "permission": "danger-full-access"
+    },
+    {
+      "id": "reviewer-second",
+      "post": null,
+      "bootstrapAnchor": null,
+      "port": 3104,
+      "pid": 1028,
+      "pidStartTicks": 2089,
+      "modelProvider": "opencode-go",
+      "model": "deepseek-v4-flash",
+      "reasoningEffort": "max",
+      "permission": "read-only"
+    }
+  ],
+  "registeredPids": [
+    {
+      "pid": 939,
+      "procExists": false
+    },
+    {
+      "pid": 965,
+      "procExists": false
+    },
+    {
+      "pid": 1007,
+      "procExists": false
+    },
+    {
+      "pid": 1028,
+      "procExists": false
+    }
+  ],
+  "v2LedgerExists": false,
+  "codeInventory": {
+    "selection": "package.json and every regular file below lib/ and scripts/; this inventory does not claim the complete deployment closure",
+    "counts": {
+      "changed": 13,
+      "same": 13,
+      "missing": 47
+    },
+    "files": [
+      {
+        "path": "lib/api-security.js",
+        "source": {
+          "sha256": "69a14599bc18d4f327c5035edb2a51238a175fa5e7af8d879dab38525e3d4893",
+          "byteLength": 3691
+        },
+        "deployment": {
+          "sha256": "cac7bf373d3904ce67699fc4dba0efc18b053e431ec48dcbfbf964aa770b3c0e",
+          "byteLength": 4416
+        },
+        "state": "changed"
+      },
+      {
+        "path": "lib/bot-autostart.js",
+        "source": {
+          "sha256": "746a6ff821579c297e0458a628bf0664824545d34196f4d8af2cdac47ed0b1b3",
+          "byteLength": 2883
+        },
+        "deployment": {
+          "sha256": "746a6ff821579c297e0458a628bf0664824545d34196f4d8af2cdac47ed0b1b3",
+          "byteLength": 2883
+        },
+        "state": "same"
+      },
+      {
+        "path": "lib/bot-supervisor.js",
+        "source": {
+          "sha256": "42896e46037891438440716132e78bc8176a15aa32533afa95bf9532dab766bd",
+          "byteLength": 11489
+        },
+        "deployment": {
+          "sha256": "42896e46037891438440716132e78bc8176a15aa32533afa95bf9532dab766bd",
+          "byteLength": 11489
+        },
+        "state": "same"
+      },
+      {
+        "path": "lib/client.js",
+        "source": {
+          "sha256": "01fa5361e6c4406f2d53b6ab89131127a6bfa896965afb7b92ede303886bbeca",
+          "byteLength": 160803
+        },
+        "deployment": {
+          "sha256": "033513344622277c9d0f4dc797040d96ab152a69b6d3604bee727d16d932026d",
+          "byteLength": 162200
+        },
+        "state": "changed"
+      },
+      {
+        "path": "lib/evidence-packager.js",
+        "source": {
+          "sha256": "e32f9ee9847d45f6b33eecd6680388d6ff9093486111d2575a12e0b8040d615f",
+          "byteLength": 29471
+        },
+        "deployment": {
+          "sha256": "0a0163a167aee3df4bc193a97f62edf18fe5bad0aff5f53652733c63ca5a6294",
+          "byteLength": 22689
+        },
+        "state": "changed"
+      },
+      {
+        "path": "lib/fs-hygiene.js",
+        "source": {
+          "sha256": "a801485261a6a7ab915c86ac277c8c45d4633be27e721a33e3469081a2db076e",
+          "byteLength": 2303
+        },
+        "deployment": {
+          "sha256": "a801485261a6a7ab915c86ac277c8c45d4633be27e721a33e3469081a2db076e",
+          "byteLength": 2303
+        },
+        "state": "same"
+      },
+      {
+        "path": "lib/host-faces.js",
+        "source": {
+          "sha256": "ff94523b260e523505b4739c8998e4ead723ea98a76826a652aca5f7dbda6d44",
+          "byteLength": 16031
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/host-services.js",
+        "source": {
+          "sha256": "d36a660c128092973eb6c8e2777daa60051e4ad63256381dd3f78351cad713e4",
+          "byteLength": 1729
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/index.js",
+        "source": {
+          "sha256": "1d7eed1456274c8e53a0f45477314ce1c3f42eb1234ff5a0b362a82e0cc26e8e",
+          "byteLength": 143446
+        },
+        "deployment": {
+          "sha256": "2b02c2a1a746d56682be0020702af5f39803cf7d20c21d4d92d3871f954094f1",
+          "byteLength": 165167
+        },
+        "state": "changed"
+      },
+      {
+        "path": "lib/knowledge.js",
+        "source": {
+          "sha256": "86083681eb1ad504bd524bfee9fed35f92e2a93deb45c69d004e7de145765c14",
+          "byteLength": 24417
+        },
+        "deployment": {
+          "sha256": "99a76527e1b4f3353490c386ce2e13bdacee9676ad521cde132b933fea3f423e",
+          "byteLength": 15789
+        },
+        "state": "changed"
+      },
+      {
+        "path": "lib/ledger-evidence.js",
+        "source": {
+          "sha256": "481eca962e234c791efd349bae7ac43df063a2cd06760b3b0fb57f20181284dc",
+          "byteLength": 22636
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/lock-dir.js",
+        "source": {
+          "sha256": "2ae0e9c02937afb78f1f08c687699971c2d6e3e40929c430e8a463cd518c10ac",
+          "byteLength": 9185
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/lock-trace.js",
+        "source": {
+          "sha256": "afa6eddef3293a0e63107ab900fc597023139826b53fbf2cc327b5781ac4c6ac",
+          "byteLength": 1712
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/mail-plane.js",
+        "source": {
+          "sha256": "f05ec047c556fd749b5ef009ef84dc70ae3513d501092982c026b1d96eb17d16",
+          "byteLength": 23314
+        },
+        "deployment": {
+          "sha256": "3e5730c1da811b49e19fa26922363a8418b625d8e6e0d5e0333248cf2288a519",
+          "byteLength": 20189
+        },
+        "state": "changed"
+      },
+      {
+        "path": "lib/mail-seq-lock.js",
+        "source": {
+          "sha256": "1c4a66f11824a5bb0b5d25363ff764992d258d3d802ad5fe113ee4b783db2a07",
+          "byteLength": 1290
+        },
+        "deployment": {
+          "sha256": "3614872a9b8e2b9a49e0d9493cad6df77b340829c01cd8b0285c7d7b325d70e9",
+          "byteLength": 2867
+        },
+        "state": "changed"
+      },
+      {
+        "path": "lib/org/acceptance-coordinates.js",
+        "source": {
+          "sha256": "548841609feb5ba1c18382ee71a1f10015c37d479e9d4d4ea0e2b2b0b53a8b94",
+          "byteLength": 47854
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/brief-gate.js",
+        "source": {
+          "sha256": "fb4ec4bd05e8248a74fc8e203a95ac21c7f19e29a936e0728406a5b9e9a7014b",
+          "byteLength": 3692
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/brief.js",
+        "source": {
+          "sha256": "606ae2ffb897a4510fa5ca7465146d9e78eac91380af58757cd2823a58c9830c",
+          "byteLength": 11030
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/capability-base.js",
+        "source": {
+          "sha256": "9f24d8b54f92a05c57c90348ffaabfe113a4990e9f6b419af9926a9af8b14d22",
+          "byteLength": 11749
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/capability-issue.js",
+        "source": {
+          "sha256": "8fe2aeed525e879cf6d1db44786eb25473febfec34c68c3c04667cc180bfb457",
+          "byteLength": 9243
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/criterion-runner.js",
+        "source": {
+          "sha256": "64f8e9ea9f5eca62d02276d3fbeec4d14af4aeec0e4f610965c529dbd3cbfec3",
+          "byteLength": 2062
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/dispatch-config.js",
+        "source": {
+          "sha256": "da9052047ac965706b5f4dcae8937686f660405c4b0ffd4dbc9c3c41a6f4d034",
+          "byteLength": 10280
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/dispatch-decision.js",
+        "source": {
+          "sha256": "b84e335aa4a7e8ba030834a07b3f3edfc01a4f18ebf1a533e0440d244436e79a",
+          "byteLength": 3352
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/durability.js",
+        "source": {
+          "sha256": "4ddfce677a23329f5ad7666a86e3beff9aecc3d668e99d43d1a55ed3643a4a83",
+          "byteLength": 64843
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/face-scan.js",
+        "source": {
+          "sha256": "53f27c58b92815e59840adb7b6b07b9f38d94fd22890b9bed058177edd7e73de",
+          "byteLength": 2339
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/host-channel.js",
+        "source": {
+          "sha256": "646baef40aee2ae23ce8ccb79537a3c79064fab54afb7a969611b42cd92b6cc0",
+          "byteLength": 3045
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/human-inbox.js",
+        "source": {
+          "sha256": "bd9f1594710c8048ca5ae511816051dd9e11bfa3dc2d5e333d0dfee5613e97c1",
+          "byteLength": 26322
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/is-non-empty-string.js",
+        "source": {
+          "sha256": "b8e5ea9a834cc785a8eeef467a118c5464d7df09d534b64102b4b002138505df",
+          "byteLength": 538
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/knowledge-shared-face.js",
+        "source": {
+          "sha256": "86d37d13447c409c1128d46b594ea48c151584a3da8b86b47f4c05ceea620840",
+          "byteLength": 11263
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/ledger-events.js",
+        "source": {
+          "sha256": "4d81c546062ea105a7c20b2a2f4d3da5da76c6b892aed723ec18fca5201f81c9",
+          "byteLength": 11575
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/ledger-host.js",
+        "source": {
+          "sha256": "624c6bdcd6af5512734e815b1d82b643efc77c979a23842f1cd1a2115c22d9f8",
+          "byteLength": 30438
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/mail-client.js",
+        "source": {
+          "sha256": "5b1c68277bf9cee0166fa548ae1d57d2aaf58b3d043d6286ad920cc4e6c4f252",
+          "byteLength": 4352
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/mail-relay.js",
+        "source": {
+          "sha256": "065ac221828d0e526e52ff1a93c3e23c9de01840aadaa9c9c85ea09a1e62cc1e",
+          "byteLength": 19872
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/mail-shared-face.js",
+        "source": {
+          "sha256": "ddf58b962f693a644d2a85e00fd61de265bddb4e6dd2ce54b316d4c499ffc907",
+          "byteLength": 12485
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/memory-layer.js",
+        "source": {
+          "sha256": "633c5066c10cc83f549dd299621d5ab47b0d4cb2e2e071a2b6d5fa01a68f3eda",
+          "byteLength": 21058
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/op-set.js",
+        "source": {
+          "sha256": "1aa69aa99e60d264d59d06d3f844295b7babbb589edb199fba6a4fab7a2e29cb",
+          "byteLength": 19834
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/permissions.js",
+        "source": {
+          "sha256": "3ac4c1aa717d7361c17ca4e13b1f665d1afb7288dd1d713ac124b720b8ba5841",
+          "byteLength": 17641
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/post-channel.js",
+        "source": {
+          "sha256": "9ae0f7e3dcbe7965e337384934e0da6bbfbec91329025e36f3d4c513ee4f7c3e",
+          "byteLength": 10802
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/probe.js",
+        "source": {
+          "sha256": "ee2847706cc7e8c03e6e518338581dbbf2e0eaf15c6e93d3951b5f4237777e44",
+          "byteLength": 24516
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/review-kit.js",
+        "source": {
+          "sha256": "86a2a2edb8ce7cae49b585f8b0de17d4352ec23cb9678895500768808834013c",
+          "byteLength": 17754
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/role-card-digests.generated.json",
+        "source": {
+          "sha256": "09e84a8bc4f5ceea0494b93a64795c377050b5004f0e08397bd69a3a413c453c",
+          "byteLength": 7972
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/role-cards.js",
+        "source": {
+          "sha256": "c6476a65109827223ed3dd27e895250f0cc04e2045a011eb4bff7ff4993ec836",
+          "byteLength": 23741
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/run-count.js",
+        "source": {
+          "sha256": "0765d53c71d7a26576f71cc3704627487304af8209ce453545bc6db92cd73642",
+          "byteLength": 1923
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/store-base.js",
+        "source": {
+          "sha256": "1dcc1271fef4e0d1314fcbb19f0a9643235da4df6f66e59b2f0be27a6b9357f8",
+          "byteLength": 20800
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/task-ledger.js",
+        "source": {
+          "sha256": "6538497af5fb3b3dc0b2494552991d6f019480ee62bdf7410d97dad76ef5ec97",
+          "byteLength": 95046
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/unauthorized-count.js",
+        "source": {
+          "sha256": "10010fe266e129f44b3f51cb33e0a9d7cc88288003c257d0861cc3cda49ddaeb",
+          "byteLength": 7846
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/org/vocabulary-face.js",
+        "source": {
+          "sha256": "e05cdb7ebc4a1c7da084097c14fa5df6014e8f0a2de2adde64706985b7b2a6fa",
+          "byteLength": 3818
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/parity-manifest.js",
+        "source": {
+          "sha256": "a3036e70c35f019a35caef953938f94963fdacabfc2c4dcdfb762772cbcef72e",
+          "byteLength": 2473
+        },
+        "deployment": {
+          "sha256": "165aee6ed4542177ef8cc619bdf492c8b36e88283077df1db03d51d0c24e06e2",
+          "byteLength": 2518
+        },
+        "state": "changed"
+      },
+      {
+        "path": "lib/pid-bind.js",
+        "source": {
+          "sha256": "d137475dbc9f627a44325f94afe27590eb6b7b6079509474e1971884a9d182a9",
+          "byteLength": 2412
+        },
+        "deployment": {
+          "sha256": "d137475dbc9f627a44325f94afe27590eb6b7b6079509474e1971884a9d182a9",
+          "byteLength": 2412
+        },
+        "state": "same"
+      },
+      {
+        "path": "lib/sentinel-provenance.js",
+        "source": {
+          "sha256": "fabad41a9ae0772790b2dc87788a090a8bcd026cf636e2eb6c0dd541de6322cd",
+          "byteLength": 22223
+        },
+        "deployment": {
+          "sha256": "8c3c3d2726b9fb03d4524498d591472028e3497f60520990cfac7676d6aa1ad5",
+          "byteLength": 22857
+        },
+        "state": "changed"
+      },
+      {
+        "path": "lib/sentinel-runner.js",
+        "source": {
+          "sha256": "b5a6e0dacb6bbb2575505ea907942ec4ccccf824091da3d5265c3d9919cffc24",
+          "byteLength": 22896
+        },
+        "deployment": {
+          "sha256": "463c731941ed6161bb209079923745e41411a03ccddbbd5aed02a5a9e73a8cfc",
+          "byteLength": 22902
+        },
+        "state": "changed"
+      },
+      {
+        "path": "lib/sentinel-safety.js",
+        "source": {
+          "sha256": "8d52fa3d674a0f0ee41131b3e7b74695b648407e51e61b40f59c2f68f0d9244a",
+          "byteLength": 11877
+        },
+        "deployment": {
+          "sha256": "8d52fa3d674a0f0ee41131b3e7b74695b648407e51e61b40f59c2f68f0d9244a",
+          "byteLength": 11877
+        },
+        "state": "same"
+      },
+      {
+        "path": "lib/sentinel-shadow.js",
+        "source": {
+          "sha256": "88a047e026beaf46c00bdedaa791fd1ae46abb04c9eaf14db150ca8a18902df3",
+          "byteLength": 15452
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "lib/session-driver.js",
+        "source": {
+          "sha256": "05c404ee894eca37556da5c356ac5288b4595136d58074c8042f31f861846d7a",
+          "byteLength": 7023
+        },
+        "deployment": {
+          "sha256": "05c404ee894eca37556da5c356ac5288b4595136d58074c8042f31f861846d7a",
+          "byteLength": 7023
+        },
+        "state": "same"
+      },
+      {
+        "path": "lib/shared.cjs",
+        "source": {
+          "sha256": "d03facdddbcfb1ac70ba16a2c895e1d7d85e6a124d17a442a46a5950ab31bd25",
+          "byteLength": 16090
+        },
+        "deployment": {
+          "sha256": "d03facdddbcfb1ac70ba16a2c895e1d7d85e6a124d17a442a46a5950ab31bd25",
+          "byteLength": 16090
+        },
+        "state": "same"
+      },
+      {
+        "path": "lib/spawn-env.js",
+        "source": {
+          "sha256": "cc56c4ce9d32a4f477bc24464af591a13f0e276354dbcf5d17c498956966886d",
+          "byteLength": 3074
+        },
+        "deployment": {
+          "sha256": "cc56c4ce9d32a4f477bc24464af591a13f0e276354dbcf5d17c498956966886d",
+          "byteLength": 3074
+        },
+        "state": "same"
+      },
+      {
+        "path": "lib/stats.js",
+        "source": {
+          "sha256": "285a81c5bcdb003cc467b144ce6553e533ffff6a538b5c1958a33a54615e42fa",
+          "byteLength": 14370
+        },
+        "deployment": {
+          "sha256": "285a81c5bcdb003cc467b144ce6553e533ffff6a538b5c1958a33a54615e42fa",
+          "byteLength": 14370
+        },
+        "state": "same"
+      },
+      {
+        "path": "package.json",
+        "source": {
+          "sha256": "f4f62611f08ad884ba2e31e9790a877c308dae2dd2bb7fd769e4a519505fd926",
+          "byteLength": 453
+        },
+        "deployment": {
+          "sha256": "1451f7c250b93e06c0ef6566082726a7b89ae18e252ff0da5c370810441ca212",
+          "byteLength": 445
+        },
+        "state": "changed"
+      },
+      {
+        "path": "scripts/acceptance-coordinates-sync.mjs",
+        "source": {
+          "sha256": "b2871778a5acdaf5e76bb240ff33e01f7917dc4fd6c03ade5cb1e92c0f35c7a7",
+          "byteLength": 4645
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "scripts/bot-health.cjs",
+        "source": {
+          "sha256": "e50506dd93d85d6e8dfb4814a44560d413ad757eb9ebd12bddfd7e9faabe26c9",
+          "byteLength": 35269
+        },
+        "deployment": {
+          "sha256": "e50506dd93d85d6e8dfb4814a44560d413ad757eb9ebd12bddfd7e9faabe26c9",
+          "byteLength": 35269
+        },
+        "state": "same"
+      },
+      {
+        "path": "scripts/c2-preparation.mjs",
+        "source": {
+          "sha256": "b54ca8dfd59043b8c420323fc4c45f75bd2b373c096bb4296637fbc1a17c5d14",
+          "byteLength": 5049
+        },
+        "deployment": {
+          "sha256": "b54ca8dfd59043b8c420323fc4c45f75bd2b373c096bb4296637fbc1a17c5d14",
+          "byteLength": 5049
+        },
+        "state": "same"
+      },
+      {
+        "path": "scripts/capability-issued-audit.mjs",
+        "source": {
+          "sha256": "a6a2cfed8c16cc8663de6303b9a6c42303310198f8271f71cb0cf3dac19b168f",
+          "byteLength": 6387
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "scripts/changelog-files.mjs",
+        "source": {
+          "sha256": "c15a6cbac2b20b0c5ce9e6c750cca5b1259546fe8dac4691e79a6fac019d84e1",
+          "byteLength": 6678
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "scripts/create-bot.cjs",
+        "source": {
+          "sha256": "ba2f30a4978b10fde1793c7d7bbca8018f5db25846a0ee745b706d43a9a2723f",
+          "byteLength": 8510
+        },
+        "deployment": {
+          "sha256": "ba2f30a4978b10fde1793c7d7bbca8018f5db25846a0ee745b706d43a9a2723f",
+          "byteLength": 8510
+        },
+        "state": "same"
+      },
+      {
+        "path": "scripts/evidence-packager.mjs",
+        "source": {
+          "sha256": "0afd9ce365e310f1af4e31cec8e0cae8b9242fe906978745f3877e8e680e5c72",
+          "byteLength": 12167
+        },
+        "deployment": {
+          "sha256": "cfdfc97f6b2a8596258d2103d2a2f3cfa43c1256025e84e5cb7384fc983f4c75",
+          "byteLength": 9656
+        },
+        "state": "changed"
+      },
+      {
+        "path": "scripts/evidence-runner.mjs",
+        "source": {
+          "sha256": "cc661b2780539995ab98a150715c8e315567e2ac15a2b5324f69b29c0acfb17b",
+          "byteLength": 35631
+        },
+        "deployment": {
+          "sha256": "31257147063e11a6d6abc99c36bd0ef57ca92edd708be248937622253caf0092",
+          "byteLength": 25949
+        },
+        "state": "changed"
+      },
+      {
+        "path": "scripts/generate-evidence-package.mjs",
+        "source": {
+          "sha256": "102c85c20e4da2dbdc2bc9f4cd953854120622c2d579f0ebe13f08cdcc9f7fa9",
+          "byteLength": 5258
+        },
+        "deployment": {
+          "sha256": "102c85c20e4da2dbdc2bc9f4cd953854120622c2d579f0ebe13f08cdcc9f7fa9",
+          "byteLength": 5258
+        },
+        "state": "same"
+      },
+      {
+        "path": "scripts/host-contract-probe.mjs",
+        "source": {
+          "sha256": "1c9194195719e54d554de012d550545ec7f08372c7f6c6f18e4faeefef732589",
+          "byteLength": 53792
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "scripts/ledger-drill.mjs",
+        "source": {
+          "sha256": "3b95b422eb77a1ae3ee1929fbd75c246c9a5c93388ed15e373b5f3d7cf47294f",
+          "byteLength": 15995
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "scripts/ledger-evidence-verify.mjs",
+        "source": {
+          "sha256": "014f3c07e2434f1b6699a81b2c9587dd4217ff7f611d3a82932b19af2bc44723",
+          "byteLength": 5838
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "scripts/preflight.mjs",
+        "source": {
+          "sha256": "d4b67d60a4ca884ba399f6dbdcb7dbf805acd24874ebed25630cbe50cdbc69a4",
+          "byteLength": 9521
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "scripts/project-context.mjs",
+        "source": {
+          "sha256": "15b9d13c05e7af439e3c87cfe7f9f602c6e62aac4945ff3d63b7ce3581136db3",
+          "byteLength": 9457
+        },
+        "deployment": null,
+        "state": "missing"
+      },
+      {
+        "path": "scripts/role-card-drift-check.mjs",
+        "source": {
+          "sha256": "1eb306f7d4f682d30f326151488e306ebd1b3d8a1205d35598d53c2ca76d2c2f",
+          "byteLength": 6649
+        },
+        "deployment": null,
+        "state": "missing"
+      }
+    ],
+    "deploymentOnlyCandidates": [
+      {
+        "path": "lib/review-capability.js",
+        "sha256": "fee70e87ba0d1e377e3560033be59564ef9345ee324b31cfa9c13a04e7a34877",
+        "byteLength": 31581
+      },
+      {
+        "path": "lib/review-discussion.js",
+        "sha256": "4f5da186d6773d709d0da64a1454187556b2f4c3e7399e81ba962db06a3756bf",
+        "byteLength": 13703
+      },
+      {
+        "path": "lib/review-enforcement.js",
+        "sha256": "5ee383294c33373bb9851c3415c61040d2e37f075f0717a168070790babfab91",
+        "byteLength": 20570
+      },
+      {
+        "path": "lib/review-envelopes.js",
+        "sha256": "80d58463c7153e7e46c9fe9d436fc3ceec0c5ef9b616a9dccc7d6e85efe8784b",
+        "byteLength": 5294
+      },
+      {
+        "path": "lib/review-evidence.js",
+        "sha256": "ef39f98d6ae3f8b509ac117195eba8547dfa25674133ed4c45004fc2e0338533",
+        "byteLength": 20851
+      },
+      {
+        "path": "lib/review-flow.js",
+        "sha256": "fd0218dc9cf07eb0cec9d7042aa0421917bfeb7fd466a337b9761c4eab2ad7ec",
+        "byteLength": 22492
+      },
+      {
+        "path": "lib/review-http-api.js",
+        "sha256": "1bb1510b6309617949fb56232a6f142e1e3a4c5f9ba95cac2e16249a7a6d2e7a",
+        "byteLength": 11179
+      },
+      {
+        "path": "lib/review-intake.js",
+        "sha256": "7cdcef9836d0a1187e2bf4d6f0daee1638cb5941b83a3832c9e3c9be0e253110",
+        "byteLength": 6141
+      },
+      {
+        "path": "lib/review-job-tools.js",
+        "sha256": "8074cfc2382816b793a6c949822bc6d0b52ae61c481d213c9c66dd5f69e2c890",
+        "byteLength": 33416
+      },
+      {
+        "path": "lib/review-jobs.js",
+        "sha256": "5053b82e977ae744dbd7b42fe65662a7816394001e2a036cc471d5ff1297a7c4",
+        "byteLength": 36229
+      },
+      {
+        "path": "lib/review-migration.js",
+        "sha256": "2f878a697794d397589865b848b7186178d2038e099350fa51a0bb1a4ed74433",
+        "byteLength": 9867
+      },
+      {
+        "path": "lib/review-orchestrator.js",
+        "sha256": "0dd811c0882c755ca1a24b14efacfafec7d672e8d893dc3032e0385194cca32c",
+        "byteLength": 41034
+      },
+      {
+        "path": "lib/review-protocol.js",
+        "sha256": "6da1b5f41cd7cc79897b6cb1f100f615035ae7da05a5553605c0cfbdc8bb67a3",
+        "byteLength": 7373
+      },
+      {
+        "path": "lib/review-relay.js",
+        "sha256": "0ee26dc4f36735a5ac81a57cbe50c6b47ddbbcf6d4e949cc7dc0d33e977cfabb",
+        "byteLength": 22232
+      },
+      {
+        "path": "lib/review-report.js",
+        "sha256": "d6202e0de035a0e2660321fb3d4e0e3afbb799b10bc7dec6bdc45dabb70ec1b3",
+        "byteLength": 5203
+      },
+      {
+        "path": "lib/review-results.js",
+        "sha256": "dddb9937ac50d881303c6b6f5f62f29a59b50940f9ca33166f9f32b4d26a2b61",
+        "byteLength": 17959
+      },
+      {
+        "path": "lib/review-store.js",
+        "sha256": "2c6fe933500f70436519795b1b9bcdcaf4b169b1742d4ee15c5383badaeb99e5",
+        "byteLength": 53243
+      },
+      {
+        "path": "scripts/p6-4-verify.mjs",
+        "sha256": "f3fd91bff49b4a17430a625d7b2c398fa6b081cc8a0f5867954539a1bb891b62",
+        "byteLength": 8389
+      },
+      {
+        "path": "scripts/review-enforcement-probe.cjs",
+        "sha256": "70a02afce5187e365406034cba5558d896110301bfc0e7bd0c57b38889f0b589",
+        "byteLength": 7494
+      }
+    ]
+  },
+  "archiveInventory": [
+    {
+      "path": "bots/bots.json",
+      "exists": true,
+      "files": [
+        {
+          "path": "bots/bots.json",
+          "sha256": "dcd916c9dbef4cb95394053222b53c35dca9635704a922f6fa6b1995f52cc75f",
+          "byteLength": 2650
+        }
+      ]
+    },
+    {
+      "path": "bots/inbox",
+      "exists": true,
+      "files": [
+        {
+          "path": "bots/inbox/bot-mt0x6r0y/messages.jsonl",
+          "sha256": "b6d8fb2cd3b9a9fd46ecfa341be6de07c1a6b3486d8940b455b7fa206562a105",
+          "byteLength": 487
+        },
+        {
+          "path": "bots/inbox/bot-mt0x6r0y/receipts/Fm0cJfkks8pp7t5ZkJo0bw.json",
+          "sha256": "a26e7359e23a2ba8230c64d96521cec6bffd60c9547a28155fd2aeb586f3a241",
+          "byteLength": 101
+        },
+        {
+          "path": "bots/inbox/bot-mt0x6r0y/receipts/m9uMTsQb7LIMgihKro5pAQ.json",
+          "sha256": "f266ce3f9719ef48a5b0a0cc7caf6cd01141b4002e7dd890be6f9b9a876bb2e5",
+          "byteLength": 101
+        },
+        {
+          "path": "bots/inbox/bot-mt0x6r0y/responses/Fm0cJfkks8pp7t5ZkJo0bw.json",
+          "sha256": "f43ee0eb8fa4130c82ab1bdb55cd53e6b2350c498e420a2cdb5e6c1f0b5f5461",
+          "byteLength": 108
+        },
+        {
+          "path": "bots/inbox/bot-mt0x6r0y/responses/m9uMTsQb7LIMgihKro5pAQ.json",
+          "sha256": "9d90a111a189f62429e2f5f7349b0607c1d75c939c8950bf65171459bcafd32e",
+          "byteLength": 108
+        },
+        {
+          "path": "bots/inbox/bot-mt2bqvh2/messages.jsonl",
+          "sha256": "90da768066707a0ac66a9a5c3cfbd97716b9301475640cb0cb2129c9b7457566",
+          "byteLength": 85
+        },
+        {
+          "path": "bots/inbox/lead/messages.jsonl",
+          "sha256": "06037fac05ef345836a54aaf3ee7916ec757df4ce88dac0661e69b7c843bee50",
+          "byteLength": 59162
+        },
+        {
+          "path": "bots/inbox/lead/receipts/.baseline.json",
+          "sha256": "bfb9a4414547591cb226e863e173ebbbd85819c940b6683ca1f4605a8f387232",
+          "byteLength": 43
+        },
+        {
+          "path": "bots/inbox/lead/receipts/OTvl1XFOIk5QRKaNEYQ2Ww.json",
+          "sha256": "32fbeeaad55a2ae3a60464d392bce66e104eabf29c8ce97853834af23567f0a0",
+          "byteLength": 102
+        },
+        {
+          "path": "bots/inbox/lead/receipts/YiulW3MtRdgei14Iwge9FA.json",
+          "sha256": "eea9e6b350da1d94365dedeaa8a7a5ecab36bfc806ccc543dcc7457ea75e2792",
+          "byteLength": 102
+        },
+        {
+          "path": "bots/inbox/lead/receipts/f-B6Ej1JnSm3wiodeoJsGw.json",
+          "sha256": "aa9d0998af4e844c1723b5c5d3d1273c4266917f46bcaa999ef8483f335a1632",
+          "byteLength": 102
+        },
+        {
+          "path": "bots/inbox/lead/responses/OTvl1XFOIk5QRKaNEYQ2Ww.json",
+          "sha256": "121ca1f47c9e2d0e54918465b7bc27bdc66a6aa82d2869f434cc2fbf5d46dce5",
+          "byteLength": 108
+        },
+        {
+          "path": "bots/inbox/lead/responses/YiulW3MtRdgei14Iwge9FA.json",
+          "sha256": "496fa3cefd61b2e8444511f5e76226906ea8d2801f5d774f305068846e460177",
+          "byteLength": 108
+        },
+        {
+          "path": "bots/inbox/lead/responses/f-B6Ej1JnSm3wiodeoJsGw.json",
+          "sha256": "75bf6ba98e3ee0ba90bd945a5131d42ddf5743611733e86b184bec2b89a988ab",
+          "byteLength": 108
+        },
+        {
+          "path": "bots/inbox/reviewer-lead/messages.jsonl",
+          "sha256": "6eba4f945949852a38887aa0c2e127467d9644c6e0b4ab0923c185d1c4228eb4",
+          "byteLength": 45666
+        },
+        {
+          "path": "bots/inbox/reviewer-lead/receipts/.baseline.json",
+          "sha256": "1d5466420c5b6d51022edbd356901ad472462fa41fce39041b1665aa72f51eb2",
+          "byteLength": 43
+        },
+        {
+          "path": "bots/inbox/reviewer-second/messages.jsonl",
+          "sha256": "8f10c8a5b8dd8f728329a42a085a8b521cad180d38ca62fd7d8e9ded66daa687",
+          "byteLength": 21692
+        },
+        {
+          "path": "bots/inbox/reviewer-second/receipts/.baseline.json",
+          "sha256": "6d454a5e43bcf17b5c8fd971a5e85adc0a06f814faaf8dde2a38301601b6bf54",
+          "byteLength": 42
+        }
+      ]
+    },
+    {
+      "path": "bots/outbox",
+      "exists": true,
+      "files": [
+        {
+          "path": "bots/outbox/bot-mt0x6r0y/2026-09-08T01-25-45-728Z.jsonl",
+          "sha256": "75d74a4f068851c447ae2600ae28f205953784d24ff6e03b8e20a985049fb7c5",
+          "byteLength": 516
+        },
+        {
+          "path": "bots/outbox/bot-mt0x6r0y/2026-09-08T01-27-19-605Z.jsonl",
+          "sha256": "fbec5bf3d4dab1d2a62dc838fa080f0b197cd1d20a634e43169a605ab0fadd37",
+          "byteLength": 269
+        },
+        {
+          "path": "bots/outbox/bot-mt2bqvh2/2026-08-21T08-23-29-196Z.jsonl",
+          "sha256": "95dc128afd8d7ca407bfd11fb9f4e72c4a35a21e46dad4aeedf4a30afd42ce98",
+          "byteLength": 151
+        },
+        {
+          "path": "bots/outbox/lead/2026-08-26T10-16-32-800Z.jsonl",
+          "sha256": "98f44a5fedc6fbad2a8dab1c761a6a95c4b00c082df6b9442cf1714af7b596b6",
+          "byteLength": 1759
+        },
+        {
+          "path": "bots/outbox/lead/2026-08-26T10-22-45-336Z.jsonl",
+          "sha256": "3dec28dab535c359dc68b6e50cf7a4a834bb58e6b5d9751d606c2c3ff44657c2",
+          "byteLength": 1283
+        },
+        {
+          "path": "bots/outbox/lead/2026-08-26T10-25-07-625Z.jsonl",
+          "sha256": "03f72ffac86683a3b636e4d474983f128ea955e3173df23193cf6f709e964fa3",
+          "byteLength": 2870
+        },
+        {
+          "path": "bots/outbox/lead/2026-08-26T10-25-21-142Z.jsonl",
+          "sha256": "216bbeae1b2ddb02c85848875fc6c867ee1134145cff6dfcc35bddc710fe65ac",
+          "byteLength": 1263
+        },
+        {
+          "path": "bots/outbox/lead/2026-08-26T10-26-03-807Z.jsonl",
+          "sha256": "5e7c56f48fde1653d88561f02c39969565e63acc658bfb88c5768bc81c2316f0",
+          "byteLength": 3026
+        },
+        {
+          "path": "bots/outbox/lead/2026-08-26T10-26-18-340Z.jsonl",
+          "sha256": "e1ecc1e343825f0640354a397607d7f8a01e670f292099c4dd115ef0ee1baacb",
+          "byteLength": 2233
+        },
+        {
+          "path": "bots/outbox/lead/2026-08-26T10-26-53-958Z.jsonl",
+          "sha256": "b2115e8fe64da49eec830a19e6c2a8f4e47b351dd19cd80b15d1bdbd4731a818",
+          "byteLength": 2898
+        },
+        {
+          "path": "bots/outbox/lead/2026-08-26T10-27-26-442Z.jsonl",
+          "sha256": "1503b4a9d1eeacc36c1ca6a6423165c9cfb9e14a5be411b311a6c0680836e7e9",
+          "byteLength": 2255
+        },
+        {
+          "path": "bots/outbox/lead/2026-08-26T10-27-54-459Z.jsonl",
+          "sha256": "86b2e79e69562ff86c9317ed851673f3a95b887af61a83b26cc9edc03a5e41bb",
+          "byteLength": 1015
+        },
+        {
+          "path": "bots/outbox/lead/2026-08-26T11-00-03-499Z.jsonl",
+          "sha256": "53cf39fa2aa872efe37f20b0b393cf3bf2f6e41a84e392d579399fb3f7b2efc9",
+          "byteLength": 2076
+        },
+        {
+          "path": "bots/outbox/lead/2026-08-26T11-01-49-022Z.jsonl",
+          "sha256": "ee4e1c2a1358df592bb397db06245a5e2fbafa45be07744e3e12aa39a326e332",
+          "byteLength": 1513
+        },
+        {
+          "path": "bots/outbox/lead/2026-08-26T11-04-27-700Z.jsonl",
+          "sha256": "fc3b7ed50707e3d12a91a5aee1fe14f91ed73d283b3417a72997658bee35ed53",
+          "byteLength": 1119
+        },
+        {
+          "path": "bots/outbox/lead/2026-08-26T11-08-24-237Z.jsonl",
+          "sha256": "75b8e9010497817c20f6c615a12b9959ac5e6390a60aea450be17641879cab68",
+          "byteLength": 2502
+        },
+        {
+          "path": "bots/outbox/lead/2026-08-26T11-09-14-238Z.jsonl",
+          "sha256": "458d5745c4cc506f0065559bb5abf6f9868521f60987d5f1961728d0fe80bc39",
+          "byteLength": 1758
+        },
+        {
+          "path": "bots/outbox/lead/2026-09-08T01-27-00-585Z.jsonl",
+          "sha256": "fc6edafcdd6cb0e3071940194af22986fa880beb0ef50cc479f300db4e0823db",
+          "byteLength": 294
+        },
+        {
+          "path": "bots/outbox/lead/2026-09-08T01-27-18-399Z.jsonl",
+          "sha256": "24cb61f955067ee23157c6b5966409e41caf46d1a6dd54b349b45b16af3ad25b",
+          "byteLength": 280
+        },
+        {
+          "path": "bots/outbox/lead/2026-09-08T01-27-37-428Z.jsonl",
+          "sha256": "9871452f6bff226ba8fa6bca06f0d9f1550b96ffbf85dbe7de4430efc5b27b12",
+          "byteLength": 223
+        },
+        {
+          "path": "bots/outbox/reviewer-lead/2026-08-26T09-38-57-642Z.jsonl",
+          "sha256": "c53deb21c704bcae5bb024b739af564ebff56ab98a3b07f852853cf606a81909",
+          "byteLength": 120
+        },
+        {
+          "path": "bots/outbox/reviewer-lead/2026-08-26T10-16-00-906Z.jsonl",
+          "sha256": "f3fa9f3be7b59f7b3db649f327db534f30f03f8ae79485ab5d44fd006be4bbd7",
+          "byteLength": 848
+        },
+        {
+          "path": "bots/outbox/reviewer-lead/2026-08-26T10-16-44-228Z.jsonl",
+          "sha256": "2ba5ddec03ee1228e8e9562ab1f89fe54f0f53091b42030ac20ec8c9f80c7573",
+          "byteLength": 311
+        },
+        {
+          "path": "bots/outbox/reviewer-lead/2026-08-26T10-24-52-203Z.jsonl",
+          "sha256": "f1a5fdb466a9a6fb14fa819db955ab52b924cb6d7e9e78a03631a20673ffc453",
+          "byteLength": 879
+        },
+        {
+          "path": "bots/outbox/reviewer-lead/2026-08-26T10-26-02-776Z.jsonl",
+          "sha256": "e7c3f2d871b9486d3c402aa82b36273ae9560fbb8cb50f3e1643931b336a0de5",
+          "byteLength": 871
+        },
+        {
+          "path": "bots/outbox/reviewer-lead/2026-08-26T10-26-56-911Z.jsonl",
+          "sha256": "9b5aba3fad7b6af893b298d7e09252b6581cacba1f62ea58862356a7f6362a5a",
+          "byteLength": 984
+        },
+        {
+          "path": "bots/outbox/reviewer-lead/2026-08-26T10-27-29-096Z.jsonl",
+          "sha256": "28b09dd0b1361ce12d49f0affcb32bd2d101d86ac998e2f8d75ffae3ea558122",
+          "byteLength": 612
+        },
+        {
+          "path": "bots/outbox/reviewer-lead/2026-08-26T10-28-02-180Z.jsonl",
+          "sha256": "5c764c054f1b1004983394b56230b0773319a936ad9ecabc50507e3f27482da3",
+          "byteLength": 382
+        },
+        {
+          "path": "bots/outbox/reviewer-lead/2026-08-26T10-28-14-111Z.jsonl",
+          "sha256": "6d44e4883179b5a9604da2475d8cd234c9a9619551d5682ed45edab68a408520",
+          "byteLength": 426
+        },
+        {
+          "path": "bots/outbox/reviewer-lead/2026-08-26T11-00-46-800Z.jsonl",
+          "sha256": "3d61de26812431ef93a4baf460c3fd1d69843aabe06c7eb1f92778ea7cda75b9",
+          "byteLength": 1524
+        },
+        {
+          "path": "bots/outbox/reviewer-lead/2026-08-26T11-04-07-850Z.jsonl",
+          "sha256": "3944fc8439ce903f3c6c93e7e11a98ca06eb9017917e34c9cc2031196c5f5d03",
+          "byteLength": 707
+        },
+        {
+          "path": "bots/outbox/reviewer-lead/2026-08-26T11-07-31-737Z.jsonl",
+          "sha256": "a323831812c0d879e968c4e9b3e0b8d4c60b188e7dd0136407f92204ea5cbf54",
+          "byteLength": 1795
+        },
+        {
+          "path": "bots/outbox/reviewer-lead/2026-08-26T11-08-38-025Z.jsonl",
+          "sha256": "feebfe0f481dfb25c12f276aac7beaf79e4df89010bc04be2ffa9a50b89da586",
+          "byteLength": 1183
+        },
+        {
+          "path": "bots/outbox/reviewer-lead/2026-08-26T11-09-41-107Z.jsonl",
+          "sha256": "8e4c3dc92b9efb3f1cbecde14bd8b9e5e302b3096c807a2045817cc2fead3e60",
+          "byteLength": 1372
+        },
+        {
+          "path": "bots/outbox/reviewer-second/2026-08-26T09-39-00-702Z.jsonl",
+          "sha256": "465269708943b6e89450e7c89e7ad4ae7992f936b815f218afb4964fe240cd44",
+          "byteLength": 122
+        },
+        {
+          "path": "bots/outbox/reviewer-second/2026-08-26T10-22-02-617Z.jsonl",
+          "sha256": "03b8621d4493b6277250131a128dbbb0091773f8683f040c1fa7a49db02e1fdf",
+          "byteLength": 2917
+        },
+        {
+          "path": "bots/outbox/reviewer-second/2026-08-26T10-22-58-487Z.jsonl",
+          "sha256": "6ea81754dd1c1161b7d03ad1ec0f2336f346dd479e35d169947e3a59cf4802b4",
+          "byteLength": 952
+        },
+        {
+          "path": "bots/outbox/reviewer-second/2026-08-26T10-25-40-870Z.jsonl",
+          "sha256": "1d693cc155a1748ec77d34ac6ceb7e29849d6149f81566593e8d78cd37e713c9",
+          "byteLength": 2327
+        },
+        {
+          "path": "bots/outbox/reviewer-second/2026-08-26T10-58-59-523Z.jsonl",
+          "sha256": "4d97bc8cb5dc734ece0833a947200c794de94ce544e7c3682883ee748f5ae5d3",
+          "byteLength": 2135
+        },
+        {
+          "path": "bots/outbox/reviewer-second/2026-08-26T11-00-20-777Z.jsonl",
+          "sha256": "a3dced0766d159d06146685165fa8e543584973e417f54ec4ff00c910c08494e",
+          "byteLength": 858
+        },
+        {
+          "path": "bots/outbox/reviewer-second/2026-08-26T11-05-30-237Z.jsonl",
+          "sha256": "f41c8882fa3f728a5e0486e35fe62c5859f1141a7154ad3aaf4a60c679e0bb8f",
+          "byteLength": 3066
+        },
+        {
+          "path": "bots/outbox/reviewer-second/2026-08-26T11-08-55-408Z.jsonl",
+          "sha256": "e5d7473e2b213b9f5ca3f1a9369e80e77bda058e6eccb799840d93557ac48d03",
+          "byteLength": 1637
+        }
+      ]
+    },
+    {
+      "path": "bots/review",
+      "exists": true,
+      "files": [
+        {
+          "path": "bots/review/audit.jsonl",
+          "sha256": "d9a94cb09ee1ba6562df5a11fc8c1e9baedda4469997c3f392d5015091c85039",
+          "byteLength": 102
+        },
+        {
+          "path": "bots/review/capabilities/reviewer-lead.active.json",
+          "sha256": "4d181bd462102300e8c4399c1fd1fba9f2471fd6ed27410d7b5345ab9d25664f",
+          "byteLength": 334
+        },
+        {
+          "path": "bots/review/capabilities/reviewer-lead.jsonl",
+          "sha256": "6b2e5012ab18b7b6f6ec29a89621ace83bfc28df9ace737e864847cd5c244c1a",
+          "byteLength": 350
+        },
+        {
+          "path": "bots/review/capability/epoch.json",
+          "sha256": "0993e49db546993e8efab6a1fa78b2e78503706af5cc39f1caea16da1e80375f",
+          "byteLength": 50
+        },
+        {
+          "path": "bots/review/capability/nonces/872ce254a5ea09296daec6452993762ee2d1.json",
+          "sha256": "d9465f0584a7e3370aed864bc4ce87208b60a2a8dc80b704bf9f1b98c5cc4eda",
+          "byteLength": 100
+        },
+        {
+          "path": "bots/review/capability/secret",
+          "sha256": "2c681ddde7736b091379184ac693a871e76fc027f405d113238e112d8783eb6b",
+          "byteLength": 32
+        },
+        {
+          "path": "bots/review/epoch.json",
+          "sha256": "b5490d946b01310f6856f3949a4493f70bfbfd45ddefe0dfdcbc27060218ec85",
+          "byteLength": 55
+        },
+        {
+          "path": "bots/review/migration/MANIFEST.json",
+          "sha256": "ca1267f90b5f31eba110f5c9cc94979cefcb871c619d97ae2d149de723e2f2f3",
+          "byteLength": 266
+        },
+        {
+          "path": "bots/review/migration/checklist.json",
+          "sha256": "c370c7835dd788100a8924101af260772efa1d69a6345f3a5d4d3b74f180f54e",
+          "byteLength": 929
+        },
+        {
+          "path": "bots/review/migration/history-refs.json",
+          "sha256": "b50433e3b4c8db5cecf11fe07f27635c9a562be4752c3202f932483245462e7f",
+          "byteLength": 56
+        },
+        {
+          "path": "bots/review/migration/patches.json",
+          "sha256": "9816baa4124b904b6650dcc31fd7e3dcf65246a806cf6bdd3cd0e2f6efc9ed1b",
+          "byteLength": 591
+        },
+        {
+          "path": "bots/review/migration/procedure-draft.md",
+          "sha256": "7345b35365d2fbd9a1d4ccd652ba4c29c083811019be9fcfc5f394cc42049129",
+          "byteLength": 962
+        }
+      ]
+    },
+    {
+      "path": "profiles/lead",
+      "exists": true,
+      "files": [
+        {
+          "path": "profiles/lead/cordis.patch.yml",
+          "sha256": "51bd0bb4ff96474854145486600e3ba8a46208d1a1f38d79a4abf2a784c0f4ac",
+          "byteLength": 1661
+        },
+        {
+          "path": "profiles/lead/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "byteLength": 223
+        },
+        {
+          "path": "profiles/lead/package.json",
+          "sha256": "cffb78b89edafe7578374073a00b43e2c36e5b317080846167898e042236e556",
+          "byteLength": 208
+        },
+        {
+          "path": "profiles/lead/pnpm-workspace.yaml",
+          "sha256": "ae7c5b68e2f157528e62885804e69e88583897b775e03c86fcbe52feaf498aba",
+          "byteLength": 61
+        },
+        {
+          "path": "profiles/lead/settings.yaml",
+          "sha256": "1206df3ce8e092272caadab44f765230b43fb56037be4d6e2b1c02bf24f57989",
+          "byteLength": 623
+        }
+      ]
+    },
+    {
+      "path": "profiles/bot-mt0x6r0y",
+      "exists": true,
+      "files": [
+        {
+          "path": "profiles/bot-mt0x6r0y/cordis.patch.yml",
+          "sha256": "0657d7a3d3b7b15681ec4a3cc6561422e73bf17a90f2d2777a71e8b3a60fa2ae",
+          "byteLength": 1684
+        },
+        {
+          "path": "profiles/bot-mt0x6r0y/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "byteLength": 223
+        },
+        {
+          "path": "profiles/bot-mt0x6r0y/package.json",
+          "sha256": "792b68d47aceba64ea8bbc9ec5fa06046af68da2042b83edab762ddf44c8759d",
+          "byteLength": 216
+        },
+        {
+          "path": "profiles/bot-mt0x6r0y/pnpm-workspace.yaml",
+          "sha256": "ae7c5b68e2f157528e62885804e69e88583897b775e03c86fcbe52feaf498aba",
+          "byteLength": 61
+        },
+        {
+          "path": "profiles/bot-mt0x6r0y/settings.yaml",
+          "sha256": "07e58ef61698d8f80a73d85abf7a0a400e9f619796c0a47c184c881352d87003",
+          "byteLength": 673
+        }
+      ]
+    },
+    {
+      "path": "profiles/reviewer-lead",
+      "exists": true,
+      "files": [
+        {
+          "path": "profiles/reviewer-lead/cordis.patch.yml",
+          "sha256": "c3f289e1e889a6ed483ce26e158d055fc0fe0d322c58dcb1b44e64208149360f",
+          "byteLength": 1138
+        },
+        {
+          "path": "profiles/reviewer-lead/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "byteLength": 223
+        },
+        {
+          "path": "profiles/reviewer-lead/package.json",
+          "sha256": "7ced4584df57317335aac523592775a1311eb4c2c1bc8097c9f021a1dd3cd2d7",
+          "byteLength": 217
+        },
+        {
+          "path": "profiles/reviewer-lead/pnpm-workspace.yaml",
+          "sha256": "ae7c5b68e2f157528e62885804e69e88583897b775e03c86fcbe52feaf498aba",
+          "byteLength": 61
+        },
+        {
+          "path": "profiles/reviewer-lead/settings.yaml",
+          "sha256": "8acf522a6f95e97a5e350f568378c3817ebb5913bf2fb4b419e3cde66e9403ed",
+          "byteLength": 1493
+        }
+      ]
+    },
+    {
+      "path": "profiles/reviewer-second",
+      "exists": true,
+      "files": [
+        {
+          "path": "profiles/reviewer-second/cordis.patch.yml",
+          "sha256": "bbc3682dc09a8fae79c001648d6ce13fe9fd3b3a148fc93180fb90731afd324c",
+          "byteLength": 1736
+        },
+        {
+          "path": "profiles/reviewer-second/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "byteLength": 223
+        },
+        {
+          "path": "profiles/reviewer-second/package.json",
+          "sha256": "72f0d71f2841e6b5c153090b09d34539f802da07170eaae50557412e049db594",
+          "byteLength": 219
+        },
+        {
+          "path": "profiles/reviewer-second/pnpm-workspace.yaml",
+          "sha256": "ae7c5b68e2f157528e62885804e69e88583897b775e03c86fcbe52feaf498aba",
+          "byteLength": 61
+        },
+        {
+          "path": "profiles/reviewer-second/settings.yaml",
+          "sha256": "beabd416451470f16e46e7e27eecd14ae0748e13db7af35365b264794bec7293",
+          "byteLength": 1454
+        }
+      ]
+    },
+    {
+      "path": "bot-workspaces/lead",
+      "exists": true,
+      "files": [
+        {
+          "path": "bot-workspaces/lead/.dsh-bot-session.json",
+          "sha256": "c48fe1893dac1b61416be5294cacad60253fc348a818fb27bb71cd1d0702517b",
+          "byteLength": 66
+        }
+      ]
+    },
+    {
+      "path": "bot-workspaces/bot-mt0x6r0y",
+      "exists": true,
+      "files": [
+        {
+          "path": "bot-workspaces/bot-mt0x6r0y/.dsh-bot-session.json",
+          "sha256": "c4515f246919db3782835b67245b226ab464a7158abd7cd4184425c7857a92f1",
+          "byteLength": 66
+        }
+      ]
+    },
+    {
+      "path": "bot-workspaces/reviewer-lead",
+      "exists": true,
+      "files": [
+        {
+          "path": "bot-workspaces/reviewer-lead/.dsh-bot-session.json",
+          "sha256": "c465ab7acc8e8d27f7981a0fcbead4ad0fbee4061dff88c8a0b906a71b20fab6",
+          "byteLength": 66
+        }
+      ]
+    },
+    {
+      "path": "bot-workspaces/reviewer-second",
+      "exists": true,
+      "files": [
+        {
+          "path": "bot-workspaces/reviewer-second/.dsh-bot-session.json",
+          "sha256": "1524e98a096a4678a8ad8c4b30fdeb994ed4abf17184d67ed5651e1b0c770314",
+          "byteLength": 66
+        }
+      ]
+    }
+  ],
+  "preserve": [
+    "bots/knowledge",
+    "bots/started/instances.jsonl",
+    "profiles/web",
+    "profiles/node_modules"
+  ],
+  "archiveNotCreated": true,
+  "deploymentBackupNotCreated": true,
+  "runtimeActionsAuthorized": false,
+  "openPrerequisites": [
+    "Confirm TDD seams and review fixed point",
+    "Wire initial capability delivery and review-hat dispatch without self-grant",
+    "Wire host probe failures into duty ledger tasks",
+    "Implement and verify two-seat readiness check",
+    "Choose new seat model assignments and instance permissions",
+    "Review complete deployment closure and per-action runtime authorization"
+  ]
+}

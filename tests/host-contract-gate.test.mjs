@@ -298,6 +298,10 @@ export function loadOverlayPatches(bin, file) {
 		if (/^- insert:\\s*$/.test(line)) { insert = { insert: [] }; entries.push(insert); continue; }
 		const nested = /^ {2,}- id: (\\S+)\\s*$/.exec(line);
 		if (nested && insert) { insert.insert.push({ id: nested[1] }); continue; }
+		const field = /^    (provider|model|reasoningEffort): '(.*)'$/.exec(line);
+		if (field && entries.at(-1)?.id === "agent-default-model") {
+			(entries.at(-1).config ??= {})[field[1]] = field[2].replace(/''/g, "'");
+		}
 	}
 	return entries;
 }
@@ -306,7 +310,7 @@ export function loadOverlayPatches(bin, file) {
 /** 官方组合 patch fixture 按探针关键 id 清单生成（下方独立字面断言看守该清单的漂移）。 */
 const criticalIdsYaml = () => CONFIG_IDS_CRITICAL.map((id) => `- id: ${id}\n`).join("");
 
-test("18号票 P-CONFIG-IDS 行为化：我方 patch 经官方装载器往返＋官方全集对照＋命名空间常量（合成 fixture）", async () => {
+test("P-CONFIG-IDS：patch 往返、官方 id、配置模型读回与旧命名空间漂移（合成 fixture）", async () => {
   const root = mkdtempSync(join(tmpdir(), "dsh-gate-config-"));
   try {
     writeHostIndexFixture(root, "dsh-app-boot", MINI_PATCH_LOADER);
@@ -314,7 +318,12 @@ test("18号票 P-CONFIG-IDS 行为化：我方 patch 经官方装载器往返＋
     writeFileSync(join(root, "dsh-base", "cordis.patch.yml"), criticalIdsYaml());
     mkdirSync(join(root, "dsh-web-app"), { recursive: true });
     writeFileSync(join(root, "dsh-web-app", "cordis.patch.yml"), "- id: tools\n- id: session\n");
-    writeHostIndexFixture(root, "dsh-agent-default-model", `export const AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE = "agent-default-model";\n`);
+    writeHostIndexFixture(root, "dsh-agent-default-model", `
+export class AgentDefaultModelConfig {
+  constructor(ctx, config) { this.config = config; ctx.reflect.provide("agentDefaultModel", this); }
+  currentSelection() { return Object.fromEntries(Object.entries(this.config).map(([key, value]) => [key, value.get()])); }
+}
+`);
     writeHostIndexFixture(root, "dsh-llm-pi-ai", `export const name = "llm-pi-ai";\n`);
     const ok = await probeConfigIdsStage([root]);
     assert.equal(ok.state, "PASS", JSON.stringify(ok));
@@ -344,6 +353,27 @@ test("18号票 P-CONFIG-IDS 行为化：我方 patch 经官方装载器往返＋
       assert.match(nsDrift.reason, /agent-default-model/);
     } finally {
       rmSync(root3, { recursive: true, force: true });
+    }
+
+    const root4 = mkdtempSync(join(tmpdir(), "dsh-gate-config-pin-"));
+    try {
+      writeHostIndexFixture(root4, "dsh-app-boot", MINI_PATCH_LOADER);
+      mkdirSync(join(root4, "dsh-base"), { recursive: true });
+      writeFileSync(join(root4, "dsh-base", "cordis.patch.yml"), criticalIdsYaml());
+      mkdirSync(join(root4, "dsh-web-app"), { recursive: true });
+      writeFileSync(join(root4, "dsh-web-app", "cordis.patch.yml"), "- id: tools\n");
+      writeHostIndexFixture(root4, "dsh-agent-default-model", `
+export class AgentDefaultModelConfig {
+  constructor(ctx) { ctx.reflect.provide("agentDefaultModel", this); }
+  currentSelection() { return { provider: "probe-provider", model: "ignored-pin", reasoningEffort: "high" }; }
+}
+`);
+      writeHostIndexFixture(root4, "dsh-llm-pi-ai", `export const name = "llm-pi-ai";\n`);
+      const ignoredPin = await probeConfigIdsStage([root4]);
+      assert.equal(ignoredPin.state, "FAIL");
+      assert.match(ignoredPin.reason, /模型 pin/);
+    } finally {
+      rmSync(root4, { recursive: true, force: true });
     }
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -452,6 +482,8 @@ test("18号票 P-CLIENT-VISUAL 行为化：官方 theme bundle 令牌注入与 t
   const root = mkdtempSync(join(tmpdir(), "dsh-gate-visual-"));
   try {
     writeBundleFixture(root, "dsh-client-ui-theme", `
+			const host = ctx.configForms.get("ui-theme");
+			host.subscribe(() => host.getSnapshot());
 			const el = document.createElement("style");
 			el.textContent = ":root{--dsw-alias-border-l2:#fff;--dsw-alias-label-primary:#000}";
 			document.head.appendChild(el);

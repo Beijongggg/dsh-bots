@@ -178,6 +178,11 @@ export function makeRecordingClientCtx() {
   const record = [];
   const provided = {};
   const NOOP = () => () => {};
+  const settingsHost = {
+    subscribe: () => () => {},
+    getSnapshot: () => ({ value: undefined, preference: "system", revision: 0, fontSize: 0 }),
+    set: () => {}
+  };
   const guarded = (op, name, fn) => {
     try { fn(); } catch (error) { record.push({ op: "effect-throw", where: op, name, msg: errMsg(error) }); }
   };
@@ -201,7 +206,8 @@ export function makeRecordingClientCtx() {
       provideRoot: (opts) => { record.push({ op: "provideRoot", opts }); return NOOP; },
       installLocale: () => {}
     },
-    settingsScope: { bind: () => ({ subscribe: () => () => {}, getSnapshot: () => ({ value: undefined, preference: "system", revision: 0, fontSize: 0 }), set: () => {} }) }
+    configForms: { get: () => settingsHost },
+    settingsScope: { bind: () => settingsHost }
   };
   return ctx;
 }
@@ -553,8 +559,8 @@ function patchIdsOf(parsed) {
  * ② 官方组合 patch（dsh-base＋dsh-web-app）解析出官方 id 全集，关键 id
  *    逐一对照——宿主侧改名必 FAIL（patch loader 对未知 id 无害忽略，标记
  *    扫描抓不到这种静默）；
- * ③ 官方命名空间常量（AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE／llm-pi-ai
- *    name）与我方写入的配置 id 核对。
+ * ③ 当前宿主经 AgentDefaultModelConfig 读回 patch 模型 pin；旧宿主仍核对
+ *    AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE。模型路由另核 llm-pi-ai name。
  */
 export async function probeConfigIdsStage(roots) {
   const bootGate = await requireHostExport(roots, "dsh-app-boot", {
@@ -567,8 +573,9 @@ export async function probeConfigIdsStage(roots) {
   const home = mkdtempSync(join(tmpdir(), "dsh-probe-config-"));
   try {
     const patchFile = join(home, "cordis.patch.yml");
+    const modelPin = { provider: "probe-provider", model: "probe-model", reasoningEffort: "high" };
     writeFileSync(patchFile, buildPatchYaml({
-      botId: "dsh-contract-probe", role: "probe", provider: "probe-provider", model: "probe-model",
+      botId: "dsh-contract-probe", role: "probe", ...modelPin,
       permission: "workspace-write", workspace: "/tmp/dsh-contract-probe-ws", settingsPath: "/tmp/dsh-contract-probe-settings.yaml"
     }));
     let ours;
@@ -604,8 +611,26 @@ export async function probeConfigIdsStage(roots) {
     const agentDefaultModel = await importHostIndex(roots, "dsh-agent-default-model").catch((error) => ({ __importError: errMsg(error) }));
     if (agentDefaultModel === null) return { state: "FAIL", reason: "dsh-agent-default-model 载体包不存在", coordinate: roots.join(" ; ") };
     if (agentDefaultModel.__importError) return { state: "FAIL", reason: `dsh-agent-default-model 无法装载：${agentDefaultModel.__importError}`, coordinate: "dsh-agent-default-model/lib/index.js" };
-    if (agentDefaultModel.AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE !== "agent-default-model") {
-      return { state: "FAIL", reason: `官方模型 pin 命名空间漂移：${JSON.stringify(agentDefaultModel.AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE)}（期望 agent-default-model）`, coordinate: "dsh-agent-default-model/lib/index.js" };
+    if (agentDefaultModel.AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE !== undefined) {
+      if (agentDefaultModel.AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE !== "agent-default-model") {
+        return { state: "FAIL", reason: `官方模型 pin 命名空间漂移：${JSON.stringify(agentDefaultModel.AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE)}（期望 agent-default-model）`, coordinate: "dsh-agent-default-model/lib/index.js" };
+      }
+    } else {
+      // Config 的 volatile 引用只在内存读取，不挂真实 settings 或 configEditor。
+      try {
+        const parsedPin = ours.find((entry) => entry.id === "agent-default-model")?.config;
+        let service;
+        new agentDefaultModel.AgentDefaultModelConfig({
+          reflect: { provide: (name, value) => { if (name === "agentDefaultModel") service = value; } },
+          inject: () => () => {}
+        }, Object.fromEntries(Object.keys(modelPin).map((key) => [key, { get: () => parsedPin?.[key] }])));
+        const selection = service.currentSelection();
+        for (const [key, expected] of Object.entries(modelPin)) {
+          if (selection?.[key] !== expected) throw new Error(`${key} 未读回 patch 值`);
+        }
+      } catch (error) {
+        return { state: "FAIL", reason: `官方模型 pin 读回失败：${errMsg(error)}`, coordinate: "dsh-agent-default-model/lib/index.js" };
+      }
     }
     const piAiModule = await importHostIndex(roots, "dsh-llm-pi-ai").catch((error) => ({ __importError: errMsg(error) }));
     if (piAiModule === null) return { state: "FAIL", reason: "dsh-llm-pi-ai 载体包不存在", coordinate: roots.join(" ; ") };
@@ -613,7 +638,7 @@ export async function probeConfigIdsStage(roots) {
     if (piAiModule.name !== "llm-pi-ai") {
       return { state: "FAIL", reason: `官方模型路由服务名漂移：${JSON.stringify(piAiModule.name)}（期望 llm-pi-ai）`, coordinate: "dsh-llm-pi-ai/lib/index.js" };
     }
-    return { state: "PASS", coordinate: "官方装载器往返＋官方 id 全集对照＋命名空间常量（三段真实调用）" };
+    return { state: "PASS", coordinate: "官方装载器往返＋官方 id 全集对照＋模型 pin 与路由校验（三段真实调用）" };
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
@@ -673,7 +698,7 @@ export const HOST_CONTRACT_PROBES = [
   {
     id: "P-CONFIG-IDS",
     face: "HF-CONFIG-IDS",
-    describe: "配置面 id/key：行为探针——我方 patch 构造经官方 dsh-app-boot 装载器往返复验＋官方组合 patch 全集对照＋官方命名空间常量核对",
+    describe: "配置面 id/key：行为探针——我方 patch 构造经官方 dsh-app-boot 装载器往返复验＋官方组合 patch 全集对照＋官方模型服务读回 pin（旧宿主核命名空间）与路由名核对",
     async run(ctx) {
       if (!ctx.hostInstalled) return noHostSkip();
       return probeConfigIdsStage(ctx.roots);
@@ -732,12 +757,13 @@ export const HOST_CONTRACT_PROBES = [
             getSnapshot: () => ({ value: undefined }),
             set: () => {}
           };
-          official.apply({
+          await official.apply({
             effect: (fn) => { fn(); return () => {}; },
             provide: (name, svc) => { provided[name] = svc; },
             on: () => {},
             emit: () => {},
             slots: { installLocale: () => {}, inject: () => () => {}, register: () => () => {} },
+            configForms: { get: () => settingsHost },
             settingsScope: { bind: () => settingsHost }
           });
           const locale = provided.locale;
@@ -780,6 +806,27 @@ export const HOST_CONTRACT_PROBES = [
       const sessionFiles = libFiles(ctx.roots, "dsh-api-session-controller");
       if (!marker(sessionFiles, "selectModel")) {
         return { state: "FAIL", reason: "dsh-api-session-controller 不含 selectModel 方法标记（session RPC 方法集漂移）", coordinate: sessionFiles.slice(0, 3).join(" ; ") };
+      }
+      return { state: "PASS" };
+    }
+  },
+  {
+    id: "P-REVIEW-SESSION",
+    face: "HF-REVIEW-SESSION",
+    describe: "原生独立复核会话：AgentRegistry.create 与 scoped tools.restrict/register 公开形状在位",
+    async run(ctx) {
+      if (!ctx.hostInstalled) return noHostSkip();
+      for (const [pkg, name, methods] of [
+        ["dsh-agent", "AgentRegistry", ["create"]],
+        ["dsh-tools", "ToolRuntime", ["restrict", "register"]]
+      ]) {
+        const loaded = await requireHostExport(ctx.roots, pkg, {
+          exportName: name, missing: `${pkg} 缺失`, notExported: `${pkg} 未导出 ${name}`
+        });
+        if (loaded.fail) return loaded.fail;
+        if (methods.some((method) => typeof loaded.mod[name].prototype[method] !== "function")) {
+          return { state: "FAIL", reason: `${name} 的复核会话方法缺失`, coordinate: `${pkg}/lib/index.js` };
+        }
       }
       return { state: "PASS" };
     }

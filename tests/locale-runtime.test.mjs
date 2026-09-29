@@ -53,12 +53,13 @@ const settingsHost = {
   getSnapshot: () => ({ value: undefined }),
   set: () => {}
 };
-official.apply({
+await official.apply({
   effect: (fn) => { fn(); return () => {}; },
   provide: (name, svc) => { provided[name] = svc; },
   on: () => {},
   emit: () => {}, // setLocale → publish → ctx.emit("locale/change") 的接线
   slots: { installLocale: () => {}, inject: () => () => {}, register: () => () => {} },
+  configForms: { get: () => settingsHost },
   settingsScope: { bind: () => settingsHost }
 });
 const locale = provided.locale;

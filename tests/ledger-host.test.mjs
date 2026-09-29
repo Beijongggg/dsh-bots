@@ -24,6 +24,7 @@ import { createLedgerHost, startLedgerTicker, windowKeyFor } from "../lib/org/le
 import { createCapabilityIssuer } from "../lib/org/capability-issue.js";
 import { instanceRegistryFile } from "../lib/org/capability-base.js";
 import { createReviewFaceGate } from "../lib/org/review-kit.js";
+import { runHostContractProbe } from "../lib/org/host-contract.js";
 import { createLedgerAccessKit } from "../lib/org/permissions.js";
 import { RULING_ACTOR } from "../lib/org/human-inbox.js";
 import { createTaskLedger, eventsFile, ledgerDir, EVENT_TYPES } from "../lib/org/task-ledger.js";
@@ -39,6 +40,84 @@ import { wireReviewHat } from "./helpers/capability-fixture.mjs";
 
 /** 已有夹具的判据执行面：本组用例测的不是判据门，显式声明「判据面已接线」（25 号票）。 */
 const CRITERION_INJECTION = Object.freeze(criterionInjection(ACCEPTANCE_RUNNER));
+
+test("宿主巡检：FAIL 与运行面 SKIP 自动进入 duty 台账，重复结果只记一次（16 号票）", async () => {
+  const home = mkHome();
+  const ledger = createTaskLedger({ dshHome: home });
+  const host = createLedgerHost({
+    ledger,
+    probeHostContract: async () => ({
+      face: "deploy", results: [
+        { probeId: "P-CONFIG-IDS", face: "HF-CONFIG-IDS", state: "FAIL", reason: "配置标记缺失" },
+        { probeId: "P-CLIENT-SLOTS", face: "HF-CLIENT-SLOTS", state: "SKIP", reason: "槽位载体缺失" },
+        { probeId: "P-RPC", face: "HF-RPC", state: "PASS" }
+      ]
+    })
+  });
+  try {
+    await host.tick();
+    const tasks = host.ledger.tasks();
+    assert.equal(tasks.length, 2, "两处失效各有一张处置任务");
+    assert.ok(tasks.every((task) => task.class === "duty"));
+    assert.deepEqual(host.ledger.events().filter((event) => event.type === "exception")
+      .map((event) => event.detail.probeId).sort(), ["P-CLIENT-SLOTS", "P-CONFIG-IDS"]);
+    await host.tick();
+    assert.equal(host.ledger.events().filter((event) => event.type === "exception").length, 2);
+    assert.equal(host.ledger.notificationsAfter(0).notifications.filter((note) => note.type === "exception").length, 2);
+  } finally {
+    ledger.close();
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("宿主巡检不可执行或报告畸形：响亮入账，下次巡检可恢复，租约扫描仍可用", async () => {
+  const home = mkHome();
+  const ledger = createTaskLedger({ dshHome: home });
+  let unavailable = true;
+  const host = createLedgerHost({
+    ledger,
+    probeHostContract: async () => {
+      if (unavailable) throw new Error("探针子进程超时");
+      return { face: "deploy", results: [] };
+    }
+  });
+  try {
+    await host.tick({ at: 0 });
+    assert.equal(host.ledger.tasks().length, 1);
+    assert.match(host.ledger.events().find((event) => event.type === "exception").detail.reason, /超时/);
+    unavailable = false;
+    await host.tick({ at: 10 * 60 * 1000 });
+    const faults = host.ledger.events().filter((event) => event.type === "exception");
+    assert.equal(faults.length, 2);
+    assert.match(faults[1].detail.reason, /报告/);
+  } finally {
+    ledger.close();
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("宿主巡检用独立子进程：零退出码的空报告不能放行，超时被终止并入账", async () => {
+  const home = mkHome();
+  const repoRoot = join(home, "source");
+  mkdirSync(join(repoRoot, "scripts"), { recursive: true });
+  const script = join(repoRoot, "scripts", "host-contract-probe.mjs");
+  writeFileSync(script, `import {writeFileSync} from 'node:fs';
+    const path=process.argv.find(arg=>arg.startsWith('--report=')).slice(9);
+    writeFileSync(path, JSON.stringify({face:'deploy',gatePass:true,results:[],counts:{pass:0,fail:0,skip:0}}));`);
+  const ledger = createTaskLedger({ dshHome: home });
+  const host = createLedgerHost({ ledger,
+    probeHostContract: () => runHostContractProbe({ repoRoot, dshHome: home, timeoutMs: 500 }) });
+  try {
+    await host.tick({ at: 0 });
+    assert.match(host.ledger.events().find((event) => event.type === "exception").detail.reason, /报告/);
+    writeFileSync(script, "setInterval(() => {}, 1000);");
+    await host.tick({ at: 10 * 60 * 1000 });
+    assert.match(host.ledger.events().filter((event) => event.type === "exception")[1].detail.reason, /超时/);
+  } finally {
+    ledger.close();
+    rmSync(home, { recursive: true, force: true });
+  }
+});
 
 const { handleApi, createLedgerHost: createHostViaInternals, createTaskLedger: createLedgerViaInternals } = internals;
 
