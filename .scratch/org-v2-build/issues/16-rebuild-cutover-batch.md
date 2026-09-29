@@ -700,3 +700,53 @@ report，届时已更新；头注与词条写明）外全部返修，返修 `cc6
 TK-20260929：user resume→重派重跑实施→复核（期望移交件可读、blocker 消解）→
 settle/close 收口闭环 smoke。简报、判据与必审点未改；本票保持 `ready-for-human`，
 真实切换验收框仍待执行凭据。
+
+### 2026-09-30 接手 zcode 中断会话，补录 rv2 执行并修复普通读面的复核事实缺失
+
+用户要求查看并继续 zcode 对话「接手隔壁/implement 的zcode对话里的任务继续」，
+会话 id 为 `sess_526dd6d3-adef-4358-a64b-8e4e753a9d3b`。只读核对原对话后确认，
+该会话因 provider 使用限额中断。前节所述仓库修复已完成，且实际上已继续完成
+rv2 部署和一次真实复核，但这些执行件尚未提交，票面仍停在部署之前。
+
+**补录前序执行**：[计划 r9](../../../artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r9-fd29edf2.json)
+绑定 `cc660168c305713af20b1e216eec32c9a6e52619`，部署 183 件文件，四件有变化；
+[就绪记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv2-readiness-ba92e71f.json)
+为 PASS。[复核记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-review-closed-rv2-f2e3a7e2.json)
+对应台账 seq 48 的 `closed`，原会话尚未执行交付、结算和关闭。中断期间租约
+回收 seq 50，随后队列滞留上浮 seq 51。接手时仓库、源码副本和部署目录的
+183 件文件逐件一致，r9 及既有执行件的文件名摘要全部复验相符。
+
+**rv2-c1 续行**：沿原五项运行授权和本次继续指令，经 host 用户命令入口恢复
+seq 52、派单 seq 53，实施者真实接单／启动／报告至 seq 56。再次召集 fresh
+复核会话 `org-review-dbdd88a5-180a-42bb-a7c8-d5f41e4332ea`，它通过 `artifact.read`
+读到 `R-2026-010`，预登记探针通过，模型身份 `niko/gpt-5.6-sol`，最终报告于
+seq 61 成功闭合。工件仍为 1,146 字节、SHA-256
+`42cce773129956250e413e8a5ab64ad5fa9e2576407abbc7492672690679fcf6`。
+实施者收到仅含任务 ID 的交付唤醒后未继续，续行脚本如实记录
+[交付等待超时](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv2-c1-interrupted-e07cacfd.json)，
+未代替实施者提交交付，也未改简报或放宽判据。
+
+**第二处读面缺陷**：[脱敏诊断](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-review-projection-diagnosis-6a0b50ed.json)
+绑定真实复核调用与实施者最终回复。`projectEvents` 略过复核事实，普通
+`ledger.read` 只给出历史 `lastRejection`，没有当前闭合结果。实施者把旧的
+`invalid-review-report` 当成仍然有效的复核阻塞；seq 61 已入账且独立复核
+查询返回 closed，因此排除「只口头报告成功」及「部署缓存陈旧」两项假设。
+
+本轮显式载入 implement、tdd、code-review、codebase-design、diagnosing-bugs
+与 unslop。测试接缝沿用本票已确认的台账查询投影。先以真实事件隔离重放复现，
+再在公共台账读面建立最小回归，确认失败于成功复核不可见后修复。任务投影增加
+`reviews`，直接复用 `collectReviewState`，与交付门保持同一口径；工具说明区分
+当前复核结论与历史拒绝。历史事件、复核规则、权限和任务生命周期均按既有契约。
+同一份真实台账重放已可见 seq 61 的闭合报告，回归还验证原交付门允许继续。
+
+验证：相关两文件 83/83 个测试通过；完整 preflight 为 74/74 个测试文件、
+0010 冻结面 10/10、lint 0 违例、宿主契约 12 PASS／0 FAIL／0 SKIP。
+[原始日志](../../../artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-review-projection-preflight-b53a4fa5.log)
+为 184,174 字节，SHA-256
+`b53a4fa57fe95bd5665d918601d643aa0d5def979d55a09f9dc81cc33577aa9d`。
+测试在临时数据根的独立子进程执行，`node --check` 与 `git diff --check` 通过。
+本修复不触 0010 sourceManifest 的十件冻结源码。
+
+接下来沿本票已确认基点 `b4a1ca5` 做 code-review 双轴复核，完成后以新计划 r10
+承接 r9，仅增量部署 `lib/org/task-ledger.js`、`lib/org/op-set.js` 和对应测试，
+继续原任务的交付、结算、关闭。本票仍为 `ready-for-human`，真实闭环验收框待续。

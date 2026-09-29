@@ -1356,6 +1356,42 @@ async function requestReview(ledger, taskId, point, reviewer, key = `${taskId}-r
   })).ok, true);
 }
 
+test("普通台账读面：报告格式拒绝后成功闭合，承接者可见复核结论与报告坐标并继续交付", async () => {
+  const { ledger, hat } = reviewRig(mkHome());
+  const taskId = "TK-00000130";
+  await toProduced(ledger, taskId);
+  await requestReview(ledger, taskId, "before-external-visibility", "bot-reviewer");
+  const rejected = await ledger.recordReviewReport({
+    taskId, reviewer: "bot-reviewer", capability: hat(), idempotencyKey: "view-malformed",
+    report: { ...CLOSED_REPORT, evidence: "顶层字段不在报告契约内" }
+  });
+  assert.equal(rejected.code, "invalid-review-report");
+  const reported = await ledger.recordReviewReport({
+    taskId, reviewer: "bot-reviewer", capability: hat(), idempotencyKey: "view-closed",
+    report: CLOSED_REPORT
+  });
+  assert.equal(reported.ok, true);
+
+  const task = ledger.view().tasks.find((entry) => entry.taskId === taskId);
+  const review = task.reviews?.find((entry) => entry.subject === "before-external-visibility");
+  assert.equal(review?.closed, true, "普通读面须展示成功闭合，不能只留下历史拒绝误导承接者");
+  assert.equal(review.mandatory, true);
+  assert.equal(review.reviewer, "bot-reviewer");
+  assert.deepEqual(review.reports.at(-1), {
+    verdict: "closed", gaps: [], criteriaGaps: [], modelIdentity: CLOSED_REPORT.modelIdentity,
+    reviewer: "bot-reviewer", seq: reported.event.seq, at: reported.event.at
+  });
+  assert.equal(task.lastRejection.code, "invalid-review-report", "历史拒绝保留，不冒充当前复核结论");
+  assert.equal(task.status, "produced", "复核结果不新增任务生命周期阶段");
+
+  const delivered = await ledger.command({
+    op: "task.deliver", taskId, actor: POST("implementer"), ...cas(ledger, taskId),
+    idempotencyKey: "view-deliver", payload: {}
+  });
+  assert.equal(delivered.ok, true, delivered.reason);
+  assert.equal(delivered.status, "delivered");
+});
+
 test("review.request：点须在必审枚举；简报点降级（免审）即拒；加审须归因", async () => {
   const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: mkHome(), now: clockAt().now });
   await toProduced(ledger, "TK-00000090");

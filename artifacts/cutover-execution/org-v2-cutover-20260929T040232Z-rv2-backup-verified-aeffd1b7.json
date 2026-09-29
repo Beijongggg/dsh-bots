@@ -1,0 +1,258 @@
+{
+  "schema": "org-v2/cutover-increment-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "batch": "rv2",
+  "capturedAt": "2026-09-29T14:43:02.461Z",
+  "stage": "backup-verified",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r9-fd29edf2.json",
+    "sha256": "fd29edf29db4c56e1d9d55816470e4d02b80ecfa065e6faabc24b505560a7b0c",
+    "byteLength": 117463
+  },
+  "executor": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-rv2-executor-f0254a40.mjs",
+    "sha256": "f0254a4050da63d6dcfbbf9eb69ce96ee91fbf12a4a8657f54cb6222b00697da",
+    "byteLength": 20790
+  },
+  "backup": {
+    "path": "/home/beijong/.dsh/backups/dsh-bots/org-v2-cutover-20260929T040232Z-rv2",
+    "files": [
+      {
+        "path": "plugins/dsh-bots/lib/org/review-artifacts.js",
+        "sha256": "be8a447ed510b1f7d485a623227d8e5c422bb20e7297d6850b70902d986436e0",
+        "byteLength": 1666,
+        "mode": "0644"
+      },
+      {
+        "path": "plugins/dsh-bots/lib/org/task-ledger.js",
+        "sha256": "6538497af5fb3b3dc0b2494552991d6f019480ee62bdf7410d97dad76ef5ec97",
+        "byteLength": 95046,
+        "mode": "0644"
+      },
+      {
+        "path": "plugins/dsh-bots/tests/ledger-host.test.mjs",
+        "sha256": "ba77401cbc54f94292a89274a7e44d4a6858e455491980898502ab1c05386b16",
+        "byteLength": 59671,
+        "mode": "0644"
+      },
+      {
+        "path": "plugins/dsh-bots/tests/task-ledger.test.mjs",
+        "sha256": "dd8784f1854c5ccd6468c76de85a59bb9beb72234c7d132bb03083cde650cfc7",
+        "byteLength": 121311,
+        "mode": "0644"
+      },
+      {
+        "path": "profiles/duty-coordinator/package.json",
+        "sha256": "51d2695dca005ecaff0ae73525cac42bbbe383348bf37d0cfd45f0505a9cb9b0",
+        "byteLength": 220,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/duty-coordinator/cordis.patch.yml",
+        "sha256": "b6ee8a4ca0ac85bdf38551d5f94c9316f55fc4e1d5cf0aeba6142b9f5f47ce10",
+        "byteLength": 2416,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/duty-coordinator/settings.yaml",
+        "sha256": "56116bc9aa3f04f9f59f574aa020edf844a3a6ab4862f75a708096ce80151bcd",
+        "byteLength": 265,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/duty-coordinator/pnpm-workspace.yaml",
+        "sha256": "ae7c5b68e2f157528e62885804e69e88583897b775e03c86fcbe52feaf498aba",
+        "byteLength": 61,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/duty-coordinator/cordis.yml",
+        "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+        "byteLength": 223,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/implementer/package.json",
+        "sha256": "9d5c907290ef5c88d06cad3f68a07daaba4f80420192fe3909310edcc3a8241a",
+        "byteLength": 215,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/implementer/cordis.patch.yml",
+        "sha256": "f979a3eb974b9c2cf327c0307f1acbc4119dd9dadc5cb25014151e5d234fa385",
+        "byteLength": 1641,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/implementer/settings.yaml",
+        "sha256": "56116bc9aa3f04f9f59f574aa020edf844a3a6ab4862f75a708096ce80151bcd",
+        "byteLength": 265,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/implementer/pnpm-workspace.yaml",
+        "sha256": "ae7c5b68e2f157528e62885804e69e88583897b775e03c86fcbe52feaf498aba",
+        "byteLength": 61,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/implementer/cordis.yml",
+        "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+        "byteLength": 223,
+        "mode": "0600"
+      }
+    ],
+    "absentBefore": []
+  },
+  "configuration": {
+    "capturedAt": "2026-09-29T14:43:02.435Z",
+    "registry": {
+      "path": "bots/bots.json",
+      "sha256": "edfcdcfecd01ce7159df8181c7c3193afc8b96402ab08f051cee41ef7052423f",
+      "byteLength": 1920,
+      "mode": "0600"
+    },
+    "seats": [
+      {
+        "id": "duty-coordinator",
+        "post": "duty-coordinator",
+        "bootstrapAnchor": true,
+        "modelProvider": "niko",
+        "model": "gpt-5.6-sol",
+        "reasoningEffort": "",
+        "permission": "read-only",
+        "port": 3101,
+        "workspace": "/home/beijong/.dsh/bot-workspaces/duty-coordinator"
+      },
+      {
+        "id": "implementer",
+        "post": "implementer",
+        "bootstrapAnchor": false,
+        "modelProvider": "niko",
+        "model": "gpt-5.6-sol",
+        "reasoningEffort": "",
+        "permission": "workspace-write",
+        "port": 3102,
+        "workspace": "/home/beijong/.dsh/bot-workspaces/implementer"
+      }
+    ],
+    "files": [
+      {
+        "path": "profiles/duty-coordinator/package.json",
+        "sha256": "51d2695dca005ecaff0ae73525cac42bbbe383348bf37d0cfd45f0505a9cb9b0",
+        "byteLength": 220,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/duty-coordinator/cordis.patch.yml",
+        "sha256": "b6ee8a4ca0ac85bdf38551d5f94c9316f55fc4e1d5cf0aeba6142b9f5f47ce10",
+        "byteLength": 2416,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/duty-coordinator/settings.yaml",
+        "sha256": "56116bc9aa3f04f9f59f574aa020edf844a3a6ab4862f75a708096ce80151bcd",
+        "byteLength": 265,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/duty-coordinator/pnpm-workspace.yaml",
+        "sha256": "ae7c5b68e2f157528e62885804e69e88583897b775e03c86fcbe52feaf498aba",
+        "byteLength": 61,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/duty-coordinator/cordis.yml",
+        "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+        "byteLength": 223,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/implementer/package.json",
+        "sha256": "9d5c907290ef5c88d06cad3f68a07daaba4f80420192fe3909310edcc3a8241a",
+        "byteLength": 215,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/implementer/cordis.patch.yml",
+        "sha256": "f979a3eb974b9c2cf327c0307f1acbc4119dd9dadc5cb25014151e5d234fa385",
+        "byteLength": 1641,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/implementer/settings.yaml",
+        "sha256": "56116bc9aa3f04f9f59f574aa020edf844a3a6ab4862f75a708096ce80151bcd",
+        "byteLength": 265,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/implementer/pnpm-workspace.yaml",
+        "sha256": "ae7c5b68e2f157528e62885804e69e88583897b775e03c86fcbe52feaf498aba",
+        "byteLength": 61,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/implementer/cordis.yml",
+        "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+        "byteLength": 223,
+        "mode": "0600"
+      }
+    ],
+    "preserve": [
+      {
+        "path": "settings.yaml.imported",
+        "sha256": "c4db01b4a90db8a9b86dd1fef29d94683f3d4d3f26950804e6b5dc7905358cff",
+        "byteLength": 224,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/web/cordis.patch.yml",
+        "sha256": "f9912b87b156934de144becfa33aa9c8a76237ee20170eca14b44cee4ed294e2",
+        "byteLength": 4635,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/duty-coordinator/settings.yaml",
+        "sha256": "56116bc9aa3f04f9f59f574aa020edf844a3a6ab4862f75a708096ce80151bcd",
+        "byteLength": 265,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/duty-coordinator/cordis.yml",
+        "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+        "byteLength": 223,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/implementer/settings.yaml",
+        "sha256": "56116bc9aa3f04f9f59f574aa020edf844a3a6ab4862f75a708096ce80151bcd",
+        "byteLength": 265,
+        "mode": "0600"
+      },
+      {
+        "path": "profiles/implementer/cordis.yml",
+        "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+        "byteLength": 223,
+        "mode": "0600"
+      },
+      {
+        "path": "bot-workspaces/duty-coordinator/.dsh-bot-session.json",
+        "sha256": "e50a6e5dd438f80395e3cd3c4850ba4dc29646abe4324e12389828b6f542a76c",
+        "byteLength": 66,
+        "mode": "0600"
+      },
+      {
+        "path": "bot-workspaces/implementer/.dsh-bot-session.json",
+        "sha256": "b57e76561ffa4d5ceaaaa393d247d5ee4a78097c954eaa0de2277d091ccf8d16",
+        "byteLength": 66,
+        "mode": "0600"
+      }
+    ]
+  },
+  "executionContext": {
+    "path": "_execution-context.json",
+    "sha256": "0f5250ec2233e3bf4df3b5ddece85331b2639a34b2a950aa1d3aad7c1aa857b1",
+    "byteLength": 35030,
+    "mode": "0600"
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "schema": "org-v2/cutover-smoke-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T14:46:56.970Z",
+  "stage": "smoke-task-assign-rv2",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r9-fd29edf2.json",
+    "sha256": "fd29edf29db4c56e1d9d55816470e4d02b80ecfa065e6faabc24b505560a7b0c",
+    "byteLength": 117463
+  },
+  "taskId": "TK-20260929",
+  "input": {
+    "op": "task.assign",
+    "taskId": "TK-20260929",
+    "actor": {
+      "kind": "user",
+      "id": "user"
+    },
+    "idempotencyKey": "org-v2-cutover-20260929T040232Z:rv2:task.assign",
+    "payload": {
+      "assignee": "implementer",
+      "dispatcher": "user"
+    },
+    "expectedStatus": "planned",
+    "expectedSeq": 39
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "taskId": "TK-20260929",
+      "status": "assigned",
+      "seq": 40,
+      "task": {
+        "taskId": "TK-20260929",
+        "class": "project",
+        "status": "assigned",
+        "owner": "implementer",
+        "producer": "implementer",
+        "dispatcher": "user",
+        "lease": {
+          "acceptBy": "2026-09-29T14:56:56.946Z",
+          "expiresAt": "2026-09-29T15:11:56.946Z",
+          "heartbeats": 0,
+          "leaseMs": 900000
+        },
+        "dispatchCount": 2,
+        "brief": {
+          "goal": "用真实双席完成一条预登记任务的收单、派单、登记工件、独立复核与结算。",
+          "deliverables": [
+            {
+              "format": "markdown",
+              "location": "bots/knowledge/reports/R-2026-010.md"
+            }
+          ],
+          "sources": [
+            {
+              "tool": "user",
+              "ref": "org-v2-cutover-20260929T040232Z:brief"
+            }
+          ],
+          "boundaries": "仅经组织命令提交工件与状态，不直接写 ~/.dsh；不改产品、部署、冻结件或旧知识条目。报告简述实际完成的动作并含本批标记。",
+          "acceptance": [
+            {
+              "probe": "fs.contains",
+              "args": {
+                "location": "bots/knowledge/reports/R-2026-010.md",
+                "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+              }
+            }
+          ],
+          "reviewPoints": [
+            "before-external-visibility"
+          ]
+        },
+        "acceptance": [
+          {
+            "probe": "fs.contains",
+            "args": {
+              "location": "bots/knowledge/reports/R-2026-010.md",
+              "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+            }
+          }
+        ],
+        "routineId": null,
+        "window": null,
+        "supersedesTaskId": null,
+        "parentTaskId": null,
+        "createdAt": "2026-09-29T04:56:40.755Z",
+        "updatedAt": "2026-09-29T14:46:56.946Z",
+        "lastSeq": 40,
+        "resumeFrom": null,
+        "waitingClass": null,
+        "escalationCause": null,
+        "lastRejection": {
+          "at": "2026-09-29T13:34:57.093Z",
+          "op": "review.report",
+          "code": "invalid-review-report",
+          "reason": "复核报告形状不符（fail closed）：gaps[0].severity 须为 blocker|major|minor 之一；gaps[0].summary 须为非空字符串；gaps[0].evidence（证据坐标）须为非空字符串"
+        }
+      },
+      "event": {
+        "seq": 40,
+        "eventId": "mumsi94i-47119488",
+        "type": "assign",
+        "at": "2026-09-29T14:46:56.946Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 6,
+        "assignee": "implementer",
+        "dispatcher": "user",
+        "lease": {
+          "acceptBy": "2026-09-29T14:56:56.946Z",
+          "expiresAt": "2026-09-29T15:11:56.946Z",
+          "leaseMs": 900000
+        },
+        "eventHash": "99ea84c1089312c077603f830734ddc5402331f6a123cf04215fa1277c89f54a"
+      }
+    }
+  }
+}

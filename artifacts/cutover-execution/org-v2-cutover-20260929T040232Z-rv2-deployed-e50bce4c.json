@@ -1,0 +1,22 @@
+{
+  "schema": "org-v2/cutover-increment-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "batch": "rv2",
+  "capturedAt": "2026-09-29T14:45:04.174Z",
+  "stage": "deployed",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r9-fd29edf2.json",
+    "sha256": "fd29edf29db4c56e1d9d55816470e4d02b80ecfa065e6faabc24b505560a7b0c",
+    "byteLength": 117463
+  },
+  "sourceCommit": "cc660168c305713af20b1e216eec32c9a6e52619",
+  "sourceDigest": "e399dec5ccc12aee18a7792c7fe3cca0603f3669652cae90d27300e8f325a0c7",
+  "filesVerified": 183,
+  "changedPaths": [
+    "lib/org/review-artifacts.js",
+    "lib/org/task-ledger.js",
+    "tests/ledger-host.test.mjs",
+    "tests/task-ledger.test.mjs"
+  ],
+  "preservedFiles": 106
+}

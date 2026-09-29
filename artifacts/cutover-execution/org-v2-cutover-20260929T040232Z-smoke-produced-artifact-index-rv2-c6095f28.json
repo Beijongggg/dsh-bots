@@ -1,0 +1,36 @@
+{
+  "schema": "org-v2/cutover-smoke-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T14:48:28.128Z",
+  "stage": "smoke-produced-artifact-index-rv2",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r9-fd29edf2.json",
+    "sha256": "fd29edf29db4c56e1d9d55816470e4d02b80ecfa065e6faabc24b505560a7b0c",
+    "byteLength": 117463
+  },
+  "taskId": "TK-20260929",
+  "artifact": {
+    "id": "R-2026-010",
+    "title": "组织 v2 切换真实双席实施链路记录",
+    "tags": [
+      "org-v2",
+      "双席链路",
+      "实施记录"
+    ],
+    "summary": "TK-20260929 已由 user 正式指派给 implementer，并由 host 签发任务 capability。实施者通过 capability 与 CAS 门完成认领及启动，随后经组织知识登记命令提交本 Markdown 工件。工件保留本批次精确标记，并等待预登记探针验证与独立复核。",
+    "conclusions": [
+      "TK-20260929 已通过 host capability 与 CAS 完成认领和启动。",
+      "工件通过组织知识登记命令提交，未直接写入 ~/.dsh。",
+      "批次标记为 org-v2-cutover:org-v2-cutover-20260929T040232Z。"
+    ],
+    "sources": [
+      "TK-20260929 ledger",
+      "org-v2-cutover-20260929T040232Z:brief"
+    ],
+    "appliesTo": "",
+    "task": "TK-20260929",
+    "botId": "implementer",
+    "date": "2026-09-29T10:21:01.216Z",
+    "status": "valid"
+  }
+}

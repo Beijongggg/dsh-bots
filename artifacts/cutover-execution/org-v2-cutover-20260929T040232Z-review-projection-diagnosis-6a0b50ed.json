@@ -1,0 +1,230 @@
+{
+  "schema": "org-v2/cutover-diagnosis@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T16:38:07.739Z",
+  "taskId": "TK-20260929",
+  "issue": "org-v2-build/16",
+  "symptom": "Real implementer read lastRejection as a current review blocker after the closed report at ledger seq 61; the ordinary task projection omitted review facts.",
+  "priorSourceCommit": "cc660168c305713af20b1e216eec32c9a6e52619",
+  "reviewSession": {
+    "source": {
+      "path": "/home/beijong/.dsh/sessions/--home-beijong-.dsh-bot-workspaces-duty-coordinator--/org-review-dbdd88a5-180a-42bb-a7c8-d5f41e4332ea/session.v4.jsonl.zstd",
+      "sha256": "d5295df60586780075fcd11b86dbbdfa6bd6f6548d8039f9bf2c5d577e729aad",
+      "byteLength": 33643
+    },
+    "session": {
+      "type": "session",
+      "version": 4,
+      "id": "org-review-dbdd88a5-180a-42bb-a7c8-d5f41e4332ea",
+      "createdAt": 1790698453600,
+      "cwd": "/home/beijong/.dsh/bot-workspaces/duty-coordinator",
+      "isSeeded": false,
+      "delegationDepth": 0
+    },
+    "model": {
+      "provider": "niko",
+      "model": "gpt-5.6-sol",
+      "contextWindow": 262144
+    },
+    "pluginSeed": {
+      "id": "fed9c0b9-7b5c-4d83-82d7-c19e4ccb2373",
+      "role": "user",
+      "source": {
+        "kind": "plugin:dsh-bots"
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "独立复核 TK-20260929，对象 before-external-visibility。通过 artifact.read 读取冻结简报与移交件，按预登记判据运行 evidence.probe；提交 review.report，报告 gaps、严重度与证据坐标。不得修改工件或放宽判据。"
+        }
+      ]
+    },
+    "toolFacts": [
+      {
+        "seq": 15,
+        "time": 1790698467689,
+        "name": "artifact.read",
+        "taskId": "TK-20260929",
+        "reportKeys": [],
+        "result": {
+          "status": 200
+        }
+      },
+      {
+        "seq": 26,
+        "time": 1790698602144,
+        "name": "artifact.read",
+        "taskId": "TK-20260929",
+        "artifactId": "R-2026-010",
+        "reportKeys": [],
+        "result": {
+          "status": 200,
+          "artifact": {
+            "id": "R-2026-010",
+            "sha256": "42cce773129956250e413e8a5ab64ad5fa9e2576407abbc7492672690679fcf6",
+            "byteLength": 1146
+          }
+        }
+      },
+      {
+        "seq": 27,
+        "time": 1790698602157,
+        "name": "evidence.probe",
+        "taskId": "TK-20260929",
+        "criterionIndex": 0,
+        "reportKeys": [],
+        "result": {
+          "ok": true,
+          "snapshotSha256": "42cce773129956250e413e8a5ab64ad5fa9e2576407abbc7492672690679fcf6"
+        }
+      },
+      {
+        "seq": 34,
+        "time": 1790698614156,
+        "name": "review.report",
+        "taskId": "TK-20260929",
+        "reportKeys": [],
+        "result": {
+          "ok": false,
+          "code": "invalid-review-report",
+          "reason": "复核报告形状不符（fail closed）：verdict 须为 gaps-open|closed 之一：undefined；gaps 须为数组（可为空数组）"
+        }
+      },
+      {
+        "seq": 46,
+        "time": 1790698646651,
+        "name": "review.report",
+        "taskId": "TK-20260929",
+        "reportKeys": [],
+        "result": {
+          "ok": false,
+          "code": "invalid-review-report",
+          "reason": "复核报告形状不符（fail closed）：verdict 须为 gaps-open|closed 之一：undefined；gaps 须为数组（可为空数组）",
+          "replayed": true
+        }
+      },
+      {
+        "seq": 53,
+        "time": 1790698653994,
+        "name": "review.report",
+        "taskId": "TK-20260929",
+        "reportKeys": [
+          "verdict",
+          "gaps",
+          "criteriaGaps",
+          "evidence",
+          "modelIdentity"
+        ],
+        "result": {
+          "ok": false,
+          "code": "invalid-review-report",
+          "reason": "复核报告形状不符（fail closed）：报告含未定义键 evidence（复核者只读：报告不携带改工件／改判据字段）"
+        }
+      },
+      {
+        "seq": 60,
+        "time": 1790698660684,
+        "name": "review.report",
+        "taskId": "TK-20260929",
+        "reportKeys": [
+          "verdict",
+          "gaps",
+          "criteriaGaps",
+          "modelIdentity"
+        ],
+        "result": {
+          "ok": true,
+          "acceptedEvent": {
+            "seq": 61,
+            "eventId": "mumvqxj3-f1ae64b3",
+            "type": "review-reported",
+            "at": "2026-09-29T16:17:40.671Z",
+            "taskId": "TK-20260929",
+            "actor": {
+              "kind": "post",
+              "id": "duty-coordinator"
+            },
+            "writerEpoch": 6,
+            "subject": "before-external-visibility",
+            "verdict": "closed",
+            "gaps": [],
+            "criteriaGaps": [],
+            "modelIdentity": "niko/gpt-5.6-sol",
+            "reviewer": "duty-coordinator",
+            "eventHash": "d5ac4cc234bd38231df449a2f2af2ac6af10c4c00c9e1db5206ff73da3144661"
+          }
+        }
+      }
+    ],
+    "turnEnd": {
+      "type": "turn/end",
+      "seq": 66,
+      "time": 1790698677750,
+      "data": {
+        "turn": 1,
+        "reason": {
+          "kind": "completed"
+        }
+      }
+    }
+  },
+  "producerSession": {
+    "source": {
+      "path": "/home/beijong/.dsh/sessions/--home-beijong-.dsh-bot-workspaces-implementer--/session-e56304de-63bb-4644-a32b-51bcfcd10d52/session.v4.jsonl.zstd",
+      "sha256": "39a937886c10a187fdf03d45f3643a7cdb919dc664e1114a8123d12bb02c3836",
+      "byteLength": 214106
+    },
+    "replySeq": 472,
+    "replyTime": 1790698698695,
+    "replyText": "`TK-20260929` 尚未解除复核阻塞：\n\n- 当前状态：`produced`\n- 最新事件序号：`lastSeq=61`\n- `dispatchCount=3`\n- 最新 `review.report` 仍被拒绝：包含未定义键 `evidence`\n- `before-external-visibility` 尚未合法闭合\n\n按升级裁定继续暂停：不接受重复实施、不自行复核、不调用 `task.deliver`。需独立 verifier 提交符合固定形状的 `review.report` 后才能继续。"
+  },
+  "ledger": {
+    "source": {
+      "path": "/home/beijong/.dsh/bots/ledger/events.jsonl",
+      "sha256": "92c38006a31555ae3a2bc6c4e4c485bda43804c9213b43940803078cde52863c",
+      "byteLength": 24701
+    },
+    "latestReport": {
+      "seq": 61,
+      "eventId": "mumvqxj3-f1ae64b3",
+      "type": "review-reported",
+      "at": "2026-09-29T16:17:40.671Z",
+      "taskId": "TK-20260929",
+      "actor": {
+        "kind": "post",
+        "id": "duty-coordinator"
+      },
+      "writerEpoch": 6,
+      "subject": "before-external-visibility",
+      "verdict": "closed",
+      "gaps": [],
+      "criteriaGaps": [],
+      "modelIdentity": "niko/gpt-5.6-sol",
+      "reviewer": "duty-coordinator",
+      "eventHash": "d5ac4cc234bd38231df449a2f2af2ac6af10c4c00c9e1db5206ff73da3144661"
+    },
+    "latestRejection": {
+      "seq": 60,
+      "eventId": "mumvqsd5-6adeb471",
+      "type": "command-rejected",
+      "at": "2026-09-29T16:17:33.977Z",
+      "taskId": "TK-20260929",
+      "actor": {
+        "kind": "post",
+        "id": "duty-coordinator"
+      },
+      "writerEpoch": 6,
+      "op": "review.report",
+      "code": "invalid-review-report",
+      "reason": "复核报告形状不符（fail closed）：报告含未定义键 evidence（复核者只读：报告不携带改工件／改判据字段）",
+      "eventHash": "68bcd875ddf773e607e45d201b003d8301a786b5ee40ce641b80b60f33d6754e"
+    }
+  },
+  "reproducer": {
+    "seam": "ordinary ledger task projection",
+    "test": "tests/task-ledger.test.mjs::普通台账读面：报告格式拒绝后成功闭合，承接者可见复核结论与报告坐标并继续交付",
+    "red": "reviews missing while the successful closed review and historical invalid-review-report both exist",
+    "green": "reviews exposes the closed subject and accepted report coordinates; task.deliver succeeds with the original gate"
+  },
+  "isolation": "Only selected user-visible text and tool-result fields are retained. Provider headers, capability envelopes, session reasoning and intermediate assistant messages are excluded."
+}

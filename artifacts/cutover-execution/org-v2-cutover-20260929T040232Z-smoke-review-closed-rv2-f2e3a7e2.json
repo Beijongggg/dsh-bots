@@ -1,0 +1,37 @@
+{
+  "schema": "org-v2/cutover-smoke-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T14:50:18.402Z",
+  "stage": "smoke-review-closed-rv2",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r9-fd29edf2.json",
+    "sha256": "fd29edf29db4c56e1d9d55816470e4d02b80ecfa065e6faabc24b505560a7b0c",
+    "byteLength": 117463
+  },
+  "taskId": "TK-20260929",
+  "lastReport": {
+    "seq": 48,
+    "eventId": "mumsmjvi-f3946c15",
+    "type": "review-reported",
+    "at": "2026-09-29T14:50:17.502Z",
+    "taskId": "TK-20260929",
+    "actor": {
+      "kind": "post",
+      "id": "duty-coordinator"
+    },
+    "writerEpoch": 6,
+    "subject": "before-external-visibility",
+    "verdict": "closed",
+    "gaps": [],
+    "criteriaGaps": [],
+    "modelIdentity": "niko/gpt-5.6-sol",
+    "reviewer": "duty-coordinator",
+    "eventHash": "209a6a4ab5e0f37930ce586fe359ef5d361f817189254f77b66f32bf42b5371b"
+  },
+  "allReports": [
+    {
+      "seq": 48,
+      "verdict": "closed"
+    }
+  ]
+}

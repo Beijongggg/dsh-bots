@@ -1,0 +1,130 @@
+{
+  "schema": "org-v2/cutover-smoke-continuation@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "batch": "rv2-c1",
+  "capturedAt": "2026-09-29T16:12:58.414Z",
+  "stage": "task-assign",
+  "taskId": "TK-20260929",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r9-fd29edf2.json",
+    "sha256": "fd29edf29db4c56e1d9d55816470e4d02b80ecfa065e6faabc24b505560a7b0c",
+    "byteLength": 117463
+  },
+  "executor": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-rv2-c1-executor-1b36ac2a.mjs",
+    "sha256": "1b36ac2a41b0b975c61b10ecce7e73618156b28d1bc14593e63a427b9e7b7cd4",
+    "byteLength": 11377
+  },
+  "input": {
+    "op": "task.assign",
+    "taskId": "TK-20260929",
+    "actor": {
+      "kind": "user",
+      "id": "user"
+    },
+    "idempotencyKey": "org-v2-cutover-20260929T040232Z:rv2-c1:task.assign",
+    "payload": {
+      "assignee": "implementer",
+      "dispatcher": "user"
+    },
+    "expectedStatus": "planned",
+    "expectedSeq": 52
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "taskId": "TK-20260929",
+      "status": "assigned",
+      "seq": 53,
+      "task": {
+        "taskId": "TK-20260929",
+        "class": "project",
+        "status": "assigned",
+        "owner": "implementer",
+        "producer": "implementer",
+        "dispatcher": "user",
+        "lease": {
+          "acceptBy": "2026-09-29T16:22:58.401Z",
+          "expiresAt": "2026-09-29T16:37:58.401Z",
+          "heartbeats": 0,
+          "leaseMs": 900000
+        },
+        "dispatchCount": 3,
+        "brief": {
+          "goal": "用真实双席完成一条预登记任务的收单、派单、登记工件、独立复核与结算。",
+          "deliverables": [
+            {
+              "format": "markdown",
+              "location": "bots/knowledge/reports/R-2026-010.md"
+            }
+          ],
+          "sources": [
+            {
+              "tool": "user",
+              "ref": "org-v2-cutover-20260929T040232Z:brief"
+            }
+          ],
+          "boundaries": "仅经组织命令提交工件与状态，不直接写 ~/.dsh；不改产品、部署、冻结件或旧知识条目。报告简述实际完成的动作并含本批标记。",
+          "acceptance": [
+            {
+              "probe": "fs.contains",
+              "args": {
+                "location": "bots/knowledge/reports/R-2026-010.md",
+                "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+              }
+            }
+          ],
+          "reviewPoints": [
+            "before-external-visibility"
+          ]
+        },
+        "acceptance": [
+          {
+            "probe": "fs.contains",
+            "args": {
+              "location": "bots/knowledge/reports/R-2026-010.md",
+              "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+            }
+          }
+        ],
+        "routineId": null,
+        "window": null,
+        "supersedesTaskId": null,
+        "parentTaskId": null,
+        "createdAt": "2026-09-29T04:56:40.755Z",
+        "updatedAt": "2026-09-29T16:12:58.401Z",
+        "lastSeq": 53,
+        "resumeFrom": null,
+        "waitingClass": null,
+        "escalationCause": null,
+        "lastRejection": {
+          "at": "2026-09-29T14:50:00.905Z",
+          "op": "review.report",
+          "code": "invalid-review-report",
+          "reason": "复核报告形状不符（fail closed）：报告含未定义键 evidence（复核者只读：报告不携带改工件／改判据字段）"
+        }
+      },
+      "event": {
+        "seq": 53,
+        "eventId": "mumvkvq9-862da7b5",
+        "type": "assign",
+        "at": "2026-09-29T16:12:58.401Z",
+        "taskId": "TK-20260929",
+        "actor": {
+          "kind": "user",
+          "id": "user"
+        },
+        "writerEpoch": 6,
+        "assignee": "implementer",
+        "dispatcher": "user",
+        "lease": {
+          "acceptBy": "2026-09-29T16:22:58.401Z",
+          "expiresAt": "2026-09-29T16:37:58.401Z",
+          "leaseMs": 900000
+        },
+        "eventHash": "2dbc481a8618c430b94a7d467bc71d83d4e95ab2434ca09ff48a28d72256dccc"
+      }
+    }
+  }
+}
