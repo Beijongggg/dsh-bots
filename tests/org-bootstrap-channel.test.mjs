@@ -274,3 +274,31 @@ test("统筹初始角色能力支持连续命令和授权后拒绝的续签；�
     assert.equal(triage.capability.payload.kind, "role");
   } finally { r.close(); }
 });
+
+test("复核 followup 的消息 source 须为 v4 producer-owned 形（16 号票：官方 kick 吞错使退役 source 形静默空转）", async () => {
+  // 实证（2026-09-29 真实面 TK-20260929 seq 27/29＋镜像打点）：宿主 v4 会话格式
+  // 拒绝 kind:"plugin" 退役包装（format v4 message requires a producer-owned
+  // source kind）；官方 agent loop 的 kick 对 turn 抛错静默吞掉，复核会话因此
+  // 只剩 preset 事件、whenIdle 立即空转。官方 producerKind 映射未知插件 dsh-bots
+  // → "plugin:dsh-bots"。
+  const r = rig();
+  let captured = null;
+  try {
+    const ctx = { get: () => ({ async create(options) {
+      await options.setup({ get: () => ({ restrict: () => () => {}, register: () => () => {} }) });
+      return { agent: { followup(message) { captured = message; }, whenIdle: () => Promise.resolve() }, dispose() {} };
+    } }) };
+    const review = runFreshReview({ ctx, bot: r.registry.coordinator ?? { modelProvider: "p", model: "m" },
+      cwd: r.home, review: { taskId: r.taskId, subject: "before-external-visibility", requestSeq: 1 },
+      dispatch: async () => ({ ok: true }) }).catch(() => "fixture 无报告提交，预期结束");
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.ok(captured, "followup 已被调用");
+    assert.equal(captured.source?.kind, "plugin:dsh-bots", "source.kind 须为官方 producerKind 映射的 producer-owned 形");
+    assert.equal(captured.source?.plugin, undefined, "退役的 plugin 包装键不得保留");
+    assert.equal(captured.role, "user");
+    assert.ok(Array.isArray(captured.content) && captured.content[0]?.type === "text");
+    await review;
+  } finally {
+    r.close();
+  }
+});
