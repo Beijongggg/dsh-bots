@@ -11,7 +11,7 @@ import { createTaskLedger } from "../lib/org/task-ledger.js";
 import { createCapabilityIssuer, issuedAuditFile } from "../lib/org/capability-issue.js";
 import { createLedgerAccessKit } from "../lib/org/permissions.js";
 import { createLedgerHost } from "../lib/org/ledger-host.js";
-import { createCapabilityDelivery } from "../lib/org/capability-delivery.js";
+import { createCapabilityDelivery, listenForOrgCredential } from "../lib/org/capability-delivery.js";
 import { createPostChannel } from "../lib/org/post-channel.js";
 import { createReviewFaceGate } from "../lib/org/review-kit.js";
 import { runFreshReview } from "../lib/org/review-session.js";
@@ -125,7 +125,20 @@ test("复核请求召集空闲统筹戴帽：每轮全新会话，只见复核�
             const refused = await visible.get("artifact.read").execute({ taskId: r.taskId, artifactId: "../../sessions/producer" });
             assert.equal(refused.status, 403);
             assert.equal((await visible.get("evidence.probe").execute({ taskId: r.taskId, index: 0 })).ok, true);
+            const invalid = await visible.get("review.report").execute({ taskId: r.taskId,
+              idempotencyKey: "first-report", report: { verdict: "gaps-open", gaps: [{ severity: "major", summary: "缺证据" }] } });
+            assert.equal(invalid.code, "invalid-review-report");
+            const open = await visible.get("review.report").execute({ taskId: r.taskId,
+              idempotencyKey: "gap-report", report: { verdict: "gaps-open",
+                gaps: [{ severity: "minor", summary: "待核对", evidence: "工件:1" }] } });
+            assert.equal(open.ok, true, JSON.stringify(open));
+            const reordered = await visible.get("review.report").execute({ taskId: r.taskId,
+              idempotencyKey: "gap-report", report: {
+                gaps: [{ evidence: "工件:1", summary: "待核对", severity: "minor" }], verdict: "gaps-open" } });
+            assert.equal(reordered.replayed, true, "同一报告只换字段顺序不得计作第二轮或上浮用户");
+            assert.equal(r.ledger.task(r.taskId).status, "accepted");
             const reported = await visible.get("review.report").execute({ taskId: r.taskId,
+              idempotencyKey: "corrected-report",
               report: { subject: "cutover-check", verdict: "closed", gaps: [], modelIdentity: "model-supplied-identity" } });
             assert.equal(reported.ok, true, JSON.stringify(reported));
           }
@@ -170,29 +183,53 @@ test("复核请求召集空闲统筹戴帽：每轮全新会话，只见复核�
     assert.equal(handoffs.length, 2);
     assert.notEqual(sessions[0].sessionId, sessions[1].sessionId);
     const reports = r.ledger.events({ taskId: r.taskId }).filter((event) => event.type === "review-reported");
-    assert.equal(reports.length, 2);
+    assert.equal(reports.length, 4, "两次独立复核各入账一次 gaps-open 和一次 closed，重放不增轮次");
     assert.ok(reports.every((report) => report.modelIdentity === "test-provider/test-model"));
   } finally { r.close(); }
 });
 
 test("复核未能运行或实例退出时显式入异常账，旧帽不再读写该次复核", async () => {
   const r = rig();
+  const idle = Promise.withResolvers();
+  let disposed = false, listener;
   try {
+    const ipc = new EventEmitter();
+    ipc.connected = true;
+    ipc.send = (message) => r.child.emit("message", message);
+    r.child.send = (message) => ipc.emit("message", message);
+    const ctx = { get: () => ({ async create(options) {
+      await options.setup({ get: () => ({ restrict: () => () => {}, register: () => () => {} }) });
+      return { agent: { followup() {}, whenIdle: () => idle.promise }, dispose() { disposed = true; } };
+    } }) };
+    listener = listenForOrgCredential({ botId: "implementer", ipc,
+      onReview: (review, signal) => runFreshReview({ ctx, bot: { modelProvider: "fixture", model: "fixture" },
+        cwd: r.home, review, dispatch: r.post, signal }) });
     await r.command("task.intake", { class: "project", brief: VALID_BRIEF });
     const result = await r.command("review.request", { topic: "failure-case", reviewer: "implementer" });
     assert.equal(result.body.reviewDispatch.ok, true);
     const review = result.body.reviewDispatch;
     const received = await r.request("/api/bots/_ledger/delivery", { ...r.credential(), review }, { "x-dsh-bots-bot-id": "implementer" });
     assert.equal(received.body.capabilities[0].payload.post, "verifier");
-    r.child.emit("disconnect");
     await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(disposed, false, "复核正在等待模型结束");
+    r.child.connected = false;
+    ipc.connected = false;
+    r.child.emit("disconnect");
+    ipc.emit("disconnect");
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(disposed, true, "IPC 断开必须立即清理仍在运行的复核 Agent");
     const view = (await r.request("/api/bots/_ledger/notifications")).body;
     assert.ok(view.notifications.some((row) => row.type === "exception" && row.to === "user"), JSON.stringify(view));
     const oldHat = await r.request(`/api/bots/_ledger/review-handoff?taskId=${r.taskId}`, null,
       { "x-dsh-bots-bot-id": "implementer", "x-dsh-bots-review-request": String(review.requestSeq),
         "x-dsh-bots-capability": JSON.stringify(received.body.capabilities[0]) });
     assert.equal(oldHat.status, 403);
-  } finally { r.close(); }
+  } finally {
+    listener?.close();
+    idle.resolve();
+    await new Promise((resolve) => setImmediate(resolve));
+    r.close();
+  }
 });
 
 test("能力领取只读既发信封：冒名、自请岗位与 op、错误凭据及旧代际均拒绝且不产生签发", async () => {
