@@ -635,6 +635,10 @@ test("复核移交件读（16 号票 rv1 blocker）：归属让渡（owner=null�
     };
     mkdirSync(join(home, "bots", "started"), { recursive: true });
     writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
+    writeFileSync(instanceRegistryFile(home), `${JSON.stringify({
+      botId: "bot-producer", pid: process.pid, startedAt: `proc:${process.pid}`,
+      hostInstanceId: "gen-producer", at: Date.now()
+    })}\n`, { flag: "a" });
     const { issuer, ledger } = wireReviewHat({
       home, now: () => NOW, ledgerOptions: { ...CRITERION_INJECTION }
     });
@@ -690,6 +694,23 @@ test("复核移交件读（16 号票 rv1 blocker）：归属让渡（owner=null�
     const hat = issuer.issueRoleCapability({ botId: "bot-reviewer", post: "verifier" });
     assert.equal(hat.ok, true, hat.reason);
     const hatHeaders = { "x-dsh-bots-bot-id": "bot-reviewer", "x-dsh-bots-capability": JSON.stringify(hat.envelope) };
+
+    // 产出方不得自任（spec §C 独立性；第三道门同口径）：归属已让渡，产出方本人仍不得
+    // 被指定为复核者、也不得以 verifier 帽给自己的产出入账报告
+    const selfReview = await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "review.request", taskId: "TK-00000071", actor: USER, idempotencyKey: "hnd-self-request",
+      payload: { point: "before-external-visibility", reviewer: "bot-producer" }
+    });
+    assert.equal(selfReview.body.code, "reviewer-is-producer", "产出方按历史事实判，不按易变归属漏过");
+    const selfHat = issuer.issueRoleCapability({ botId: "bot-producer", post: "verifier" });
+    assert.equal(selfHat.ok, true, selfHat.reason);
+    // 报告腿的独立性门是台账权威门（HTTP 通道对非指定者另有先拒；进程内直调绕不过此门）
+    const selfReport = await ledger.recordReviewReport({
+      taskId: "TK-00000071", reviewer: "bot-producer",
+      report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "m" },
+      capability: selfHat.envelope, idempotencyKey: "hnd-self-report"
+    });
+    assert.equal(selfReport.code, "reviewer-is-producer", "报告腿同判：产出方自任在 reviewer-is-producer 拒");
 
     const handoff = await call(api, "GET", "/api/bots/_ledger/review-handoff?taskId=TK-00000071", null, hatHeaders);
     assert.equal(handoff.status, 200);
