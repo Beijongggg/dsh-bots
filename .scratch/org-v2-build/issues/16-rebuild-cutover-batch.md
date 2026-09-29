@@ -412,3 +412,90 @@ PASS，登记表与探针说明同步。
 识别，避免落回陈旧 settings。字段换序在两条生成路径先红后绿，profile
 回归增为 3/3。使用双席当前配置的隔离实调也可解析已配置模型，未发送模型
 请求。返修后的完整验证与最终部署绑定另行采集。
+
+
+### 2026-09-29 provider 增量已部署，真实请求暴露工具名兼容问题
+
+配置修复的 Standards P3 与 Spec P2 均由原轴复核关闭，无新增或未关闭发现。
+源码 `80187dc6cbe2d881a880b7a96e194c348e6d1f1a` 的干净导出通过最终
+preflight，73/73 测试文件、0010 冻结面 10/10、lint 0 违例，宿主
+12 PASS／0 FAIL／0 SKIP。沿原五项运行授权绑定计划 r5，于 06:17:15Z
+开始增量部署，排他备份 16 件当前部署和配置输入，同步七件变更后重启。
+备份位于 `/home/beijong/.dsh/backups/dsh-bots/org-v2-cutover-20260929T040232Z-provider-r1/`。
+
+host 为 PID `104244`、start ticks `1659250`，双席由 host 经私有 IPC
+启动。06:17:49Z 就绪通过，82 件运行文件与 100 件测试／规格资源齐备，
+源码摘要为 `5ca1373a25c6d7d4affa36e52bba8ab5ae3bb1a9f827cfeaa97a46961712c7dc`。
+执行时重新读取实际模型配置并备份，未把计划中的型号和参数设为固定比对门。
+
+同一任务 `TK-20260929` 的第二次队列停滞保留为 seq 5。经用户命令恢复
+至 triaged，再退回 intake，分别入账 seq 6、7。06:18:31Z 仅以任务 ID
+再次唤醒统筹，继续持久 session `session-e21b956a-bfcf-489c-8c3a-124958f085ab`。
+这次已成功选择当前 `niko/gpt-5.6-sol` 并发出实际请求，随后供应商拒绝
+`tools[12].name=knowledge.deprecate`，返回 HTTP 400 INVALID_REQUEST，
+要求名称匹配 `^[a-zA-Z0-9_-]+$`。其他带点组织工具名也不符合该协议。
+
+诊断件绑定了实际 session 日志、模型、权限与官方宿主源码。该回合有一次
+turn/start 和一次错误 turn/end，没有 assistant/message，token 用量为 0。
+当前 driver 只在找到助手消息后退出，因此错误终止仍轮询至十分钟超时。
+06:45Z 只读回看任务已是 waiting-user、seq 8，resumeFrom=intake，保留
+host 自动停滞记录。简报、报告号、验收与必审点未改，尚无实施产出或成功 smoke。
+
+现有 bot→host 组织命令、profile 生成／宿主配置读取、原生会话回合接缝
+覆盖本次兼容修复。继续按 TDD 验证工具传输与错误终止，不更换模型、不放宽
+岗位或任务权限，不改写冻结工具命名合同。票面继续等待实际闭环通过。
+
+| 凭据 | 字节数 | SHA-256 |
+|---|---:|---|
+| [计划 r5](../../../artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r5-a9d8cd49.json) | 97,503 | `a9d8cd493702789e08c6ccc9aefc6e54a13ac5c0f4496151880e8ea1bacc8716` |
+| [执行脚本](../../../artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-provider-r1-executor-82146cb2.mjs) | 18,465 | `82146cb2752e0e2b54c8e74899a871494ea569c647eb2e5fad4c3cb93164bafa` |
+| [最终 preflight](../../../artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-provider-r1-preflight-99a1bfbf.log) | 181,227 | `99a1bfbf1957756062a7f1fd8ebf478987dddb0535b209c42d6d0ef2a40b1931` |
+| [增量备份](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-provider-r1-backup-verified-aff926b8.json) | 9,024 | `aff926b82a295a9b83d7d873f841ea17ee79f32176c9a7aa1fcccaf073a28cba` |
+| [停止记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-provider-r1-quiesced-11d4a21c.json) | 864 | `11d4a21cb9a2e2e74cb80fa0c779ccfe7f964bc83a6bc0ebb58320ae5d8e11e6` |
+| [部署记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-provider-r1-deployed-d510f558.json) | 844 | `d510f558f9782f36d68f189665322511f547b78aefb67369ac5c3ddc670b7a8a` |
+| [启动记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-provider-r1-started-18fe3576.json) | 707 | `18fe3576d9550fcafc3c1cfdd94f56573c2f09b84d946940498d54cf26b9d1f1` |
+| [就绪记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-provider-r1-readiness-15e0c2ac.json) | 90,342 | `15e0c2ac8b3158c79dd57cee93370077063d2c44e86f2f44f0de8f8c665e3b5e` |
+| [恢复命令](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-task-resume-3ace318a.json) | 3,283 | `3ace318a514f005395d2f813fb171085f86c8e3f353223aac87dccacd49af3e9` |
+| [退回收单](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-task-return-e9341e2a.json) | 3,468 | `e9341e2a099361ba25d3c8c60e47bd6e7d3802fbc6630d8617a1a4e7e577ebed` |
+| [统筹唤醒](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-wake-triage-retry-provider-r1-5febd89d.json) | 596 | `5febd89d4901311bb72ab11033bf9b7bda44a313c3d3c1e4dbd553d18918cfd1` |
+| [工具名拒绝诊断](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-tool-names-blocked-cde5273a.json) | 8,073 | `cde5273a6d5803442f5265199f21293f8f26b552a62280b25b2dc983132c5343` |
+
+### 2026-09-29 工具名兼容与错误终止修复完成仓库验证，待增量部署
+
+codex 会话中断后由用户指令接手继续。官方宿主源码核对确认：dsh-base 已组合
+`ptc-runtime` 行；web patch 的 `tools` 行 `mode` 配置即 `DSH_TOOLS_MODE`
+环境缝（官方 TEMPORARY workaround，未设保持 schema 默认 native）；per-agent
+呈现另有 `dsh-agent-tool-presentation` preset 行（官方 `ptc` preset 即此组
+合）。bot 子进程是独立 dsh 实例，进程级环境缝只影响双席，不触及用户 web 宿主。
+
+**仓库修复**（提交 `4fd7e3f` 及返修）：
+
+- `spawnBot` 的 overrides 无条件注入 `DSH_TOOLS_MODE: "ptc"`：模型只见
+  `run_code` 传输（名称合法），带点组织工具原名保留在生成的 SDK 内，
+  **不改写冻结工具命名合同，不放宽岗位或任务权限**。无条件（含未绑岗位的
+  v1 形态实例）是为避免「补绑岗位须重启才换呈现」的静默分叉；复核会话经
+  bot 进程内 `agents.create` 同获该呈现，scoped `restrict`＋三件复核工具
+  的权限面不变。宿主升级若移除该缝，P-CONFIG-IDS 按装载器 `__jsExpr`
+  标记形状点名 FAIL（HF-CONFIG-IDS 坐标与 readAccess 已同步登记）。
+- `session-driver` 错误终止不变量：baseline 后 turn/end `reason.kind=error`
+  且无 assistant 消息 → 立即抛出供应商错误消息（实证：TK-20260929 的
+  HTTP 400 曾轮询至十分钟超时）。assistant 提取先于错误判定——病态「有
+  文本又 error 收尾」返回模型真实产出；非 error 终止（blocked/aborted/
+  max-tokens）无实证问题，保持旧轮询语义并加负例钉住。
+
+**TDD**：三接缝（session-driver 错误终止、spawn env 注入、探针缝形状）均
+先红后绿；rpc-envelope 原生链补错误终止保真用例。**双轴增量复审**
+（`80187dc..4fd7e3f`）：Standards 硬违例一处（提交未随附落档）与 fixture
+重复、Spec 的「error 先于提取」「非 error 不误伤无钉住」均已返修复验；
+`DSH_TOOLS_MODE` 无条件注入与探针形状断言弱于行为断言两项裁定为可辩护
+（前者避免呈现分叉，后者由部署后 smoke 证实真实行为），理由如上。
+
+**已跑验证**：完整 preflight 退出码 0——**73/73 测试文件**（新增错误终止
+5 用例、spawn env 断言、门 fixture 用例）、0010 冻结面 **10/10**、
+status-lint **0 违例**、宿主契约 **12 PASS／0 FAIL／0 SKIP**（P-CONFIG-IDS
+新断言经真实宿主实调 PASS）；`node --check` 通过。测试与探针经隔离子进程
+执行。
+
+下一步：从本提交干净导出、增量备份部署（沿原五项运行授权；执行时核对
+`/proc/<bot pid>/environ` 含 `DSH_TOOLS_MODE=ptc`）、恢复 `TK-20260929`
+继续同一闭环 smoke。不更换模型、不重复立项，简报、判据与必审点未改。

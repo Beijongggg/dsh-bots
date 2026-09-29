@@ -334,6 +334,11 @@ export function loadOverlayPatches(bin, file) {
 /** 官方组合 patch fixture 按探针关键 id 清单生成（下方独立字面断言看守该清单的漂移）。 */
 const criticalIdsYaml = () => CONFIG_IDS_CRITICAL.map((id) => `- id: ${id}\n`).join("");
 
+/** 官方 web-app patch fixture：tools 行携带 DSH_TOOLS_MODE 环境缝（探针断言的真实形状）。 */
+const webAppPatchYaml = ({ withToolsSeam = true } = {}) => withToolsSeam
+  ? "- id: tools\n  config:\n    mode: !!js process.env.DSH_TOOLS_MODE\n- id: session\n"
+  : "- id: tools\n- id: session\n";
+
 const CONFIGURABLE_PI_AI = `
 export const name = "llm-pi-ai";
 export function Config(raw) { return { providers: { get: () => raw.providers ?? {} } }; }
@@ -360,7 +365,7 @@ test("P-CONFIG-IDS：web-app tools 行 DSH_TOOLS_MODE 环境缝缺失时 FAIL（
     writeFileSync(join(root, "dsh-base", "cordis.patch.yml"), criticalIdsYaml());
     mkdirSync(join(root, "dsh-web-app"), { recursive: true });
     // tools 行在但 env 缝被移除（mode 改为字面 native 或整段消失）
-    writeFileSync(join(root, "dsh-web-app", "cordis.patch.yml"), "- id: tools\n- id: session\n");
+    writeFileSync(join(root, "dsh-web-app", "cordis.patch.yml"), webAppPatchYaml({ withToolsSeam: false }));
     writeHostIndexFixture(root, "dsh-agent-default-model", `export const AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE = "agent-default-model";\n`);
     writeHostIndexFixture(root, "dsh-llm-pi-ai", `export const name = "llm-pi-ai";\n`);
     const noSeam = await probeConfigIdsStage([root]);
@@ -378,8 +383,7 @@ test("P-CONFIG-IDS：patch 往返、官方 id、配置模型读回与旧命名�
     mkdirSync(join(root, "dsh-base"), { recursive: true });
     writeFileSync(join(root, "dsh-base", "cordis.patch.yml"), criticalIdsYaml());
     mkdirSync(join(root, "dsh-web-app"), { recursive: true });
-    writeFileSync(join(root, "dsh-web-app", "cordis.patch.yml"),
-      "- id: tools\n  config:\n    mode: !!js process.env.DSH_TOOLS_MODE\n- id: session\n");
+    writeFileSync(join(root, "dsh-web-app", "cordis.patch.yml"), webAppPatchYaml());
     writeHostIndexFixture(root, "dsh-agent-default-model", `
 export class AgentDefaultModelConfig {
   constructor(ctx, config) { this.config = config; ctx.reflect.provide("agentDefaultModel", this); }
@@ -407,8 +411,7 @@ export class AgentDefaultModelConfig {
       mkdirSync(join(root3, "dsh-base"), { recursive: true });
       writeFileSync(join(root3, "dsh-base", "cordis.patch.yml"), criticalIdsYaml());
       mkdirSync(join(root3, "dsh-web-app"), { recursive: true });
-      writeFileSync(join(root3, "dsh-web-app", "cordis.patch.yml"),
-        "- id: tools\n  config:\n    mode: !!js process.env.DSH_TOOLS_MODE\n");
+      writeFileSync(join(root3, "dsh-web-app", "cordis.patch.yml"), webAppPatchYaml());
       writeHostIndexFixture(root3, "dsh-agent-default-model", `export const AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE = "renamed-model";\n`);
       writeHostIndexFixture(root3, "dsh-llm-pi-ai", `export const name = "llm-pi-ai";\n`);
       const nsDrift = await probeConfigIdsStage([root3]);
@@ -424,8 +427,7 @@ export class AgentDefaultModelConfig {
       mkdirSync(join(root4, "dsh-base"), { recursive: true });
       writeFileSync(join(root4, "dsh-base", "cordis.patch.yml"), criticalIdsYaml());
       mkdirSync(join(root4, "dsh-web-app"), { recursive: true });
-      writeFileSync(join(root4, "dsh-web-app", "cordis.patch.yml"),
-        "- id: tools\n  config:\n    mode: !!js process.env.DSH_TOOLS_MODE\n");
+      writeFileSync(join(root4, "dsh-web-app", "cordis.patch.yml"), webAppPatchYaml());
       writeHostIndexFixture(root4, "dsh-agent-default-model", `
 export class AgentDefaultModelConfig {
   constructor(ctx) { ctx.reflect.provide("agentDefaultModel", this); }
@@ -451,8 +453,7 @@ test("P-CONFIG-IDS：路由名仍在但宿主不提供配置中的模型时失�
     mkdirSync(join(root, "dsh-base"), { recursive: true });
     writeFileSync(join(root, "dsh-base", "cordis.patch.yml"), criticalIdsYaml());
     mkdirSync(join(root, "dsh-web-app"), { recursive: true });
-    writeFileSync(join(root, "dsh-web-app", "cordis.patch.yml"),
-      "- id: tools\n  config:\n    mode: !!js process.env.DSH_TOOLS_MODE\n");
+    writeFileSync(join(root, "dsh-web-app", "cordis.patch.yml"), webAppPatchYaml());
     writeHostIndexFixture(root, "dsh-agent-default-model", `
 export class AgentDefaultModelConfig {
   constructor(ctx, config) { this.config = config; ctx.reflect.provide("agentDefaultModel", this); }

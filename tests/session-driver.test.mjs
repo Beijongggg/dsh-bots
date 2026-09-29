@@ -155,6 +155,36 @@ test("错误终止不吞既有形态：reason 缺 error 对象时仍抛出可定
   );
 });
 
+test("错误终止先让位 assistant：病态「有文本又 error 收尾」的回合返回模型真实产出", async () => {
+  const h = makeHarness();
+  h.feedHistory(
+    { events: [] },
+    { events: [
+      assistant(1, ["部分产出"]),
+      { type: "turn/end", data: { turn: 1, reason: { kind: "error", error: { message: "late failure", code: "UNKNOWN" } } } }
+    ] }
+  );
+  const driver = createSessionDriver({ rpc: h.rpc, sleep: h.sleep, now: h.now });
+  const out = await driver.runPrompt({ cwd: "/w", text: "t", timeoutMs: 10_000, pollMs: 1_000 });
+  assert.equal(out.text, "部分产出", "assistant 文本优先于错误终止");
+});
+
+test("非 error 终止不误伤：blocked 无 assistant 时保持旧语义（轮询至超时，不抛终止错误）", async () => {
+  for (const kind of ["blocked", "aborted", "max-tokens"]) {
+    const h = makeHarness();
+    h.feedHistory(
+      { events: [] },
+      { events: [{ type: "turn/end", data: { turn: 1, reason: { kind } } }] }
+    );
+    const driver = createSessionDriver({ rpc: h.rpc, sleep: h.sleep, now: h.now });
+    await assert.rejects(
+      () => driver.runPrompt({ cwd: "/w", text: "t", timeoutMs: 3_000, pollMs: 1_000, errorLabel: "bot agent turn" }),
+      /bot agent turn timed out after 3000ms/,
+      `${kind} 终止不得被 error 分支误伤`
+    );
+  }
+});
+
 test("超时：errorLabel 文案；轮询消耗虚拟时间不真等", async () => {
   const h = makeHarness();
   h.feedHistory({ events: [] });
