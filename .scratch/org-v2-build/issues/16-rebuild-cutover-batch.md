@@ -621,3 +621,36 @@ Standards 落档缺失与测试死分支已返修（本节＋CHANGELOG 事件随
 
 下一步：rv1 增量部署（单文件变更）后重发 review.request 验证真实复核腿，
 通过则继续 settle/close 收口 smoke。
+
+### 2026-09-29 rv1 已部署：复核会话真实运行并入账报告，闭环移交链缺口成新发现
+
+计划 r8（`ee8655a3`）绑定源码 `0820bde`（两件变更：review-session 与其测试），
+沿原五项运行授权执行增量部署（首次停链因 host 优雅退出超 45 秒 deadline 再
+度分段，续行脚本如实分层记录）。就绪 PASS，双席 botEnv 仍为 ptc。
+
+**复核腿验证（TK-20260929 seq 33-38）**：review.request 后 fresh 复核会话
+**真实运行**——复核者三次 review.report 形状被台账校验拒绝后自行修正
+（invalid-review-report 的真实模型迭代），随后两次成功入账：seq 36
+verdict=closed、seq 38 verdict=**gaps-open（blocker）**。**producer-owned
+source 修复在真实面实证**：v4 宿主上首次有复核会话产出真实报告。
+
+**新发现（复核 blocker，非缺陷）**：blocker 内容＝「移交件未登记，
+artifact.read 返回空——预登记探针只证明目标路径含批次标记」。实施腿产出经
+knowledge.register 进知识面（R-2026-010，判据命中），而复核移交件面无人写
+——对应 **14 号票保留项 artifact.submit（跨实例工件提交链）未升表接线**。
+gaps-open 正确阻止交付（fail closed 设计在真实闭环中验证）。
+
+**本确认轮目标达成**：复核空转修复（v4 source 形）部署并实证。闭环的
+settle/close 被 blocker 挡住＝机制正确工作；解锁需要移交件登记接线（新
+接缝，属 14 号票保留面），待用户裁定后处理。任务 waiting-user、seq 38，
+全部等待与复核历史保留；简报、判据与必审点未改。
+
+| 凭据 | 字节数 | SHA-256 |
+|---|---:|---|
+| [计划 r8](../../../artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r8-ee8655a3.json) | 116,688 | `ee8655a3903b601acd31bec8f01b2d5eed964b288c8aa149b11d72d923096940` |
+| [增量备份](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv1-backup-verified-4272b9ac.json) | 8,327 | `4272b9acfcd5a7edea00e6fea09af4ba93b66196a55266d3fc91e137b58d3393` |
+| [停止记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv1-quiesced-94a4d0f3.json) | 1,004 | `94a4d0f379749a4e06ef593f9de0645f70b240e213aba193483e93577d2c6c0c` |
+| [部署记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv1-deployed-4502e7fd.json) | 595 | `4502e7fdc4764ba384ad4e72b2eb29f549d8ac8081dd2352da261b9636f37497` |
+| [启动记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv1-started-b5ae6bcb.json) | 643 | `b5ae6bcb4fd419fe32e27cfedc8e36ea74100319210a51bea0cec231998f31e5` |
+| [就绪记录](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-rv1-readiness-5f1ba736.json) | 91,534 | `5f1ba73683852d3c617f65b7f72599e3681d6ace058a27d3b2fc6db32805d40f` |
+| [复核请求](../../../artifacts/cutover-execution/org-v2-cutover-20260929T040232Z-smoke-review-request-rv1-2f61925d.json) | 488 | `2f61925dcf59cb6501a87845aaecb469042a17587176435d6ef3bd3cdf8b502b` |

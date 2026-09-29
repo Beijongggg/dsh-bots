@@ -1,0 +1,19 @@
+{
+  "schema": "org-v2/cutover-smoke-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "capturedAt": "2026-09-29T13:32:12.500Z",
+  "stage": "review-request-rv1",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r8-ee8655a3.json"
+  },
+  "taskId": "TK-20260929",
+  "input": {
+    "op": "review.request",
+    "point": "before-external-visibility",
+    "reviewer": "duty-coordinator"
+  },
+  "response": {
+    "ok": true,
+    "seq": 33
+  }
+}

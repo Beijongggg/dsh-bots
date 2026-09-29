@@ -1,0 +1,35 @@
+{
+  "schema": "org-v2/cutover-increment-record@1",
+  "runId": "org-v2-cutover-20260929T040232Z",
+  "batch": "rv1",
+  "capturedAt": "2026-09-29T13:31:21.935Z",
+  "stage": "quiesced",
+  "plan": {
+    "path": "artifacts/cutover-preparation/org-v2-cutover-20260929T040232Z-plan-r8-ee8655a3.json"
+  },
+  "stopped": [
+    {
+      "pid": 146847,
+      "pidStartTicks": "2982470",
+      "profile": "web",
+      "port": 3100,
+      "signal": "SIGTERM",
+      "note": "stopped in the first execute attempt (graceful shutdown exceeded the raised 45s deadline); confirmed gone here"
+    },
+    {
+      "pid": 146880,
+      "pidStartTicks": "2982872",
+      "profile": "duty-coordinator",
+      "port": 3101,
+      "signal": "SIGTERM"
+    },
+    {
+      "pid": 146903,
+      "pidStartTicks": "2983029",
+      "profile": "implementer",
+      "port": 3102,
+      "signal": "SIGTERM"
+    }
+  ],
+  "continuation": "first execute attempt stopped the host and froze backup-verified; this record completes the stop chain"
+}
