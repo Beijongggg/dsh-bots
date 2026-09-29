@@ -626,6 +626,91 @@ test("复核面 HTTP：移交件读与报告提交经帽信封门；未携帽 40
   }
 });
 
+test("复核移交件读（16 号票 rv1 blocker）：归属让渡（owner=null）后产出方登记的工件仍可读，他人登记不出现", async () => {
+  const home = mkHome();
+  try {
+    const row = {
+      botId: "bot-reviewer", pid: process.pid, startedAt: `proc:${process.pid}`,
+      hostInstanceId: "gen-reviewer", at: Date.now()
+    };
+    mkdirSync(join(home, "bots", "started"), { recursive: true });
+    writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
+    const { issuer, ledger } = wireReviewHat({
+      home, now: () => NOW, ledgerOptions: { ...CRITERION_INJECTION }
+    });
+    const reviewGate = createReviewFaceGate({ issuer, ledger });
+    const host = createLedgerHost({
+      ledger, now: () => NOW, readBotIds: () => [], isAlive: () => true, broadcast: () => {},
+      logger: { warn() {}, info() {} }, reviewGate, issuer
+    });
+    const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
+
+    // 真实链到 produced，随后实例死亡 → sweep 回收：归属清空、任务回 planned
+    // （真实面 TK-20260929 seq 22→31 场景：产出已登记，复核发生在 owner=null 窗口）
+    const USER = { kind: "user", id: "user" };
+    const PRODUCER = { kind: "post", id: "bot-producer" };
+    await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "task.intake", taskId: "TK-00000071", actor: USER, idempotencyKey: "hnd-intake",
+      payload: { class: "project", brief: { ...VALID_BRIEF, reviewPoints: ["before-external-visibility"] } }
+    });
+    for (const [op, actor, payload, key] of [
+      ["task.triage", USER, { decision: "立项" }, "hnd-triage"],
+      ["task.plan", USER, {}, "hnd-plan"],
+      ["task.assign", USER, { assignee: "bot-producer" }, "hnd-assign"],
+      ["task.accept", PRODUCER, {}, "hnd-accept"],
+      ["task.start", PRODUCER, {}, "hnd-start"],
+      ["task.report", PRODUCER, {}, "hnd-report"]
+    ]) {
+      const task = ledger.task("TK-00000071");
+      const step = await call(api, "POST", "/api/bots/_ledger/commands", {
+        op, taskId: "TK-00000071", actor, expectedStatus: task.status, expectedSeq: task.lastSeq,
+        idempotencyKey: key, payload
+      });
+      assert.equal(step.body.ok, true, `${op}: ${step.body.reason}`);
+    }
+    await ledger.sweep({ isInstanceAlive: () => false });
+    const reclaimed = ledger.task("TK-00000071");
+    assert.equal(reclaimed.owner, null, "租约回收清当前归属");
+    assert.equal(reclaimed.producer, "bot-producer", "产出方保留为历史事实");
+
+    // 产出方登记（锚本任务）＋他人登记（同锚）：只有产出方条目进移交件面
+    const mine = registerReport({
+      dshHome: home, botId: "bot-producer",
+      input: { title: "本任务产出", summary: "s", body: "b", task: "TK-00000071" }
+    });
+    const theirs = registerReport({
+      dshHome: home, botId: "someone-else",
+      input: { title: "他人产出", summary: "s", body: "b", task: "TK-00000071" }
+    });
+    assert.equal((await call(api, "POST", "/api/bots/_ledger/commands", {
+      op: "review.request", taskId: "TK-00000071", actor: USER, idempotencyKey: "hnd-request",
+      payload: { point: "before-external-visibility", reviewer: "bot-reviewer" }
+    })).body.ok, true);
+
+    const hat = issuer.issueRoleCapability({ botId: "bot-reviewer", post: "verifier" });
+    assert.equal(hat.ok, true, hat.reason);
+    const hatHeaders = { "x-dsh-bots-bot-id": "bot-reviewer", "x-dsh-bots-capability": JSON.stringify(hat.envelope) };
+
+    const handoff = await call(api, "GET", "/api/bots/_ledger/review-handoff?taskId=TK-00000071", null, hatHeaders);
+    assert.equal(handoff.status, 200);
+    assert.ok(handoff.body.artifacts.some((entry) => entry.id === mine.id),
+      "归属让渡后产出方登记的工件仍出现在移交件列表（rv1 blocker 修复）");
+    assert.equal(handoff.body.artifacts.some((entry) => entry.id === theirs.id), false, "他人登记不出现");
+
+    const body = await call(api, "GET",
+      `/api/bots/_ledger/review-handoff?taskId=TK-00000071&artifactId=${encodeURIComponent(mine.id)}`, null, hatHeaders);
+    assert.equal(body.status, 200, "产出方工件正文可读");
+    assert.equal(body.body.artifact.id, mine.id);
+    assert.equal(typeof body.body.artifact.sha256, "string");
+    const theirsBody = await call(api, "GET",
+      `/api/bots/_ledger/review-handoff?taskId=TK-00000071&artifactId=${encodeURIComponent(theirs.id)}`, null, hatHeaders);
+    assert.equal(theirsBody.status, 403, "他人工件仍拒（review-artifact-forbidden）");
+    assert.equal(theirsBody.body.code, "review-artifact-forbidden");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
 test("复核面续签（21 号票 ①）：报告被台账拒绝（review-not-requested）也续签帽——连报不断链", async () => {
   const home = mkHome();
   try {

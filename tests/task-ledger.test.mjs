@@ -2198,3 +2198,60 @@ test("关闭前置（§B；V-A2.7，14 号票）：产出登记面不可读＝fa
     rmSync(home, { recursive: true, force: true });
   }
 });
+
+test("产出方事实（16 号票 rv1 blocker）：租约回收清归属不清产出方——登记门按产出方历史判定，不因 owner=null 误拒", async () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    await toRunning(ledger, "TK-00000101");
+    assert.equal((await ledger.command({
+      op: "task.report", taskId: "TK-00000101", actor: POST("implementer"), ...cas(ledger, "TK-00000101"),
+      idempotencyKey: "TK-00000101-report", payload: {}
+    })).ok, true);
+    // 实例死亡 → sweep 回收：归属清空、任务回 planned（真实面 TK-20260929 seq 31 场景）
+    await ledger.sweep({ isInstanceAlive: () => false });
+    const reclaimed = ledger.task("TK-00000101");
+    assert.equal(reclaimed.owner, null, "租约回收清当前归属");
+    assert.equal(reclaimed.status, "planned");
+    assert.equal(reclaimed.producer, "implementer", "产出方是 report 的历史事实，不随归属让渡消失");
+
+    // 产出方已按「谁产出谁登记」锚定本任务 → 登记门放行（复核与关闭同口径）
+    registerReport({
+      dshHome: home, botId: "implementer",
+      input: { title: "本任务产出", summary: "s", body: "b", task: "TK-00000101" }
+    });
+    assert.equal(
+      (await closePrecondition({
+        task: reclaimed, events: ledger.events({ taskId: "TK-00000101" }),
+        artifacts: ledger.artifactsFor("TK-00000101"), criterionRunner: ACCEPTANCE_RUNNER
+      })).ok, true, "归属让渡后按产出方判定，不得误拒 artifact-not-registered"
+    );
+
+    // 两件判定保持：他人登记（即便归属已空）不算「谁产出谁登记」
+    assert.equal(
+      (await closePrecondition({
+        task: reclaimed, events: ledger.events({ taskId: "TK-00000101" }),
+        artifacts: [{ task: "TK-00000101", botId: "someone-else" }], criterionRunner: ACCEPTANCE_RUNNER
+      })).code, "artifact-not-registered", "登记方≠产出方即拒"
+    );
+
+    // 重派他人重跑后产出方跟随新 report（report 可多次发生，后报者覆盖）
+    assert.equal((await ledger.command({
+      op: "task.assign", taskId: "TK-00000101", actor: HOST, ...cas(ledger, "TK-00000101"),
+      idempotencyKey: "TK-00000101-reassign", payload: { assignee: "implementer-b" }
+    })).ok, true);
+    for (const [op, actor, key] of [
+      ["task.accept", POST("implementer-b"), "TK-00000101-accept-b"],
+      ["task.start", POST("implementer-b"), "TK-00000101-start-b"],
+      ["task.report", POST("implementer-b"), "TK-00000101-report-b"]
+    ]) {
+      assert.equal((await ledger.command({
+        op, taskId: "TK-00000101", actor, ...cas(ledger, "TK-00000101"), idempotencyKey: key, payload: {}
+      })).ok, true, op);
+    }
+    assert.equal(ledger.task("TK-00000101").producer, "implementer-b", "产出方跟随最新 report");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
