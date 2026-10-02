@@ -72,6 +72,22 @@ test("近期查询同时识别带事件编号的标题和旧列表条目，保�
   assert.match(output, /来源：CHANGELOG.md:8/);
 });
 
+test("--spec-index 输出规格标题与判据 ID 的行号索引；重复记号只记首次；缺规格明确失败", (t) => {
+  const root = fixture(t, {
+    ".scratch/design/spec.md": "# 规格\n\n## E. 命令面\n\n判据 V-A4.4 在此。\n\n### 附录 A：验收判据\n\n| V-A7.5 | 记忆三层 |\n\n后文重复提及 V-A4.4 不再计入。\n",
+    ".scratch/design/issues/01-x.md": "# x\nStatus: resolved\n",
+    ".scratch/empty/issues/01-y.md": "# y\nStatus: resolved\n",
+  });
+  const output = projectContext(root, ["--spec-index", "design"]);
+  assert.match(output, /来源：\.scratch\/design\/spec\.md:1/);
+  assert.match(output, /\| ## E\. 命令面\s*\| 3 \|/);
+  assert.match(output, /\| V-A4\.4\s*\| E\. 命令面\s*\| 5 \|/);
+  assert.match(output, /\| V-A7\.5\s*\| 附录 A：验收判据\s*\| 9 \|/);
+  assert.equal(output.match(/V-A4\.4 \|/g)?.length, 1);
+  assert.throws(() => projectContext(root, ["--spec-index", "empty"]), /spec\.md 不存在/);
+  assert.throws(() => projectContext(root, ["--spec-index"]), /feature/);
+});
+
 test("即时反映未提交状态和新包，来源摘要变化；查询不改写输入或生成缓存", (t) => {
   const path = ".scratch/a/issues/01-task.md";
   const root = fixture(t, {

@@ -13,7 +13,7 @@
 | 某阶段是否验收、部署或放行 | 该阶段的验收／切换票及其证据；旧 v3 批次见 [PLAN 阅读入口](PLAN-expanded-engineering.md#阅读入口) | 结论绑定对象、版本、环境和时点 |
 | 产品方向、领域总览、跨轮方法论 | [PROJECT_UNDERSTANDING.md](docs/PROJECT_UNDERSTANDING.md)；领域词见 [CONTEXT.md](CONTEXT.md) | 初次了解项目读总览；执行任务时按主题读相关段落 |
 | 证据链与当前包 | `artifacts/packages/` 中最新序号包、`artifacts/run-registry/` 与包内绑定的附件 | 包序号用于定位；有效性与适用范围回读包和核验结果 |
-| 历史部署同步依据 | `artifacts/c2-sync-preparation.json`、对应 CHANGELOG 事件及部署报告 | 旧报告证明其采集时点；当前运行状态须重新核实 |
+| 历史部署同步依据 | `artifacts/c2-sync-preparation.json`、对应 CHANGELOG 事件及部署报告 | 旧报告证明其采集时点；当前运行状态须重新核实。现役一致性检查：`node scripts/org-cutover-check.mjs --dsh-home <目录>`（只读核验部署、编制与宿主实况；package.json 版本号不随部署走，不能当新鲜度依据） |
 | 冻结合同与限定关闭范围 | `docs/TEMP-guidance-*`、`docs/CLOSURE-*` | 按适用批次读取，原件只读 |
 
 每类事实只在上述归属处维护。CHANGELOG 记事件摘要和来源；导航与查询视图
@@ -55,10 +55,16 @@
 | [issue-tracker.md](docs/agents/issue-tracker.md) | 创建／读取工单、规格、路标或更新任务状态 |
 | [triage-labels.md](docs/agents/triage-labels.md) | 解释或修改 `Status` |
 | [domain.md](docs/agents/domain.md) | 探索领域、维护词汇或 ADR |
+| [codebase-map.md](docs/agents/codebase-map.md) | 改 `lib/`、找函数或导出的位置、查跨文件不变量 |
+| [host-runtime-map.md](docs/agents/host-runtime-map.md) | 探已安装宿主（@deepseek-ai/dsh）的行为与坐标 |
+
+`tests/` 的入口、跑法与书写惯例见 [tests/README.md](tests/README.md)。
 
 `.scratch/` 是工单工作区，文件遵循 [issue-tracker.md](docs/agents/issue-tracker.md)。
 各票与规格由查询命令即时列出，不在本地图逐份登记。长期观察项仍在领域总览
-的「仍可选题」登记，并在 CHANGELOG 留界。
+的「仍可选题」登记，并在 CHANGELOG 留界。并行在办登记在
+[`.scratch/IN-FLIGHT.md`](.scratch/IN-FLIGHT.md)。当前活跃实现工单在
+`.scratch/org-v2-build/issues/`；`.scratch/org-v2/issues/` 是前置研究与决议票，只读。
 
 ### docs/history/
 

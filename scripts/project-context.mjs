@@ -9,6 +9,7 @@ import { recentChangelog, changelogCatalogue, checkChangelog } from "./changelog
 const HELP = `Usage: node scripts/project-context.mjs [feature [NN]] [--all]
        node scripts/project-context.mjs --recent [1..10]
        node scripts/project-context.mjs --logs | --check-log
+       node scripts/project-context.mjs --spec-index <feature>
 
 无参数：按 feature 列出票面状态分布与规格指针。
 feature：列出未关闭票；--all 包含 resolved、wontfix。
@@ -16,6 +17,8 @@ feature NN：读取单票的状态、依赖、规格出处与原文坐标。
 --recent：跨月卷读取最近变更，默认 3 条；不足时回读已校验的历史原文。
 --logs：列出日志分卷与历史归档位置。
 --check-log：检查入口／分卷体积、事件编号及历史归档完整性。
+--spec-index：输出该 feature spec.md 的小节与 V-* 判据记号行号索引。
+  规格是哈希冻结件，不改原文；索引即时生成避免全文重读与行号漂移。
 
 只读工作树，输出到 stdout；来源内容摘要用于识别读取版本。
 仅展示票面声明，不计算开工许可、部署状态或验收结论。
@@ -25,6 +28,12 @@ function options(args) {
   if (args.length === 1 && args[0] === "--help") return { help: true };
   if (args.length === 1 && args[0] === "--logs") return { logs: true };
   if (args.length === 1 && args[0] === "--check-log") return { checkLog: true };
+  if (args[0] === "--spec-index") {
+    if (args.length !== 2 || !/^[a-z0-9][a-z0-9_-]*$/.test(args[1])) {
+      throw new Error("--spec-index 需要恰好一个 feature 参数");
+    }
+    return { specIndex: args[1] };
+  }
   if (args[0] === "--recent") {
     if (args.length > 2 || (args[1] !== undefined && !/^(?:[1-9]|10)$/.test(args[1]))) {
       throw new Error("--recent 接受 1～10 条，且不能与其它参数组合");
@@ -105,6 +114,34 @@ export function projectContext(repoRoot, args = []) {
   };
 
   if (opts.logs) return finish(changelogCatalogue(repoRoot, read));
+  if (opts.specIndex) {
+    const path = `.scratch/${opts.specIndex}/spec.md`;
+    if (!existsSync(join(repoRoot, path))) throw new Error(`spec.md 不存在：${path}`);
+    const lines = read(path).split(/\r?\n/);
+    const headings = [];
+    const marks = [];
+    const seen = new Set();
+    let heading = "";
+    lines.forEach((line, i) => {
+      const matched = /^(#{1,4}) (.+)$/.exec(line);
+      if (matched) {
+        headings.push({ label: `${matched[1]} ${matched[2]}`, line: i + 1 });
+        heading = matched[2];
+        return;
+      }
+      for (const token of line.matchAll(/\bV-[A-Z]\d{1,2}(?:\.\d{1,2})?\b/g)) {
+        if (seen.has(token[0])) continue;
+        seen.add(token[0]);
+        marks.push({ id: token[0], heading: heading || "（导语）", line: i + 1 });
+      }
+    });
+    return finish([`来源：${path}:1`, `共 ${lines.length} 行；判据记号取首次出现位置`, "",
+      "## 小节", "", "| 标题 | 行 |", "|---|---|",
+      ...headings.map((value) => `| ${cell(value.label)} | ${value.line} |`), "",
+      "## 判据记号", "", "| 记号 | 所在小节 | 行 |", "|---|---|---|",
+      ...marks.map((value) => `| ${value.id} | ${cell(value.heading)} | ${value.line} |`), "",
+      "行号对应读取时点的工作树版本；规格本体以冻结哈希为准。"]);
+  }
   if (opts.recent) {
     const body = recentChangelog(repoRoot, opts.recent, read)
       .flatMap((event) => [`来源：${event.path}:${event.line}`, "", event.text, ""]);

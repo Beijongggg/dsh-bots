@@ -11,6 +11,29 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 - Completed work flips `Status:` to `resolved`（终态-成功；凭据义务与 wayfinder 专属的 `claimed` 见 `triage-labels.md`「Terminal states」——本仓库对上游五词表的本地扩展）. spec.md `Status:` shares the same vocabulary
 - Comments and conversation history append to the bottom of the file under a `## Comments` heading
 
+## Parallel sessions（并行会话协调）
+
+- 领票或占用工作面前，先在 `.scratch/IN-FLIGHT.md` 登记一行；提交或放弃后
+  删除。预置 worktree＝已领座位，干净不代表无主——动手前先读该表，再看
+  `git worktree list` 与 `git status`。
+- 做隔离快照或补丁基线时，一律 `git archive <显式 commit>`，不用裸 `HEAD`
+  ——并行会话会推进 HEAD，裸指针在长会话里失效（补丁夹带反向噪声的先例）。
+- 提交只 `git add` 本批明确路径；CHANGELOG／票面在读写间隙可能被并行会话
+  改动，Edit 失配时重读再改，不覆盖他人条目。
+
+## 独立／附件版交付（横向对比约定）
+
+用户要求「本票独立完成一版、放附件不并入正式文件」时：
+
+- 落点：`.scratch/<feature-slug>/attachments/<票号>-independent/`，需要区分
+  模型时可加后缀（先例：`11-independent-dsh-v41-flash`）。不要另起目录名。
+- 必含 `README.md`：授权依据（用户指令原文摘录）、基线（显式 commit）、
+  判据出处、验证声明。镜像放 `files/`（按仓库路径镜像），统一差异放
+  `patches/<slug>.patch`。
+- 在隔离快照（`git archive <显式 commit>` 解到 /dev/shm 或 /tmp）里实施，
+  工作树零写入；附件是否落 CHANGELOG 由用户当次指令定，豁免依据写进附件
+  README 自证。
+
 ## Reading a task
 
 Identify a ticket by feature and number, for example `org-v2-build/34`. Read its
@@ -20,6 +43,8 @@ not contain its own spec. Read dependency tickets when their contracts affect th
 
 Use `node scripts/project-context.mjs <feature> [NN]` to locate current fields and
 sources. The view reads files on demand; `Status` remains authoritative on the ticket.
+判据 ID／规格小节的行号用 `node scripts/project-context.mjs --spec-index <feature>`
+一次查得，不必全文重读规格。
 Check scheduling and authorization in the source before starting. Project-wide
 reading and history lookup follow [README §4](../../README.md#4-任务阅读路径).
 
