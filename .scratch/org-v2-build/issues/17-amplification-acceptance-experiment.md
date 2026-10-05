@@ -94,3 +94,35 @@
 10/10 ③0 违例 ④宿主契约 12 PASS／0 FAIL／0 SKIP）。本轮只改仓库工作树，
 真实运行面零写入；实验实跑、数值门槛填写与编制扩编仍待用户点名，票面验收框
 不勾选。
+
+### 2026-10-05 并入集成分支：用户裁决取 A 方案；测试夹具日期炸弹修复；本票维持 ready-for-human
+
+① **用户裁决**：2026-10-05 用户裁定取 A 方案（分支 `ticket-17-amplification`，
+仓库侧实现）并入集成分支 `integration/ticket-17-amplification`；B 方案实现留存于
+分支 `ticket-17-amplification-b`（tip `d923acf`）本轮**不并入**，该分支与工作树
+原样保留、未动。
+
+② **合并范围与基线**：集成分支基线 `b68fb6d`（main 当前提交），`git merge --no-ff`
+并入 A 分支 tip `8f4cc6d`（3 提交：实现 `58be690`、返修 `fcd8cc2`、落档 `8f4cc6d`），
+A 的提交历史保留。唯一冲突面 `docs/changelog/2026-09-01.md`（9 月卷已结束＝只读）：
+冲突取 main 侧，该文件在本轮结果中相对 main **零差异**；原分支追加的 9 月事件改由
+[docs/changelog/2026-10-01.md](../../../docs/changelog/2026-10-01.md) 顶部新事件
+`EV-20261005-ticket17-amplification-landed`（日期取落档日期 2026-10-05）承接。
+
+③ **验证**（集成 worktree 实测）：`node --check` 覆盖全部改动／新增 `.js` 通过；
+`TMPDIR=/dev/shm node tests/run.mjs` **79/79** 个测试文件通过（退出码 0）；
+`TMPDIR=/dev/shm npm run preflight` 四门 PASS（①79/79 ②冻结面 0010 包 10/10
+③status-lint 0 违例 ④宿主契约 12 PASS／0 FAIL／0 SKIP），退出码 0。集成风险点核验：
+新增模块引用的 `ledger-events.EVENT_TYPES`、`op-set.LEDGER_COMMAND_OPS`、
+`stats.deriveStats`、`store-base.canonicalJson` 在新基线均解析通过、加载期校验通过
+（main 期间 `op-set.js` 仅改 `ledger.read` 描述，命令 op 词表未变）；实现语义零改动。
+**测试面修补 1 项**：跑分夹具与两处「冻结晚于跑分」负例原用固定日历日期（跑分
+2026-09-30、晚冻 2026-10-31），2026-09-30 之后用例集体转红——在本合并之前、
+从分支快照 `8f4cc6d` 隔离重跑 `tests/org-experiment-verdict.test.mjs` 实测 6／13 通过，
+证明日期炸弹与本次合并无关。最小修补＝`tests/helpers/prereg-fixture.mjs` 新增
+`runAt()` 相对时点并在三处替换日历日期，使「冻结先于跑分」的口径与真实时钟解耦，
+用例意图、断言与实现均不变。
+
+④ **票面维持**：本票维持 `Status: ready-for-human`。实验实跑、五项数值门槛
+（预算 B／量级倍数／重派封顶／初审阈值／越权阈值）填写与实验编制扩编仍属用户域，
+验收框一律不勾选，`Status` 行不改。
