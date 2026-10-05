@@ -21,6 +21,16 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 - 提交只 `git add` 本批明确路径；CHANGELOG／票面在读写间隙可能被并行会话
   改动，Edit 失配时重读再改，不覆盖他人条目。
 
+## 移交与 blocker 登记（接手会话的事实义务）
+
+- blocker／移交记录必须带三要素：**失败门名（或观测现象）＋观测值＋证据
+  指针**（事件 seq／commit／日志路径）。未复算的猜测显式标「假设，未证」，
+  不许裸结论落票面——接手会话会把票面结论当基线（16 号票 19 步推翻
+  错误归因、codex 接手沿旧归因空转的先例）。
+- 实施会话中断或收尾时，在票面 Comments 追加一节**「移交备注：当前假设＋
+  下一步＋关键证据指针」**——接手方一次 Read 重建上下文，不必考古会话
+  原文（23MB jsonl 九次解析的先例）。
+
 ## 独立／附件版交付（横向对比约定）
 
 用户要求「本票独立完成一版、放附件不并入正式文件」时：
@@ -33,6 +43,12 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 - 在隔离快照（`git archive <显式 commit>` 解到 /dev/shm 或 /tmp）里实施，
   工作树零写入；附件是否落 CHANGELOG 由用户当次指令定，豁免依据写进附件
   README 自证。
+- 附件 README 首行固定「**产出模型＋基线 commit**」——横向评估靠它对齐
+  对比维度，不留给评估方 grep 猜。
+- `patches/*.patch` 一律 `git diff` 风格（带 `a/`／`b/` 头），保证
+  `git apply --check` 直接可用。
+- 票面 `Status:` 行旁加一行 `Delivery: <commit> / attachments/<目录>`，
+  评估与复核免 `find`＋`git show` 定位。
 
 ## Reading a task
 

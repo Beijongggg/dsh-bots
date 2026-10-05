@@ -43,6 +43,20 @@
   `ctx.get("tools")` 可能取空——bot 面注册必须走 `registerBotFacesOnReady`
   的 `ctx.inject` 等待形态（16 号票 ptc-r2 实证）。
 
+## 插件装载与回合错误（实证于 2026-09-30，16 号票诊断批）
+
+- **插件目录钉在真实 HOME**：宿主读 `~/.dsh/plugins`，`DSH_HOME` 不重定向
+  它——隔离镜像必须同时覆盖 HOME 才会加载镜像插件（镜像打点失效 90+ 步
+  诊断的根因）。
+- **插件解析锚＝profile 的 `node_modules/dsh-bots` 符号链接**（指向真实
+  部署目录）；换打点版要改这条链接，改 `DSH_HOME` 无效。
+- **官方 agent loop 的 `kick()` 静默吞回合错误**：followup 后 `whenIdle`
+  立即 resolve（polls=0）≠ 成功——须监听 `agent/error` 事件才能拿到被吞
+  的错误。
+- **v4 会话格式只收 producer-owned source kind**：手写
+  `source:{kind:"plugin"}` 被拒（报错 `format v4 message requires a
+  producer-owned source kind`），与 PTC 呈现模式无关。
+
 ## 常用实证手法
 
 - 读类型：`rg -n -A25 '<TypeName>' .../dsh-api-session-controller/lib/types/*.d.ts`。

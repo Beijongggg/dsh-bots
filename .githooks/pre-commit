@@ -1,0 +1,4 @@
+#!/bin/sh
+# retro2 批接线：提交时点跑 preflight ③门 lint（毫秒级，只扫 md 与日志结构）。
+# 全量四门仍按技能纪律在批前跑；本钩子只拦「本可机器拦下」的机械违例。
+node scripts/ci-gates.mjs || exit 1
