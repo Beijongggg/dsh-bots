@@ -18,7 +18,7 @@ import assert from "node:assert/strict";
 
 import { freezePreregistration } from "../lib/org/experiment-prereg.js";
 import { experimentRecords, judgeExperiment } from "../lib/org/experiment-verdict.js";
-import { ABLATION_TASKS, greenRuns, preregFixture, runRecord, sessionOf } from "./helpers/prereg-fixture.mjs";
+import { ABLATION_TASKS, greenRuns, preregFixture, runAt, runRecord, sessionOf } from "./helpers/prereg-fixture.mjs";
 
 const names = (lines, needle) => lines.some((line) => line.includes(needle));
 
@@ -79,7 +79,7 @@ test("事后不得新增判据：组织内跑判据须与简报 acceptance 逐�
 test("裸对照先跑：组织内跑早于裸对照跑分即拒（V-B1「先跑」）", () => {
   const { prereg, frozen } = frozenFixture();
   const runs = greenRuns().map((run) => (
-    run.arm === "org" ? { ...run, at: "2026-09-30T02:30:00.000Z" } : run
+    run.arm === "org" ? { ...run, at: runAt(-30) } : run
   ));
   const verdict = judgeExperiment({ prereg, frozen, runs });
   assert.equal(verdict.ok, false);
@@ -106,7 +106,7 @@ test("组织内跑判据未过即判不过：判据不过不得靠归因或说�
   const runs = greenRuns().map((run) => (
     run.taskId === task.taskId && run.arm === "org"
       ? runRecord(task.taskId, "org", {
-        at: "2026-09-30T04:00:00.000Z",
+        at: runAt(60),
         outcome: "failed",
         failureReason: "组织内跑未过判据",
         acceptance: task.brief.acceptance.map((entry) => ({ ...entry, ok: false, reason: "坐标不存在" }))
@@ -123,7 +123,7 @@ test("组织内跑判据未过即判不过：判据不过不得靠归因或说�
 
 test("实验前冻结：冻结晚于跑分、或只给摘要没给冻结时点，一律无结论可出（fail closed）", () => {
   const { prereg, frozen } = frozenFixture();
-  const late = { ...frozen, frozenAt: "2026-10-31T00:00:00.000Z" };
+  const late = { ...frozen, frozenAt: runAt(24 * 60) };
   const after = judgeExperiment({ prereg, frozen: late, runs: greenRuns() });
   assert.equal(after.ok, false);
   assert.equal(after.passed, false);

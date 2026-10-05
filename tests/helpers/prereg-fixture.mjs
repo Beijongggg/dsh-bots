@@ -66,12 +66,24 @@ export function preregFixture(overrides = {}) {
   return { ...base, ...overrides };
 }
 
+/**
+ * 跑分时点基准：冻结用的是**运行时的真实时钟**（`freezePreregistration` 默认
+ * `Date.now()`，CLI `freeze` 同），故夹具跑分时点一律相对「现在」排布，且晚于
+ * 本进程内任何一次冻结。固定日历日期会让「实验前冻结」一类用例在跑分日之后
+ * 集体转红（2026-10-05 集成时实测：该日之后用例全数报 freeze-after-run）。
+ */
+const RUN_BASE_MS = Date.now() + 60 * 60 * 1000;
+/** 相对跑分基准的分钟偏移；负值＝早于基准（基准本身已晚于冻结）。 */
+export function runAt(offsetMinutes = 0) {
+  return new Date(RUN_BASE_MS + offsetMinutes * 60_000).toISOString();
+}
+
 /** 裸对照跑分记录（`V-B1` 入集判定输入；组织内跑的另一条腿在执行面）。 */
 export function bareRun(taskId, outcome = "failed", overrides = {}) {
   return {
     taskId,
     arm: "bare",
-    at: "2026-09-30T02:00:00.000Z",
+    at: runAt(0),
     outcome,
     ...(outcome === "failed" ? { failureReason: "裸实例超预算未产出合格判据" } : {}),
     ...overrides
@@ -105,8 +117,8 @@ export function runRecord(taskId, arm, { at, outcome = "passed", acceptance, tok
     taskId,
     arm,
     at,
-    startedAt: "2026-09-30T02:00:00.000Z",
-    endedAt: "2026-09-30T02:05:00.000Z",
+    startedAt: runAt(-60),
+    endedAt: runAt(-55),
     outcome,
     ...(failureReason === undefined ? {} : { failureReason }),
     acceptance: acceptance ?? task.brief.acceptance.map((entry) => ({ ...entry, ok: outcome === "passed", reason: outcome === "passed" ? null : "未产出合格件" })),
@@ -117,10 +129,10 @@ export function runRecord(taskId, arm, { at, outcome = "passed", acceptance, tok
 /** 三任务两臂的合法跑分：裸对照先跑且失败入集，组织内在预算内通过。 */
 export function greenRuns() {
   const bare = ABLATION_TASKS.map((task) => runRecord(task.taskId, "bare", {
-    at: "2026-09-30T03:00:00.000Z",
+    at: runAt(0),
     outcome: "failed",
     failureReason: "裸实例超预算未产出合格判据"
   }));
-  const org = ABLATION_TASKS.map((task) => runRecord(task.taskId, "org", { at: "2026-09-30T04:00:00.000Z" }));
+  const org = ABLATION_TASKS.map((task) => runRecord(task.taskId, "org", { at: runAt(60) }));
   return [...bare, ...org];
 }

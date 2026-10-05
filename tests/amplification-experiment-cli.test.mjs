@@ -17,7 +17,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { THRESHOLD_KEYS } from "../lib/org/experiment-prereg.js";
-import { greenRuns, preregFixture } from "./helpers/prereg-fixture.mjs";
+import { greenRuns, preregFixture, runAt } from "./helpers/prereg-fixture.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const DRAFT = join(root, ".scratch", "org-v2-build", "experiments", "org-v2-amplification-preregistration-draft.json");
@@ -108,7 +108,7 @@ test("verdict：按门槛出结论与记录封件；冻结晚于跑分即无结�
   assert.deepEqual(Object.keys(report.records.changelog).sort(), ["authorization", "change", "scope", "verification"]);
 
   // 冻结晚于跑分：实验前冻结失守，记录不成立
-  await writeJson(dir, "late.json", { ...JSON.parse(await readFile(join(dir, "freeze.json"), "utf8")), frozenAt: "2026-10-31T00:00:00.000Z" });
+  await writeJson(dir, "late.json", { ...JSON.parse(await readFile(join(dir, "freeze.json"), "utf8")), frozenAt: runAt(24 * 60) });
   const late = await run(["verdict", "--prereg", join(dir, "prereg.json"), "--frozen", join(dir, "late.json"), "--runs", join(dir, "runs.json"), ...LEDGER_ARGS]);
   assert.equal(late.code, 1);
   const lateReport = JSON.parse(late.stdout);
