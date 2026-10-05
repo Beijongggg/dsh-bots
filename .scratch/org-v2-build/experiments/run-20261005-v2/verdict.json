@@ -1,0 +1,151 @@
+{
+  "command": "verdict",
+  "ok": false,
+  "verdict": {
+    "ok": true,
+    "passed": false,
+    "reasons": [],
+    "preregDigest": "cf0607a5cc9d48791d77175afb05a04dd63dff244e3335410f2d3eeca0117c15",
+    "frozenAt": "2026-10-05T15:37:31.358Z",
+    "thresholds": {
+      "budgetB": 3000000,
+      "magnitudeMultiple": 3,
+      "redispatchCap": 3,
+      "reviewRoundsToEscalate": 2,
+      "unauthorizedAttempts": 3
+    },
+    "admission": {
+      "admitted": [
+        "TK-17b00001",
+        "TK-17b00002"
+      ],
+      "excluded": [
+        "TK-17b00003"
+      ],
+      "mechanismsLost": [
+        "long-running-duty"
+      ]
+    },
+    "perTask": [
+      {
+        "taskId": "TK-17b00001",
+        "mechanism": "multi-hop-research",
+        "bareCost": {
+          "uncachedInputTokens": 193297,
+          "outputTokens": 40543,
+          "cacheReadTokens": 3599744,
+          "cacheWriteTokens": 0,
+          "totalTokens": 3833584,
+          "wallClockMs": 387000,
+          "rounds": 1
+        },
+        "orgCost": {
+          "uncachedInputTokens": 521792,
+          "outputTokens": 117271,
+          "cacheReadTokens": 10538368,
+          "cacheWriteTokens": 0,
+          "totalTokens": 11177431,
+          "wallClockMs": 4368000,
+          "rounds": 13
+        },
+        "budgetTokens": 9000000,
+        "conclusion": "fail",
+        "reasons": [
+          "任务 TK-17b00001 组织内跑超预算量级：11177431 token ＞ 预算 B 3000000 × 量级倍数 3＝9000000"
+        ],
+        "reasonCodes": [
+          "budget-exceeded"
+        ]
+      },
+      {
+        "taskId": "TK-17b00002",
+        "mechanism": "cross-file-change",
+        "bareCost": {
+          "uncachedInputTokens": 190597,
+          "outputTokens": 52139,
+          "cacheReadTokens": 2658688,
+          "cacheWriteTokens": 0,
+          "totalTokens": 2901424,
+          "wallClockMs": 600000,
+          "rounds": 1
+        },
+        "orgCost": {
+          "uncachedInputTokens": 281253,
+          "outputTokens": 89666,
+          "cacheReadTokens": 10468096,
+          "cacheWriteTokens": 0,
+          "totalTokens": 10839015,
+          "wallClockMs": 3519000,
+          "rounds": 5
+        },
+        "budgetTokens": 9000000,
+        "conclusion": "fail",
+        "reasons": [
+          "任务 TK-17b00002 的组织内跑判据未通过：全量回归 76/79 未绿（watcher.test.mjs 崩溃；pin 基线 79/79＝重构致损非环境）；lib 迁移 20 文件、safe-io.js 在位、三份冻结回归 24/24 过",
+          "任务 TK-17b00002 组织内跑超预算量级：10839015 token ＞ 预算 B 3000000 × 量级倍数 3＝9000000"
+        ],
+        "reasonCodes": [
+          "acceptance-failed",
+          "budget-exceeded"
+        ]
+      }
+    ]
+  },
+  "records": {
+    "ok": true,
+    "ledger": {
+      "op": "task.judge",
+      "taskId": "TK-17b00001",
+      "actor": {
+        "kind": "host",
+        "id": "web"
+      },
+      "idempotencyKey": "exp17v2-verdict-20261006",
+      "eventType": "judgement",
+      "payload": {
+        "intent": "amplification-experiment-verdict",
+        "input": {
+          "experimentId": "org-v2-amplification-20261005-v2",
+          "preregDigest": "cf0607a5cc9d48791d77175afb05a04dd63dff244e3335410f2d3eeca0117c15",
+          "passed": false,
+          "thresholds": {
+            "budgetB": 3000000,
+            "magnitudeMultiple": 3,
+            "redispatchCap": 3,
+            "reviewRoundsToEscalate": 2,
+            "unauthorizedAttempts": 3
+          },
+          "admitted": [
+            "TK-17b00001",
+            "TK-17b00002"
+          ],
+          "excluded": [
+            "TK-17b00003"
+          ],
+          "tasks": [
+            {
+              "taskId": "TK-17b00001",
+              "mechanism": "multi-hop-research",
+              "conclusion": "fail"
+            },
+            {
+              "taskId": "TK-17b00002",
+              "mechanism": "cross-file-change",
+              "conclusion": "fail"
+            }
+          ]
+        }
+      }
+    },
+    "changelog": {
+      "scope": "org-v2 17 号票能力放大验收实验（B 组 V-B1–V-B6；预登记件 org-v2-amplification-20261005-v2）",
+      "change": "实验不通过：入集 2 件任务中 2 件未过预登记门槛（结论按门槛判，不做事后判据调整）",
+      "verification": "冻结摘要与冻结时点 cf0607a5cc9d…／2026-10-05T15:37:31.358Z；入集任务 2 件（通过 0 件）；出集带走的机制：long-running-duty；机制归因清单只作诊断、不进判定",
+      "authorization": "用户预登记并冻结的任务集／对照口径／数值门槛／成本口径；本记录只落结论事实"
+    },
+    "evidence": {
+      "packageInputs": []
+    },
+    "violations": []
+  }
+}
