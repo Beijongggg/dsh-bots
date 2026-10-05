@@ -17,10 +17,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { freezePreregistration } from "../lib/org/experiment-prereg.js";
-import { experimentRecords, judgeExperiment } from "../lib/org/experiment-verdict.js";
-import { ABLATION_TASKS, greenRuns, preregFixture, runAt, runRecord, sessionOf } from "./helpers/prereg-fixture.mjs";
-
-const names = (lines, needle) => lines.some((line) => line.includes(needle));
+import { VERDICT_REASONS, experimentRecords, judgeExperiment } from "../lib/org/experiment-verdict.js";
+import { ABLATION_TASKS, greenRuns, names, preregFixture, runAt, runRecord, sessionOf } from "./helpers/prereg-fixture.mjs";
 
 function frozenFixture() {
   const prereg = preregFixture();
@@ -59,7 +57,21 @@ test("预登记已改即拒：冻结摘要与盘面不符时无结论可出（�
   const verdict = judgeExperiment({ prereg: mutated, frozen, runs: greenRuns() });
   assert.equal(verdict.ok, false);
   assert.equal(verdict.passed, false);
-  assert.ok(names(verdict.reasons, "prereg-mutated") || names(verdict.reasons, "已改"));
+  // 分类靠封闭码，不靠中文措辞：判定面出结构化 reasonCodes
+  assert.deepEqual(verdict.reasonCodes, ["prereg-mutated"]);
+  assert.ok(verdict.reasons.every((line) => typeof line === "string" && !line.includes("prereg-mutated")),
+    `码不进中文串：${verdict.reasons.join("；")}`);
+});
+
+test("理由码闭合：判定面出的码都登记在 VERDICT_REASONS 封闭表内（结构断裂类）", () => {
+  const { frozen } = frozenFixture();
+  const mutated = preregFixture({
+    thresholds: { budgetB: 800000, magnitudeMultiple: 4, redispatchCap: 3, reviewRoundsToEscalate: 2, unauthorizedAttempts: 3 }
+  });
+  const broken = judgeExperiment({ prereg: mutated, frozen, runs: greenRuns() });
+  const registered = new Set(VERDICT_REASONS.map((entry) => entry.code));
+  for (const code of broken.reasonCodes) assert.ok(registered.has(code), `码 ${code} 须登记进 VERDICT_REASONS`);
+  assert.ok(VERDICT_REASONS.some((entry) => entry.code === "prereg-mutated" && entry.structural), "prereg-mutated 属结构断裂类");
 });
 
 test("事后不得新增判据：组织内跑判据须与简报 acceptance 逐字一致（V-B3）", () => {
@@ -76,14 +88,40 @@ test("事后不得新增判据：组织内跑判据须与简报 acceptance 逐�
   assert.ok(names(verdict.reasons, ABLATION_TASKS[0].taskId));
 });
 
-test("裸对照先跑：组织内跑早于裸对照跑分即拒（V-B1「先跑」）", () => {
+test("裸对照先跑锚开始时刻：组织内跑 startedAt 早于裸对照即拒（V-B1「先跑」）", () => {
   const { prereg, frozen } = frozenFixture();
   const runs = greenRuns().map((run) => (
-    run.arm === "org" ? { ...run, at: runAt(-30) } : run
+    run.arm === "org" ? { ...run, startedAt: runAt(-10) } : run
   ));
   const verdict = judgeExperiment({ prereg, frozen, runs });
   assert.equal(verdict.ok, false);
   assert.ok(names(verdict.reasons, "先跑"));
+});
+
+test("实验前冻结锚开始时刻：startedAt 早于冻结而完成时点晚于冻结照样拒（freeze-after-run）", () => {
+  const { prereg, frozen } = frozenFixture();
+  const runs = greenRuns().map((run) => (run.arm === "bare" && run.taskId === ABLATION_TASKS[0].taskId
+    ? { ...run, startedAt: runAt(-24 * 60) }
+    : run));
+  const verdict = judgeExperiment({ prereg, frozen, runs });
+  assert.equal(verdict.ok, false);
+  assert.equal(verdict.passed, false);
+  assert.ok(names(verdict.reasons, "冻结"));
+  assert.ok(names(verdict.reasons, "开始"), `违例须点名开始时刻：${verdict.reasons.join("；")}`);
+});
+
+test("裸对照先跑锚开始时刻：裸跑 startedAt 晚于组织内跑即拒（run-order）", () => {
+  const { prereg, frozen } = frozenFixture();
+  // 组织内跑**先开始、后完成**：完成时点序正常（旧口径看不出问题），开始时刻序倒挂
+  const runs = greenRuns().map((run) => {
+    if (run.taskId !== ABLATION_TASKS[0].taskId) return run;
+    return run.arm === "bare"
+      ? { ...run, startedAt: runAt(30), endedAt: runAt(35), at: runAt(40) }
+      : { ...run, startedAt: runAt(10) };
+  });
+  const verdict = judgeExperiment({ prereg, frozen, runs });
+  assert.equal(verdict.ok, false);
+  assert.ok(names(verdict.reasons, "先跑"), verdict.reasons.join("；"));
 });
 
 test("门槛判定：组织内跑超预算量级即判不过（按预登记门槛，不按事后口径）", () => {
@@ -106,7 +144,6 @@ test("组织内跑判据未过即判不过：判据不过不得靠归因或说�
   const runs = greenRuns().map((run) => (
     run.taskId === task.taskId && run.arm === "org"
       ? runRecord(task.taskId, "org", {
-        at: runAt(60),
         outcome: "failed",
         failureReason: "组织内跑未过判据",
         acceptance: task.brief.acceptance.map((entry) => ({ ...entry, ok: false, reason: "坐标不存在" }))
@@ -131,6 +168,7 @@ test("实验前冻结：冻结晚于跑分、或只给摘要没给冻结时点�
 
   const digestOnly = judgeExperiment({ prereg, frozen: frozen.digest, runs: greenRuns() });
   assert.equal(digestOnly.ok, false);
+  assert.deepEqual(digestOnly.reasonCodes, ["freeze-record-invalid"]);
   assert.ok(names(digestOnly.reasons, "冻结记录不成立"));
 });
 
@@ -159,6 +197,42 @@ test("机制归因不进判定：判定面输入键封闭，归因数据进不�
   assert.equal(withAttribution.ok, false);
   assert.ok(names(withAttribution.reasons, "attribution"));
   assert.equal(withAttribution.passed, false);
+});
+
+test("封闭键集同口径：运行记录、逐条判据、增量包绑定三处未定义键走同一原语", () => {
+  const { prereg, frozen } = frozenFixture();
+  const cases = [
+    greenRuns().map((run) => (run.taskId === ABLATION_TASKS[0].taskId && run.arm === "org" ? { ...run, note: "额外键" } : run)),
+    greenRuns().map((run) => (run.taskId === ABLATION_TASKS[0].taskId && run.arm === "org"
+      ? { ...run, acceptance: run.acceptance.map((entry) => ({ ...entry, note: "额外键" })) }
+      : run))
+  ];
+  for (const runs of cases) {
+    const verdict = judgeExperiment({ prereg, frozen, runs });
+    assert.equal(verdict.ok, false);
+    assert.ok(names(verdict.reasons, "封闭键集"), verdict.reasons.join("；"));
+  }
+
+  const verdict = judgeExperiment({ prereg, frozen, runs: greenRuns() });
+  const records = experimentRecords({
+    prereg, frozen, verdict, ...LEDGER_TARGET,
+    artifacts: [{ path: "x", sha256: "a".repeat(64), bytes: 1, note: "额外键" }]
+  });
+  assert.equal(records.ok, false);
+  assert.ok(names(records.violations, "封闭键集"), records.violations.join("；"));
+});
+
+test("记录面 actor 门与台账 task.judge 同源：user 不得封 judgement 事实，post／host 放行", () => {
+  const { prereg, frozen } = frozenFixture();
+  const verdict = judgeExperiment({ prereg, frozen, runs: greenRuns() });
+  const base = { prereg, frozen, verdict, taskId: LEDGER_TARGET.taskId, idempotencyKey: LEDGER_TARGET.idempotencyKey, artifacts: [] };
+  const asUser = experimentRecords({ ...base, actor: { kind: "user", id: "u-1" } });
+  assert.equal(asUser.ok, false, "台账 task.judge 只收 post／host，user 封出的记录必被真台账拒");
+  assert.ok(names(asUser.violations, "post") && names(asUser.violations, "host"), asUser.violations.join("；"));
+  for (const kind of ["post", "host"]) {
+    const allowed = experimentRecords({ ...base, actor: { kind, id: `${kind}-1` } });
+    assert.equal(allowed.ok, true, `${kind} 应放行：${allowed.violations.join("；")}`);
+  }
 });
 
 test("记录面：judgement 事实负载＋CHANGELOG 四要件＋增量包文件绑定（V-B6，不扩事件词表）", () => {
@@ -217,6 +291,16 @@ test("判不过的运行记录必带原因：缺原因即记录不成立，不�
   assert.equal(verdict.ok, false);
   assert.equal(verdict.passed, false);
   assert.ok(names(verdict.reasons, "原因"));
+});
+
+test("坏形状会话日志：判定面出 ok:false 而不是抛异常（fail closed，CLI 照出 JSON）", () => {
+  const { prereg, frozen } = frozenFixture();
+  const runs = greenRuns().map((run) => (run.arm === "bare" && run.taskId === ABLATION_TASKS[0].taskId
+    ? { ...run, sessions: [{ sessionId: "s-1", events: [{ type: "step/end" }] }] }
+    : run));
+  const verdict = judgeExperiment({ prereg, frozen, runs });
+  assert.equal(verdict.ok, false);
+  assert.equal(verdict.passed, false);
 });
 
 test("非对象输入一律拒（fail closed，不按形状猜测）", () => {

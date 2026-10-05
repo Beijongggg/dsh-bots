@@ -6,6 +6,9 @@
  * op 即拒」等用例才有红的意义；被测模块的组织命令词表另由
  * `tests/org-experiment-prereg.test.mjs` 与 `lib/org/op-set.js` 单源对账锁定。
  */
+/** 违例／理由串里点名某词（实验各面用例的统一读法：不锁死整句措辞）。 */
+export const names = (lines, needle) => lines.some((line) => line.includes(needle));
+
 /** 一条真能表达为探针白名单命令的验收判据（坐标＝任务自己的交付物）。 */
 function executableAcceptance(location, text) {
   return [{ probe: "fs.contains", args: { location, text } }];
@@ -78,6 +81,16 @@ export function runAt(offsetMinutes = 0) {
   return new Date(RUN_BASE_MS + offsetMinutes * 60_000).toISOString();
 }
 
+/**
+ * 各臂跑分时点的分钟偏移（相对 `runAt` 基准）：**裸对照先跑、组织内跑后跑**
+ * （`V-B1`），两臂的 `startedAt` 是「实验前冻结」的锚点，都排在本进程冻结之后
+ * ——用完成时点或固定日历日期当锚点都挡不住「先跑后冻」。
+ */
+const ARM_RUN_OFFSETS = Object.freeze({
+  bare: Object.freeze({ start: 0, end: 5, at: 10 }),
+  org: Object.freeze({ start: 60, end: 65, at: 70 })
+});
+
 /** 裸对照跑分记录（`V-B1` 入集判定输入；组织内跑的另一条腿在执行面）。 */
 export function bareRun(taskId, outcome = "failed", overrides = {}) {
   return {
@@ -109,16 +122,18 @@ export function sessionOf(tokens = {}) {
 /**
  * 运行记录：判据逐条沿用简报登记件（`V-B3`）；`acceptance` 可整体替换做负例。
  * 两臂共用同一形状，`failureReason` 在判不过时必填（记录面 fail closed）。
+ * 时点按臂取 `ARM_RUN_OFFSETS`（`at` 可由调用方覆盖做单点破坏）。
  */
 export function runRecord(taskId, arm, { at, outcome = "passed", acceptance, tokens = { input: 100 }, failureReason } = {}) {
   const task = ABLATION_TASKS.find((entry) => entry.taskId === taskId);
+  const offsets = ARM_RUN_OFFSETS[arm] ?? ARM_RUN_OFFSETS.org;
   return {
     runId: `run-${arm}-${taskId}`,
     taskId,
     arm,
-    at,
-    startedAt: runAt(-60),
-    endedAt: runAt(-55),
+    at: at ?? runAt(offsets.at),
+    startedAt: runAt(offsets.start),
+    endedAt: runAt(offsets.end),
     outcome,
     ...(failureReason === undefined ? {} : { failureReason }),
     acceptance: acceptance ?? task.brief.acceptance.map((entry) => ({ ...entry, ok: outcome === "passed", reason: outcome === "passed" ? null : "未产出合格件" })),
@@ -129,10 +144,9 @@ export function runRecord(taskId, arm, { at, outcome = "passed", acceptance, tok
 /** 三任务两臂的合法跑分：裸对照先跑且失败入集，组织内在预算内通过。 */
 export function greenRuns() {
   const bare = ABLATION_TASKS.map((task) => runRecord(task.taskId, "bare", {
-    at: runAt(0),
     outcome: "failed",
     failureReason: "裸实例超预算未产出合格判据"
   }));
-  const org = ABLATION_TASKS.map((task) => runRecord(task.taskId, "org", { at: runAt(60) }));
+  const org = ABLATION_TASKS.map((task) => runRecord(task.taskId, "org"));
   return [...bare, ...org];
 }
