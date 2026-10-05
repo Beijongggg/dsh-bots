@@ -212,3 +212,27 @@ A 的提交历史保留。唯一冲突面 `docs/changelog/2026-09-01.md`（9 月
   - **判定口径注记**：research 采用「首次执行投递规则」（重复投递为我方编排
     瑕疵，工件 767,532 token 披露于 run-notes.json；全量口径下 2,618,507＞B
     会翻为 failed／入集）。两口径并录，取首次执行口径与组织臂单次投递对照公平。
+
+- **实验 v2 执行与终判（2026-10-06，zcode 会话续）**：用户裁定 v2 方向
+  （任务集按「结构性超出单实例」重设计＋两臂模型统一切
+  `opencode-go/deepseek-v4.1-flash`＋成本不设限）；预登记冻结（B=3M／×3／
+  3-2-3，digest `cf0607a5…`，`a315ac5`）。裸对照：research fail（3,833,584
+  token＞B，超预算停席）／code fail（600s 回合超时，全量回归 76/79 未绿）／
+  **duty passed**（542,784，goal_round 自持 8 轮至窗满）→ 入集＝{TK-1,TK-2}。
+  组织臂：TK-1 完成（三判据过、15 节 37KB 报告，协调席冲突上抛→用户裁定
+  「人工复算口径＋下达 assign」）但 11,177,431＞9M＝budget-exceeded；TK-2
+  deliver 但全量回归 76/79（watcher.test.mjs 崩溃；pin 基线 79/79 实测排除
+  环境归因＝重构致损）且 10,839,015＞9M。**终判：B 组不通过**
+  （verdict ok=true、passed=false；证据＝`.scratch/org-v2-build/experiments/
+  run-20261005-v2/`，提交 `ad1a252`；事件 `EV-20261006-exp17-v2`，`5d45239`）。
+- **上浮用户终裁（规格 Testing Decisions：连续两轮未闭合）**：v1 无结论
+  ＋v2 不通过，两轮已毕。待裁选项：①接受 B 组不通过为规格验收结论
+  （17 号票以不通过收口）；②再修订预登记跑第三轮（需重新冻结，注意
+  TK-2 的两臂失败模式都在「全量回归绿」——600s 回合天花板与 flash 模型
+  的重构质量是主因，第三轮前宜先解决其一）；③其他裁定。
+- **登记备查（本轮新增运行面发现）**：①opencode zen 网关强制
+  `x-opencode-session` 头（缺则 400），provider 活动配置面＝cordis.patch.yml
+  的 llm-pi-ai 块（settings.yaml 同名键非活动面）；②台账 wait-user→resume
+  循环清空 owner，TK-1 卡 produced/owner=null、ownerOnly deliver 无人可发
+  （LEDGER 台账遗留缺陷，建议独立票）；③模型指派变更自动登记的 3 张
+  class=duty 升级评测任务现挂 waiting-user 待用户终裁（恒久性机制正常联动）。
