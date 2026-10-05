@@ -1,0 +1,59 @@
+{
+  "_convention": "首次执行投递规则＋全量会话事件；重复投递工件披露于 run-notes.json（判定输入键封闭，披露件不进 runs.json）。",
+  "bareUsage": {
+    "TK-17a00001": [
+      {
+        "sessionId": "session-a2cb790d-eecc-409b-a112-5b05114fe764",
+        "usage": {
+          "uncachedInputTokens": 96,
+          "outputTokens": 11821,
+          "cacheReadTokens": 1739410,
+          "cacheWriteTokens": 99648,
+          "totalTokens": 1850975
+        }
+      }
+    ],
+    "TK-17a00002": [
+      {
+        "sessionId": "session-67a2e070-48b0-4bef-999a-e59672743bae",
+        "usage": {
+          "uncachedInputTokens": 36,
+          "outputTokens": 9031,
+          "cacheReadTokens": 789874,
+          "cacheWriteTokens": 126691,
+          "totalTokens": 925632
+        }
+      }
+    ],
+    "TK-17a00003": [
+      {
+        "sessionId": "session-7a0e4ba0-d501-4121-b886-adf36a67ea2c",
+        "usage": {
+          "uncachedInputTokens": 45,
+          "outputTokens": 7297,
+          "cacheReadTokens": 606047,
+          "cacheWriteTokens": 57918,
+          "totalTokens": 671307
+        }
+      }
+    ]
+  },
+  "disclosures": {
+    "TK-17a00001": {
+      "rule": "首次执行投递规则：运行记录取首条实际执行的投递；以下为重复投递工件（不入跑分）。",
+      "duplicateExecutions": [
+        {
+          "session": "b4bb67f9-6b18-463d-b3f8-fa217992c3c9",
+          "usage": {
+            "uncachedInputTokens": 42,
+            "outputTokens": 12767,
+            "cacheReadTokens": 657520,
+            "cacheWriteTokens": 97203,
+            "totalTokens": 767532
+          }
+        }
+      ],
+      "sensitivity": "若按全量口径并入重复投递用量，TK-17a00001 裸跑合计 2,618,507 token ＞ 预算 B，结论将翻为 failed／入集。两口径并录，判定取首次执行投递口径（与组织臂单次投递对照公平）。"
+    }
+  }
+}
