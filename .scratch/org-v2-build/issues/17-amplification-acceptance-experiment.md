@@ -126,3 +126,61 @@ A 的提交历史保留。唯一冲突面 `docs/changelog/2026-09-01.md`（9 月
 ④ **票面维持**：本票维持 `Status: ready-for-human`。实验实跑、五项数值门槛
 （预算 B／量级倍数／重派封顶／初审阈值／越权阈值）填写与实验编制扩编仍属用户域，
 验收框一律不勾选，`Status` 行不改。
+
+### 2026-10-05 双轴 code-review 发现处置批（集成分支）
+
+**评审与工作面**：`/implement-spec` 第 7 步对集成分支跑 `/code-review` 两轴并行
+（固定点 `b68fb6d`，工作面 `61f1086`）。修复在 `.worktrees/ticket-17-review-fixes`
+（分支 `ticket-17-review-fixes`，基线 `61f1086`，提交 `9870f77`／`bcdf3df`），已
+`--ff-only` 并入集成分支。
+
+**已处置（F1–F9）**：
+
+- `F1` 判定面 fail closed 失守（规格轴，实测复现）：坏形状会话事件（如仅
+  `{type:"step/end"}`、缺 `data`）令 `lib/stats.js` 抛 `TypeError`，异常穿出
+  `aggregateRunCost` → `judgeExperiment`，CLI 也不再出 JSON。改：`deriveStats`
+  调用就地包 try/catch → 计违例（点名会话条目序号＋原始错误）→
+  `ok:false, cost:null`。**未改 `lib/stats.js`**（共享投影模块，语义变更超本票范围）。
+  新增用例两处；CLI 实测由「TypeError、无 JSON」变为 exit 1＋合法 JSON＋
+  `reasonCodes:["cost-unavailable"]`。
+- `F2` 记录封件 actor 门与真台账不符：原按 `isValidActor` 放行 `user`，而
+  `task.judge` 只收 `post|host`（`lib/org/task-ledger.js:481`，:1051 按 `actorKinds`
+  判）——封出的记录会被真台账拒。改：直接 import `task-ledger.OPS`，
+  `JUDGE_ACTOR_KINDS = OPS["task.judge"].actorKinds` 单一源（无环、加载无副作用）。
+- `F3` 「实验前冻结」原只比完成时点 `at`，`startedAt` 早于冻结的跑分照过；「裸对照
+  先跑」同理。改：两处机械判据锚**开始时刻**（`at` 保留形状校验）。夹具随改为
+  `ARM_RUN_OFFSETS`（裸 0–10min、组织 60–70min，晚于本进程真实冻结），**不引入
+  固定日历日期**（避免重种日期炸弹）。新增 3 条负例。
+- `F4` 币值扫描原只到 `event`／`event.data` 自身键，`data.usage.costUsd` 静默通过。
+  改：有界一层加深（顶层 ∪ `data` 自身键 ∪ `data` 直属子对象自身键），注释明说
+  更深层不查、不夸大范围。
+- `F5`（标准轴硬违例）`experiment-shape.js` 自立的 `isNonEmptyText` 与既有单一源
+  `lib/org/is-non-empty-string.js#isNonEmptyString` 同形两份。改：删自立体，四处
+  改引单一源；新增源码锁测试。
+- `F6`（标准轴硬违例）判定面三处手写「封闭键集」循环改调同批单源 `closedKeys`。
+- `F7` `prereg-mutated` 原拼进中文字串、未入 `VERDICT_REASONS` 封闭表。改：入表
+  （结构断裂类），判定走结构化码＋表中 label；测试改断言码。
+- `F8` 门户文档同步：`docs/agents/codebase-map.md` 补 5 个实验模块行＋2 条不变量
+  （判定面输入键封闭＝归因无入口；币值不进不出）、`tests/README.md` 夹具清单补
+  `prereg-fixture.mjs`。
+- `F9` 四个测试文件各抄一份的 `names()` 收进既有夹具并改引。**不复用**两处：
+  `sessionOf`（成本用例需多样本／多轮／自定义时刻）、`briefFor`（需每任务自坐标与
+  goal，替换会改夹具语义）——已在处置报告说明理由。
+
+**验证**：`node --check` 10/10；全量 **79/79** 个测试文件通过（退出码 0）；
+`npm run preflight` 四门 PASS（①79/79 ②冻结面 0010 包 10/10 ③status-lint 0 违例
+④宿主契约 12 PASS／0 FAIL／0 SKIP），退出码 0。冻结面、真实运行面零触碰；
+实施者自证未动主工作树与其它 worktree。
+
+**边界（评审已指出、本批未处置，属用户域实验批）**：
+
+1. 规格轴指出的**实验期执行面**：`V-B6` 三落点（证据进增量包／摘要进 CHANGELOG／
+   通过记录进台账）与 `V-B5` 归因清单目前只有**接缝**（`experimentRecords` 产出记录
+   对象、`attributeMechanisms` 产出诊断），尚无把二者落到增量包／台账／CHANGELOG 的
+   执行入口，CLI 四命令亦不含归因。落点须在实验实跑（用户点名授权）时执行。
+2. `experimentRecords` 的 `artifacts` 缺省 `[]` 仍判成立：是否要求「无证据绑定即不得
+   封结论」属**判定口径**决定，本批不擅自改判定语义。
+3. CLI `verdict` 退出码只看判定（`verdict.ok && verdict.passed`），不含 `records.ok`：
+   `user` actor 等情形下可 exit 0 而记录未封——同属口径决定。
+4. `frozenAt` 无外部锚（由冻结时点的真实时钟写入），「自填晚冻结」的防守依赖真台账
+   与用户在场，不在本模块内机械可判。
