@@ -1,0 +1,232 @@
+{
+  "schemaVersion": "org-v2/amplification-prereg@1",
+  "experimentId": "org-v2-amplification-20261005-v2",
+  "tasks": [
+    {
+      "taskId": "TK-17b00001",
+      "mechanism": "multi-hop-research",
+      "brief": {
+        "goal": "对 dsh-bots 仓库的十个子系统各做一次独立机制调查并汇总为带交叉引用的总报告：子系统＝宿主适配面／任务台账／复核件套／权限四层／邮件面／记忆与知识层／探针面／恒久性与模型更迭／简报与派单／重建与切换（按 docs/agents/codebase-map.md 模块职责划分）；每子系统一节、全报告不少于 10 节、每节含机制描述与至少 3 个文件坐标引用，并给出各子系统的关键不变量与已知留界",
+        "deliverables": [
+          {
+            "format": "markdown",
+            "location": "bots/knowledge/reports/R-2026-104.md"
+          }
+        ],
+        "sources": [
+          {
+            "tool": "file",
+            "ref": "docs/agents/codebase-map.md"
+          },
+          {
+            "tool": "spec",
+            "ref": ".scratch/org-v2/spec.md"
+          },
+          {
+            "tool": "issue",
+            "ref": "org-v2-build/17"
+          }
+        ],
+        "boundaries": "只读调查＋写报告；不改代码与配置；不触真实运行面",
+        "acceptance": [
+          {
+            "probe": "fs.contains",
+            "args": {
+              "location": "bots/knowledge/reports/R-2026-104.md",
+              "text": "子系统"
+            }
+          },
+          {
+            "probe": "fs.contains",
+            "args": {
+              "location": "bots/knowledge/reports/R-2026-104.md",
+              "text": "不变量"
+            }
+          },
+          {
+            "probe": "fs.contains",
+            "args": {
+              "location": "bots/knowledge/reports/R-2026-104.md",
+              "text": "留界"
+            }
+          }
+        ],
+        "reviewPoints": []
+      }
+    },
+    {
+      "taskId": "TK-17b00002",
+      "mechanism": "cross-file-change",
+      "brief": {
+        "goal": "新增 lib/safe-io.js 统一文件 IO 门（薄封装），并把 lib/ 下（不含 tests/）直接调用 node:fs 读写原语（readFileSync／writeFileSync／appendFileSync／mkdirSync／readdirSync／statSync／existsSync／rmSync／cpSync）的调用点改为经由该门，行为保持、不改任何对外语义；波及文件不少于 20 个；收尾全量回归 node tests/run.mjs 全绿",
+        "deliverables": [
+          {
+            "format": "patch",
+            "location": "lib/"
+          }
+        ],
+        "sources": [
+          {
+            "tool": "file",
+            "ref": "docs/agents/codebase-map.md"
+          },
+          {
+            "tool": "spec",
+            "ref": ".scratch/org-v2/spec.md"
+          },
+          {
+            "tool": "issue",
+            "ref": "org-v2-build/17"
+          }
+        ],
+        "boundaries": "只改工作区内仓库树；行为保持；不触真实运行面；不新增事后判据",
+        "acceptance": [
+          {
+            "probe": "fs.contains",
+            "args": {
+              "location": "lib/safe-io.js",
+              "text": "export function"
+            }
+          },
+          {
+            "probe": "node.tests",
+            "args": {
+              "file": "org-brief.test.mjs"
+            }
+          },
+          {
+            "probe": "node.tests",
+            "args": {
+              "file": "org-permissions.test.mjs"
+            }
+          },
+          {
+            "probe": "node.tests",
+            "args": {
+              "file": "registry.test.mjs"
+            }
+          }
+        ],
+        "reviewPoints": []
+      }
+    },
+    {
+      "taskId": "TK-17b00003",
+      "mechanism": "long-running-duty",
+      "brief": {
+        "goal": "两小时值守窗内按例程巡检指定隔离副本（副本根的 MANIFEST.sha256 为冻结清单），每 15 分钟一轮：逐文件核验存在性与 SHA-256；发现漂移（摘要不符／文件缺失／清单外新增）即逐项登记（文件、期望与实际摘要、初步定位）并给处置建议；窗满产出窗口记录，含轮次表、异常清单与处置建议",
+        "deliverables": [
+          {
+            "format": "markdown",
+            "location": "bots/knowledge/reports/R-2026-105.md"
+          }
+        ],
+        "sources": [
+          {
+            "tool": "file",
+            "ref": "docs/agents/codebase-map.md"
+          },
+          {
+            "tool": "spec",
+            "ref": ".scratch/org-v2/spec.md"
+          },
+          {
+            "tool": "issue",
+            "ref": "org-v2-build/17"
+          }
+        ],
+        "boundaries": "只登记与建议，不修复不处置；不触副本外任何路径；不触真实运行面",
+        "acceptance": [
+          {
+            "probe": "fs.contains",
+            "args": {
+              "location": "bots/knowledge/reports/R-2026-105.md",
+              "text": "异常"
+            }
+          },
+          {
+            "probe": "fs.contains",
+            "args": {
+              "location": "bots/knowledge/reports/R-2026-105.md",
+              "text": "处置建议"
+            }
+          }
+        ],
+        "reviewPoints": []
+      }
+    }
+  ],
+  "profiles": {
+    "bare": {
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "baseTools": [
+        "read",
+        "write",
+        "edit",
+        "bash"
+      ],
+      "ops": [],
+      "scaffolding": [],
+      "budgetB": 3000000
+    },
+    "org": {
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "baseTools": [
+        "read",
+        "write",
+        "edit",
+        "bash"
+      ],
+      "ops": [
+        "task.intake",
+        "task.triage",
+        "task.plan",
+        "task.assign",
+        "task.accept",
+        "task.start",
+        "task.report",
+        "task.deliver",
+        "task.settle",
+        "task.close",
+        "task.block",
+        "task.unblock",
+        "task.wait-user",
+        "task.resume",
+        "task.fail",
+        "task.requeue",
+        "task.cancel",
+        "task.heartbeat",
+        "task.return",
+        "task.amend",
+        "task.judge",
+        "task.exception",
+        "review.request"
+      ],
+      "scaffolding": [
+        "task-ledger",
+        "review-kit",
+        "brief-and-dispatch",
+        "permissions-four-layer"
+      ],
+      "budgetB": 3000000
+    }
+  },
+  "thresholds": {
+    "budgetB": 3000000,
+    "magnitudeMultiple": 3,
+    "redispatchCap": 3,
+    "reviewRoundsToEscalate": 2,
+    "unauthorizedAttempts": 3
+  },
+  "costMetrics": {
+    "tokens": [
+      "uncachedInputTokens",
+      "outputTokens",
+      "cacheReadTokens",
+      "cacheWriteTokens"
+    ],
+    "wallClock": "wallClockMs",
+    "rounds": "rounds",
+    "currency": null
+  }
+}
