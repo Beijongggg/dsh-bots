@@ -73,6 +73,11 @@
 | `human-inbox.js` | 人间接口件套 |
 | `cutover.js` / `cutover-readiness.js` / `deployment-inventory.js` | 切换执行体／就绪判定／部署一致性清单 |
 | `unauthorized-count.js` / `run-count.js` / `is-non-empty-string.js` | 越权计数／连续计数原语／小判定件 |
+| `experiment-shape.js` | 放大验收实验的共用形状原语（封闭键集／字符串数组／正数／token 四分量） |
+| `experiment-prereg.js` | 实验预登记件机械面：基准集／对照口径／门槛形状，冻结摘要与裸对照入集判定 |
+| `experiment-cost.js` | 实验成本采集：会话日志投影 token 四分量＋墙钟＋轮次；币值不进（有界扫描）也不出（输出键封闭） |
+| `experiment-attribution.js` | 机制归因投影（分解／互检／外置／并行）——只作诊断，不进判定 |
+| `experiment-verdict.js` | 实验结论判定（两态 fail closed，理由走封闭码）与记录封件（`task.judge` 事实／CHANGELOG 四要件） |
 
 ## 跨文件不变量（改前必读）
 
@@ -86,6 +91,11 @@
 - **拒绝落账走 `reject()`**（task-ledger.js:854）：幂等键由调用方传入，必须稳定
   ——不能内嵌会随事件推进的序号（先例：`lastSeq` 入键导致二次必变）。
 - **任务号格式**：`TASK_ID_RE = /^TK-[A-Za-z0-9]{4,40}$/`（ledger-events.js:66）。
+- **判定面输入键封闭＝归因无入口**（17 号票）：`judgeExperiment` 只收
+  `prereg／frozen／runs`（experiment-verdict.js 的 `VERDICT_INPUT_KEYS`）；机制
+  归因（experiment-attribution.js）只作诊断输出，进不了通过与否的判定。
+- **币值不进不出**（17 号票）：成本采集拒收币值字段（运行记录／会话条目键集封闭，
+  会话事件按有界一层加深扫描），输出键封闭无币值键（experiment-cost.js）。
 - **测试插槽**：`lib/index.js` 末尾 `internals` 导出块是测试的唯一后门；新增
   可测面优先挂 `internals` 而非重复导出。
 

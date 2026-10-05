@@ -15,6 +15,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { ATTRIBUTION_MECHANISMS, attributeMechanisms } from "../lib/org/experiment-attribution.js";
+import { names } from "./helpers/prereg-fixture.mjs";
 
 const TASKS = Object.freeze([
   { taskId: "TK-17a00001", mechanism: "multi-hop-research" },
@@ -26,8 +27,6 @@ const TASKS = Object.freeze([
 function event(type, taskId, at, extra = {}) {
   return { seq: 1, type, taskId, at, actor: { kind: "host", id: "web" }, ...extra };
 }
-
-const names = (lines, needle) => lines.some((line) => line.includes(needle));
 
 test("四机制按台账事件投影：分解＝子任务、互检＝复核请求／报告、外置＝交付物坐标（V-B5）", () => {
   const verdict = attributeMechanisms({

@@ -17,6 +17,9 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { LEDGER_COMMAND_OPS } from "../lib/org/op-set.js";
 import {
@@ -24,10 +27,7 @@ import {
   admitBareSet, freezePreregistration, preregistrationUnchanged, validatePreregistration
 } from "../lib/org/experiment-prereg.js";
 import { COST_TOKEN_COMPONENTS } from "../lib/org/experiment-shape.js";
-import { ORG_OPS, bareRun, briefFor, preregFixture } from "./helpers/prereg-fixture.mjs";
-
-/** 违例串里点名某词（用例读法统一：不锁死整句措辞）。 */
-const names = (lines, needle) => lines.some((line) => line.includes(needle));
+import { ORG_OPS, bareRun, briefFor, names, preregFixture } from "./helpers/prereg-fixture.mjs";
 
 test("合法基线预登记件通过校验（基准集三机制各一＋对照口径＋门槛＋成本口径）", () => {
   const verdict = validatePreregistration(preregFixture());
@@ -39,6 +39,17 @@ test("机制词表＝三机制封闭枚举，且组织命令词表与 op-set 单
   assert.deepEqual(EXPERIMENT_MECHANISMS.map((entry) => entry.label), ["多跳研究", "跨文件代码改动", "长周期值守例程"]);
   // 组织命令面口径的单一源：实验模块不得另抄一份词表（少一条即「裸侧漏切命令面」）
   assert.deepEqual([...ORG_COMMAND_OPS].sort(), [...LEDGER_COMMAND_OPS].sort());
+});
+
+test("非空文本判定单一源：实验各面复用 is-non-empty-string.js，不另留一份", () => {
+  // 「同一原语不得在两处各留一份」（先例：brief.js／memory-layer.js 共用
+  // is-non-empty-string.js 的 isNonEmptyString）；本批实验模块同样只许引用。
+  const orgDir = fileURLToPath(new URL("../lib/org/", import.meta.url));
+  const primitive = 'typeof value === "string" && value.trim() !== ""';
+  const duplicated = readdirSync(orgDir)
+    .filter((name) => name.startsWith("experiment-"))
+    .filter((name) => readFileSync(join(orgDir, name), "utf8").includes(primitive));
+  assert.deepEqual(duplicated, [], "实验各面不得各留一份非空文本判定（单一源：lib/org/is-non-empty-string.js）");
 });
 
 test("基准集数量：多于 5 或少于 3 即拒（V-B1「3–5 个」）", () => {
