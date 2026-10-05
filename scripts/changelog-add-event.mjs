@@ -107,7 +107,8 @@ console.log(`事件 ${id} 落档完成：docs/changelog/${volName}；提交请�
 
 /** 生成「纯插入」unified patch：锚点前 3 行上下文＋插入块＋锚点起余行（行数守恒，可 apply）。 */
 function buildPatch(headText, blk, relPath) {
-  const lines = headText.split("\n");
+  const text = headText.endsWith("\n") ? headText.slice(0, -1) : headText;
+  const lines = text.split("\n");
   const i = lines.findIndex((l) => l.startsWith("## "));
   if (i < 0) fail("HEAD 卷内找不到 `## ` 事件锚点");
   const start = Math.max(0, i - 3);
