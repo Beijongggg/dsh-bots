@@ -41,6 +41,14 @@ function mkTmp() {
   return dir;
 }
 const home = path.resolve(process.env.DSH_HOME ?? path.join(os.homedir(), ".dsh"));
+// 跳过协议（载体缺失）：本文件全部用例以真实 DSH_HOME 为锚（负例目标／污染核验
+// 载体）——载体缺失（如 CI 无宿主面）即整文件跳过；真宿主面存在性由 ④ 宿主契约
+// 门把守（17 号票 PR CI 首红的根因即此：套件先于 CI 存在，默认宿主在场）。
+import { existsSync } from "node:fs";
+if (!existsSync(home)) {
+  console.log(`⤼ SKIP: 真实 DSH_HOME 不存在（${home}）——本文件用例以真实宿主面为载体`);
+  process.exit(0);
+}
 const errObj = (res) => {
   const lines = (res.stderr ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
   for (let i = lines.length - 1; i >= 0; i -= 1) {
