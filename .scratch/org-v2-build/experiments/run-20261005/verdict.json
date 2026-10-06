@@ -1,0 +1,29 @@
+{
+  "command": "verdict",
+  "ok": false,
+  "verdict": {
+    "ok": false,
+    "passed": false,
+    "reasons": [
+      "入集任务为空——基准集候选（multi-hop-research、cross-file-change、long-running-duty）全部裸跑通过即出集，本次实验无结论可出（不许拿候选充数）"
+    ],
+    "reasonCodes": [],
+    "preregDigest": null,
+    "thresholds": null,
+    "admission": {
+      "admitted": [],
+      "excluded": [],
+      "mechanismsLost": []
+    },
+    "perTask": []
+  },
+  "records": {
+    "ok": false,
+    "ledger": null,
+    "changelog": null,
+    "evidence": null,
+    "violations": [
+      "判定未成立（ok:false）或形状不符——无结论可入账（fail closed）"
+    ]
+  }
+}

@@ -18,7 +18,8 @@
 
 - 新测试优先落在既有文件的同类用例旁；夹具复用 `tests/helpers/`：
   `brief-fixture.mjs`（简报）、`capability-fixture.mjs`（能力签发）、
-  `criterion-fixture.mjs`（判据注入）、`dead-pid-fixture.mjs`（死进程行）。
+  `criterion-fixture.mjs`（判据注入）、`dead-pid-fixture.mjs`（死进程行）、
+  `prereg-fixture.mjs`（放大验收实验：预登记件／跑分记录／点名助手）。
 - 需要触 `lib/index.js` 内部面时，走其末尾 `internals` 导出块（测试插槽），
   不要复制实现逻辑。
 - 依赖外部载体（如真实宿主包）的文件，载体缺失时打印一行

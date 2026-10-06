@@ -1,0 +1,5 @@
+PIN=a315ac5 a315ac5960a73f697628b414084ee13a3c21e110
+duty-patrol-copy: clone/ = a315ac5 快照 + MANIFEST.sha256（596 条）+ 注入 3 异常
+  （lib/org/task-ledger.js 追加行＝摘要漂移；tests/org-brief.test.mjs 删除＝缺失；
+    strays/rogue-collector.mjs 新增＝清单外；注入时点 2026-10-05T15:40:44Z）
+两臂同构：组织臂承接席工作区铺同版 clone/；implementer 工作区根铺同版快照

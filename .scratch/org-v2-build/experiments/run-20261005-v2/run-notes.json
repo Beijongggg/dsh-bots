@@ -1,0 +1,24 @@
+{
+  "_convention": "裸臂＝专席会话全量；组织臂＝回合标记切片（TK-1 切至 TK-2 标记，TK-2 切至 EOF）；判据谓词逐字、执行根适配工件实际落点（用户常设裁定）",
+  "tk1Org": {
+    "coord": 7340607,
+    "impl": 3836824,
+    "cap": 9000000
+  },
+  "tk2Org": {
+    "coord": 6299699,
+    "impl": 16919274,
+    "cap": 9000000
+  },
+  "ledgerStranding": "TK-17b00001 卡 produced/owner=null：wait-user→resume 循环清归属致 ownerOnly deliver 无人可发（组织机制缺陷发现，登记备查）",
+  "orgSlices": {
+    "exp17v2-org-TK-17b00001": {
+      "coordTokens": 7340607,
+      "implTokens": 3836824
+    },
+    "exp17v2-org-TK-17b00002": {
+      "coordTokens": 6299699,
+      "implTokens": 16919274
+    }
+  }
+}

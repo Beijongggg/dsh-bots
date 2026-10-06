@@ -1,0 +1,180 @@
+{
+  "schemaVersion": "org-v2/amplification-prereg@1",
+  "experimentId": "org-v2-amplification-20260929",
+  "tasks": [
+    {
+      "taskId": "TK-17a00001",
+      "mechanism": "multi-hop-research",
+      "brief": {
+        "goal": "沿仓内三处以上来源追出一条行为链并产出可引用报告",
+        "deliverables": [
+          {
+            "format": "markdown",
+            "location": "bots/knowledge/reports/R-2026-101.md"
+          }
+        ],
+        "sources": [
+          {
+            "tool": "issue",
+            "ref": "org-v2-build/17"
+          },
+          {
+            "tool": "spec",
+            "ref": ".scratch/org-v2/spec.md#J"
+          }
+        ],
+        "boundaries": "只读调查＋写报告；不改代码与配置；不触真实运行面",
+        "acceptance": [
+          {
+            "probe": "fs.contains",
+            "args": {
+              "location": "bots/knowledge/reports/R-2026-101.md",
+              "text": "来源"
+            }
+          }
+        ],
+        "reviewPoints": []
+      }
+    },
+    {
+      "taskId": "TK-17a00002",
+      "mechanism": "cross-file-change",
+      "brief": {
+        "goal": "跨三个以上文件落一处行为改动并让既有回归覆盖它",
+        "deliverables": [
+          {
+            "format": "patch",
+            "location": "lib/org/"
+          }
+        ],
+        "sources": [
+          {
+            "tool": "issue",
+            "ref": "org-v2-build/17"
+          },
+          {
+            "tool": "spec",
+            "ref": ".scratch/org-v2/spec.md#J"
+          }
+        ],
+        "boundaries": "只改仓库工作树；不新增事后判据；真实运行面零写入",
+        "acceptance": [
+          {
+            "probe": "node.tests",
+            "args": {
+              "file": "org-brief.test.mjs"
+            }
+          }
+        ],
+        "reviewPoints": []
+      }
+    },
+    {
+      "taskId": "TK-17a00003",
+      "mechanism": "long-running-duty",
+      "brief": {
+        "goal": "值守窗口内按例程巡检并产出窗口记录",
+        "deliverables": [
+          {
+            "format": "markdown",
+            "location": "bots/knowledge/reports/R-2026-103.md"
+          }
+        ],
+        "sources": [
+          {
+            "tool": "issue",
+            "ref": "org-v2-build/17"
+          },
+          {
+            "tool": "spec",
+            "ref": ".scratch/org-v2/spec.md#J"
+          }
+        ],
+        "boundaries": "只按预登记例程巡检；异常只登记不自动动作；不触真实运行面",
+        "acceptance": [
+          {
+            "probe": "fs.contains",
+            "args": {
+              "location": "bots/knowledge/reports/R-2026-103.md",
+              "text": "窗口"
+            }
+          }
+        ],
+        "reviewPoints": []
+      }
+    }
+  ],
+  "profiles": {
+    "bare": {
+      "model": "niko/gpt-5.6-sol",
+      "baseTools": [
+        "read",
+        "write",
+        "edit",
+        "bash"
+      ],
+      "ops": [],
+      "scaffolding": [],
+      "budgetB": null
+    },
+    "org": {
+      "model": "niko/gpt-5.6-sol",
+      "baseTools": [
+        "read",
+        "write",
+        "edit",
+        "bash"
+      ],
+      "ops": [
+        "task.intake",
+        "task.triage",
+        "task.plan",
+        "task.assign",
+        "task.accept",
+        "task.start",
+        "task.report",
+        "task.deliver",
+        "task.settle",
+        "task.close",
+        "task.block",
+        "task.unblock",
+        "task.wait-user",
+        "task.resume",
+        "task.fail",
+        "task.requeue",
+        "task.cancel",
+        "task.heartbeat",
+        "task.return",
+        "task.amend",
+        "task.judge",
+        "task.exception",
+        "review.request"
+      ],
+      "scaffolding": [
+        "task-ledger",
+        "review-kit",
+        "brief-and-dispatch",
+        "permissions-four-layer"
+      ],
+      "budgetB": null
+    }
+  },
+  "thresholds": {
+    "budgetB": null,
+    "magnitudeMultiple": null,
+    "redispatchCap": null,
+    "reviewRoundsToEscalate": null,
+    "unauthorizedAttempts": null
+  },
+  "costMetrics": {
+    "tokens": [
+      "uncachedInputTokens",
+      "outputTokens",
+      "cacheReadTokens",
+      "cacheWriteTokens"
+    ],
+    "wallClock": "wallClockMs",
+    "rounds": "rounds",
+    "currency": null
+  }
+}
