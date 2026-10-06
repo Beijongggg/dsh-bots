@@ -1,0 +1,176 @@
+{
+  "command": "verdict",
+  "ok": false,
+  "verdict": {
+    "ok": true,
+    "passed": false,
+    "reasons": [],
+    "preregDigest": "4dc97c08dee1cb7f9711348277088250c30aca283d23c9f3525872e7852fc0c4",
+    "frozenAt": "2026-10-06T05:37:15.470Z",
+    "thresholds": {
+      "budgetB": 3000000,
+      "magnitudeMultiple": 3,
+      "redispatchCap": 3,
+      "reviewRoundsToEscalate": 2,
+      "unauthorizedAttempts": 3
+    },
+    "admission": {
+      "admitted": [
+        "TK-17c00001",
+        "TK-17c00002",
+        "TK-17c00003"
+      ],
+      "excluded": [],
+      "mechanismsLost": []
+    },
+    "perTask": [
+      {
+        "taskId": "TK-17c00001",
+        "mechanism": "multi-hop-research",
+        "bareCost": {
+          "uncachedInputTokens": 882682,
+          "outputTokens": 155203,
+          "cacheReadTokens": 15963392,
+          "cacheWriteTokens": 0,
+          "totalTokens": 17001277,
+          "wallClockMs": 1580000,
+          "rounds": 1
+        },
+        "orgCost": {
+          "uncachedInputTokens": 442852,
+          "outputTokens": 59945,
+          "cacheReadTokens": 5209344,
+          "cacheWriteTokens": 0,
+          "totalTokens": 5712141,
+          "wallClockMs": 1634000,
+          "rounds": 8
+        },
+        "budgetTokens": 9000000,
+        "conclusion": "pass",
+        "reasons": [],
+        "reasonCodes": []
+      },
+      {
+        "taskId": "TK-17c00002",
+        "mechanism": "cross-file-change",
+        "bareCost": {
+          "uncachedInputTokens": 262372,
+          "outputTokens": 46469,
+          "cacheReadTokens": 3030400,
+          "cacheWriteTokens": 0,
+          "totalTokens": 3339241,
+          "wallClockMs": 860000,
+          "rounds": 1
+        },
+        "orgCost": {
+          "uncachedInputTokens": 681593,
+          "outputTokens": 98271,
+          "cacheReadTokens": 8507520,
+          "cacheWriteTokens": 0,
+          "totalTokens": 9287384,
+          "wallClockMs": 342000,
+          "rounds": 19
+        },
+        "budgetTokens": 9000000,
+        "conclusion": "fail",
+        "reasons": [
+          "任务 TK-17c00002 组织内跑超预算量级：9287384 token ＞ 预算 B 3000000 × 量级倍数 3＝9000000"
+        ],
+        "reasonCodes": [
+          "budget-exceeded"
+        ]
+      },
+      {
+        "taskId": "TK-17c00003",
+        "mechanism": "long-running-duty",
+        "bareCost": {
+          "uncachedInputTokens": 236292,
+          "outputTokens": 61711,
+          "cacheReadTokens": 1392768,
+          "cacheWriteTokens": 0,
+          "totalTokens": 1690771,
+          "wallClockMs": 7460000,
+          "rounds": 2
+        },
+        "orgCost": {
+          "uncachedInputTokens": 1333246,
+          "outputTokens": 183717,
+          "cacheReadTokens": 19059200,
+          "cacheWriteTokens": 0,
+          "totalTokens": 20576163,
+          "wallClockMs": 7109000,
+          "rounds": 36
+        },
+        "budgetTokens": 9000000,
+        "conclusion": "fail",
+        "reasons": [
+          "任务 TK-17c00003 组织内跑超预算量级：20576163 token ＞ 预算 B 3000000 × 量级倍数 3＝9000000"
+        ],
+        "reasonCodes": [
+          "budget-exceeded"
+        ]
+      }
+    ]
+  },
+  "records": {
+    "ok": true,
+    "ledger": {
+      "op": "task.judge",
+      "taskId": "TK-17c00001",
+      "actor": {
+        "kind": "host",
+        "id": "web"
+      },
+      "idempotencyKey": "exp17v3-verdict-20261006",
+      "eventType": "judgement",
+      "payload": {
+        "intent": "amplification-experiment-verdict",
+        "input": {
+          "experimentId": "org-v2-amplification-20261006-v3",
+          "preregDigest": "4dc97c08dee1cb7f9711348277088250c30aca283d23c9f3525872e7852fc0c4",
+          "passed": false,
+          "thresholds": {
+            "budgetB": 3000000,
+            "magnitudeMultiple": 3,
+            "redispatchCap": 3,
+            "reviewRoundsToEscalate": 2,
+            "unauthorizedAttempts": 3
+          },
+          "admitted": [
+            "TK-17c00001",
+            "TK-17c00002",
+            "TK-17c00003"
+          ],
+          "excluded": [],
+          "tasks": [
+            {
+              "taskId": "TK-17c00001",
+              "mechanism": "multi-hop-research",
+              "conclusion": "pass"
+            },
+            {
+              "taskId": "TK-17c00002",
+              "mechanism": "cross-file-change",
+              "conclusion": "fail"
+            },
+            {
+              "taskId": "TK-17c00003",
+              "mechanism": "long-running-duty",
+              "conclusion": "fail"
+            }
+          ]
+        }
+      }
+    },
+    "changelog": {
+      "scope": "org-v2 17 号票能力放大验收实验（B 组 V-B1–V-B6；预登记件 org-v2-amplification-20261006-v3）",
+      "change": "实验不通过：入集 3 件任务中 2 件未过预登记门槛（结论按门槛判，不做事后判据调整）",
+      "verification": "冻结摘要与冻结时点 4dc97c08dee1…／2026-10-06T05:37:15.470Z；入集任务 3 件（通过 1 件）；机制归因清单只作诊断、不进判定",
+      "authorization": "用户预登记并冻结的任务集／对照口径／数值门槛／成本口径；本记录只落结论事实"
+    },
+    "evidence": {
+      "packageInputs": []
+    },
+    "violations": []
+  }
+}
