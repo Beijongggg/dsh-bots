@@ -11,7 +11,7 @@
 | 这次应实现什么、怎样验收 | 票面指出的规格章节与已确认裁定 | 规格可以位于另一 feature；按票面来源跳转 |
 | 最近发生了什么 | [CHANGELOG.md](CHANGELOG.md) 入口所指的日志分卷 | 默认查询最近 2～3 条；历史按事件编号、票号或主题检索 |
 | 某阶段是否验收、部署或放行 | 该阶段的验收／切换票及其证据；旧 v3 批次见 [PLAN 阅读入口](PLAN-expanded-engineering.md#阅读入口) | 结论绑定对象、版本、环境和时点 |
-| 产品方向、领域总览、跨轮方法论 | [PROJECT_UNDERSTANDING.md](docs/PROJECT_UNDERSTANDING.md)；领域词见 [CONTEXT.md](CONTEXT.md) | 初次了解项目读总览；执行任务时按主题读相关段落 |
+| 产品方向、领域总览、跨轮方法论 | [PROJECT_UNDERSTANDING.md](docs/PROJECT_UNDERSTANDING.md)；领域词见 [GLOSSARY.md](GLOSSARY.md) | 初次了解项目读总览；执行任务时按主题读相关段落 |
 | 证据链与当前包 | `artifacts/packages/` 中最新序号包、`artifacts/run-registry/` 与包内绑定的附件 | 包序号用于定位；有效性与适用范围回读包和核验结果 |
 | 历史部署同步依据 | `artifacts/c2-sync-preparation.json`、对应 CHANGELOG 事件及部署报告 | 旧报告证明其采集时点；当前运行状态须重新核实。现役一致性检查：`node scripts/org-cutover-check.mjs --dsh-home <目录>`（只读核验部署、编制与宿主实况；package.json 版本号不随部署走，不能当新鲜度依据） |
 | 冻结合同与限定关闭范围 | `docs/TEMP-guidance-*`、`docs/CLOSURE-*` | 按适用批次读取，原件只读 |
@@ -31,7 +31,7 @@
 | [CHANGELOG.md](CHANGELOG.md) | 固定长度的日志入口；事件归属月度分卷，近期查询自动跨卷 |
 | [CHANGELOG-legacy-2026-09-28.md](CHANGELOG-legacy-2026-09-28.md) | 迁移前日志的逐字节归档；留在根目录以保留文内相对链接的含义，只读 |
 | [PLAN-expanded-engineering.md](PLAN-expanded-engineering.md) | 旧 v3 契约、门态与 B 系路线图；先读适用范围，再进相关章节 |
-| [CONTEXT.md](CONTEXT.md) | 领域词汇表；定形一词收一词 |
+| [GLOSSARY.md](GLOSSARY.md) | 领域词汇表；定形一词收一词 |
 | [PROPOSAL-knowledge-base.md](PROPOSAL-knowledge-base.md) | 知识库 MVP 历史设计，代码按名引用，原位保留 |
 | [PLAN-p6-4-real-instance-migration.md](PLAN-p6-4-real-instance-migration.md) | P6-4 冻结设计，代码按名引用，原位保留 |
 

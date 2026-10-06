@@ -1,4 +1,7 @@
-# CONTEXT.md —— 领域词汇表
+# GLOSSARY.md —— 领域词汇表
+
+> 本文件由 CONTEXT.md 更名而来（2026-10-05 批）。仓内历史票面、冻结卷与
+> PLAN 中的 `CONTEXT.md` 引用即指本文件，不逐一回改。
 
 > 惰性创建约定（docs/agents/domain.md）：本文件只收**已定形**的领域词，一事一词，
 > 不追写全领域。首个词条来自 2026-09-07 session-driver 批（架构评审候选 1，
