@@ -28,7 +28,7 @@ if (!pkg) {
 
 const lint = repositoryLint(repoRoot);
 if (lint.violations.length === 0) {
-  console.log(`ci-gates ③status-lint: 0 违例（扫 ${lint.scanned} 个 md） ✅`);
+  console.log(`ci-gates ③status-lint: 0 违例（扫 ${lint.scanned} 个 md；命名扫描 ${lint.namingScanned} 个活文件） ✅`);
 } else {
   console.error(`ci-gates ③status-lint: ${lint.violations.length} 违例 ❌`);
   for (const v of lint.violations) console.error(`  - ${v}`);

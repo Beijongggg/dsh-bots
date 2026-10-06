@@ -13,6 +13,7 @@ import {
   latestPackage,
   verifyFrozenFace,
   statusLint,
+  namingLint,
   repositoryLint,
 } from "../scripts/preflight.mjs";
 
@@ -151,6 +152,38 @@ test("statusLint：claimed 仅限 wayfinder 票（effort 有 map.md）；列表�
   }
 });
 
+
+test("namingLint：活文件引用领域文档旧名即违例，历史面与 GLOSSARY 注记豁免", () => {
+  const root = makeFixture();
+  // 旧名在本文件里拆写：本文件自身也在命名 lint 的扫描面内
+  const OLD = `${"CONTEXT"}.md`;
+  try {
+    mkdirSync(join(root, "lib"), { recursive: true });
+    writeFileSync(join(root, "lib", "a.js"), `/** 词条见 \`${OLD}\` */\n`);
+    const bad = namingLint(root);
+    assert.equal(bad.scanned, 1);
+    assert.equal(bad.violations.length, 1);
+    assert.match(bad.violations[0], /lib\/a\.js:1 .*GLOSSARY\.md/);
+
+    writeFileSync(join(root, "lib", "a.js"), "/** 词条见 `GLOSSARY.md` */\n");
+    assert.deepEqual(namingLint(root).violations, []);
+
+    // 历史面：票面、冻结日志卷、旧日志归档、PLAN 与 GLOSSARY 更名注记均豁免
+    mkdirSync(join(root, ".scratch", "feat"), { recursive: true });
+    mkdirSync(join(root, "docs", "changelog"), { recursive: true });
+    mkdirSync(join(root, "artifacts"), { recursive: true });
+    writeFileSync(join(root, ".scratch", "feat", "spec.md"), `${OLD}\n`);
+    writeFileSync(join(root, "docs", "changelog", "2026-10-01.md"), `${OLD}\n`);
+    writeFileSync(join(root, "artifacts", "raw.md"), `${OLD}\n`);
+    writeFileSync(join(root, "PLAN-old.md"), `${OLD}\n`);
+    writeFileSync(join(root, "CHANGELOG-legacy-2026-09-28.md"), `${OLD}\n`);
+    writeFileSync(join(root, "GLOSSARY.md"), `> 本文件由 ${OLD} 更名而来\n`);
+    assert.deepEqual(namingLint(root).violations, []);
+    assert.equal(namingLint(root).scanned, 1, "豁免面不计入扫描数");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
 
 test("preflight 第③门：Status 与知识写者违例汇入同一出口", () => {
   const root = makeFixture();

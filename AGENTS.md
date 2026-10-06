@@ -33,13 +33,28 @@
 
 ## 5. 工单、triage 与领域文档
 
-- 写工单、规格、路标或做 triage 打标前，读 `docs/agents/issue-tracker.md`；
-  `.scratch/<feature-slug>/` 一特性一目录。
 - 长期观察项不进 `.scratch/`，登记到 `docs/PROJECT_UNDERSTANDING.md` 的 "仍可选题"，
   并在 CHANGELOG 留界。
-- 定形领域词或立 ADR 前，读 `docs/agents/domain.md`；分别维护 `GLOSSARY.md` 与 `docs/adr/`，
-  有内容需要记录时才创建文件或目录。
-- 解释或设置 triage 标签时，读 `docs/agents/triage-labels.md`。
+- 工单面、triage 词表与领域文档的读取路由见下节 `## Agent skills`。
+
+## Agent skills
+
+`/setup-matt-pocock-skills` 约定的路由块：技能按此定位工单面、词表与领域文档。
+
+### Issue tracker
+
+一特性一目录 `.scratch/<feature-slug>/`，工单为 `issues/<NN>-<slug>.md`；写工单、
+规格、路标或做 triage 打标前先读该文件。See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+五排程角色词表；终态 `resolved`（＋wayfinder 专属 `claimed`）为本仓库扩展，
+重跑 setup 时勿覆盖该节。See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context：`GLOSSARY.md` ＋ `docs/adr/`（有内容需要记录时才创建）；定形领域词
+或立 ADR 前先读该文件。See `docs/agents/domain.md`.
 
 > 旧引用兼容。2026-09-20 技能节上提为 §1；此前原 §1 至 §4 依次对应现 §2 至 §5，
 > 旧引用按条款主题定位。

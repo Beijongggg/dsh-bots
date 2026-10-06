@@ -4,7 +4,7 @@
  *
  * 单一事实源：各测试文件的「合法简报」正负例在此之上做单点破坏；随契约演进
  * （probe 白名单扩表等）只改这一处。字段形状＝`lib/org/brief.js` 契约与
- * CONTEXT.md「四要素简报」词条。
+ * GLOSSARY.md「四要素简报」词条。
  */
 export const VALID_BRIEF = Object.freeze({
   goal: "示例目标",

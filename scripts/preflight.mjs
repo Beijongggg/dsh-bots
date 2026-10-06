@@ -8,9 +8,11 @@
  *   ② 冻结面 sha 复验（动态取 artifacts/packages/ 最新序号包的
  *      executionEvidence.provenance.sourceManifest，逐文件 sha256＋byteLength；
  *      包文件只读，零写入）
- *   ③ .scratch Status 词表 lint（五排程词＋resolved；claimed 仅限有
- *      Type: 行的 wayfinder 票；两个历史异词件显式豁免不回改），并检查知识库
- *      文件直写、登记／废弃调用者名单与日志分卷／归档完整性，任一违例即拒绝
+ *   ③ 三组 lint 共用违例出口：.scratch Status 词表（五排程词＋resolved；
+ *      claimed 仅限有 Type: 行的 wayfinder 票；两个历史异词件显式豁免不回改）
+ *      ＋知识库文件直写、登记／废弃调用者名单与日志分卷／归档完整性
+ *      ＋旧名命名（领域文档旧名自 mattpocock/skills v1.3 起更名 `GLOSSARY.md`，
+ *      活文件不得再引用旧名；历史面与 GLOSSARY 更名注记豁免），任一违例即拒绝
  *   ④ 宿主契约门（独立探针脚本，挂在冻结面门之后、不并入测试套件——探针
  *      三态 PASS/FAIL/SKIP，SKIP 分列计数可见；本门以 dev 面运行：SKIP 不
  *      阻断但可见，部署面由 scripts/host-contract-probe.mjs --face=deploy 把
@@ -19,7 +21,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
-import { dirname, join, relative } from "node:path";
+import { dirname, extname, join, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { tmpdirHint } from "../tests/run.mjs";
 import { scanKnowledgeLayerFace, scanKnowledgeRegisterWriters } from "../lib/org/knowledge-shared-face.js";
@@ -119,17 +121,69 @@ export function statusLint(scratchRoot) {
   return { scanned, violations };
 }
 
-/** 第③门：状态词表、知识库写者与日志检查共用违例出口，独立于回归和宿主探针。 */
+/**
+ * 第③门命名 lint：领域文档旧名（`CONTEXT` ＋ `.md`，mattpocock/skills v1.3 起更名
+ * `GLOSSARY.md`）不得再出现在活文件里。豁免＝历史面（.scratch 票面、docs/changelog
+ * 冻结卷、CHANGELOG-legacy、PLAN-*、artifacts、.worktrees、.tmp）与 `GLOSSARY.md`
+ * 自身的卷首更名注记（旧名的唯一合法出处，见 EV-20261005-glossary-rename）。
+ * 本模块内旧名拆写为 OLD_DOC_NAME 字面量的拼接，免本文件自指违例。
+ */
+const NAMING_LINT_EXT = new Set([".md", ".js", ".mjs", ".cjs"]);
+const OLD_DOC_NAME = `${"CONTEXT"}.md`;
+
+function isNamingExempt(relPath) {
+  return (
+    relPath === "GLOSSARY.md" ||
+    /^\.git\//.test(relPath) ||
+    /^node_modules\//.test(relPath) ||
+    /^\.scratch\//.test(relPath) ||
+    /^artifacts\//.test(relPath) ||
+    /^\.worktrees\//.test(relPath) ||
+    /^\.tmp\//.test(relPath) ||
+    /^docs\/changelog\//.test(relPath) ||
+    /^CHANGELOG-legacy-.*\.md$/.test(relPath) ||
+    /^PLAN-.*\.md$/.test(relPath)
+  );
+}
+
+function walkLiveFiles(repoRoot, relDir, out) {
+  for (const entry of readdirSync(join(repoRoot, relDir), { withFileTypes: true })) {
+    const rel = relDir ? `${relDir}/${entry.name}` : entry.name;
+    if (isNamingExempt(rel)) continue;
+    if (entry.isDirectory()) walkLiveFiles(repoRoot, rel, out);
+    else if (NAMING_LINT_EXT.has(extname(entry.name))) out.push(rel);
+  }
+  return out;
+}
+
+/** 扫活文件中的旧名引用；返回 {scanned, violations[]}。 */
+export function namingLint(repoRoot) {
+  const violations = [];
+  const files = walkLiveFiles(repoRoot, "", []);
+  for (const rel of files) {
+    const lines = readFileSync(join(repoRoot, rel), "utf8").split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      if (lines[i].includes(OLD_DOC_NAME)) {
+        violations.push(`${rel}:${i + 1} 「${OLD_DOC_NAME}」已更名 GLOSSARY.md`);
+      }
+    }
+  }
+  return { scanned: files.length, violations };
+}
+
+/** 第③门：状态词表、知识库写者、日志与命名检查共用违例出口，独立于回归和宿主探针。 */
 export function repositoryLint(repoRoot) {
   const status = statusLint(join(repoRoot, ".scratch"));
   const knowledge = scanKnowledgeLayerFace(repoRoot);
   const writers = scanKnowledgeRegisterWriters(repoRoot);
   const changelog = checkChangelog(repoRoot);
+  const naming = namingLint(repoRoot);
   return {
     scanned: status.scanned,
+    namingScanned: naming.scanned,
     knowledgeScanned: knowledge.scanned,
     knowledgeCallers: writers.callers,
-    violations: [...status.violations, ...knowledge.violations, ...writers.violations, ...changelog.violations]
+    violations: [...status.violations, ...knowledge.violations, ...writers.violations, ...changelog.violations, ...naming.violations]
   };
 }
 
@@ -184,7 +238,7 @@ if (isMain) {
   // ③ Status 词表与知识库写者扫描，共用违例出口。
   const lint = repositoryLint(repoRoot);
   if (lint.violations.length === 0) {
-    lines.push(`preflight ③status-lint: 0 违例（扫 ${lint.scanned} 个 md；知识库扫描 ${lint.knowledgeScanned} 个脚本，登记／废弃调用者 ${lint.knowledgeCallers.length} 个） ✅`);
+    lines.push(`preflight ③status-lint: 0 违例（扫 ${lint.scanned} 个 md；命名扫描 ${lint.namingScanned} 个活文件；知识库扫描 ${lint.knowledgeScanned} 个脚本，登记／废弃调用者 ${lint.knowledgeCallers.length} 个） ✅`);
   } else {
     lines.push(`preflight ③status-lint: ${lint.violations.length} 违例 ❌`);
     for (const v of lint.violations) lines.push(`  - ${v}`);
