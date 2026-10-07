@@ -27,7 +27,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
 import { internals } from "../lib/index.js";
-import { createTaskLedger, eventsFile, MAIN_FLOW, EVENT_TYPES, projectEvents } from "../lib/org/task-ledger.js";
+import { createTaskLedger, eventsFile, MAIN_FLOW, EVENT_TYPES } from "../lib/org/task-ledger.js";
 import { createCapabilityIssuer } from "../lib/org/capability-issue.js";
 import { createLedgerAccessKit, createLedgerCommandDispatcher } from "../lib/org/permissions.js";
 import { createLedgerHost } from "../lib/org/ledger-host.js";
@@ -289,14 +289,14 @@ const RUN = await runClosedLoop();
 const { home, ledger, frames, steps } = RUN;
 
 test("闭环烟测 ①：五段全链贯通——主干十态按序出现且终态为 closed（V-A2.3／§I 切换点判据④）", () => {
-  const all = ledger.events();
-  const stateEvents = all.filter((event) => event.taskId === TASK_ID);
+  const stateEvents = ledger.taskEvents(TASK_ID);
   // 逐事件重放投影：状态序列即事件序列的投影（状态不是被写回的字段）
+  // 逐序号询问＝折到该序号为止的结论（`at` 对损坏投影 fail closed 抛错）
   const visited = [];
   for (const event of stateEvents) {
-    const projected = projectEvents(all.filter((row) => row.seq <= event.seq), TASK_ID);
-    assert.equal(projected.ok, true, projected.reason);
-    if (visited[visited.length - 1] !== projected.task.status) visited.push(projected.task.status);
+    const projected = ledger.at(TASK_ID, event.seq);
+    assert.notEqual(projected, null, `seq ${String(event.seq)} 处任务尚未开档`);
+    if (visited[visited.length - 1] !== projected.status) visited.push(projected.status);
   }
   assert.deepEqual(visited, [...MAIN_FLOW], "主干十态按序走完（含终态 closed）");
   assert.equal(ledger.task(TASK_ID).status, "closed", "闭环终点＝closed");
@@ -336,7 +336,7 @@ test("闭环烟测 ②：台账投影可核——换只读门面重新投影同�
   );
   assert.equal(reread.openQueue().length, 0, "闭环后未闭合队列为空");
   const lines = readFileSync(eventsFile(home), "utf8").trim().split("\n");
-  assert.equal(lines.length, ledger.events().length, "落盘行数＝事件数（append-only，无静默丢失）");
+  assert.equal(lines.length, ledger.since(0).length, "落盘行数＝事件数（append-only，无静默丢失）");
 });
 
 test("闭环烟测 ③：通知＝台账事件投影——派单达被派方、复核请求达复核者、关闭达派单方（V-A2.12）", () => {
@@ -346,7 +346,7 @@ test("闭环烟测 ③：通知＝台账事件投影——派单达被派方、�
   assert.deepEqual(to("review-requested"), ["verifier"], "复核请求达当次复核者");
   assert.ok(to("close").includes("project-lead"), "关闭通知达派单方");
   assert.equal(new Set(notifications.map((note) => note.seq)).size, notifications.length, "通知与事件一一对应，无凭空通知");
-  assert.deepEqual(ledger.notificationsAfter(ledger.events().length).notifications, [], "无新事件不通知");
+  assert.deepEqual(ledger.notificationsAfter(ledger.view().lastSeq).notifications, [], "无新事件不通知");
 });
 
 test("闭环烟测 ④：复核帽由当次空闲实例佩戴，产出方自任即被机械拒绝（V-A1.3／V-A2.7）", () => {
