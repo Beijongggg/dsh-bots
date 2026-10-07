@@ -166,7 +166,7 @@ async function runLedgerRebuildDrill({ home, reportPath }) {
     if (assign.ok !== true) throw new DrillError(`assign ${taskId} 失败：${assign.reason ?? ""}`);
   }
   const beforeQueue = queueSummary(first);
-  const beforeEvents = first.events().length;
+  const beforeEvents = first.since(0).length;
   const holdBefore = first.holdingsFor("researcher");
   steps.push({ step: "驱动命令面：intake／planned／assigned 三张未闭合任务就位", at: nowIso(), events: beforeEvents });
   checks.push({ name: "停机前在办集合非空（演练有对象）", ok: beforeQueue.length === 3, detail: `openQueue=${String(beforeQueue.length)}` });
@@ -180,7 +180,7 @@ async function runLedgerRebuildDrill({ home, reportPath }) {
   // 冷启：同数据根建新门面，只从事件日志折叠
   const restarted = createTaskLedger({ dshHome: home, now: () => at + 60_000, lockSpinMs: 0 });
   const afterQueue = queueSummary(restarted);
-  const afterEvents = restarted.events().length;
+  const afterEvents = restarted.since(0).length;
   const replayed = await restarted.command({
     op: "task.triage", taskId: ids[0], actor: host,
     expectedStatus: "intake", expectedSeq: 1, idempotencyKey: `${ids[0]}-intake`
