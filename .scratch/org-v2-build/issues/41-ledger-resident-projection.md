@@ -75,3 +75,9 @@
   常驻态内存为 O(事件数)（含当前事实流）——「只留当前态」＝不留按序号／历史投影，
   此事已在票面定案内。
 - **落地**：`ce6f8fd` → 集成分支 `ee3fbe2`。
+- 2026-10-07：将已留界的磁盘读与常驻投影读分叉观察项补登记到
+  [PROJECT_UNDERSTANDING.md](../../../docs/PROJECT_UNDERSTANDING.md) 的“仍可选题”。
+  当前尚未观测到真实分叉，观测到后按本票失效规则另立票收口。登记来源为
+  [变更记录](../../../docs/changelog/2026-10-03.md) 的
+  `EV-20261007-ledger-review-fixup` 第三项，归位实施见
+  [pr2-review-fixes/02](../../pr2-review-fixes/issues/02-ledger-observation-registration.md)。

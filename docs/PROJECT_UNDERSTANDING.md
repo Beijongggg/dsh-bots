@@ -233,6 +233,13 @@
   宿主侧无可读错误出口。与 16 号票「implementer 无签发行／崩溃史」留观察同源。
   触发＝再次复现或影响真实派单时立票（改动面＝握手失败观测出口＋`attach`／`tick`／
   `live` 生命周期定位，坐标 `lib/org/capability-delivery.js`）。
+- 台账磁盘读与常驻投影读的结论分叉观察，2026-10-07 留界。
+  `at(taskId, "latest")` 走磁盘折叠，`task()`／`tasks()` 走常驻投影，同一回合内
+  理论上可能给出不同结论。当前仓内无并发写者的调用场景，尚未观测到真实分叉。
+  触发信号为观测到真实分叉，届时按
+  [41 号票](../.scratch/org-v2-build/issues/41-ledger-resident-projection.md)
+  的失效规则另立票收口。原留界见
+  [变更记录](changelog/2026-10-03.md) 的 `EV-20261007-ledger-review-fixup` 第三项。
 
 待触发项（非选题，条件满足即自动触发）：
 
