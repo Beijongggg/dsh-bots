@@ -59,10 +59,10 @@ test("宿主巡检：FAIL 与运行面 SKIP 自动进入 duty 台账，重复结
     const tasks = host.ledger.tasks();
     assert.equal(tasks.length, 2, "两处失效各有一张处置任务");
     assert.ok(tasks.every((task) => task.class === "duty"));
-    assert.deepEqual(host.ledger.events().filter((event) => event.type === "exception")
+    assert.deepEqual(host.ledger.since(0).filter((event) => event.type === "exception")
       .map((event) => event.detail.probeId).sort(), ["P-CLIENT-SLOTS", "P-CONFIG-IDS"]);
     await host.tick();
-    assert.equal(host.ledger.events().filter((event) => event.type === "exception").length, 2);
+    assert.equal(host.ledger.since(0).filter((event) => event.type === "exception").length, 2);
     assert.equal(host.ledger.notificationsAfter(0).notifications.filter((note) => note.type === "exception").length, 2);
   } finally {
     ledger.close();
@@ -84,10 +84,10 @@ test("宿主巡检不可执行或报告畸形：响亮入账，下次巡检可�
   try {
     await host.tick({ at: 0 });
     assert.equal(host.ledger.tasks().length, 1);
-    assert.match(host.ledger.events().find((event) => event.type === "exception").detail.reason, /超时/);
+    assert.match(host.ledger.since(0).find((event) => event.type === "exception").detail.reason, /超时/);
     unavailable = false;
     await host.tick({ at: 10 * 60 * 1000 });
-    const faults = host.ledger.events().filter((event) => event.type === "exception");
+    const faults = host.ledger.since(0).filter((event) => event.type === "exception");
     assert.equal(faults.length, 2);
     assert.match(faults[1].detail.reason, /报告/);
   } finally {
@@ -109,10 +109,10 @@ test("宿主巡检用独立子进程：零退出码的空报告不能放行，�
     probeHostContract: () => runHostContractProbe({ repoRoot, dshHome: home, timeoutMs: 500 }) });
   try {
     await host.tick({ at: 0 });
-    assert.match(host.ledger.events().find((event) => event.type === "exception").detail.reason, /报告/);
+    assert.match(host.ledger.since(0).find((event) => event.type === "exception").detail.reason, /报告/);
     writeFileSync(script, "setInterval(() => {}, 1000);");
     await host.tick({ at: 10 * 60 * 1000 });
-    assert.match(host.ledger.events().filter((event) => event.type === "exception")[1].detail.reason, /超时/);
+    assert.match(host.ledger.since(0).filter((event) => event.type === "exception")[1].detail.reason, /超时/);
   } finally {
     ledger.close();
     rmSync(home, { recursive: true, force: true });
@@ -188,7 +188,7 @@ test("异常汇入：收单积压截断与回合失败不再静默——处置�
       const task = ledger.task(anomaly.taskId);
       assert.equal(task.class, "duty", "异常处置＝常设（duty）任务");
       assert.equal(task.status, "intake");
-      const exceptions = ledger.events({ taskId: anomaly.taskId }).filter((e) => e.type === "exception");
+      const exceptions = ledger.taskEvents(anomaly.taskId).filter((e) => e.type === "exception");
       assert.equal(exceptions.length, 1);
       assert.equal(exceptions[0].kind, "task-stalled");
       assert.equal(exceptions[0].detail.botId, "researcher");
@@ -201,7 +201,7 @@ test("异常汇入：收单积压截断与回合失败不再静默——处置�
     // 幂等：同一条目重复汇入不产生第二条异常事件
     const again = await host.ingestAnomalies(NOW);
     assert.deepEqual(again, []);
-    const total = ledger.tasks().reduce((sum, task) => sum + ledger.events({ taskId: task.taskId }).filter((e) => e.type === "exception").length, 0);
+    const total = ledger.tasks().reduce((sum, task) => sum + ledger.taskEvents(task.taskId).filter((e) => e.type === "exception").length, 0);
     assert.equal(total, 2);
     // 持续异常不按时间窗反复开任务：仍只有两张处置任务
     assert.equal(ledger.tasks().length, 2);
@@ -367,7 +367,7 @@ test("人间收件箱投递面：待裁项带裁定包与终裁动作、告知�
     assert.equal((await step("TK-00000096", "task.report", { kind: "post", id: "researcher" }, { deliverable: "坐标：docs/x.md" })).ok, true);
     assert.equal((await step("TK-00000096", "task.deliver", { kind: "post", id: "researcher" }, {})).ok, true);
 
-    const before = ledger.events().length;
+    const before = ledger.view().lastSeq;
     const inbox = await call(api, "GET", "/api/bots/_ledger/inbox?cursor=0");
     assert.equal(inbox.status, 200);
     assert.equal(inbox.body.pending.length, 1, "只有挂起任务进待裁列表");
@@ -382,7 +382,7 @@ test("人间收件箱投递面：待裁项带裁定包与终裁动作、告知�
     assert.deepEqual(item.packet.positions.trail.toSeq, ledger.task("TK-00000095").lastSeq);
     assert.deepEqual(inbox.body.notices.map((entry) => entry.kind), ["delivery-return"], "告知项并列、不进待裁");
     assert.ok(inbox.body.cursor > 0);
-    assert.equal(ledger.events().length, before, "投递面是只读投影：读不改台账");
+    assert.equal(ledger.view().lastSeq, before, "投递面是只读投影：读不改台账");
     assert.equal(ledger.task("TK-00000095").status, "waiting-user");
     const wrongMethod = await call(api, "POST", "/api/bots/_ledger/inbox");
     assert.equal(wrongMethod.status, 405);
@@ -400,7 +400,7 @@ test("HTTP 命令面是唯一写入口：台账事件只由命令面产生（V-A
     await call(api, "GET", "/api/bots/_ledger");
     await call(api, "GET", "/api/bots/_ledger/tasks");
     await call(api, "GET", "/api/bots/_ledger/notifications?cursor=0");
-    assert.equal(ledger.events().length, 0, "只读请求不得写入事实源");
+    assert.equal(ledger.view().lastSeq, 0, "只读请求不得写入事实源");
     // 台账模块导出面不含裸 append（写通道只有命令面）
     assert.equal(typeof createLedgerViaInternals({ dshHome: home }).append, "undefined");
     assert.equal(typeof createHostViaInternals, "function");
@@ -503,7 +503,7 @@ test("HTTP 命令面经 dispatchCommand 出手并透传 capability 信封（06 �
     assert.equal(result.status, 200);
     assert.equal(result.body.via, "dispatcher", "接线了 dispatcher 就不得直落裸命令面");
     assert.deepEqual(seen[0].capability, envelope, "信封必须原样透传给鉴权面");
-    assert.equal(ledger.events().length, 0, "dispatcher 接管时裸命令面未被调用");
+    assert.equal(ledger.view().lastSeq, 0, "dispatcher 接管时裸命令面未被调用");
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
@@ -595,14 +595,14 @@ test("复核面 HTTP：移交件读与报告提交经帽信封门；未携帽 40
     assert.equal(reported.body.capability?.payload?.post, "verifier", "响应携带续签帽（链式）");
 
     // 同键缓存成功不代表本次消费。旧帽反复重放、新帽重放都不能增发帽或追加事件。
-    const afterReport = ledger.events().length;
+    const afterReport = ledger.view().lastSeq;
     for (const capability of [hat.envelope, hat.envelope, reported.body.capability]) {
       const replay = await call(api, "POST", "/api/bots/_ledger/reviews", { ...reportBody, capability });
       assert.equal(replay.status, 200);
       assert.equal(replay.body.replayed, true);
       assert.equal(replay.body.capability === undefined, true, "缓存成功的重放不重签帽");
     }
-    assert.equal(ledger.events().length, afterReport, "同键重放零追加事件");
+    assert.equal(ledger.view().lastSeq, afterReport, "同键重放零追加事件");
     const nextReport = await call(api, "POST", "/api/bots/_ledger/reviews", {
       ...reportBody, idempotencyKey: "rvh-report-next", capability: reported.body.capability
     });
@@ -778,7 +778,7 @@ test("复核面续签（21 号票 ①）：报告被台账拒绝（review-not-re
     assert.equal(rejected.body.capability?.payload?.post, "verifier",
       "预筛通过（帽腿已过、已被台账腿消费）而报告被拒：同样续签帽，否则复核者连报即断链");
 
-    const afterRejection = ledger.events().length;
+    const afterRejection = ledger.view().lastSeq;
     for (const capability of [hat.envelope, hat.envelope, rejected.body.capability]) {
       const replay = await call(api, "POST", "/api/bots/_ledger/reviews", { ...rejectedBody, capability });
       assert.equal(replay.status, 409);
@@ -786,7 +786,7 @@ test("复核面续签（21 号票 ①）：报告被台账拒绝（review-not-re
       assert.equal(replay.body.code, "review-not-requested");
       assert.equal(replay.body.capability === undefined, true, "缓存拒绝带 authorized 也不得重复签帽");
     }
-    assert.equal(ledger.events().length, afterRejection, "拒绝结果的重放也不再落事件");
+    assert.equal(ledger.view().lastSeq, afterRejection, "拒绝结果的重放也不再落事件");
 
     // 续签帽可连报：换合法 subject 提交即 200（链式接力）
     const reported = await call(api, "POST", "/api/bots/_ledger/reviews", {
@@ -865,7 +865,7 @@ test("复核面消费点在台账腿（27 号票）：同一信封二次提交�
     assert.equal(replay.body.code, "capability-replayed");
     assert.equal(replay.body.capability, undefined,
       "已消费信封的重放拒绝发生在帽腿之前：不续签（否则一张旧帽可无限换新帽）");
-    assert.equal(ledger.events({ taskId: "TK-00000072" }).filter((e) => e.type === "review-reported").length, 1,
+    assert.equal(ledger.taskEvents("TK-00000072").filter((e) => e.type === "review-reported").length, 1,
       "重放不得落第二条复核报告");
   } finally {
     rmSync(home, { recursive: true, force: true });
@@ -1056,7 +1056,7 @@ test("knowledge.register 命令化：授权过的岗位实例经 host 执行登�
     assert.ok(existsSync(join(reportsDirFor(home), "R-2026-001.md")), "报告全文由 host 落盘");
 
     // 登记不落台账事件（登记不构成任务完成依据）
-    assert.equal(ledger.events().length, 0, "knowledge.register 是宿主侧执行面 op，不落台账事件");
+    assert.equal(ledger.view().lastSeq, 0, "knowledge.register 是宿主侧执行面 op，不落台账事件");
 
     // 复核帽不得持该 op：帽信封调用即拒（op 不在 availableOps）
     const hat = issuer.issueRoleCapability({ botId: "bot-reviewer", post: "verifier" });
@@ -1102,7 +1102,7 @@ test("knowledge.deprecate：命令化废弃腿——授权后走 host 执行，�
     const entry = readIndex(home)[0];
     assert.equal(entry.status, "deprecated");
     assert.equal(entry.deprecatedReason, "被后续实测否定", "理由留痕");
-    assert.equal(ledger.events().length, 0, "废弃腿同样不落台账事件");
+    assert.equal(ledger.view().lastSeq, 0, "废弃腿同样不落台账事件");
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
@@ -1158,12 +1158,12 @@ test("探针失效以 class=duty 例程任务落台账承载：不新增事件�
     assert.equal(task.routineId, "duty-probe-failure");
     assert.equal(task.status, "intake", "登记不改状态：处置任务立在待分诊处");
     // 失效本体＝既有异常事件（四类之内），不新增台账事件类型
-    const events = ledger.events({ taskId: raised.taskId });
+    const events = ledger.taskEvents(raised.taskId);
     const exception = events.find((event) => event.type === "exception");
     assert.ok(exception !== undefined, "失效本体落 exception 事件");
     assert.equal(exception.kind, "waiting-external", "宿主面失效＝等待外部依赖（异常四类之内）");
     assert.equal(exception.detail.probeId, failure.probeId);
-    for (const event of ledger.events()) {
+    for (const event of ledger.since(0)) {
       assert.ok(EVENT_TYPES.includes(event.type), `${event.type} 不在封闭事件词表内（不得新增事件类型）`);
     }
     // 人间接口告知：通知＝事件投影（exception → user）
@@ -1180,12 +1180,12 @@ test("探针失效以 class=duty 例程任务落台账承载：不新增事件�
     const other = await host.registerProbeFailure({ ...failure, reason: "令牌未注入" });
     assert.equal(other.taskId, raised.taskId);
     assert.equal(other.exceptionReplayed, false, "不同因＝新异常条目（非重放）");
-    assert.equal(ledger.events({ taskId: raised.taskId }).filter((event) => event.type === "exception").length, 2);
+    assert.equal(ledger.taskEvents(raised.taskId).filter((event) => event.type === "exception").length, 2);
     // 输入 fail closed：缺探针 id／缺面 id 即拒，不落任何事件
-    const before = ledger.events().length;
+    const before = ledger.view().lastSeq;
     assert.equal((await host.registerProbeFailure({ face: "HF-X" })).code, "probe-failure-args");
     assert.equal((await host.registerProbeFailure({ probeId: "P-X" })).code, "probe-failure-args");
-    assert.equal(ledger.events().length, before, "参数不合法＝零写入");
+    assert.equal(ledger.view().lastSeq, before, "参数不合法＝零写入");
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
