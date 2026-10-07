@@ -27,3 +27,21 @@
 使「真实宿主 × 改动后 client」在本会话浏览器内运行；**`~/.dsh` 与部署面零写入**。
 故本附件只证明改动正确，**不代表现役面已生效**——现役生效需用户点头的部署同步
 （client 面按请求重打包，**无需重启**即生效）。
+
+## 现役面生效（同日，用户点名同步后）
+
+用户反馈「我这里没看到修改，两处都没有」——原因是本批**当时未做部署同步**（见上「边界」）。
+按此点名执行同步批 `org-v2-18-ui-pod-20261007T072107Z`（3 件：本批 `lib/client.js` ＋前批返工漂移的
+`scripts/host-contract-probe.mjs`／`tests/host-contract-gate.test.mjs`；排他备份
+`~/.dsh/backups/dsh-bots/org-v2-18-ui-pod-20261007T072107Z-backup-c6c50d35/`），同步后
+**整面复核 199/199 same、deploymentOnly 0**。
+
+现役面实测（**无拦截**、`ignoreCache` 重载后）：
+
+- 入口：`label = "Pod"`、`aria-label = "Pod"`；现役插件包 `rev` 由 `fa24639987c7` 变为 **`3eef3017a190`**，
+  包内含 `"entry.label": "Pod"`、**不含** `dsh-bots-logo-title`。
+- Bot 模式侧栏：`.dsh-bots-logo-title` 节点数 **0**，左上角首行已是「新建 Bot」。
+- 退出还原正常；会话内 console error 0。
+- 证据：`live-01-native-entry.png`、`live-02-bot-mode.png`、`live-raw-session.json`。
+- 顺带：40 秒通知守候**未见任何通知**（duty 席仍未握手；`channels` 仅 implementer）——第 4 项仍缺事件。
+

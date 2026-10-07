@@ -1,0 +1,148 @@
+{
+ "capturedAt": "2026-10-07T07:23:03.208Z",
+ "targetId": "8BDE19AE9B9E73F92AA19D721F9A6F1B",
+ "results": [
+  {
+   "index": 0,
+   "action": "ensure",
+   "label": null,
+   "result": {
+    "targetId": "8BDE19AE9B9E73F92AA19D721F9A6F1B",
+    "url": "about:blank"
+   },
+   "ms": 0
+  },
+  {
+   "index": 1,
+   "action": "viewport",
+   "label": null,
+   "result": {},
+   "ms": 2
+  },
+  {
+   "index": 2,
+   "action": "goto",
+   "label": null,
+   "result": {
+    "frameId": "8BDE19AE9B9E73F92AA19D721F9A6F1B",
+    "loaderId": "A38D3884FD51204E7959C6D22D0FA181",
+    "isDownload": false
+   },
+   "ms": 6792
+  },
+  {
+   "index": 3,
+   "action": "reload",
+   "label": null,
+   "ms": 9436
+  },
+  {
+   "index": 4,
+   "action": "eval",
+   "label": "L1-现役入口",
+   "result": {
+    "label": "Pod",
+    "aria": "Pod"
+   },
+   "ms": 4
+  },
+  {
+   "index": 5,
+   "action": "eval",
+   "label": "L2-现役包标记",
+   "result": {
+    "rev": "3eef3017a190",
+    "byteLength": 1167327,
+    "hasEntryLabelPod": true,
+    "hasLogoTitle": false,
+    "hasPodEntry": true
+   },
+   "ms": 14
+  },
+  {
+   "index": 6,
+   "action": "shot",
+   "label": null,
+   "result": {
+    "path": "/home/beijong/project/dsh-bots/.scratch/org-v2-build/attachments/18-ui-text-2026-10-07/live-01-native-entry.png",
+    "bytes": 81221
+   },
+   "ms": 85
+  },
+  {
+   "index": 7,
+   "action": "click",
+   "label": null,
+   "result": {
+    "clicked": true,
+    "tag": "button",
+    "text": "Pod"
+   },
+   "ms": 2524
+  },
+  {
+   "index": 8,
+   "action": "eval",
+   "label": "L3-左上角",
+   "result": {
+    "logoTitleNodes": 0,
+    "firstLines": [
+     "新建 Bot",
+     "值班统筹"
+    ]
+   },
+   "ms": 4
+  },
+  {
+   "index": 9,
+   "action": "shot",
+   "label": null,
+   "result": {
+    "path": "/home/beijong/project/dsh-bots/.scratch/org-v2-build/attachments/18-ui-text-2026-10-07/live-02-bot-mode.png",
+    "bytes": 227813
+   },
+   "ms": 64
+  },
+  {
+   "index": 10,
+   "action": "eval",
+   "label": "L4-通知守候40秒",
+   "result": {
+    "noticesSeen": []
+   },
+   "ms": 40004
+  },
+  {
+   "index": 11,
+   "action": "eval",
+   "label": "L5-退出",
+   "result": {
+    "found": true
+   },
+   "ms": 60
+  },
+  {
+   "index": 12,
+   "action": "sleep",
+   "label": null,
+   "result": {
+    "slept": 1500
+   },
+   "ms": 1500
+  },
+  {
+   "index": 13,
+   "action": "eval",
+   "label": "L6-还原",
+   "result": {
+    "botsRoots": 0,
+    "entryBack": true
+   },
+   "ms": 3
+  }
+ ],
+ "fulfilled": [],
+ "paused": [],
+ "console": [],
+ "exceptions": []
+}
