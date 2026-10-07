@@ -168,8 +168,8 @@ test("关闭检查期间取消：旧 CAS 被拒，取消投影及队列保持可
     assert.equal(closed.code, "cas-mismatch");
     assert.equal(ledger.task(taskId).status, "cancelled");
     assert.deepEqual(ledger.openQueue(), []);
-    assert.equal(ledger.events({ taskId }).filter((event) => event.type === "close").length, 0);
-    assert.equal(ledger.events({ taskId }).at(-1).code, "cas-mismatch");
+    assert.equal(ledger.taskEvents(taskId).filter((event) => event.type === "close").length, 0);
+    assert.equal(ledger.taskEvents(taskId).at(-1).code, "cas-mismatch");
   } finally {
     check.release();
     await Promise.allSettled([closing]);
@@ -198,7 +198,7 @@ test("同键并发关闭只记录首次结论，后到检查重放成功或拒�
       const pending = [];
       try {
         await walkToSettled(ledger, taskId);
-        const before = ledger.events().length;
+        const before = ledger.view().lastSeq;
         pending.push(close(ledger, taskId, "c271-close"), close(ledger, taskId, "c271-close"));
         await check.checking;
         check.release();
@@ -208,7 +208,7 @@ test("同键并发关闭只记录首次结论，后到检查重放成功或拒�
         assert.equal(second.ok, first.ok);
         assert.equal(second.code, first.code);
         assert.equal(second.snapshotSha256, first.snapshotSha256);
-        assert.equal(ledger.events().length, before + 1, "并发同键只落首次结论的一个事件");
+        assert.equal(ledger.view().lastSeq, before + 1, "并发同键只落首次结论的一个事件");
         assert.equal(ledger.task(taskId).status, pass ? "closed" : "settled");
         const later = await close(ledger, taskId, "c271-close");
         assert.equal(later.replayed, true);
@@ -250,7 +250,7 @@ test("关闭检查期间改简报或强制加审：旧检查不能关闭新版�
         assert.equal(updated.ok, true, updated.reason);
         assert.equal(closed.code, "cas-mismatch");
         assert.equal(ledger.task(taskId).status, "settled");
-        assert.equal(ledger.events({ taskId }).filter((event) => event.type === "close").length, 0);
+        assert.equal(ledger.taskEvents(taskId).filter((event) => event.type === "close").length, 0);
         if (change === "amend") {
           assert.deepEqual(ledger.task(taskId).acceptance, [passCriterion("新增判据")]);
         } else {
@@ -283,7 +283,7 @@ test("不同键并发关闭只有一次成功，另一条 CAS 拒绝且投影可
     const results = await Promise.all(pending);
     assert.equal(results.filter((result) => result.ok).length, 1);
     assert.equal(results.find((result) => !result.ok).code, "cas-mismatch");
-    assert.equal(ledger.events({ taskId }).filter((event) => event.type === "close").length, 1);
+    assert.equal(ledger.taskEvents(taskId).filter((event) => event.type === "close").length, 1);
     assert.equal(ledger.task(taskId).status, "closed");
     assert.deepEqual(ledger.openQueue(), []);
     const reader = createTaskLedger({ dshHome: home, readOnly: true });
@@ -347,7 +347,7 @@ test("关闭检查期间产出登记撤除或变得不可读：不得按旧登�
         assert.equal(result.ok, false);
         assert.equal(result.code, unreadable ? "artifact-registry-unreadable" : "artifact-not-registered");
         assert.equal(ledger.task(taskId).status, "settled");
-        assert.equal(ledger.events({ taskId }).filter((event) => event.type === "close").length, 0);
+        assert.equal(ledger.taskEvents(taskId).filter((event) => event.type === "close").length, 0);
       } finally {
         check.release();
         await Promise.allSettled([closing]);
@@ -405,12 +405,12 @@ test("判据不过即拒：回执点名第几条／什么命令／为什么并�
       "摘要＝该次快照的字节级绑定（可独立重算复验）");
     assert.equal(ledger.task("TK-00000251").status, "settled", "拒绝不得改状态");
     // 拒绝落账：既有 `command-rejected` 事件（词表零扩条），理由串在账上可读
-    const rejected = ledger.events({ taskId: "TK-00000251" }).filter((e) => e.type === "command-rejected");
+    const rejected = ledger.taskEvents("TK-00000251").filter((e) => e.type === "command-rejected");
     assert.equal(rejected.length, 1);
     assert.equal(rejected[0].op, "task.close");
     assert.equal(rejected[0].code, "acceptance-check-failed");
     assert.match(rejected[0].reason, /验收判据 #1/);
-    for (const event of ledger.events({ taskId: "TK-00000251" })) {
+    for (const event of ledger.taskEvents("TK-00000251")) {
       assert.ok(EVENT_TYPES.includes(event.type), `${event.type} 不在封闭事件词表内`);
     }
     assert.equal(EVENT_TYPES.length, 30, "事件词表零扩条（25 号票不新增台账事件类型）");
@@ -622,7 +622,7 @@ test("执行面抛错不得逃逸：折算成拒绝回执并落账（工厂抛�
     assert.equal(rejected.ok, false, "抛错不得逃出命令面（否则 HTTP 面成 500、账上无痕）");
     assert.equal(rejected.code, "acceptance-check-unwired");
     assert.match(rejected.reason, /工厂炸了/, "理由串带原异常信息（可归因）");
-    const recorded = factoryThrows.events({ taskId: "TK-00000262" }).filter((e) => e.type === "command-rejected");
+    const recorded = factoryThrows.taskEvents("TK-00000262").filter((e) => e.type === "command-rejected");
     assert.equal(recorded.length, 1, "拒绝须落 command-rejected（Testing Decisions：拒绝 fail closed 且留台账事件）");
     assert.equal(recorded[0].code, "acceptance-check-unwired");
     assert.equal(factoryThrows.task("TK-00000262").status, "settled", "状态不变");
@@ -641,7 +641,7 @@ test("执行面抛错不得逃逸：折算成拒绝回执并落账（工厂抛�
     assert.equal(blocked.snapshotSha256, null, "抛错没有快照就不虚构摘要");
     assert.equal(runnerThrows.task("TK-00000263").status, "settled");
     assert.equal(
-      runnerThrows.events({ taskId: "TK-00000263" }).filter((e) => e.type === "command-rejected").length, 1,
+      runnerThrows.taskEvents("TK-00000263").filter((e) => e.type === "command-rejected").length, 1,
       "执行体抛错的拒绝同样留账"
     );
   } finally {

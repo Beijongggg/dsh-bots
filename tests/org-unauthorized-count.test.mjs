@@ -285,7 +285,7 @@ test("缝③ 达阈上浮：sweep 落 escalated（cause=out-of-bounds）入 wait
     const requirement = userRulingRequirement({ task });
     assert.equal(requirement.nonDelegable, "out-of-bounds-handling");
 
-    const escalatedEvents = ledger.events({ taskId: "TK-aaaa0001" })
+    const escalatedEvents = ledger.taskEvents("TK-aaaa0001")
       .filter((event) => event.type === "escalated");
     assert.equal(escalatedEvents.length, 1);
     assert.equal(escalatedEvents[0].actor.kind, UNAUTHORIZED_ESCALATION_ACTOR.kind);
@@ -305,7 +305,7 @@ test("缝③ 每越权串至多一次：二次 sweep 与续犯（同串内继续
     await attempt(ledger, { taskId: "TK-aaaa0001", botId: "bot-a", code: "op-not-in-opset", index: 4 });
     assert.deepEqual((await ledger.sweep({ at: Date.now() })).unauthorized, []);
     assert.equal(
-      ledger.events({ taskId: "TK-aaaa0001" }).filter((event) => event.type === "escalated").length, 1,
+      ledger.taskEvents("TK-aaaa0001").filter((event) => event.type === "escalated").length, 1,
       "同串只落一次上浮事件"
     );
   });
@@ -325,7 +325,7 @@ test("缝③ 无在手任务的越权串：只通知派单方不上浮（拒绝�
     assert.equal(entry.notices[0].to, "project-lead");
     assert.equal(ledger.task("TK-aaaa0001").status, "assigned", "被越权任务状态不变");
     assert.equal(
-      ledger.events().filter((event) => event.type === "escalated").length, 0,
+      ledger.since(0).filter((event) => event.type === "escalated").length, 0,
       "无在手任务＝零上浮事件"
     );
     // 通知锚点在幂等预留（无事件路径的唯一跨拍锚点）：同串下一拍不重发
@@ -391,7 +391,7 @@ test("缝⑤ 达阈通知落台账事件：每被越权任务一条 unauthorized
     assert.equal(swept.unauthorized[0].notices.length, 1);
     assert.ok(Number.isInteger(swept.unauthorized[0].notices[0].seq), "随 sweep 结果回报通知事件 seq");
 
-    const notifiedEvents = ledger.events().filter((event) => event.type === "unauthorized-notified");
+    const notifiedEvents = ledger.since(0).filter((event) => event.type === "unauthorized-notified");
     assert.equal(notifiedEvents.length, 1, "通知落台账事件（非仅日志＋SSE）");
     assert.equal(notifiedEvents[0].taskId, "TK-aaaa0001");
     assert.equal(notifiedEvents[0].instanceId, "bot-a");
@@ -416,12 +416,12 @@ test("缝⑤ 无在手任务路径的事件落点：只通知不上浮但也有�
     }
     const swept = await ledger.sweep({ at: Date.now() });
     assert.equal(swept.unauthorized[0].escalatedTaskId, null);
-    const notifiedEvents = ledger.events().filter((event) => event.type === "unauthorized-notified");
+    const notifiedEvents = ledger.since(0).filter((event) => event.type === "unauthorized-notified");
     assert.equal(notifiedEvents.length, 1, "零事件路径补齐：通知事件锚在被越权任务上");
     assert.equal(notifiedEvents[0].instanceId, "bot-b");
 
     assert.deepEqual((await ledger.sweep({ at: Date.now() })).unauthorized, [], "同串已通知（事件锚点）——下一拍不重发");
-    assert.equal(ledger.events().filter((event) => event.type === "unauthorized-notified").length, 1);
+    assert.equal(ledger.since(0).filter((event) => event.type === "unauthorized-notified").length, 1);
   });
 });
 
