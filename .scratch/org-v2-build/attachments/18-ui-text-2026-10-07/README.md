@@ -45,3 +45,18 @@
 - 证据：`live-01-native-entry.png`、`live-02-bot-mode.png`、`live-raw-session.json`。
 - 顺带：40 秒通知守候**未见任何通知**（duty 席仍未握手；`channels` 仅 implementer）——第 4 项仍缺事件。
 
+## 第三处（用户「完成甲」）：列表态主区模式 chip 去文字
+
+改动：未选中 bot 时主区左上角的模式 chip 由「图标＋`Bot 模式`」改为**只留图标**
+（`h("div",{className:"dsh-bots-header-mode"}, [BotOutlineIcon, "Bot 模式"])` → 仅 `BotOutlineIcon`）。
+同步批 `org-v2-18-ui-chip-20261007T073321Z`（1 件；排他备份 `…-backup-340f0601/`）后**整面 199/199 same**。
+
+现役面实测（无拦截、`ignoreCache` 重载）：插件包 `rev` → `5edd02b1564e`，包内**不再含**该 chip 的
+`t("mode.title")`；列表态 `.dsh-bots-header-mode` 的 `innerText` 为**空**（仅图标，含 4 个 SVG 子节点）；
+退出还原正常；console error 0。证据：`live-04-bot-list-chip.png`（列表态）、`live-03-bot-list-now.png`。
+
+## 附带：通知守候（第 4 项）
+
+为清单第 4 项（通知卡片）挂了常连 CDP 轮询守候：页面内 `MutationObserver` 持续收
+`.dsh-bots-notices` 文本，检测到即抓 HTML＋截图（卡片只活 ~4 秒）。守候脚本
+`notice-watch.mjs` 与结果件 `notice-watch-result.json`（命中/超时均为结论）随本目录留档。

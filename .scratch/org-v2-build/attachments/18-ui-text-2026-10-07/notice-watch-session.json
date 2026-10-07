@@ -1,0 +1,75 @@
+{
+ "capturedAt": "2026-10-07T07:31:03.347Z",
+ "targetId": "17661B7ED74E0349EA12A280B7418DB9",
+ "results": [
+  {
+   "index": 0,
+   "action": "ensure",
+   "label": null,
+   "result": {
+    "targetId": "17661B7ED74E0349EA12A280B7418DB9",
+    "url": "about:blank"
+   },
+   "ms": 0
+  },
+  {
+   "index": 1,
+   "action": "viewport",
+   "label": null,
+   "result": {},
+   "ms": 1
+  },
+  {
+   "index": 2,
+   "action": "goto",
+   "label": null,
+   "result": {
+    "frameId": "17661B7ED74E0349EA12A280B7418DB9",
+    "loaderId": "160AA640B40B8FC477A2F78F0B7792A3",
+    "isDownload": false
+   },
+   "ms": 6779
+  },
+  {
+   "index": 3,
+   "action": "inject",
+   "label": null,
+   "result": {
+    "identifier": "1"
+   },
+   "ms": 1
+  },
+  {
+   "index": 4,
+   "action": "eval",
+   "label": "W-通知守候（最长25分钟，出现即抓）",
+   "error": "CDP timeout: Runtime.evaluate",
+   "ms": 60006
+  },
+  {
+   "index": 5,
+   "action": "shot",
+   "label": null,
+   "result": {
+    "path": "/home/beijong/project/dsh-bots/.scratch/org-v2-build/attachments/18-ui-text-2026-10-07/notice-01-caught.png",
+    "bytes": 81324
+   },
+   "ms": 84
+  },
+  {
+   "index": 6,
+   "action": "eval",
+   "label": "W-终值",
+   "result": {
+    "notices": [],
+    "at": null,
+    "htmlSnippet": ""
+   },
+   "ms": 2
+  }
+ ],
+ "fulfilled": [],
+ "paused": [],
+ "console": [],
+ "exceptions": []
+}
