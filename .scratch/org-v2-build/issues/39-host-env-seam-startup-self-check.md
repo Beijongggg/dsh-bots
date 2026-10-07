@@ -148,3 +148,19 @@ bot 实例分支零宿主自检行。真实运行面零写入。
 立票。**部署面**：本批未同步现役部署（出仓库动作须逐项点名）；本批改动使
 `deploymentInventory.sourceDigest` 前移，就绪面将按既有口径提示「宿主加载的代码摘要
 与仓库不符，须完成重启链」，属预期可见状态。
+
+### 2026-10-07 PR #2 复审返修
+
+用户在 `$code-review pr2` 的发现后点名 `$implement-spec`，返修工单为
+[pr2-review-fixes/01](../../pr2-review-fixes/issues/01-host-origin-and-url-shape.md)。
+本票第四项裁定对应的两处调用此前把 `process.env` 对象传给只收字符串的
+`normalizeSeamOrigin`，导致合法配置下仍缺 origin。提交
+`995a72f6a3a6224d718da79f82dc20a371df2155` 改传环境变量字符串，并补齐裸
+`?`／`#` 的 `malformed` 判定，保留合法路径前缀与编码路径字符。
+
+逐项红绿从真 spawn 子进程实得 `undefined`、真 `apply` 岗位工具未注册、
+四种裸分隔符错误判 `ok` 开始，修复后 `spawn-env` 6/6、`host-env-seam` 17/17，
+四文件语法检查通过。正向 `apply` 验证实际邮箱游标请求、`mail.send` 与
+`ledger.read` 的结果；宿主服务和网络均接隔离夹具，真实运行面零写入。
+完整命令、红时断言与日志路径见返修工单 Comments。全量回归、preflight、
+两轴复审与统一日志由 `integration/pr2-review-fixes` 收口。

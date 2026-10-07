@@ -15,12 +15,12 @@ bot `apply` 两处参数，使 `normalizeSeamOrigin` 收到环境变量字符串
 
 ## Acceptance criteria
 
-- [ ] 宿主带合法 URL 启动席位时，真实假 bin 子进程收到归一化后的 URL。
-- [ ] bot 分支带合法 URL 运行真实 `apply()`，邮箱 watcher 与组织工具接线可用，
+- [x] 宿主带合法 URL 启动席位时，真实假 bin 子进程收到归一化后的 URL。
+- [x] bot 分支带合法 URL 运行真实 `apply()`，邮箱 watcher 与组织工具接线可用，
       不再输出缺 origin 的休眠告警。
-- [ ] 裸 `?`、裸 `#`、既有非空 query／fragment 均返回 `malformed`；正常 origin
+- [x] 裸 `?`、裸 `#`、既有非空 query／fragment 均返回 `malformed`；正常 origin
       与合法路径前缀保持有效。
-- [ ] 按 TDD 逐项留下先红后绿的行为证据，不断言源码拼写或 mock 内部归一化函数。
+- [x] 按 TDD 逐项留下先红后绿的行为证据，不断言源码拼写或 mock 内部归一化函数。
 - [ ] 改动文件 `node --check` 与 scoped 测试通过；集成阶段全量回归与 preflight
       按真实 PASS／SKIP 口径落档。
 - [ ] 原 39 号票 Comments 追加返修来源与验证指针；本票 Comments 与 CHANGELOG
@@ -36,3 +36,41 @@ Comments。不改 CHANGELOG 或本 feature 的 spec.md，由集成阶段统一�
 
 - 2026-10-07：用户在上述评审后点名 `$implement-spec`。实施前确认分支基于
   `integration/pr2-review-fixes`；交付前合入其最新提交。
+
+### 2026-10-07 实施与逐项红绿证据
+
+授权依据为用户在 PR #2 三项评审发现后点名 `$implement-spec`。独占工作树
+`.worktrees/pr2-host-fix` 的初始 `HEAD` 与集成分支均为 `d83321c`，工作树干净。
+代码与测试提交为 `995a72f6a3a6224d718da79f82dc20a371df2155`。
+
+`spawnBot` 与 bot `apply` 改传 `process.env.DSH_BOTS_HOST_URL` 字符串。
+URL 形状判定直接检查归一化值中的 `?`／`#`，覆盖 `URL.search`／`hash` 返回
+空串的裸分隔符。合法反代前缀与编码路径 `%3F`／`%23` 的原有行为保留。
+
+三个切片按表序逐项实施，每次都在红断言出现后才改对应生产代码：
+
+| 切片 | 红时实际观测 | 绿时结果 | 日志 |
+|---|---|---|---|
+| 真 spawn 的假 bin 出口 | 期望 `https://bots.example/base`，实得 `undefined`；5 过、1 败 | `spawn-env` 6/6 | `host-spawn-red.log`、`host-spawn-green.log` |
+| 真 `apply(ctx)` 的 bot 分支 | `合法 origin 下岗位工具须注册` 断言为 false；15 过、1 败 | `host-env-seam` 16/16；邮箱游标请求、`mail.send` 与 `ledger.read` 均接到归一化后的夹具 URL | `host-apply-red.log`、`host-apply-green.log` |
+| 裸 query／fragment 分隔符 | 根 origin 与带前缀 origin 的 `?`／`#` 四值均实得 `ok`、期望 `malformed`；16 过、1 败 | `host-env-seam` 17/17，随后 `spawn-env` 6/6 | `host-shape-red.log`、`host-shape-green.log` |
+
+日志目录为 `/tmp/dsh-bots-pr2-implement-7mon70nd/`。该目录的 `host-scoped.py`
+为临时运行入口，给子进程单独的临时 `DSH_HOME`，关闭自动启动与自动重启，
+清除继承的 origin、假 bin、env 逃生阀及 `NODE_OPTIONS`。每次先对四个变更 JS
+文件执行 `node --check`，再执行 `node tests/spawn-env.test.mjs` 或
+`node --test tests/host-env-seam.test.mjs`。复跑命令示例：
+
+```sh
+python3 /tmp/dsh-bots-pr2-implement-7mon70nd/host-scoped.py verify tests/host-env-seam.test.mjs tests/spawn-env.test.mjs
+```
+
+最终 scoped 共 23/23、0 SKIP，四文件语法检查通过。真 `apply` 用例仅在宿主
+tools 服务与 `fetch` 网络边界放夹具，所有请求都由夹具应答，不调用原 `fetch`。
+提交钩子通过冻结面 10/10 与文档检查 0 违例。未执行全量回归或部署动作。
+
+### 移交备注：当前假设＋下一步＋关键证据指针
+
+两项缺陷均有先红后绿证据，当前没有待验证的故障假设。下一步由集成分支执行
+全量回归、preflight、技能内两轴复审及统一 CHANGELOG 落档，再关闭本票。
+实施提交与逐项日志见上节；原 39 号票 Comments 已追加本次返修指针。
