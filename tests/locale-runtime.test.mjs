@@ -116,7 +116,7 @@ test("真实注册：apply 后 bind 查询 zh 命中 / 参数模板 / common 回
   const dispose = applyBotPlugin();
   try {
     const t = locale.bind("bots"); // 与 apply 持有的绑定是同一缓存闭包（bind 按 ns 缓存）
-    assert.equal(t("mode.title"), "Bot 模式");
+    assert.equal(t("state.online"), "在线");
     assert.equal(t("notice.online", { name: "研究员" }), "「研究员」已上线");
     assert.equal(t("close"), "关闭"); // 真 common 回退（官方 apply 注册的 common 字典）
   } finally {
@@ -143,7 +143,7 @@ test("真实语言切换：setLocale('en') 后同一闭包即时翻转 + revisio
     locale.setLocale("en");
     assert.equal(locale.getLocale().active, "en");
     assert.equal(locale.getLocale().revision, rev0 + 1, "revision 递增（槽重铸 t 的触发源）");
-    assert.equal(t("mode.title"), "Bot Mode");
+    assert.equal(t("state.online"), "Online");
     assert.equal(t("close"), "Close");
     // isZhLocale 的依赖形状：getLocale().active 为真实字符串属性
     assert.equal(typeof locale.getLocale().active, "string");
@@ -156,11 +156,11 @@ test("真实卸载注销：dispose 后 ns 消失，查询回退键自身；重�
   locale.setLocale("zh");
   const dispose1 = applyBotPlugin();
   const t = locale.bind("bots");
-  assert.equal(t("mode.title"), "Bot 模式");
+  assert.equal(t("state.online"), "在线");
   dispose1(); // 走真实 register disposer 注销 "bots" ns
-  assert.equal(t("mode.title"), "mode.title", "卸载后回退键自身（ns 已注销）");
+  assert.equal(t("state.online"), "state.online", "卸载后回退键自身（ns 已注销）");
   const dispose2 = applyBotPlugin(); // 重挂（热重载场景）：再注册不冲突
-  assert.equal(t("mode.title"), "Bot 模式", "重挂后恢复命中");
+  assert.equal(t("state.online"), "在线", "重挂后恢复命中");
   dispose2();
 });
 

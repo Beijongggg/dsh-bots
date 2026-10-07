@@ -13,7 +13,7 @@
 | 某阶段是否验收、部署或放行 | 该阶段的验收／切换票及其证据；旧 v3 批次见 [PLAN 阅读入口](PLAN-expanded-engineering.md#阅读入口) | 结论绑定对象、版本、环境和时点 |
 | 产品方向、领域总览、跨轮方法论 | [PROJECT_UNDERSTANDING.md](docs/PROJECT_UNDERSTANDING.md)；领域词见 [GLOSSARY.md](GLOSSARY.md) | 初次了解项目读总览；执行任务时按主题读相关段落 |
 | 证据链与当前包 | `artifacts/packages/` 中最新序号包、`artifacts/run-registry/` 与包内绑定的附件 | 包序号用于定位；有效性与适用范围回读包和核验结果 |
-| 历史部署同步依据 | `artifacts/c2-sync-preparation.json`、对应 CHANGELOG 事件及部署报告 | 旧报告证明其采集时点；当前运行状态须重新核实。现役一致性检查：`node scripts/org-cutover-check.mjs --dsh-home <目录>`（只读核验部署、编制与宿主实况；package.json 版本号不随部署走，不能当新鲜度依据） |
+| 历史部署同步依据 | `artifacts/c2-sync-preparation.json`、对应 CHANGELOG 事件及部署报告 | 旧报告证明其采集时点；当前运行状态须重新核实。现役一致性检查：`node scripts/org-cutover-check.mjs --dsh-home <目录>`（只读核验部署、编制与宿主实况；package.json 版本号不随部署走，不能当新鲜度依据）。部署面同步一律走 `node scripts/deploy-sync.mjs --spec <batch.json>`（参数化单一实现：HEAD 断言＋`git archive` 快照＋排他备份 0600/fsync＋逐件回读＋`deploymentInventory` 整面复核，`--dry-run` 零写入；`artifacts/cutover-preparation/` 下的逐批执行器副本是历史留证件，不再复制改常量） |
 | 冻结合同与限定关闭范围 | `docs/TEMP-guidance-*`、`docs/CLOSURE-*` | 按适用批次读取，原件只读 |
 
 每类事实只在上述归属处维护。CHANGELOG 记事件摘要和来源；导航与查询视图
