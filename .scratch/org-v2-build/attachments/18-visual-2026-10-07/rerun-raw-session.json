@@ -1,0 +1,376 @@
+{
+ "capturedAt": "2026-10-07T05:49:35.832Z",
+ "targetId": "EFD3938A6A94520577D36FA54757D3F4",
+ "results": [
+  {
+   "index": 0,
+   "action": "intercept",
+   "label": "拦截聚合包并以工作树版 client 整块替换",
+   "result": {
+    "intercepted": "524 chars pattern",
+    "bytes": 1167562
+   },
+   "ms": 2
+  },
+  {
+   "index": 1,
+   "action": "inject",
+   "label": null,
+   "result": {
+    "identifier": "1"
+   },
+   "ms": 1
+  },
+  {
+   "index": 2,
+   "action": "clearCache",
+   "label": null,
+   "result": {
+    "cleared": true
+   },
+   "ms": 6
+  },
+  {
+   "index": 3,
+   "action": "reload",
+   "label": null,
+   "ms": 9504
+  },
+  {
+   "index": 4,
+   "action": "checkBundle",
+   "label": "S-补丁生效核验",
+   "result": {
+    "bytes": 1151270,
+    "patchedSlot": true,
+    "patchedIcon": true,
+    "oldSlot": false,
+    "oldIcon": false
+   },
+   "ms": 44
+  },
+  {
+   "index": 5,
+   "action": "eval",
+   "label": "S0-loaded",
+   "result": {
+    "title": "DeepSeek Harness",
+    "entry": true,
+    "errors": 0
+   },
+   "ms": 2
+  },
+  {
+   "index": 6,
+   "action": "eval",
+   "label": "S6-native-baseline",
+   "result": {
+    "newSession": {
+     "h": "38px",
+     "radius": "12px",
+     "font": "-apple-system, BlinkMacSyste",
+     "size": "14px",
+     "color": "rgb(249, 250, 251)",
+     "bg": "rgb(67, 69, 74)"
+    },
+    "settings": {
+     "h": "42px",
+     "radius": "12px",
+     "font": "-apple-system, BlinkMacSyste",
+     "size": "14px",
+     "color": "rgb(249, 250, 251)",
+     "bg": "rgba(0, 0, 0, 0)"
+    },
+    "sessionRow": {
+     "h": "32px",
+     "radius": "12px",
+     "font": "-apple-system, BlinkMacSyste",
+     "size": "14px",
+     "color": "rgb(249, 250, 251)",
+     "bg": "rgba(255, 255, 255, 0.08)"
+    }
+   },
+   "ms": 2
+  },
+  {
+   "index": 7,
+   "action": "shot",
+   "label": null,
+   "result": {
+    "path": "/home/beijong/project/dsh-bots/.scratch/org-v2-build/attachments/18-visual-2026-10-07/rerun-01-sidebar-entry.png",
+    "bytes": 82008
+   },
+   "ms": 95
+  },
+  {
+   "index": 8,
+   "action": "click",
+   "label": null,
+   "result": {
+    "clicked": true,
+    "tag": "button",
+    "text": "Bot 模式"
+   },
+   "ms": 2513
+  },
+  {
+   "index": 9,
+   "action": "eval",
+   "label": "S2-bot-mode",
+   "result": {
+    "sidebarRoot": 1,
+    "mainRoot": 1,
+    "nativeConversation": 0,
+    "composer": 1,
+    "errors": 0
+   },
+   "ms": 2
+  },
+  {
+   "index": 10,
+   "action": "eval",
+   "label": "S6-bot-styles",
+   "result": {
+    "newBot": {
+     "h": "38px",
+     "radius": "12px",
+     "font": "-apple-system, BlinkMacSyste",
+     "size": "14px",
+     "color": "rgb(249, 250, 251)",
+     "bg": "rgb(67, 69, 74)"
+    },
+    "iconBtn": {
+     "h": "28px",
+     "radius": "50%",
+     "font": "-apple-system, BlinkMacSyste",
+     "size": "13.3333px",
+     "color": "rgb(207, 211, 214)",
+     "bg": "rgba(0, 0, 0, 0)"
+    },
+    "botRow": {
+     "h": "48px",
+     "radius": "8px",
+     "font": "-apple-system, BlinkMacSyste",
+     "size": "14px",
+     "color": "rgb(249, 250, 251)",
+     "bg": "rgb(67, 69, 74)"
+    },
+    "tokensCssRules": 1959
+   },
+   "ms": 19
+  },
+  {
+   "index": 11,
+   "action": "shot",
+   "label": null,
+   "result": {
+    "path": "/home/beijong/project/dsh-bots/.scratch/org-v2-build/attachments/18-visual-2026-10-07/rerun-02-bot-mode.png",
+    "bytes": 229594
+   },
+   "ms": 75
+  },
+  {
+   "index": 12,
+   "action": "eval",
+   "label": "S5-locale",
+   "result": {
+    "texts": [
+     "Bot 模式",
+     "新建 Bot",
+     "值班统筹",
+     "实施者",
+     "· deepseek-v4.1-flash",
+     "TK-20260929",
+     "我 · 12:56 PM",
+     "12:56 PM",
+     "我 · 01:44 PM",
+     "01:44 PM",
+     "我 · 02:18 PM",
+     "02:28 PM",
+     "我 · 05:59 PM",
+     "06:02 PM"
+    ],
+    "rawKeys": []
+   },
+   "ms": 7
+  },
+  {
+   "index": 13,
+   "action": "viewport",
+   "label": null,
+   "result": {},
+   "ms": 45
+  },
+  {
+   "index": 14,
+   "action": "sleep",
+   "label": null,
+   "result": {
+    "slept": 1500
+   },
+   "ms": 1501
+  },
+  {
+   "index": 15,
+   "action": "eval",
+   "label": "S7-narrow",
+   "result": {
+    "viewport": {
+     "w": 900,
+     "h": 800
+    },
+    "collapsed": 1,
+    "sidebarWidth": 55,
+    "railGlyphs": 5,
+    "errors": 0
+   },
+   "ms": 2
+  },
+  {
+   "index": 16,
+   "action": "shot",
+   "label": null,
+   "result": {
+    "path": "/home/beijong/project/dsh-bots/.scratch/org-v2-build/attachments/18-visual-2026-10-07/rerun-03-narrow-900px.png",
+    "bytes": 158457
+   },
+   "ms": 55
+  },
+  {
+   "index": 17,
+   "action": "viewport",
+   "label": null,
+   "result": {},
+   "ms": 28
+  },
+  {
+   "index": 18,
+   "action": "sleep",
+   "label": null,
+   "result": {
+    "slept": 1000
+   },
+   "ms": 1001
+  },
+  {
+   "index": 19,
+   "action": "eval",
+   "label": "S3-exit",
+   "result": {
+    "found": true
+   },
+   "ms": 34
+  },
+  {
+   "index": 20,
+   "action": "sleep",
+   "label": null,
+   "result": {
+    "slept": 1500
+   },
+   "ms": 1501
+  },
+  {
+   "index": 21,
+   "action": "eval",
+   "label": "S3-after-exit",
+   "result": {
+    "sidebarRoot": 0,
+    "mainRoot": 0,
+    "nativeSidebarRow": 1,
+    "nativeComposer": 16,
+    "entry": true,
+    "errors": 0
+   },
+   "ms": 2
+  },
+  {
+   "index": 22,
+   "action": "shot",
+   "label": null,
+   "result": {
+    "path": "/home/beijong/project/dsh-bots/.scratch/org-v2-build/attachments/18-visual-2026-10-07/rerun-04-after-exit.png",
+    "bytes": 82035
+   },
+   "ms": 105
+  },
+  {
+   "index": 23,
+   "action": "eval",
+   "label": "S8-final-errors",
+   "result": [],
+   "ms": 1
+  },
+  {
+   "index": 24,
+   "action": "eval",
+   "label": "S4-notices",
+   "result": {
+    "overlay": true,
+    "overlayChildren": 1,
+    "noticeNodes": 0
+   },
+   "ms": 1
+  }
+ ],
+ "fulfilled": [
+  "http://127.0.0.1:3080/plugins/??dsh-screenshot/client.js,@de",
+  "http://127.0.0.1:3080/plugins/??dsh-screenshot/client.js,@de"
+ ],
+ "paused": [
+  "http://127.0.0.1:3080/",
+  "http://127.0.0.1:3080/plugins/??@deepseek-ai/dsh-client-ui-open-in-app/client.js,@deepseek-ai/dsh-api-gateway/client.js,",
+  "http://127.0.0.1:3080/plugins/??dsh-screenshot/client.js,@deepseek-ai/dsh-session-log-export/client.js,@deepseek-ai/dsh-",
+  "http://127.0.0.1:3080/plugins/??@deepseek-ai/dsh-client-modules/client.js&rev=b71002d28da8",
+  "http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js",
+  "http://127.0.0.1:3080/assets/vendor-CCJJTK99.js",
+  "http://127.0.0.1:3080/assets/vendor-BNsW4eBh.css",
+  "http://127.0.0.1:3080/assets/index-Cq6ljTv2.css",
+  "http://127.0.0.1:3080/manifest.webmanifest",
+  "http://127.0.0.1:3080/api/settings/describe",
+  "http://127.0.0.1:3080/api/dynamicCordisRunner/syncInspectManifest",
+  "http://127.0.0.1:3080/api/credentials/describe",
+  "http://127.0.0.1:3080/api/dynamicCordisRunner/inventory",
+  "http://127.0.0.1:3080/open-in-app/apps",
+  "http://127.0.0.1:3080/api/session/modelCatalog",
+  "http://127.0.0.1:3080/plugins/events",
+  "http://127.0.0.1:3080/api/bots/_events",
+  "http://127.0.0.1:3080/api/agentPresets/list",
+  "http://127.0.0.1:3080/api/bots",
+  "http://127.0.0.1:3080/api/bots",
+  "http://127.0.0.1:3080/api/credentials/describe",
+  "http://127.0.0.1:3080/api/session/modelCatalog",
+  "http://127.0.0.1:3080/favicon.svg",
+  "http://127.0.0.1:3080/api/session/list",
+  "http://127.0.0.1:3080/api/permissionPresets/catalog",
+  "http://127.0.0.1:3080/api/dynamicCordisRunner/inventory",
+  "http://127.0.0.1:3080/api/session/modelCatalog",
+  "http://127.0.0.1:3080/api/agentPresets/list",
+  "http://127.0.0.1:3080/api/agentPresets/list",
+  "http://127.0.0.1:3080/api/session/modelCatalog",
+  "http://127.0.0.1:3080/api/settings/describe",
+  "http://127.0.0.1:3080/api/dynamicCordisRunner/syncInspectManifest",
+  "http://127.0.0.1:3080/favicon.svg",
+  "http://127.0.0.1:3080/api/credentials/describe",
+  "http://127.0.0.1:3080/api/session/create",
+  "http://127.0.0.1:3080/api/schedule/catalog",
+  "http://127.0.0.1:3080/api/llm/listProviders",
+  "http://127.0.0.1:3080/api/llm/listConfigurableProviders",
+  "http://127.0.0.1:3080/api/agentPresets/list",
+  "http://127.0.0.1:3080/api/commands/list",
+  "http://127.0.0.1:3080/api/skills/list",
+  "http://127.0.0.1:3080/api/session/modelCatalog",
+  "http://127.0.0.1:3080/api/credentials/describe",
+  "http://127.0.0.1:3080/plugins/??dsh-screenshot/client.js,@deepseek-ai/dsh-session-log-export/client.js,@deepseek-ai/dsh-",
+  "http://127.0.0.1:3080/api/bots/duty-coordinator/stats",
+  "http://127.0.0.1:3080/api/bots/duty-coordinator/messages",
+  "http://127.0.0.1:3080/api/bots",
+  "http://127.0.0.1:3080/api/bots/duty-coordinator/messages?since=1791279750026",
+  "http://127.0.0.1:3080/api/bots/duty-coordinator/messages?since=1791279750026",
+  "http://127.0.0.1:3080/api/schedule/catalog",
+  "http://127.0.0.1:3080/api/dynamicCordisRunner/inventory",
+  "http://127.0.0.1:3080/api/agentPresets/list"
+ ],
+ "console": [],
+ "exceptions": []
+}

@@ -1,0 +1,9 @@
+# 前序会话诊断复现件（2026-09-30 留于 .tmp，2026-10-07 原样复制存档）
+# 运行命令：node prior-repro-slot-drift-20260930.mjs
+# 本次（2026-10-07）针对现役部署面 lib/client.js 实跑输出：
+入口按钮 aria-label = "mode.title"
+宿主形态 = 新（main keyed＋保留键 conversation，0.2.0-rc.1）
+点击后 sidebar 占用者 = ["dsh-bots-sidebar"]
+点击后会话槽占用者 = ["conversation"]
+点击是否抛错 = 是：slot "conversation" is not declared (a parent entry's children table must declare it)
+# exit=0

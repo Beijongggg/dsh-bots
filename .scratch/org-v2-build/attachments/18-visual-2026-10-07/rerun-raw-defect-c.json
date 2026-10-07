@@ -1,0 +1,188 @@
+{
+ "capturedAt": "2026-10-07T05:48:31.107Z",
+ "targetId": "EFD3938A6A94520577D36FA54757D3F4",
+ "results": [
+  {
+   "index": 0,
+   "action": "intercept",
+   "label": null,
+   "result": {
+    "intercepted": "524 chars pattern",
+    "bytes": 1165838
+   },
+   "ms": 2
+  },
+  {
+   "index": 1,
+   "action": "inject",
+   "label": null,
+   "result": {
+    "identifier": "1"
+   },
+   "ms": 1
+  },
+  {
+   "index": 2,
+   "action": "clearCache",
+   "label": null,
+   "result": {
+    "cleared": true
+   },
+   "ms": 5
+  },
+  {
+   "index": 3,
+   "action": "reload",
+   "label": null,
+   "ms": 9497
+  },
+  {
+   "index": 4,
+   "action": "click",
+   "label": null,
+   "result": {
+    "clicked": true,
+    "tag": "button",
+    "text": "Bot 模式"
+   },
+   "ms": 2538
+  },
+  {
+   "index": 5,
+   "action": "eval",
+   "label": "AB-only-state",
+   "result": {
+    "botsSidebarRoot": 1,
+    "botsMainRoot": 0,
+    "errors": [
+     "console.error: TypeError: Cannot read properties of undefined (reading 'code')\n    at jb (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:106:51)\n    at Wc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:104:673)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4951\n    at Array.map (<anonymous>)\n    at gc",
+     "console.error: slot entry crashed in 'main': TypeError: Cannot read properties of undefined (reading 'code')\n    at jb (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:106:51)\n    at Wc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:104:673)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4951\n    at Arr",
+     "console.error: TypeError: Cannot read properties of undefined (reading 'code')\n    at jb (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:106:51)\n    at Wc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:104:673)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4951\n    at Array.map (<anonymous>)\n    at gc",
+     "console.error: slot entry crashed in 'main': TypeError: Cannot read properties of undefined (reading 'code')\n    at jb (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:106:51)\n    at Wc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:104:673)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4951\n    at Arr"
+    ]
+   },
+   "ms": 2
+  },
+  {
+   "index": 6,
+   "action": "shot",
+   "label": null,
+   "result": {
+    "path": "/home/beijong/project/dsh-bots/.scratch/org-v2-build/attachments/18-visual-2026-10-07/rerun-00-defect-c-ab-only.png",
+    "bytes": 54532
+   },
+   "ms": 43
+  }
+ ],
+ "fulfilled": [
+  "http://127.0.0.1:3080/plugins/??dsh-screenshot/client.js,@de"
+ ],
+ "paused": [
+  "http://127.0.0.1:3080/",
+  "http://127.0.0.1:3080/plugins/??@deepseek-ai/dsh-client-ui-open-in-app/client.js,@deepseek-ai/dsh-api-gateway/client.js,",
+  "http://127.0.0.1:3080/plugins/??dsh-screenshot/client.js,@deepseek-ai/dsh-session-log-export/client.js,@deepseek-ai/dsh-",
+  "http://127.0.0.1:3080/plugins/??@deepseek-ai/dsh-client-modules/client.js&rev=b71002d28da8",
+  "http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js",
+  "http://127.0.0.1:3080/assets/vendor-CCJJTK99.js",
+  "http://127.0.0.1:3080/assets/vendor-BNsW4eBh.css",
+  "http://127.0.0.1:3080/assets/index-Cq6ljTv2.css",
+  "http://127.0.0.1:3080/manifest.webmanifest",
+  "http://127.0.0.1:3080/api/settings/describe",
+  "http://127.0.0.1:3080/api/dynamicCordisRunner/syncInspectManifest",
+  "http://127.0.0.1:3080/api/credentials/describe",
+  "http://127.0.0.1:3080/api/dynamicCordisRunner/inventory",
+  "http://127.0.0.1:3080/open-in-app/apps",
+  "http://127.0.0.1:3080/api/session/modelCatalog",
+  "http://127.0.0.1:3080/plugins/events",
+  "http://127.0.0.1:3080/api/bots/_events",
+  "http://127.0.0.1:3080/api/agentPresets/list",
+  "http://127.0.0.1:3080/api/bots",
+  "http://127.0.0.1:3080/api/bots",
+  "http://127.0.0.1:3080/api/credentials/describe",
+  "http://127.0.0.1:3080/api/session/modelCatalog",
+  "http://127.0.0.1:3080/favicon.svg",
+  "http://127.0.0.1:3080/api/session/list",
+  "http://127.0.0.1:3080/api/permissionPresets/catalog",
+  "http://127.0.0.1:3080/api/dynamicCordisRunner/inventory",
+  "http://127.0.0.1:3080/api/session/modelCatalog",
+  "http://127.0.0.1:3080/api/agentPresets/list",
+  "http://127.0.0.1:3080/api/agentPresets/list",
+  "http://127.0.0.1:3080/api/session/modelCatalog",
+  "http://127.0.0.1:3080/api/settings/describe",
+  "http://127.0.0.1:3080/api/dynamicCordisRunner/syncInspectManifest",
+  "http://127.0.0.1:3080/favicon.svg",
+  "http://127.0.0.1:3080/api/credentials/describe",
+  "http://127.0.0.1:3080/api/session/create",
+  "http://127.0.0.1:3080/api/schedule/catalog",
+  "http://127.0.0.1:3080/api/llm/listProviders",
+  "http://127.0.0.1:3080/api/llm/listConfigurableProviders",
+  "http://127.0.0.1:3080/api/agentPresets/list",
+  "http://127.0.0.1:3080/api/commands/list",
+  "http://127.0.0.1:3080/api/skills/list",
+  "http://127.0.0.1:3080/api/session/modelCatalog",
+  "http://127.0.0.1:3080/api/credentials/describe",
+  "http://127.0.0.1:3080/api/bots/duty-coordinator/stats",
+  "http://127.0.0.1:3080/api/bots/duty-coordinator/messages",
+  "http://127.0.0.1:3080/api/bots",
+  "http://127.0.0.1:3080/api/agentPresets/list"
+ ],
+ "console": [
+  {
+   "type": "error",
+   "text": "TypeError: Cannot read properties of undefined (reading 'code')\n    at jb (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:106:51)\n    at Wc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:104:673)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4951\n    at Array.map (<anonymous>)\n    at gc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4944)\n    at Ab (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:108:5046)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:328\n    at Object.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:23603)\n    at be.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:25:6304)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:207"
+  },
+  {
+   "type": "error",
+   "text": "slot entry crashed in 'main': TypeError: Cannot read properties of undefined (reading 'code')\n    at jb (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:106:51)\n    at Wc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:104:673)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4951\n    at Array.map (<anonymous>)\n    at gc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4944)\n    at Ab (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:108:5046)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:328\n    at Object.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:23603)\n    at be.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:25:6304)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:207"
+  },
+  {
+   "type": "error",
+   "text": "TypeError: Cannot read properties of undefined (reading 'code')\n    at jb (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:106:51)\n    at Wc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:104:673)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4951\n    at Array.map (<anonymous>)\n    at gc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4944)\n    at Ab (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:108:5046)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:328\n    at Object.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:23603)\n    at be.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:25:6304)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:207"
+  },
+  {
+   "type": "error",
+   "text": "slot entry crashed in 'main': TypeError: Cannot read properties of undefined (reading 'code')\n    at jb (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:106:51)\n    at Wc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:104:673)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4951\n    at Array.map (<anonymous>)\n    at gc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4944)\n    at Ab (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:108:5046)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:328\n    at Object.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:23603)\n    at be.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:25:6304)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:207"
+  },
+  {
+   "type": "error",
+   "text": "TypeError: Cannot read properties of undefined (reading 'code')\n    at jb (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:106:51)\n    at Wc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:104:673)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4951\n    at Array.map (<anonymous>)\n    at gc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4944)\n    at Ab (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:108:5046)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:328\n    at Object.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:23603)\n    at be.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:25:6304)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:207"
+  },
+  {
+   "type": "error",
+   "text": "slot entry crashed in 'main': TypeError: Cannot read properties of undefined (reading 'code')\n    at jb (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:106:51)\n    at Wc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:104:673)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4951\n    at Array.map (<anonymous>)\n    at gc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4944)\n    at Ab (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:108:5046)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:328\n    at Object.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:23603)\n    at be.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:25:6304)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:207"
+  },
+  {
+   "type": "error",
+   "text": "TypeError: Cannot read properties of undefined (reading 'code')\n    at jb (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:106:51)\n    at Wc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:104:673)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4951\n    at Array.map (<anonymous>)\n    at gc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4944)\n    at Ab (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:108:5046)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:328\n    at Object.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:23603)\n    at be.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:25:6304)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:207"
+  },
+  {
+   "type": "error",
+   "text": "slot entry crashed in 'main': TypeError: Cannot read properties of undefined (reading 'code')\n    at jb (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:106:51)\n    at Wc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:104:673)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4951\n    at Array.map (<anonymous>)\n    at gc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4944)\n    at Ab (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:108:5046)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:328\n    at Object.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:23603)\n    at be.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:25:6304)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:207"
+  },
+  {
+   "type": "error",
+   "text": "TypeError: Cannot read properties of undefined (reading 'code')\n    at jb (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:106:51)\n    at Wc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:104:673)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4951\n    at Array.map (<anonymous>)\n    at gc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4944)\n    at Ab (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:108:5046)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:328\n    at Object.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:23603)\n    at be.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:25:6304)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:207"
+  },
+  {
+   "type": "error",
+   "text": "slot entry crashed in 'main': TypeError: Cannot read properties of undefined (reading 'code')\n    at jb (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:106:51)\n    at Wc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:104:673)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4951\n    at Array.map (<anonymous>)\n    at gc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4944)\n    at Ab (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:108:5046)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:328\n    at Object.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:23603)\n    at be.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:25:6304)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:207"
+  },
+  {
+   "type": "error",
+   "text": "TypeError: Cannot read properties of undefined (reading 'code')\n    at jb (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:106:51)\n    at Wc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:104:673)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4951\n    at Array.map (<anonymous>)\n    at gc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4944)\n    at Ab (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:108:5046)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:328\n    at Object.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:23603)\n    at be.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:25:6304)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:207"
+  },
+  {
+   "type": "error",
+   "text": "slot entry crashed in 'main': TypeError: Cannot read properties of undefined (reading 'code')\n    at jb (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:106:51)\n    at Wc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:104:673)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4951\n    at Array.map (<anonymous>)\n    at gc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4944)\n    at Ab (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:108:5046)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:328\n    at Object.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:23603)\n    at be.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:25:6304)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:207"
+  },
+  {
+   "type": "error",
+   "text": "TypeError: Cannot read properties of undefined (reading 'code')\n    at jb (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:106:51)\n    at Wc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:104:673)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4951\n    at Array.map (<anonymous>)\n    at gc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4944)\n    at Ab (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:108:5046)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:328\n    at Object.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:23603)\n    at be.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:25:6304)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:207"
+  },
+  {
+   "type": "error",
+   "text": "slot entry crashed in 'main': TypeError: Cannot read properties of undefined (reading 'code')\n    at jb (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:106:51)\n    at Wc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:104:673)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4951\n    at Array.map (<anonymous>)\n    at gc (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:101:4944)\n    at Ab (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:108:5046)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:328\n    at Object.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:23603)\n    at be.useMemo (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:25:6304)\n    at http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:112:207"
+  }
+ ],
+ "exceptions": []
+}
