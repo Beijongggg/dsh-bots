@@ -1,0 +1,394 @@
+{
+  "packageType": "deploy-sync-execution",
+  "runId": "org-v2-sync-20261007T033517Z",
+  "batch": "s1",
+  "planPath": "artifacts/cutover-preparation/org-v2-sync-20261007T033517Z-plan-s1-73e7edc0.json",
+  "planSha8": "73e7edc0",
+  "commit": "7d3cc0bfd9e523ebf6c23b21eb1b1136c9d7d4ad",
+  "dshHome": "/home/beijong/.dsh",
+  "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+  "backupDir": "/home/beijong/.dsh/backups/dsh-bots/org-v2-sync-20261007T033517Z-backup-73e7edc0",
+  "backupManifestSha8": "4d9ad44d",
+  "capturedAt": "2026-10-07T03:36:23.318Z",
+  "deployDigestBefore": "518ba0a05606755eeea75994e65d2f47143d31eeb3fbd46f669c90d294eb5eb6",
+  "deployDigestAfter": "518ba0a05606755eeea75994e65d2f47143d31eeb3fbd46f669c90d294eb5eb6",
+  "backupEntries": [
+    {
+      "path": "lib/index.js",
+      "action": "write",
+      "deployedSha256": "39a243b82444b7b681cfd70d8409ca285e78ce9937f8235bd4fcd2bf696651b8",
+      "byteLength": 150676
+    },
+    {
+      "path": "lib/org/brief.js",
+      "action": "write",
+      "deployedSha256": "606ae2ffb897a4510fa5ca7465146d9e78eac91380af58757cd2823a58c9830c",
+      "byteLength": 11030
+    },
+    {
+      "path": "lib/org/experiment-attribution.js",
+      "action": "absent",
+      "backupSha256": null
+    },
+    {
+      "path": "lib/org/experiment-cost.js",
+      "action": "absent",
+      "backupSha256": null
+    },
+    {
+      "path": "lib/org/experiment-prereg.js",
+      "action": "absent",
+      "backupSha256": null
+    },
+    {
+      "path": "lib/org/experiment-shape.js",
+      "action": "absent",
+      "backupSha256": null
+    },
+    {
+      "path": "lib/org/experiment-verdict.js",
+      "action": "absent",
+      "backupSha256": null
+    },
+    {
+      "path": "lib/org/human-inbox.js",
+      "action": "write",
+      "deployedSha256": "bd9f1594710c8048ca5ae511816051dd9e11bfa3dc2d5e333d0dfee5613e97c1",
+      "byteLength": 26322
+    },
+    {
+      "path": "lib/org/review-kit.js",
+      "action": "write",
+      "deployedSha256": "59b419a3c0100f5390ac1f18b8c674b9188cbaf0492f3cad262ecc1eea51c257",
+      "byteLength": 17761
+    },
+    {
+      "path": "lib/org/role-cards.js",
+      "action": "write",
+      "deployedSha256": "c6476a65109827223ed3dd27e895250f0cc04e2045a011eb4bff7ff4993ec836",
+      "byteLength": 23741
+    },
+    {
+      "path": "package.json",
+      "action": "write",
+      "deployedSha256": "f4f62611f08ad884ba2e31e9790a877c308dae2dd2bb7fd769e4a519505fd926",
+      "byteLength": 453
+    },
+    {
+      "path": "scripts/amplification-experiment.mjs",
+      "action": "absent",
+      "backupSha256": null
+    },
+    {
+      "path": "scripts/changelog-add-event.mjs",
+      "action": "absent",
+      "backupSha256": null
+    },
+    {
+      "path": "scripts/ci-gates.mjs",
+      "action": "absent",
+      "backupSha256": null
+    },
+    {
+      "path": "scripts/preflight.mjs",
+      "action": "write",
+      "deployedSha256": "d4b67d60a4ca884ba399f6dbdcb7dbf805acd24874ebed25630cbe50cdbc69a4",
+      "byteLength": 9521
+    },
+    {
+      "path": "scripts/project-context.mjs",
+      "action": "write",
+      "deployedSha256": "15b9d13c05e7af439e3c87cfe7f9f602c6e62aac4945ff3d63b7ce3581136db3",
+      "byteLength": 9457
+    },
+    {
+      "path": "tests/README.md",
+      "action": "absent",
+      "backupSha256": null
+    },
+    {
+      "path": "tests/amplification-experiment-cli.test.mjs",
+      "action": "absent",
+      "backupSha256": null
+    },
+    {
+      "path": "tests/evidence-runner-contract.test.mjs",
+      "action": "write",
+      "deployedSha256": "eb45b145d46ccce903ae2a04b0eabc55c8115fc7d472e926e531d2ab4cbf50ad",
+      "byteLength": 18701
+    },
+    {
+      "path": "tests/helpers/brief-fixture.mjs",
+      "action": "write",
+      "deployedSha256": "0a0fd2a32bd9115a685b61c4bf009fb177f047ccdf87b06844a0213047965c19",
+      "byteLength": 725
+    },
+    {
+      "path": "tests/helpers/prereg-fixture.mjs",
+      "action": "absent",
+      "backupSha256": null
+    },
+    {
+      "path": "tests/org-experiment-attribution.test.mjs",
+      "action": "absent",
+      "backupSha256": null
+    },
+    {
+      "path": "tests/org-experiment-cost.test.mjs",
+      "action": "absent",
+      "backupSha256": null
+    },
+    {
+      "path": "tests/org-experiment-prereg.test.mjs",
+      "action": "absent",
+      "backupSha256": null
+    },
+    {
+      "path": "tests/org-experiment-verdict.test.mjs",
+      "action": "absent",
+      "backupSha256": null
+    },
+    {
+      "path": "tests/p6-5-sentinel-guards.test.mjs",
+      "action": "write",
+      "deployedSha256": "b90080ee21a1d77c7e2e7f85b910e10cdc324cab010cee6c79364654163c9220",
+      "byteLength": 22499
+    },
+    {
+      "path": "tests/preflight.test.mjs",
+      "action": "write",
+      "deployedSha256": "50b5c647e0f9dcec3efa0e1f0b9651e44738b5de4722564379767b94968b7d7f",
+      "byteLength": 9286
+    },
+    {
+      "path": "tests/project-context.test.mjs",
+      "action": "write",
+      "deployedSha256": "3b3918396e542fb131fa0f47a321820dea6562cba5f7da6bf512dff8b90a4f96",
+      "byteLength": 5233
+    },
+    {
+      "path": "tests/turn-timeout-seam.test.mjs",
+      "action": "absent",
+      "backupSha256": null
+    },
+    {
+      "path": "lib/index.js.bak-exp17v3",
+      "action": "remove",
+      "deployedSha256": "4df9f7df1074b97d1fe6e2f3a9416c14d746c3f8e745f8108a9138ecd60eee01",
+      "byteLength": 149671
+    }
+  ],
+  "actions": [
+    {
+      "path": "lib/index.js",
+      "action": "write",
+      "beforeSha256": "39a243b82444b7b681cfd70d8409ca285e78ce9937f8235bd4fcd2bf696651b8",
+      "afterSha256": "a6b270d0642f8963461a28112102954daea73fdaff0adadb840fc9ff17dda710",
+      "mode": "644"
+    },
+    {
+      "path": "lib/org/brief.js",
+      "action": "write",
+      "beforeSha256": "606ae2ffb897a4510fa5ca7465146d9e78eac91380af58757cd2823a58c9830c",
+      "afterSha256": "4088b5a6b52da3342d6d5f830bca60161d650a7d7ade1b9478b1954165147b00",
+      "mode": "644"
+    },
+    {
+      "path": "lib/org/experiment-attribution.js",
+      "action": "write",
+      "beforeSha256": null,
+      "afterSha256": "76638dca747298b92b221bcdeea6282ffcab5db34e53e359e19019f339f2a772",
+      "mode": "644"
+    },
+    {
+      "path": "lib/org/experiment-cost.js",
+      "action": "write",
+      "beforeSha256": null,
+      "afterSha256": "668ef4d92a6cc683536ff375530a9bb38cd4932ede2368b80ecc436fecd91bbe",
+      "mode": "644"
+    },
+    {
+      "path": "lib/org/experiment-prereg.js",
+      "action": "write",
+      "beforeSha256": null,
+      "afterSha256": "e57e7db9dfc99abff681ac3953ff300c26cbd30048c8f050ac4b3a2106a561fe",
+      "mode": "644"
+    },
+    {
+      "path": "lib/org/experiment-shape.js",
+      "action": "write",
+      "beforeSha256": null,
+      "afterSha256": "1f67bd8f91d37eafb17dfd0a16f8f3749a91e60600ec1427b990320c0cf9b6bf",
+      "mode": "644"
+    },
+    {
+      "path": "lib/org/experiment-verdict.js",
+      "action": "write",
+      "beforeSha256": null,
+      "afterSha256": "84709b3df101ed41ccc98df9d55311769cc7fe1719d13ec3d71759fe22fb8b45",
+      "mode": "644"
+    },
+    {
+      "path": "lib/org/human-inbox.js",
+      "action": "write",
+      "beforeSha256": "bd9f1594710c8048ca5ae511816051dd9e11bfa3dc2d5e333d0dfee5613e97c1",
+      "afterSha256": "7ed18dcde698cc6349d5b3988fd4afd3a7bd86a44f41db984e11b178e72979e3",
+      "mode": "644"
+    },
+    {
+      "path": "lib/org/review-kit.js",
+      "action": "write",
+      "beforeSha256": "59b419a3c0100f5390ac1f18b8c674b9188cbaf0492f3cad262ecc1eea51c257",
+      "afterSha256": "c5b2572f92b322b2632194cfd99f4d7a4b9f7c43adee662e479d520708bbff38",
+      "mode": "644"
+    },
+    {
+      "path": "lib/org/role-cards.js",
+      "action": "write",
+      "beforeSha256": "c6476a65109827223ed3dd27e895250f0cc04e2045a011eb4bff7ff4993ec836",
+      "afterSha256": "02516941245b5220f28f85f8e55601a39e046b321b191108c9452b06bab0ae90",
+      "mode": "644"
+    },
+    {
+      "path": "package.json",
+      "action": "write",
+      "beforeSha256": "f4f62611f08ad884ba2e31e9790a877c308dae2dd2bb7fd769e4a519505fd926",
+      "afterSha256": "950df5aec93ce3dca65383f9ca4547e780a5e3f3bca44673e82768f9f847dd5b",
+      "mode": "644"
+    },
+    {
+      "path": "scripts/amplification-experiment.mjs",
+      "action": "write",
+      "beforeSha256": null,
+      "afterSha256": "f506daaf1c88b633d486aeb9ed1ca85cecadf5d34ccc2b28d6393d7b68eb4434",
+      "mode": "644"
+    },
+    {
+      "path": "scripts/changelog-add-event.mjs",
+      "action": "write",
+      "beforeSha256": null,
+      "afterSha256": "a88f4c0fbc0ae8a014da8b6146e0204f43fa2c481c46362a6f12b2dd3c6843fd",
+      "mode": "644"
+    },
+    {
+      "path": "scripts/ci-gates.mjs",
+      "action": "write",
+      "beforeSha256": null,
+      "afterSha256": "4b60f647bb483a6dcfd62be2a0e96f686bedbe16f11d3141850f2495912a314a",
+      "mode": "644"
+    },
+    {
+      "path": "scripts/preflight.mjs",
+      "action": "write",
+      "beforeSha256": "d4b67d60a4ca884ba399f6dbdcb7dbf805acd24874ebed25630cbe50cdbc69a4",
+      "afterSha256": "81c83165390ec37e0aede491dd52a69a50433be6d445e1558075ac34d39c7c9d",
+      "mode": "644"
+    },
+    {
+      "path": "scripts/project-context.mjs",
+      "action": "write",
+      "beforeSha256": "15b9d13c05e7af439e3c87cfe7f9f602c6e62aac4945ff3d63b7ce3581136db3",
+      "afterSha256": "4f9b10b0ac0791059e9d5b415ccda051235edfe3a53500efcb170db2076680e5",
+      "mode": "644"
+    },
+    {
+      "path": "tests/README.md",
+      "action": "write",
+      "beforeSha256": null,
+      "afterSha256": "e3069fd0974e23aa6a3d75b913ac2c07d19df83363b4b00f5f50038e9967f5f0",
+      "mode": "644"
+    },
+    {
+      "path": "tests/amplification-experiment-cli.test.mjs",
+      "action": "write",
+      "beforeSha256": null,
+      "afterSha256": "ea03555cbe244f495859fc8cc5d006e2843409e6509fc36d79bfa96231ce8e1d",
+      "mode": "644"
+    },
+    {
+      "path": "tests/evidence-runner-contract.test.mjs",
+      "action": "write",
+      "beforeSha256": "eb45b145d46ccce903ae2a04b0eabc55c8115fc7d472e926e531d2ab4cbf50ad",
+      "afterSha256": "9e5ad2b0b67a1d3d58fc4bdcc2a4f48a9953b27f22ad236f894c68230029c924",
+      "mode": "644"
+    },
+    {
+      "path": "tests/helpers/brief-fixture.mjs",
+      "action": "write",
+      "beforeSha256": "0a0fd2a32bd9115a685b61c4bf009fb177f047ccdf87b06844a0213047965c19",
+      "afterSha256": "22f9d9f8e60407d0c2da5ac68e37ac7979a303a55411cc81ba2daf07f51c96fb",
+      "mode": "644"
+    },
+    {
+      "path": "tests/helpers/prereg-fixture.mjs",
+      "action": "write",
+      "beforeSha256": null,
+      "afterSha256": "4a600db75c7aeef021a09d2cab3de5d431bb5fd6d326bb5b4ac8ada3a39d713d",
+      "mode": "644"
+    },
+    {
+      "path": "tests/org-experiment-attribution.test.mjs",
+      "action": "write",
+      "beforeSha256": null,
+      "afterSha256": "84ff919ad11fbdb7d244a547b7a7cfe7f6817cf8349d18c7739c933d5a1314f9",
+      "mode": "644"
+    },
+    {
+      "path": "tests/org-experiment-cost.test.mjs",
+      "action": "write",
+      "beforeSha256": null,
+      "afterSha256": "8f856af5ecae27374dce5072a030439afeb90305da98844f02b34d90b0b4c132",
+      "mode": "644"
+    },
+    {
+      "path": "tests/org-experiment-prereg.test.mjs",
+      "action": "write",
+      "beforeSha256": null,
+      "afterSha256": "0df2ae621a65e55601757360fa1118b5b47451986b56737ccd9a1fd560737060",
+      "mode": "644"
+    },
+    {
+      "path": "tests/org-experiment-verdict.test.mjs",
+      "action": "write",
+      "beforeSha256": null,
+      "afterSha256": "c169167f60b950c078db882672ae0afb15a80229ec6ba58886fd95e0de4a650d",
+      "mode": "644"
+    },
+    {
+      "path": "tests/p6-5-sentinel-guards.test.mjs",
+      "action": "write",
+      "beforeSha256": "b90080ee21a1d77c7e2e7f85b910e10cdc324cab010cee6c79364654163c9220",
+      "afterSha256": "5e05e970d1d6c4d9985d3e11b80ccae7e503dd6a93d32f1fd029b6a8b1a07d32",
+      "mode": "644"
+    },
+    {
+      "path": "tests/preflight.test.mjs",
+      "action": "write",
+      "beforeSha256": "50b5c647e0f9dcec3efa0e1f0b9651e44738b5de4722564379767b94968b7d7f",
+      "afterSha256": "bc4c677b3d7b4d3b37f8420b56797680c5766dd5b4da1eed1028283e3c652504",
+      "mode": "644"
+    },
+    {
+      "path": "tests/project-context.test.mjs",
+      "action": "write",
+      "beforeSha256": "3b3918396e542fb131fa0f47a321820dea6562cba5f7da6bf512dff8b90a4f96",
+      "afterSha256": "a974b8453646a85de6ff3589fa6b9bfa22c18565b8ba87c301b694a3f2451391",
+      "mode": "644"
+    },
+    {
+      "path": "tests/turn-timeout-seam.test.mjs",
+      "action": "write",
+      "beforeSha256": null,
+      "afterSha256": "498120b3fea598e0b2f8e4d87cbac17447ede8e970fe25fa6b4059036626d725",
+      "mode": "644"
+    },
+    {
+      "path": "lib/index.js.bak-exp17v3",
+      "action": "remove",
+      "beforeSha256": "4df9f7df1074b97d1fe6e2f3a9416c14d746c3f8e745f8108a9138ecd60eee01",
+      "afterSha256": null
+    }
+  ],
+  "processedBy": "/home/beijong/project/dsh-bots/artifacts/cutover-preparation/org-v2-sync-20261007T033517Z-s1-sync-executor.mjs",
+  "note": "文件面同步；宿主/双席仍跑旧代码，就绪面 sourceDigest 变新值需用户执行重启链（bash ~/.dsh/restart-safe.sh）"
+}
