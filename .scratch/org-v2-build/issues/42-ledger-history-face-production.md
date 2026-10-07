@@ -47,11 +47,38 @@
 
 **Blocked by:** 40, 41
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **来源：** 2026-10-07 架构评审候选 1 ＋ grilling 定案 Q4／Q15。
 
 ## Comments
+
+- **2026-10-07 收口（`resolved`）。** 提交 `d0d26f8`（并入 `b6b71e2`；与 41 号票在
+  `closePrecondition` 生产调用点与测试 EOF 双追加两处冲突，均按「两侧意图全留」合成——
+  取 42 的一件快照形状，其事件源 `ledger.taskEvents(taskId)` 恰由 41 的常驻态承载）。
+- **验收凭据**：`grep -rn "\.events(" lib/` → **0**（无参形态与任务域形态一并消失）；
+  四个生产消费者改读任务域／窗口读法（`ledger-host.js` 移交件、`review-kit.js`
+  designation leg、`capability-delivery.js` 报告核验 → `taskEvents`；`human-inbox.js`
+  拆两读 → `since(cursor)` ＋ 每待裁任务 `taskEvents`）；`closePrecondition` 收
+  **一件快照** `{ task, events, artifacts }`，生产调用点 `ledger.taskEvents(taskId)`
+  组装，6 处测试调用改形后判定码字面零变化（另有新增用例钉「快照一件进＋事件域含
+  他任务行结论不变」）。事件序列归一化口径实测：两树同一 13 条命令序列（含 close
+  过闸、非法转移拒、task-closed 拒），掩去 `eventId`／`eventHash` 后 sha256 两边同为
+  `9bdd07f8…`，`cmp` 逐字相同，逐命令结论字符串一致。全量回归 83/83＋preflight 四门
+  PASS（`620b623` 实测，`tests/task-ledger.test.mjs` 65/65、`tests/org-human-inbox.test.mjs`
+  19/19）。
+- **票面未列的伴生改动（删除 `events()` 后不留悬空引用所必需，已在下方逐条留痕）**：
+  ①`lib/org/review-kit.js` 门面自检由 `typeof ledger.events` 改判 `typeof ledger.taskEvents`
+  （46 号票的 `.events(` grep **抓不到** `ledger.events` 这一无点号形态，漏改即留悬空引用）；
+  ②`tests/org-human-inbox.test.mjs` 只读假台账补新读法（该文件不在 43／44／45 任一票
+  范围内）；③`human-inbox.js` 由票面字面的「一行换 `since(seq)`」改为**拆两读**——
+  按字面单读会打断待裁项裁定包；④游标边界语义变化一笔（cursor 越过末序号时不再回退），
+  已加用例钉住。
+- **评审注记**：①`closePrecondition` 生产路径现为「命令面读的投影」＋「再来一次
+  `taskEvents`」两次读，微秒级窗口内外部追加会让复核折叠看到略新的事实（await 后的
+  CAS 重验仍覆盖判据现跑窗口），旧面是单读同快照，测试不可见；②本票连带的门面契约变化
+  属「票面未要求但删除 `events()` 后必需」，已在 `EV-20261007-ledger-review-fixup` 留档。
+- **落地**：`d0d26f8` → 集成分支 `b6b71e2`。
 
 - **2026-10-07 实施：游标边界差异一笔（`lib/org/human-inbox.js` `buildInbox`）。**
   拆两读后 `cursor` 改由 `since(cursor)` 窗口给出（窗口末条 `seq`；空窗保持调用方

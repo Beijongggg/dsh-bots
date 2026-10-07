@@ -43,8 +43,35 @@
 
 **Blocked by:** 40
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **来源：** 2026-10-07 架构评审候选 1 ＋ grilling 定案 Q9／Q10／Q15／Q16。
 
 ## Comments
+
+- **2026-10-07 收口（`resolved`）：常驻投影落成，读不再全文重折。** 提交 `ce6f8fd`
+  （并入 `ee3fbe2`）。失效设计：实例私有 `resident = {key, events, lastSeq, tasks}`
+  （`key = size:mtimeMs`，**先取键再读**）；每次读先 `stat`、键异才整折；**取得写锁的
+  跨越点**在 `ensureLock()` 内强制再查一次文件；本进程自己的追加按本任务行
+  `foldTaskEvents` 续折（序号守卫＋字节守卫，任一不符即作废缓存）；`at(taskId, seq)`
+  走无缓存的 `diskProjection`，历史读一律回落磁盘折叠，常驻态不含任何按序号投影。
+  新注入缝 `readEventsFile`／`statEventsFile`（读计数面）。
+- **验收凭据（均为注入读依赖计数实测，不窥内部）**：冷启第一条命令全文读 **1 次**
+  （旧 3 次）；稳态 `task`／`tasks`／`openQueue`／`holdingsFor`／`view`／
+  `notificationsAfter`／`since`／`taskEvents` 全 **0 次**，稳态命令 **0 次**，
+  `at()` 按其定案 **1 次**（磁盘折叠）。300 任务复算：第 N 条命令 last10 均值
+  **25.2 ms → 0.21 ms**，150→300 比值 2.18（线性）→ ≈0.7（不随 N 增长）。
+  负例两则各有用例：进程外追加后下一次读必见新内容；跨越点注入虚报变更 ⇒ 读数恰 2
+  （冷折 1＋跨越点重折 1）。全量回归 83/83＋preflight 四门 PASS（`620b623` 实测）。
+- **票面复算作护栏、未入门**：300 任务墙钟按票面自述「数值不稳，作回归护栏不作门」，
+  故未落成测试套件用例，仅实测留证（见 `EV-20261007-ledger-review-fixup`）。
+- **冻结面零触碰**：`store-base.js`／`ledger-events.js` 未改（preflight ② 10/10 为凭）。
+  读成员名字全部保留——`openQueue`／`holdingsFor`／`notificationsAfter` 仍以 ≥2 空格
+  缩进定义在 `lib/org/task-ledger.js`，`lib/org/acceptance-coordinates.js` 的源码记号
+  解析零惊动。
+- **已知边界（评审记录）**：`task()`／`tasks()` 交出常驻态内的投影对象（共享只读快照，
+  仓内无就地改写调用方）；`at(…, "latest")` 走磁盘而 `task()` 走常驻，同一回合内理论上
+  可给不同结论（票面明示「历史读回落磁盘」故合法，仓内无并发写者场景，未观测到分叉）。
+  常驻态内存为 O(事件数)（含当前事实流）——「只留当前态」＝不留按序号／历史投影，
+  此事已在票面定案内。
+- **落地**：`ce6f8fd` → 集成分支 `ee3fbe2`。

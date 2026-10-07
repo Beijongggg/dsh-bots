@@ -34,8 +34,29 @@
 
 **Blocked by:** 40
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **来源：** 2026-10-07 架构评审候选 1 ＋ grilling 定案 Q12／Q15。
 
 ## Comments
+
+- **2026-10-07 收口（`resolved`）。** 提交 `dfa7643`（并入 `d93f495`）。24 处全部迁移，
+  分流：**7 处**跨任务窗口 → `since(0)`（`:62/65/87/90/112/115/1166`，均消费事件本体）；
+  **5 处**任务域 → `taskEvents(taskId)`（`:191/204/868/1161/1183`，其中 `:204` 在 reduce 内
+  逐任务计数——域是语义的一部分，**不降级成全局计数**）；**12 处**裸计数 → `view().lastSeq`
+  （`:370/385/403/506/598/605/781/789/1059/1105/1185/1188`；其真实语义是「末序号水位」
+  而非事件条数，与票面定案 2「先判定该处真正需要的是窗口还是全量计数」一致）。
+  本文件无 `at(taskId, seq)` 需求（与调用点清单同判）。
+- **验收凭据**：`grep` 证明该文件 `.events(` 读法 **0**；`node --test tests/ledger-host.test.mjs`
+  24/24（验收原文跑法 `node tests/ledger-host.test.mjs` 同样 24/24）；结构量 `assert.` 233→233、
+  `test(` 24→24、行数 1192→1192；全量回归 83/83＋preflight 四门 PASS（`620b623` 实测）。
+- **等价证明（双向）**：把四类新读法机械反向代回旧形后与基点文件 **逐字节相同**；
+  另做红控——临时回到未挂载的 `lib/org/task-ledger.js` 跑 scoped ⇒ 6 例失败并报
+  `host.ledger.since is not a function` / `ledger.taskEvents is not a function`，证明迁移
+  真的走新读法而非同义改写失效。
+- **计数等价依据**：`lib/org/ledger-events.js` 强制 `event.seq === previousSeq + 1`（链首传 0）
+  ⇒ 可读账本 seq 恰为 `1..N`，故 `view().lastSeq === events().length` 恒成立。
+- **评审注记**：12 处 `view().lastSeq` 的口径与 45 号票同向但**未在本票 Comments 留痕**
+  （该判定写在提交信息内）；等价性依赖「seq 从 1 起且稠密」这一校验器强制的当前不变量，
+  已在 `EV-20261007-ledger-review-fixup` 补记。
+- **落地**：`dfa7643` → 集成分支 `d93f495`。

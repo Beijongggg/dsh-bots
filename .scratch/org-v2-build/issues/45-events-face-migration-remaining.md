@@ -43,8 +43,31 @@
 
 **Blocked by:** 40
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **来源：** 2026-10-07 架构评审候选 1 ＋ grilling 定案 Q12／Q13（历史读用 `at`）／Q15。
 
 ## Comments
+
+- **2026-10-07 收口（`resolved`）。** 提交 `df96ed0`（并入 `e50d0cc`／集成分支 `2d26830`）。
+  37 处全部迁移，落成 **38 条读法**（烟测 `:292` 一读拆两读）：任务域 → `taskEvents` **14**、
+  某序号投影 → `at` **1**、跨任务窗口／全历史 → `since(0)` **11**、裸计数当末序号 →
+  `view().lastSeq` **12**。
+- **验收凭据**：八个文件／脚本内 `.events(` **全 0**；单跑全绿且用例数与判定零变化
+  （acceptance-records 24、org-ledger-authz 19、org-unauthorized-count 18、org-durability 38、
+  org-bootstrap-channel 6、org-closed-loop-smoke 6、ledger-evidence 10✓、ledger-drill.test 3✓）；
+  `assert.deepEqual(visited, [...MAIN_FLOW])` 与基点**同行号、逐字节相同**，逐序号回放改由
+  `ledger.at(TASK_ID, event.seq)` 承担（探针实测 18 序号 10 态）；演练独立跑
+  `verdict.ok=true`／7 checks／事件数 8→8；全量回归 83/83＋preflight 四门 PASS
+  （`620b623` 实测）。反向替换逐字节证明：9 文件中 8 件与基点逐字节相同，仅烟测一件
+  因下面两处**票面要求**的形状改动而不同。
+- **三处与调用点清单建议的偏离（均在票面定案允许内，逐条留痕）**：①`view().lastSeq`
+  替代纯计数（净增／未推进类断言，语义是末序号水位）；②`ledger-drill.mjs` 保留计数口径
+  `since(0).length`（其语义是「事件条数在停启间不变」，不是游标）；③烟测 `:298` 由
+  `assert.equal(projected.ok, true, …)` 改 `assert.notEqual(projected, null, "seq N 处任务尚未开档")`
+  ——因 `at()` 对损坏投影**抛错**而非返回 `{ok:false}`（40 号票 API 语义），损坏仍红、
+  判据本体 `visited === MAIN_FLOW` 原文未动，故**未削弱**。
+- **评审注记**：清单与票面均许可「无 cursor 的全历史扫描写 `since(0)`」，故本票有 11 处
+  仍取全量窗口——这使 46 号票「拿不到整条事件序列」的目标成为**名义达成**（读面不再有
+  名为整条历史的读法），该边界已记入 `EV-20261007-ledger-review-fixup`。
+- **落地**：`df96ed0` → 集成分支 `2d26830`。
