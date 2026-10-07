@@ -216,3 +216,30 @@ exit 0（①51/51 ②冻结面 0009 包 7/7 ③0 违例扫 65 md ④11 PASS / 0 
 验证（收口批次）：`TMPDIR=/dev/shm` 全量 **80/80**（`host-contract-gate` 29/29）；preflight
 ①80/80 ②0010 包 10/10 ③0 违例 ④**12 PASS／0 FAIL／0 SKIP**（`P-CLIENT-SLOTS` 坐标已含增补面：
 「19 个 primitives 引用名 ⊆ 官方导出 280 名；sidebar.id=dsh-bots-sidebar、main.key=conversation」）。
+
+### V-A6.8 **正式执行**（2026-10-07，部署面；用户「做」之第 1 项授权）
+
+部署面同步批 `org-v2-18-rework-20261007T061629Z`（用户点名授权；**出仓库写入**）：
+5 件漂移文件（`lib/client.js`／`lib/host-faces.js`／`scripts/host-contract-probe.mjs`／
+`tests/host-contract-gate.test.mjs`／`tests/locale.test.mjs`）→ `~/.dsh/plugins/dsh-bots`，
+逐件排他备份至 `~/.dsh/backups/dsh-bots/org-v2-18-rework-20261007T061629Z-backup-685f9ae9/`
+（含 manifest 与逐件还原段），写后回读核验全绿。同步后 `org-cutover-check` **`199/199 same`、
+`deploymentOnly: 0`**；现役插件包（无重启、无拦截实取）1,167,562 B，`newSlotMain: true`／
+旧槽名 false／旧图标名 0／`markdownLabels: true`——**client 面按请求从部署目录重打包，无需重启即已生效**。
+
+**清单窗口达成**：本清单在 `dsh web` 正常运行面、部署面携带 HEAD 契约时执行一次——
+①入口 **PASS**；②接管 **PASS**（`sidebarRoot 1`／`mainRoot 1`／原生会话节点 0／composer 1／bot 列表 2 项）；
+③abdicate 还原 **PASS**；④通知卡片 **未触发**（零席在线、`channels: []`，结构在位）；
+⑤本地化 **PASS**（`rawKeys: []`）；⑥视觉一致 **PASS**（宿主「新建会话」×bots「新建 Bot」逐字段对照同值：
+38px／圆角 12px／14px／`rgb(249,250,251)`／填充 `rgb(67,69,74)`；1959 条 `--dsw-*` 规则）；
+⑦窄屏 **PASS**（900px 收轨 55px、轨上 5 个 bot 图形）；⑧控制台 **PASS**（本文件内 console error 0／未捕获 0）。
+**总评 7 PASS／1 未触发。**
+
+证据：`attachments/18-visual-deployed-2026-10-07/`（README、`formal-actions.json`、
+`formal-raw-session.json`、`served-bundle-check.json`＋`.js.gz`、`formal-01..04-*.png`）；
+同步面：`artifacts/cutover-preparation/org-v2-18-rework-20261007T061629Z-{plan,sync-executor}`、
+`artifacts/cutover-execution/org-v2-18-rework-20261007T061629Z-{sync-f200e924,readiness-post-sync}`。
+
+残留：第 4 项待一次真实「上线／邮件」事件（宿主重启链由用户在终端执行，席位重连时即可补测）；
+宿主**内存态**摘要仍为 `518ba0a0…`（7d3cc0b 代际）——本次只同步文件面，**server 面**如需生效须用户
+执行重启链；核验人署名与 `Status:` 翻转仍归用户（本会话不代签）。

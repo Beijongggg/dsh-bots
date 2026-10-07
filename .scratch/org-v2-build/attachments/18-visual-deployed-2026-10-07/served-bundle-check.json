@@ -1,0 +1,15 @@
+{
+ "note": "现役宿主在部署面同步后即时下发的插件聚合包核验（无重启、无拦截）",
+ "urlPattern": "http://127.0.0.1:3080/plugins/??…（524 字符查询串，末含 rev=<content-rev>）",
+ "byteLength": 1167562,
+ "charLength": 1151270,
+ "sha256": "11d29bfd769c6c668cef0a6453a7037016f7bd27cd967a3f923f6689910e30a1",
+ "markers": {
+  "newSlotMain": true,
+  "oldSlot": false,
+  "oldIconNames": false,
+  "markdownLabels": true
+ },
+ "runtimeNote": "宿主内存态摘要仍为 518ba0a0…（7d3cc0b 代际，未重启）；本核验证明 client 面按请求从部署目录重打包下发，故 V-A6.8 的 client 面无需重启即已生效",
+ "bundleCopy": "served-bundle-check.js.gz（gzip -dc 后与该 sha256 相符；未压缩 1,167,562 B 入库体积过大）"
+}
