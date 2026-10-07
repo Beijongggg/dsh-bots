@@ -1,0 +1,87 @@
+{
+ "packageType": "deploy-sync-executor",
+ "runId": "org-v2-18-head-catchup-20261007T080521Z",
+ "batch": "18-head-catchup",
+ "commit": "7be9be4684eb77a13cd320280d57a135082e1372",
+ "reason": "复审修正批与就地改善批共 9 件入现役，使部署面回到「携带 HEAD 契约」（V-A6.8 窗口口径）",
+ "authorization": "用户「完成继续」（承接上一轮甲栏「回同步我就用新工具跑一次」）",
+ "restart": "不做（client 面按请求重打包；工具/测试面按需读取；服务面重启归用户）",
+ "dshHome": "/home/beijong/.dsh",
+ "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+ "snapshot": "源字节取自 git archive <commit> -- <paths>（不读工作树）",
+ "inventoryRequire": "all-same",
+ "entries": [
+  {
+   "path": "lib/client.js",
+   "action": "write",
+   "sourceSha256": "371146b61d09cf66562f836aa0c4c334220eb1bfa55d4905feb31231924904f5",
+   "sourceByteLength": 162302,
+   "deployedSha256Before": "e9f2c94eaa830cd9ab5612bc854e17fee25d919f19966a28238ea937fda7dd33",
+   "changed": true
+  },
+  {
+   "path": "lib/host-faces.js",
+   "action": "write",
+   "sourceSha256": "eadb096e3596b93a1eb99a0308dafefb22862d73164e718f45388d4fe1d7b22d",
+   "sourceByteLength": 18710,
+   "deployedSha256Before": "4a75584e94391b9b70685a85aeba98de7c4384088738f1e6b0cc55baaf35629a",
+   "changed": true
+  },
+  {
+   "path": "lib/org/acceptance-coordinates.js",
+   "action": "write",
+   "sourceSha256": "3d1aceb416fba206665f0009ba332159e5e970b58f9cd552443ba14e22100571",
+   "sourceByteLength": 47964,
+   "deployedSha256Before": "548841609feb5ba1c18382ee71a1f10015c37d479e9d4d4ea0e2b2b0b53a8b94",
+   "changed": true
+  },
+  {
+   "path": "scripts/deploy-sync.mjs",
+   "action": "create",
+   "sourceSha256": "9adbdbdf0e4771f6a048d2e71e733d38bb4bdcf98881684245c6005810089e2d",
+   "sourceByteLength": 14016,
+   "deployedSha256Before": null,
+   "changed": true
+  },
+  {
+   "path": "scripts/host-contract-probe.mjs",
+   "action": "write",
+   "sourceSha256": "850ff48045fcc4f0c17b78b9dff80df3b37939b74d47fe6fdec979a2c8ec8b3b",
+   "sourceByteLength": 76741,
+   "deployedSha256Before": "6124d18c9ec7fd80c3dd42d1fe4dc50a71eda89cace2ed95634053fd0c813920",
+   "changed": true
+  },
+  {
+   "path": "tests/deploy-sync.test.mjs",
+   "action": "create",
+   "sourceSha256": "3d74537aeb1979c13b47a9e3293ce81c5831220463739c3b1fa00fddc9f88ebf",
+   "sourceByteLength": 10576,
+   "deployedSha256Before": null,
+   "changed": true
+  },
+  {
+   "path": "tests/host-contract-gate.test.mjs",
+   "action": "write",
+   "sourceSha256": "56bae2481b73850284a3ceb09377ba43e3a0f72132cd0d6946bc7fd4d71ac430",
+   "sourceByteLength": 46047,
+   "deployedSha256Before": "005e6130e417fe7dccced000b46b079e8ec779441dca1483cbd0e095056671ef",
+   "changed": true
+  },
+  {
+   "path": "tests/locale-runtime.test.mjs",
+   "action": "write",
+   "sourceSha256": "5252f6ec24417271202a5f3ef85ca7f4716d36de3cfb31b514d50380083b33e4",
+   "sourceByteLength": 7189,
+   "deployedSha256Before": "d3eea14c3c55aae24b4548b5cca46e362ad45d79b6cff377fde1c08c6ad6cd29",
+   "changed": true
+  },
+  {
+   "path": "tests/org-acceptance-coordinates.test.mjs",
+   "action": "write",
+   "sourceSha256": "a3ce1ea0e99dafeba9dddc2a8ba31155492c4dba895399131df2ab9d82bcdf4b",
+   "sourceByteLength": 14844,
+   "deployedSha256Before": "c92a6b20b37fe6b584e59577b5ffcdf1db7eea0aa903b947e93a87e13e16ceff",
+   "changed": true
+  }
+ ]
+}

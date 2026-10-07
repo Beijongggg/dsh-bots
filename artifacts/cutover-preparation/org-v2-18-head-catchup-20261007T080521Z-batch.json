@@ -1,0 +1,22 @@
+{
+ "runId": "org-v2-18-head-catchup-20261007T080521Z",
+ "batch": "18-head-catchup",
+ "commit": "7be9be4684eb77a13cd320280d57a135082e1372",
+ "files": [
+  "lib/client.js",
+  "lib/host-faces.js",
+  "lib/org/acceptance-coordinates.js",
+  "scripts/deploy-sync.mjs",
+  "scripts/host-contract-probe.mjs",
+  "tests/deploy-sync.test.mjs",
+  "tests/host-contract-gate.test.mjs",
+  "tests/locale-runtime.test.mjs",
+  "tests/org-acceptance-coordinates.test.mjs"
+ ],
+ "reason": "复审修正批与就地改善批共 9 件入现役，使部署面回到「携带 HEAD 契约」（V-A6.8 窗口口径）",
+ "authorization": "用户「完成继续」（承接上一轮甲栏「回同步我就用新工具跑一次」）",
+ "restart": "不做（client 面按请求重打包；工具/测试面按需读取；服务面重启归用户）",
+ "inventory": {
+  "require": "all-same"
+ }
+}

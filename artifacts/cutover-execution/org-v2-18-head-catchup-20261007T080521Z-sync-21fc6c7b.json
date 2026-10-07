@@ -1,0 +1,94 @@
+{
+ "packageType": "deploy-sync-execution",
+ "runId": "org-v2-18-head-catchup-20261007T080521Z",
+ "batch": "18-head-catchup",
+ "planPath": "artifacts/cutover-preparation/org-v2-18-head-catchup-20261007T080521Z-plan-30af9f66.json",
+ "planSha8": "30af9f66",
+ "commit": "7be9be4684eb77a13cd320280d57a135082e1372",
+ "dshHome": "/home/beijong/.dsh",
+ "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+ "backupDir": "/home/beijong/.dsh/backups/dsh-bots/org-v2-18-head-catchup-20261007T080521Z-backup-30af9f66",
+ "backupManifestSha8": "239d0dcc",
+ "capturedAt": "2026-10-07T08:05:21.749Z",
+ "authorization": "用户「完成继续」（承接上一轮甲栏「回同步我就用新工具跑一次」）",
+ "restart": "不做（client 面按请求重打包；工具/测试面按需读取；服务面重启归用户）",
+ "written": [
+  "lib/client.js",
+  "lib/host-faces.js",
+  "lib/org/acceptance-coordinates.js",
+  "scripts/deploy-sync.mjs",
+  "scripts/host-contract-probe.mjs",
+  "tests/deploy-sync.test.mjs",
+  "tests/host-contract-gate.test.mjs",
+  "tests/locale-runtime.test.mjs",
+  "tests/org-acceptance-coordinates.test.mjs"
+ ],
+ "verify": [
+  {
+   "path": "lib/client.js",
+   "sourceSha256": "371146b61d09cf66562f836aa0c4c334220eb1bfa55d4905feb31231924904f5",
+   "deployedSha256After": "371146b61d09cf66562f836aa0c4c334220eb1bfa55d4905feb31231924904f5",
+   "ok": true
+  },
+  {
+   "path": "lib/host-faces.js",
+   "sourceSha256": "eadb096e3596b93a1eb99a0308dafefb22862d73164e718f45388d4fe1d7b22d",
+   "deployedSha256After": "eadb096e3596b93a1eb99a0308dafefb22862d73164e718f45388d4fe1d7b22d",
+   "ok": true
+  },
+  {
+   "path": "lib/org/acceptance-coordinates.js",
+   "sourceSha256": "3d1aceb416fba206665f0009ba332159e5e970b58f9cd552443ba14e22100571",
+   "deployedSha256After": "3d1aceb416fba206665f0009ba332159e5e970b58f9cd552443ba14e22100571",
+   "ok": true
+  },
+  {
+   "path": "scripts/deploy-sync.mjs",
+   "sourceSha256": "9adbdbdf0e4771f6a048d2e71e733d38bb4bdcf98881684245c6005810089e2d",
+   "deployedSha256After": "9adbdbdf0e4771f6a048d2e71e733d38bb4bdcf98881684245c6005810089e2d",
+   "ok": true
+  },
+  {
+   "path": "scripts/host-contract-probe.mjs",
+   "sourceSha256": "850ff48045fcc4f0c17b78b9dff80df3b37939b74d47fe6fdec979a2c8ec8b3b",
+   "deployedSha256After": "850ff48045fcc4f0c17b78b9dff80df3b37939b74d47fe6fdec979a2c8ec8b3b",
+   "ok": true
+  },
+  {
+   "path": "tests/deploy-sync.test.mjs",
+   "sourceSha256": "3d74537aeb1979c13b47a9e3293ce81c5831220463739c3b1fa00fddc9f88ebf",
+   "deployedSha256After": "3d74537aeb1979c13b47a9e3293ce81c5831220463739c3b1fa00fddc9f88ebf",
+   "ok": true
+  },
+  {
+   "path": "tests/host-contract-gate.test.mjs",
+   "sourceSha256": "56bae2481b73850284a3ceb09377ba43e3a0f72132cd0d6946bc7fd4d71ac430",
+   "deployedSha256After": "56bae2481b73850284a3ceb09377ba43e3a0f72132cd0d6946bc7fd4d71ac430",
+   "ok": true
+  },
+  {
+   "path": "tests/locale-runtime.test.mjs",
+   "sourceSha256": "5252f6ec24417271202a5f3ef85ca7f4716d36de3cfb31b514d50380083b33e4",
+   "deployedSha256After": "5252f6ec24417271202a5f3ef85ca7f4716d36de3cfb31b514d50380083b33e4",
+   "ok": true
+  },
+  {
+   "path": "tests/org-acceptance-coordinates.test.mjs",
+   "sourceSha256": "a3ce1ea0e99dafeba9dddc2a8ba31155492c4dba895399131df2ab9d82bcdf4b",
+   "deployedSha256After": "a3ce1ea0e99dafeba9dddc2a8ba31155492c4dba895399131df2ab9d82bcdf4b",
+   "ok": true
+  }
+ ],
+ "inventoryAfter": {
+  "ok": true,
+  "require": "all-same",
+  "allSame": true,
+  "batchAllSame": true,
+  "total": 201,
+  "same": 201,
+  "notSame": [],
+  "deploymentOnly": 0,
+  "violations": []
+ },
+ "restoreNote": "cp -a /home/beijong/.dsh/backups/dsh-bots/org-v2-18-head-catchup-20261007T080521Z-backup-30af9f66/<path> /home/beijong/.dsh/plugins/dsh-bots/<path>（manifest.json.restore 段逐件给出）"
+}
