@@ -33,7 +33,7 @@
     {
       "probeId": "P-CLIENT-VISUAL",
       "face": "HF-CLIENT-VISUAL",
-      "describe": "视觉件：行为探针——真实 apply 官方 theme bundle，断言运行期 --dsw-* 令牌注入与 theme 服务形状；primitives 实体包在盘（导出面作引用名与必需 props 判据，归 P-CLIENT-SLOTS 增补面），槽位 ownerProps（collapsed/wide）渲染形状无头不可调起——显式降级归 V-A6.8 人工目视清单",
+      "describe": "视觉件：行为探针——真实 apply 官方 theme bundle，断言运行期 --dsw-* 令牌注入与 theme 服务形状；primitives 导出面**取包入口自述的 `export {…}` 文本**作引用名与必需 props 判据（归 P-CLIENT-SLOTS 增补面）——**显式降级声明**：该包按构建产物装盘、依赖未随盘安装（react／react-dom 解析失败）⇒ `import` 实包在本环境不可行，故为「导出名形状断言」而非真实调起，字面漂移可守、语义漂移不可；待宿主提供可装载实体包时升级为真实导入。槽位 ownerProps 渲染形状无头不可调起——显式降级归 V-A6.8 人工目视清单",
       "state": "PASS",
       "coordinate": "theme bundle 运行期样式注入＋theme 服务形状（真实 apply 断言）"
     },

@@ -127,6 +127,9 @@ test("deploy-sync：正常批——写入＋回读＋记录件字段取自 spec�
     assert.equal(out.recordSha8, sha8(readFileSync(recordPath, "utf8")));
     const planPath = join(fixture.repo, record.planPath);
     assert.equal(record.planSha8, sha8(readFileSync(planPath, "utf8")));
+    // 批次声明与记录同绑：spec 摘要入计划与记录（输入件本身不自嵌哈希，靠此字段可复核）
+    assert.equal(record.specSha256, sha256(readFileSync(specPath)));
+    assert.equal(JSON.parse(readFileSync(planPath, "utf8")).specSha256, record.specSha256);
     // 备份：排他目录、0600、manifest 可还原
     const manifest = JSON.parse(readFileSync(join(record.backupDir, "manifest.json"), "utf8"));
     assert.equal(manifest.restore[0].path, "lib/client.js");

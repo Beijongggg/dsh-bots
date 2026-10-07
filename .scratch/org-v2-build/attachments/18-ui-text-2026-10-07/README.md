@@ -23,7 +23,7 @@
    CSS 规则（`.dsh-bots-logo-title`／`.dsh-bots-collapsed .dsh-bots-logo-title`）；该行布局不变
    （仍 `justify-content:flex-end`，两个图标钮在右上）。
 2. **官方页面入口文案 `Bot 模式` → `Pod`**：新增字典键 `entry.label`（zh／en 同为 `Pod`），入口的
-   可见标签、`aria-label`、`title` 三处同源改用它；`mode.title` 保持原值（列表态主区左上角的 chip
+   可见标签、`aria-label`、`title` 三处同源改用它；`mode.title` 当时保持原值（列表态主区左上角的 chip
    仍在用它）。
 
 ## 证据
@@ -80,10 +80,12 @@
 → /dev/pts/0`），新宿主上无法再建会话——**第 4 项因此仍缺真实事件**，`notice-watch-result.json`
 从未生成（此前 README 误引，2026-10-07 复审后更正）。
 
-## 第 4 项补观测：通知卡片捕获（2026-10-07 16:07Z）
+## 第 4 项补观测：通知卡片捕获（2026-10-07 08:07:59.859Z＝本地 16:07+08:00）
 
 - 事件制造：`POST /api/bots/duty-coordinator/stop` → `start`（产品控制面，CSRF 走 `GET /api/bots/_csrf`），
   席位由宿主重新拉起（pid 88482）；客户端由此得到真实的 `online: false → true` 翻转。
+- 采集面：head-catchup 同步批（`08:05:21Z`）**之后**的现役面（截图侧栏入口已是 `Pod`），即当前 HEAD 契约。
+- 采集面：head-catchup 同步批（`08:05:21Z`）之后的现役面（截图侧栏入口已是 `Pod`），即当前 HEAD 契约。
 - 命中证据：`notice-watch-final.png`（右下角**绿色**卡片）、`notice-watch-final-result.json`
   （`status:"caught"`、`notices:["「值班统筹」已上线"]`、`visibleNow:true`、容器 HTML 原文）。
   卡片出现在 **Bot 模式之外**的原生界面，容器为 `shell.overlay` 我方节点 `.dsh-bots-notices`。
@@ -91,5 +93,9 @@
   `Page.addScriptToEvaluateOnNewDocument`（**下一次文档加载才生效**），而当时顺序是
   `goto → reload → inject`，观察器从未安装；改用 `Runtime.evaluate` 直接装观察器后立即命中。
   用该驱动时须「先 inject 后 goto/reload」或改用 eval。
-- 边界：邮件类通知未单独触发（同组件同槽，按上线卡证据推及）；卡片 4 秒自动消失，故只能在场守候。
+- 边界：邮件类通知未单独触发（同组件同槽，按上线卡证据推及）；卡片 4 秒自动消失，故只能在场守候；
+  本次只观测到**单卡**（「最多 3 条堆叠」未观测），且未覆盖 Bot 模式**内**的通知。
+- **改名映射（死指针处置）**：首轮守候空转时驱动自动截的那张图原写为 `notice-01-caught.png`，
+  后更名为 `notice-watch-timeout-shot.png`；`notice-watch-session.json` 是当次原始件，仍如实保留旧路径，
+  此处给映射、不重写原始件。
 

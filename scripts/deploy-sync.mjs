@@ -7,7 +7,9 @@
  * （硬违例）。本文件把执行流程收敛为唯一实现，批次差异只走 `--spec` 的 JSON 声明。
  *
  * 纪律（对齐 s1 先例 `org-v2-sync-20261007T033517Z-s1-sync-executor`，并补齐其差距）：
- *   1. `HEAD == spec.commit` 断言，源字节取自 `git archive <commit> -- <paths>`（不读工作树）；
+ *   1. `HEAD == spec.commit` 断言，源字节取自 `git archive <commit> -- <paths>`（**写入路径不读工作树**；
+ *      第 5 步的整面复核用的是 `deploymentInventory()`，它按设计读 WorkingTree，故记录里只留计数——
+ *      「部署面 == 提交面」的可复核判据以 `verify` 逐件 sha256 为准）；
  *   2. 备份目录**排他创建**，备份件 `0600`＋`fsync`，逐件**回读复验**，manifest 排他写；
  *   3. 计划件**先于写入**落盘，文件名内嵌自身 sha8（自校验）；
  *   4. 写入后逐件回读复验；失败即非零退出并给出还原指引；
@@ -17,6 +19,11 @@
  * 用法：
  *   node scripts/deploy-sync.mjs --spec artifacts/cutover-preparation/<batch>.json [--dry-run]
  *   [--dsh-home <dir>] [--repo-root <dir>]        # --repo-root/--dsh-home 供测试与换环境用
+ *
+ * 记录 schema 与 s1 先例（`org-v2-sync-20261007T033517Z-s1-sync-executor`）的字段映射：
+ *   `actions`→`plan.entries`（逐件 action/sourceSha256/deployedSha256Before）、`backupEntries`→
+ *   `backupDir`＋备份 `manifest.json`、`deployDigestBefore|After`→`verify[].sourceSha256|deployedSha256After`、
+ *   `processedBy`→`runId`＋`batch`。字段名不同但语义一一对应，读旧记录时按下表对照。
  *
  * spec（JSON）字段：
  *   runId            批 id（记录件与备份目录名首段）
@@ -99,6 +106,7 @@ export function buildPlan({ spec, meta, sourceBytes, readDeployed }) {
   });
   return {
     packageType: "deploy-sync-executor",
+    specSha256: meta.specSha256,
     runId: spec.runId,
     batch: spec.batch,
     commit: spec.commit,
@@ -132,7 +140,8 @@ function main() {
 
   const dshHome = resolve(args.dshHome ?? spec.dshHome ?? join(homedir(), ".dsh"));
   const deployDir = join(dshHome, spec.deploySubdir ?? join("plugins", "dsh-bots"));
-  const planPath = join(repoRoot, "artifacts", "cutover-preparation", `${spec.runId}-plan-PLACEHOLDER.json`);
+  /** 计划件路径＝`<runId>-plan-<planSha8>.json`（名字内嵌自身摘要，便于自校验）。 */
+  const planPathFor = (planSha8) => join(repoRoot, "artifacts", "cutover-preparation", `${spec.runId}-plan-${planSha8}.json`);
 
   // 快照：git archive → 临时目录 → 读字节（与执行器分离，dry-run 亦可复用）
   const snapshotDir = mkdtempSync(join(tmpdir(), "deploy-sync-"));
@@ -148,10 +157,12 @@ function main() {
       const abs = join(deployDir, path);
       return existsSync(abs) ? readFileSync(abs) : null;
     };
-    const plan = buildPlan({ spec, meta: { dshHome, deployDir }, sourceBytes, readDeployed });
+    const plan = buildPlan({
+      spec, meta: { dshHome, deployDir, specSha256: sha256(readFileSync(specPath)) }, sourceBytes, readDeployed
+    });
     const planText = JSON.stringify(plan, null, 1);
     const planSha8 = sha8(planText);
-    const finalPlanPath = planPath.replace("PLACEHOLDER", planSha8);
+    const finalPlanPath = planPathFor(planSha8);
 
     if (args.dryRun) {
       console.log(JSON.stringify({
@@ -249,6 +260,7 @@ function main() {
       batch: spec.batch,
       planPath: finalPlanPath.slice(repoRoot.length + 1),
       planSha8,
+      specSha256: plan.specSha256,
       commit: spec.commit,
       dshHome, deployDir,
       backupDir,
