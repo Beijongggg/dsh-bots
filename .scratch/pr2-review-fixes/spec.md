@@ -1,6 +1,6 @@
 # PR #2 评审返修
 
-Status: ready-for-agent
+Status: resolved
 
 ## 来源与授权
 
@@ -57,3 +57,14 @@ Status: ready-for-agent
 - 2026-10-07：三项评审发现转为两张实施票。R1 已在隔离真实 `apply()` 复现，
   合法 URL 下自检 `ok:true` 而 watcher 未启动；R2 已用无网络 `Request` 探针复现
   API 路径进入 query／fragment；R3 已核原日志与正式观察入口不一致。
+- 2026-10-07 收口：两票均已合入 `integration/pr2-review-fixes`，R1–R4 完成。
+  固定提交 `42b2bec7f0860d270fa568e872a4b72ff4cd3954` 的隔离快照通过全量
+  83/83 文件及 preflight：冻结面 10/10、文档检查 0 违例、宿主契约
+  11 PASS／0 FAIL／1 SKIP。SKIP 为临时 `DSH_HOME` 无真实会话日志的
+  `P-SESSION-LOG`，不声明部署面验收通过。
+- 同一固定提交相对 `34f4de9` 的两轴 `code-review` 完成，Standards 硬违规 0、
+  smell 判断项 0，Spec 发现 0。验证日志为
+  `/tmp/dsh-bots-pr2-implement-7mon70nd/integrated/preflight.log`；复跑入口为
+  `node scripts/preflight.mjs`，需以明确提交生成隔离快照并将 `DSH_HOME` 指向
+  临时目录。收口事件为 `EV-20261007-pr2-review-fixes-close`，记录于
+  `docs/changelog/2026-10-03.md`。

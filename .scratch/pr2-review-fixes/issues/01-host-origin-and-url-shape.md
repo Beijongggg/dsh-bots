@@ -1,6 +1,7 @@
 # 01：修复宿主 origin 传参与空 query／fragment 判定
 
-Status: ready-for-agent
+Status: resolved
+Delivery: 995a72f6a3a6224d718da79f82dc20a371df2155 / integration/pr2-review-fixes
 Blocked by: 无
 
 ## What to build
@@ -21,9 +22,9 @@ bot `apply` 两处参数，使 `normalizeSeamOrigin` 收到环境变量字符串
 - [x] 裸 `?`、裸 `#`、既有非空 query／fragment 均返回 `malformed`；正常 origin
       与合法路径前缀保持有效。
 - [x] 按 TDD 逐项留下先红后绿的行为证据，不断言源码拼写或 mock 内部归一化函数。
-- [ ] 改动文件 `node --check` 与 scoped 测试通过；集成阶段全量回归与 preflight
+- [x] 改动文件 `node --check` 与 scoped 测试通过；集成阶段全量回归与 preflight
       按真实 PASS／SKIP 口径落档。
-- [ ] 原 39 号票 Comments 追加返修来源与验证指针；本票 Comments 与 CHANGELOG
+- [x] 原 39 号票 Comments 追加返修来源与验证指针；本票 Comments 与 CHANGELOG
       记录实施和授权。
 
 ## 工作面
@@ -74,3 +75,16 @@ tools 服务与 `fetch` 网络边界放夹具，所有请求都由夹具应答�
 两项缺陷均有先红后绿证据，当前没有待验证的故障假设。下一步由集成分支执行
 全量回归、preflight、技能内两轴复审及统一 CHANGELOG 落档，再关闭本票。
 实施提交与逐项日志见上节；原 39 号票 Comments 已追加本次返修指针。
+
+### 2026-10-07 集成收口
+
+实现与证据经 `6e46e82` 并入集成分支。固定提交
+`42b2bec7f0860d270fa568e872a4b72ff4cd3954` 的隔离快照全量 83/83 文件通过，
+preflight PASS：冻结面 10/10、文档检查 0 违例、宿主契约 11 PASS／0 FAIL／
+1 SKIP。跳过的是隔离数据根无真实会话日志的 `P-SESSION-LOG`，与真 PASS 分列。
+同一提交的两轴复审均为 0 项。本票验收项全部完成，Status 置 `resolved`。
+
+统一落档为 `docs/changelog/2026-10-03.md` 的
+`EV-20261007-pr2-review-fixes-implementation` 与 `EV-20261007-pr2-review-fixes-close`。
+全量日志：`/tmp/dsh-bots-pr2-implement-7mon70nd/integrated/preflight.log`。
+移交备注：无待证假设或本票剩余步骤，实施与验证版本见以上提交和事件。

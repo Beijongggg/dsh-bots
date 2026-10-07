@@ -1,6 +1,7 @@
 # 02：补登记台账投影读数分叉观察项
 
-Status: ready-for-agent
+Status: resolved
+Delivery: 53bb3bd62bc25103e937ca6134c9be1c981a992b / integration/pr2-review-fixes
 Blocked by: 无
 
 ## What to build
@@ -15,11 +16,11 @@ Blocked by: 无
 
 ## Acceptance criteria
 
-- [ ] 正式观察入口包含该项，注明两种读法、当前尚未观测到分叉，以及出现真实
+- [x] 正式观察入口包含该项，注明两种读法、当前尚未观测到分叉，以及出现真实
       分叉时按 41 号票失效规则立票的触发条件。
-- [ ] 条目链接原 41 号票与原 CHANGELOG 事件，链接相对路径正确。
-- [ ] 原 41 号票 Comments 追加登记位置指针；原判据和历史事件原文保留。
-- [ ] 本票 Comments 留实施与文档核验凭据；集成阶段按 README §6.2 留事件。
+- [x] 条目链接原 41 号票与原 CHANGELOG 事件，链接相对路径正确。
+- [x] 原 41 号票 Comments 追加登记位置指针；原判据和历史事件原文保留。
+- [x] 本票 Comments 留实施与文档核验凭据；集成阶段按 README §6.2 留事件。
 
 ## 工作面
 
@@ -40,3 +41,10 @@ Blocked by: 无
 - 移交备注：本票无待证假设。下一步由集成者合入提交、按 README §6.2 统一留
   事件并关闭本票；登记内容与原 41 号票的新增 Comments 为实施凭据，来源为
   `docs/changelog/2026-10-03.md` 的 `EV-20261007-ledger-review-fixup` 第三项。
+- 2026-10-07 集成收口：实施提交 `53bb3bd62bc25103e937ca6134c9be1c981a992b`
+  已并入集成分支。固定提交 `42b2bec` 的文档检查 0 违例、Standards 与 Spec
+  两轴复审均为 0 项；整批全量 83/83 文件通过。观察项归位完成，Status 置
+  `resolved`，不将观察本身误标为已发生故障或已修复故障。
+- 统一落档为 `docs/changelog/2026-10-03.md` 的
+  `EV-20261007-pr2-review-fixes-implementation` 与 `EV-20261007-pr2-review-fixes-close`。
+  移交备注：本票无剩余步骤；后续只在正式观察条目所述触发条件满足时另立票。
