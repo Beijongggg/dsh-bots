@@ -1,6 +1,7 @@
 # 18 号票附件：门覆盖缺口收口（P-CLIENT-SLOTS 增补面，2026-10-07）
 
-> 本目录是**票面附件**（18 号票的门内守卫证据），不是 `artifacts/packages/` 的证据包链件。
+**产出模型＋基线 commit**：deepseek-v4.1-flash（dsh／DeepSeek Harness lead 会话）｜票面附件（非独立版交付、非 `artifacts/packages/` 证据包链件）｜基线 `c684aa9`
+（红/绿原始件与判据均由该 commit 的工作树产生；此后修正批只动注释与脚本去重，不动判据）。
 
 ## 1. 缺口是什么
 

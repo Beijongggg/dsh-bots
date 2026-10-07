@@ -4,12 +4,25 @@
  * 「把修复后的 lib/client.js 等送达 ~/.dsh/plugins/dsh-bots 并在部署面重跑 V-A6.8」）。
  *
  * 合同面纪律（AGENTS §3、README §6.2）：
- *  - 只写「部署面 vs HEAD 漂移」的 5 件（4 件 runtime ＋ 1 件 test-resource），清单硬编码在
- *    本文件内（不扫全量、不做通配写入）；
+ *  - 只写本批点名的 5 件（4 件 runtime ＋ 1 件 test-resource——其中 `tests/locale.test.mjs`
+ *    是**更早批次累积的漂移**，不在 18 号票返修批的改动范围内，因「部署面 ≠ HEAD」一并补齐），
+ *    清单硬编码在文件内（不扫全量、不做通配写入）；
  *  - 写前逐件**排他备份**到 `~/.dsh/backups/dsh-bots/<runId>-backup-<sha8>/`（含 manifest.json），
  *    还原方式随记录冻结；
  *  - 写后**逐件回读核验** sha256 与仓库源一致，不一致即非零退出；
  *  - **不做重启**：宿主／席位重启链归用户在终端执行（s1 先例）。
+ *
+ * ⚠ 执行事实与已知不足（2026-10-07 code review 记录，供复用者补正后再用）：
+ *  本批**实际执行的是本文件 14:16 初版的读取路径（工作树）**。review 指出三处弱于 s1 先例：
+ *   ① 未做 `git archive <commit>` 快照、也未断言 `HEAD == commit`——**未在本文件内补正**；
+ *      本批以「执行时工作树干净 ＋ 事后逐一比对 `git show c684aa9:<path>` 与记录 sha256 全等」
+ *      补证（结论 5/5 相符，见票面与 CHANGELOG 修正事件）；
+ *   ② 备份目录用 `mkdirSync(recursive)`（已存在则静默复用）而非排他 mkdir，且无备份回读复验
+ *      ——**未在本文件内补正**；
+ *   ③ 计划件落盘字节与文件名 sha8 曾不符（初版写了 `planText + "\n"`）——**已在本文件内补正**
+ *      （落盘字节＝planText，文件名自校验成立）。
+ *  复用本执行器做下一批同步前，先按 s1 纪律（`org-v2-sync-20261007T033517Z-s1-sync-executor`）
+ *  补齐 ①② 再跑。
  *
  * 用法：node artifacts/cutover-preparation/org-v2-18-rework-20261007T061629Z-sync-executor.mjs
  *      [--dry-run]   # 只出计划，不写任何文件
@@ -65,6 +78,8 @@ const plan = {
   entries
 };
 const planText = JSON.stringify(plan, null, 1);
+// 文件名 sha8 = planText 的 sha8，故**落盘字节必须与 planText 逐字节相同**（不加尾换行），
+// 使「文件名自校验」成立（2026-10-07 code review 修正点：初版写了 planText + "\n"）。
 const planSha8 = sha8(planText);
 const planPath = join(repoRoot, "artifacts", "cutover-preparation", `${RUN_ID}-plan-${planSha8}.json`);
 
@@ -90,10 +105,10 @@ const manifest = {
   }))
 };
 const manifestText = JSON.stringify(manifest, null, 1) + "\n";
-const backupManifestSha8 = sha8(manifestText);
+const backupManifestSha8 = sha8(manifestText);   // 备份 manifest 的 sha8 按**落盘字节**计
 
 if (dryRun) {
-  writeFileSync(planPath, planText + "\n");
+  writeFileSync(planPath, planText);
   console.log(JSON.stringify({ dryRun: true, planPath, planSha8, backupDir, backupManifestSha8, changed: entries.filter((e) => e.changed).length }, null, 1));
   process.exit(0);
 }
@@ -130,7 +145,7 @@ if (!allOk) {
 }
 
 // ---------- 5) 记录 ----------
-writeFileSync(planPath, planText + "\n");
+writeFileSync(planPath, planText);
 const record = {
   packageType: "deploy-sync-execution",
   runId: RUN_ID,

@@ -243,3 +243,43 @@ exit 0（①51/51 ②冻结面 0009 包 7/7 ③0 违例扫 65 md ④11 PASS / 0 
 残留：第 4 项待一次真实「上线／邮件」事件（宿主重启链由用户在终端执行，席位重连时即可补测）；
 宿主**内存态**摘要仍为 `518ba0a0…`（7d3cc0b 代际）——本次只同步文件面，**server 面**如需生效须用户
 执行重启链；核验人署名与 `Status:` 翻转仍归用户（本会话不代签）。
+
+### 修正批次（2026-10-07；对 `7370009..3d6074c` 两轴 code review 后按采纳项返工）
+
+对门守卫与部署同步批（`c684aa9`／`3d6074c`）跑了两轴复审（Standards＋Spec），采纳项如下：
+
+- **记录自校验（硬项）**：`readiness-post-sync.json` 补文件名内嵌自身哈希 →
+  `org-v2-18-rework-20261007T061629Z-readiness-post-sync-aa754417.json`（内容字节不变）；
+  `plan-685f9ae9.json` 初版多写一个尾换行、致文件名 sha8 与文件字节不符，已按**文件字节**重写
+  （现 `sha256 = 685f9ae9…` 自校验成立），执行器同步补正（`planText` 落盘不再加换行）。
+- **快照等价性补证**：review 指出执行器读工作树、未断言 `HEAD == commit`；已逐一比对
+  `git show c684aa9:<path>` 与同步记录 5 个 `sourceSha256`——**5/5 全等**，工作树快照与 commit
+  字节等价成立。（执行器的 `git archive` 快照与排他备份 mkdir 两条纪律仍记为待补正项，见脚本头注。）
+- **用词订正**：本票与 `EV-20261007-deploy-sync-rework` 中「逐件**排他**备份」用词过宽——实为
+  `mkdirSync(recursive)` 目录备份（含 manifest 与还原段），**非**排他创建，亦无备份回读复验；
+  以本段为准（记录 append-only，不复写旧事件）。
+- **守卫覆盖面加宽**：`BOT_MODE_SLOT_TARGETS` 由 2 处扩到 **4 处落点**——apply 期
+  `sidebar.footer.action`（入口钮 `dsh-bots-entry`）与 `shell.overlay`（通知容器 `dsh-bots-notices`，
+  即清单第 4 项的结构前置），enter 期 `sidebar` 与 `main` 槽 `conversation` 键；真实宿主实跑坐标已含四者。
+- **诚实口径收口**：探针注释由「只把 react／primitives 换桩」改为「宿主实体件**只有 `SlotCore`**，
+  整个 `ctx` 为手写桩（`slots.inject` 语义由门内复现，非宿主 renderer 的 `declarationEpoch`）」；
+  `checkPrimitivesReferences` 明确定性为**增量形状断言**（判据＝我方源码文本 × 官方包入口自述 `export` 面），
+  **不是**该 A 类面的行为探针（行为面＝真实官方 bundle＋真实 SlotCore 实跑），并记其漏检面
+  （computed／spread 形态、入口未触达的名字）；套件夹具注释由「与官方判定契约同形」改为
+  「**门内所需子集**，不覆盖重复声明守卫／`chain`／`options.select` 等语义」。
+- **现役包核验补链条**：原 `served-bundle-check.json` 无生成步骤与时间戳，且与本批 V-A6.8 会话内的
+  「第一个 `/plugins/` 资源」选择器（命中 10.6M 字符超集包、`newSlotMain:false`）易生歧义；现改为
+  **同一会话现取**记录：`served-bundle-actions.json`（动作序内无 `intercept`）＋`served-bundle-session.json`
+  ＋页面内 SubtleCrypto 摘要与归档件 sha256 相等（`selfCheck: true`），README §0 补口径说明。
+- **去重**：`red-check.mjs` 改 import 探针导出的 `readPrimitivesExportNames`（不再复制扫描逻辑）。
+- **附件格式**：两个新附件 README 补「产出模型＋基线 commit」首行；`served-bundle-check.js` →
+  `served-bundle-check.js.gz` 引用订正。
+
+验证：全量回归 **80/80**（`host-contract-gate` 29/29、`locale` 8/8）；preflight 四门 PASS；
+三件记录文件名自校验逐件成立（`plan 685f9ae9`／`sync f200e924`／`readiness aa754417`）；
+`red-green-output.txt` 以去重后的脚本重放，结论不变（修复前两查 FAIL、中间态引用面 FAIL、当前全 PASS）。
+
+**残余（记为待办，本轮未做）**：① 官方 primitives 包因宿主按构建产物装盘、依赖未随盘安装而无法
+`import` 实包——导出面判据仍取自包入口自述文本，若后续宿主改为可装载实体包，应升级为真实导入；
+② `slots.inject` 语义仍是门内复现（非宿主 renderer 的 `declarationEpoch` 实现）；③ 第 4 项通知卡片
+待真实事件（与署名一并归用户）。

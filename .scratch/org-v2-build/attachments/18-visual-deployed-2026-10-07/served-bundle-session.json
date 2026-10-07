@@ -1,0 +1,126 @@
+{
+ "capturedAt": "2026-10-07T06:34:16.423Z",
+ "targetId": "9F55965C10DB00B7CCD6E4E2439BD865",
+ "results": [
+  {
+   "index": 0,
+   "action": "ensure",
+   "label": null,
+   "result": {
+    "targetId": "9F55965C10DB00B7CCD6E4E2439BD865",
+    "url": "about:blank"
+   },
+   "ms": 0
+  },
+  {
+   "index": 1,
+   "action": "viewport",
+   "label": null,
+   "result": {},
+   "ms": 2
+  },
+  {
+   "index": 2,
+   "action": "goto",
+   "label": null,
+   "result": {
+    "frameId": "9F55965C10DB00B7CCD6E4E2439BD865",
+    "loaderId": "4B68FED2C306ADBD04F8F17CCEB35E63",
+    "isDownload": false
+   },
+   "ms": 6789
+  },
+  {
+   "index": 3,
+   "action": "reload",
+   "label": null,
+   "ms": 9436
+  },
+  {
+   "index": 4,
+   "action": "bundle",
+   "label": null,
+   "result": {
+    "path": "/home/beijong/project/dsh-bots/.scratch/org-v2-build/attachments/18-visual-deployed-2026-10-07/served-bundle.fetched.js",
+    "urlLength": 524,
+    "bytes": 1151270,
+    "hasOldSlot": false,
+    "hasOldIcon": false
+   },
+   "ms": 205
+  },
+  {
+   "index": 5,
+   "action": "eval",
+   "label": "现役插件包现取核验（页面内 fetch：字节数＋sha256＋标记）",
+   "result": [
+    {
+     "urlLength": 2859,
+     "rev": "e3fbb8b12214",
+     "byteLength": 10651819,
+     "charLength": 10616794,
+     "sha256": "1b941d74ae88887fa3449480d345bf919ce65eaa00ac3fb495930f815878f6f4",
+     "markers": {
+      "newSlotMain": false,
+      "oldSlot": false,
+      "oldIconNames": false,
+      "markdownLabels": true
+     }
+    },
+    {
+     "urlLength": 524,
+     "rev": "fa24639987c7",
+     "byteLength": 1167562,
+     "charLength": 1151270,
+     "sha256": "11d29bfd769c6c668cef0a6453a7037016f7bd27cd967a3f923f6689910e30a1",
+     "markers": {
+      "newSlotMain": true,
+      "oldSlot": false,
+      "oldIconNames": false,
+      "markdownLabels": true
+     }
+    },
+    {
+     "urlLength": 2859,
+     "rev": "e3fbb8b12214",
+     "byteLength": 10651819,
+     "charLength": 10616794,
+     "sha256": "1b941d74ae88887fa3449480d345bf919ce65eaa00ac3fb495930f815878f6f4",
+     "markers": {
+      "newSlotMain": false,
+      "oldSlot": false,
+      "oldIconNames": false,
+      "markdownLabels": true
+     }
+    },
+    {
+     "urlLength": 524,
+     "rev": "fa24639987c7",
+     "byteLength": 1167562,
+     "charLength": 1151270,
+     "sha256": "11d29bfd769c6c668cef0a6453a7037016f7bd27cd967a3f923f6689910e30a1",
+     "markers": {
+      "newSlotMain": true,
+      "oldSlot": false,
+      "oldIconNames": false,
+      "markdownLabels": true
+     }
+    }
+   ],
+   "ms": 201
+  },
+  {
+   "index": 6,
+   "action": "eval",
+   "label": "本次会话无拦截动作（动作单自查）",
+   "result": {
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWeb"
+   },
+   "ms": 1
+  }
+ ],
+ "fulfilled": [],
+ "paused": [],
+ "console": [],
+ "exceptions": []
+}

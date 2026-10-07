@@ -292,11 +292,17 @@ export async function runClientBundle(roots, pkg) {
 }
 
 /**
- * Bot 模式必须命中的槽落点（`HF-CLIENT-SLOTS` 的消费面）。宿主把 `conversation`
- * 改回独立单槽（旧宿主 0.1.0-rc.6 形态）也会在此报出——那是**宿主契约变更**，
+ * Bot 模式必须命中的槽落点（`HF-CLIENT-SLOTS` 的消费面，覆盖「apply 期常驻」与「enter 期占用」两相）：
+ *   - `sidebar.footer.action`（list）：入口钮 `dsh-bots-entry`（Bot 模式外可见）；
+ *   - `shell.overlay`（list）：全局通知容器 `dsh-bots-notices`（V-A6.8 第 4 项的结构前置）；
+ *   - `sidebar`（single）：Bot 模式接管 `dsh-bots-sidebar`；
+ *   - `main`（keyed）：Bot 模式接管 `key="conversation"`。
+ * 宿主把 `conversation` 改回独立单槽（旧宿主 0.1.0-rc.6 形态）也会在此报出——那是**宿主契约变更**，
  * 须同步改 `lib/client.js` 的 `HOST_SLOTS`，由本门把守，不许静默退回原生界面。
  */
 export const BOT_MODE_SLOT_TARGETS = Object.freeze([
+  { slot: "sidebar.footer.action", match: { field: "id", value: "dsh-bots-entry" } },
+  { slot: "shell.overlay", match: { field: "id", value: "dsh-bots-notices" } },
   { slot: "sidebar", match: { field: "id", value: "dsh-bots-sidebar" } },
   { slot: "main", match: { field: "key", value: "conversation" } }
 ]);
@@ -327,9 +333,11 @@ function findClickable(node) {
  * 再点入口走 `enter()`，断言——apply 与点击都不抛、Bot 模式确实落在宿主声明树的
  * 目标槽位（`sidebar` 单槽占位 + `main` keyed 槽的 `conversation` 键）。
  *
- * 为什么不是「标记扫描」：走的是宿主真实槽注册表（`dsh-client-ui-slots` 的 SlotCore，
- * 对未声明槽 fail closed），我方 bundle 也是真实装载协议下取到的工厂产物；
- * 只把 react／primitives 换桩（无头无 DOM，渲染语义仍归 V-A6.8 人工目视清单）。
+ * 诚实口径：**宿主实体件只有 `SlotCore`**（真实槽注册表，对未声明槽 fail closed）；我方 bundle
+ * 是真实装载协议取到的工厂产物，但**整个 `ctx` 是手写桩**——locale／layout／effect 为空桩，
+ * `slots.inject` 语义也由本函数复现（`specDynamic`＋`subscribeDeclaration` 声明订阅），
+ * **不是**宿主 renderer 的 `declarationEpoch` 语义；react／primitives 亦为桩。
+ * 故本函数证明的是「槽注册落点与调用不抛」，不是渲染结果（渲染语义归 V-A6.8 人工目视清单）。
  *
  * @returns `{ ok, violations, observations }`——本函数不抛，三态由调用方定。
  */
@@ -438,7 +446,7 @@ async function loadOurClientForProbe(primitivesExportNames) {
  * 而非扫描宿主产物推契约；渲染期**实际**使用与否由入口实跑兜底
  * （`loadOurClientForProbe` 的导出名比对＋`verifyClientSlotRegistrations`）。
  */
-function readPrimitivesExportNames(roots) {
+export function readPrimitivesExportNames(roots) {
   const entry = resolveCandidates(roots, "dsh-client-ui-primitives", "lib", "index.js")[0];
   if (!entry) return null;
   const source = readFileSync(entry, "utf8");
@@ -457,7 +465,11 @@ function readPrimitivesExportNames(roots) {
  *   - `primitives.<Name>` 引用名必须落在官方包的**真实导出名集**内（图标变体漂移类）；
  *   - 必需 props 面：`MarkdownText` 自 0.2.0-rc.1 起 `labels` 必填，调用点必须带
  *     （缺件＝渲染期 TypeError，宿主只记 `slot entry crashed`）。
- * 判据是「我方源码（静态）× 官方导出名集（行为取得）」；渲染期实际使用由入口实跑覆盖。
+ * 定性（勿读作 A 类面的行为探针）：本函数是**增量形状断言**——判据＝我方源码文本 × 官方包
+ * 入口自述的 `export {...}` 面（宿主把前端按构建产物装盘、react/shiki 等依赖未随盘安装，
+ * 无法 `import` 实包，见 `readPrimitivesExportNames` 注释）。该 A 类面的行为探针是
+ * `probeClientSlotsStage`＋`verifyClientSlotRegistrations`（真实官方 bundle 与真实 SlotCore 实跑）；
+ * 本查的渲染期半边只覆盖**入口组件**所触达的名字，computed／spread 形态逃逸。
  * 只做拒绝式断言：误报即 FAIL，漏检留给 V-A6.8 人工目视兜底。
  */
 export function checkPrimitivesReferences(sourceText, exportNames, { requiredProps = { MarkdownText: ["labels"] } } = {}) {
@@ -590,7 +602,7 @@ export async function probeClientConformanceStage(roots, declared) {
   }
   return {
     state: "PASS",
-    coordinate: `我方引用面（${references.referencedNames} 个 primitives 引用名 ⊆ 官方导出 ${primitivesNames.size} 名）＋槽落点（真实 SlotCore 实跑：sidebar.id=${verdict.observations["sidebar.id"]?.join("／")}、main.key=${verdict.observations["main.key"]?.join("／")}）`
+    coordinate: `我方引用面（${references.referencedNames} 个 primitives 引用名 ⊆ 官方导出 ${primitivesNames.size} 名）＋槽落点（apply 期 footer=${verdict.observations["sidebar.footer.action.id"]?.join("／")}、overlay=${verdict.observations["shell.overlay.id"]?.join("／")}；enter 期 sidebar=${verdict.observations["sidebar.id"]?.join("／")}、main.key=${verdict.observations["main.key"]?.join("／")}）`
   };
 }
 

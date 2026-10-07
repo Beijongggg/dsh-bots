@@ -671,9 +671,11 @@ test("18号票 P-CLIENT-SLOTS 行为化：官方 layout/sidebar bundle 槽树声
 // 此前全被门④ 12 PASS 放行——本节把三查钉进套件（真实宿主上的实跑归 preflight ④）。
 
 /**
- * 合成 SlotCore 源码：与官方 `dsh-client-ui-slots` 的判定契约同形（未声明槽 fail closed、
- * keyed/list 必带选择子、同格同 priority 判重、children 表建声明）。两个用途——套件内
- * `import("data:…")` 取类当夹具；`writeHostPackagesFixture` 写盘当假宿主包。
+ * 合成 SlotCore 源码：**门内所需子集**（未声明槽 fail closed、keyed/list 必带选择子、
+ * 同格同 priority 判重、children 表建声明）。**不**覆盖官方实现的其他语义（重复声明守卫、
+ * `chain`／`options.select` 等）；真实 SlotCore 的行为证据在 preflight ④ 与附件
+ * `18-gate-guard-2026-10-07/red-green-output.txt`。两个用途——套件内 `import("data:…")`
+ * 取类当夹具；`writeHostPackagesFixture` 写盘当假宿主包。
  */
 const FIXTURE_SLOT_CORE_SOURCE = `export class SlotCore {
   constructor() {
@@ -777,16 +779,20 @@ test("18号票 P-CLIENT-SLOTS 增补：落点须命中 sidebar 与 main 槽 conv
   const core = await declaredFixtureCore();
   const h = makeClientReactStub().createElement;
   const apply = (ctx) => {
-    ctx.slots.register({ name: "sidebar.footer.action", id: "dsh-bots-entry", order: 10 }, () => h("button", {
+    // apply 期常驻两槽（入口钮＋通知容器）＋ enter 期两槽（接管侧栏与主区），与 lib/client.js 同形
+    ctx.slots.register({ name: "sidebar.footer.action", id: "dsh-bots-entry", order: -10 }, () => h("button", {
       type: "button",
       onClick: () => {
         ctx.slots.register({ name: "sidebar", id: "dsh-bots-sidebar", priority: -100000 }, () => null);
         ctx.slots.register({ name: "main", key: "conversation", id: "dsh-bots-main", priority: -100000 }, () => null);
       }
     }, null));
+    ctx.slots.register({ name: "shell.overlay", id: "dsh-bots-notices", order: -10 }, () => null);
   };
   const verdict = await verifyClientSlotRegistrations({ core, apply });
   assert.equal(verdict.ok, true, verdict.violations.join("；"));
+  assert.deepEqual(verdict.observations["sidebar.footer.action.id"], ["dsh-bots-entry"]);
+  assert.deepEqual(verdict.observations["shell.overlay.id"], ["dsh-bots-notices"]);
   assert.deepEqual(verdict.observations["sidebar.id"], ["dsh-bots-sidebar"]);
   assert.deepEqual(verdict.observations["main.key"], ["conversation"]);
 });

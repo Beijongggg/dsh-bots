@@ -19,14 +19,14 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
   checkPrimitivesReferences, discoverPackageRoots, makeClientReactStub,
-  verifyClientSlotRegistrations, withDomStubs
+  readPrimitivesExportNames, verifyClientSlotRegistrations, withDomStubs
 } from "../../../../scripts/host-contract-probe.mjs";
 
 const repoRoot = fileURLToPath(new URL("../../../../", import.meta.url));
 const work = mkdtempSync(join(tmpdir(), "dsh-guard-red-"));
 const PREFIX_COMMIT = "b5932d2";
 
-/** 宿主声明树形（与安装内 layout/sidebar bundle 的声明同形；探针内由真实 apply 取得）。 */
+/** 宿主声明树形（与安装内 layout/sidebar bundle 的声明一致；门内由真实 apply 取得，这里静态复述）。 */
 const DECLARED = {
   rootChildren: {
     sidebar: { kind: "single" }, main: { kind: "keyed" }, rightbar: { kind: "single" },
@@ -36,17 +36,9 @@ const DECLARED = {
 };
 
 function primitivesExportNames(roots) {
-  const entry = roots.map((root) => join(root, "dsh-client-ui-primitives", "lib", "index.js")).find(existsSync);
-  if (!entry) throw new Error("官方 primitives 实体包不在本机");
-  const source = readFileSync(entry, "utf8");
-  const names = new Set();
-  for (const match of source.matchAll(/^export\s*\{([\s\S]*?)\}\s*;?\s*$/gm)) {
-    for (const part of match[1].split(",")) {
-      const name = part.trim().split(/\s+as\s+/).pop().trim();
-      if (name) names.add(name);
-    }
-  }
-  return names;
+  const parsed = readPrimitivesExportNames(roots);   // 与门内同一实现（不复制扫描逻辑）
+  if (!parsed) throw new Error("官方 primitives 实体包不在本机");
+  return parsed.names;
 }
 
 async function loadClient(file, exportNames) {
