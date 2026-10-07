@@ -283,3 +283,20 @@ exit 0（①51/51 ②冻结面 0009 包 7/7 ③0 违例扫 65 md ④11 PASS / 0 
 `import` 实包——导出面判据仍取自包入口自述文本，若后续宿主改为可装载实体包，应升级为真实导入；
 ② `slots.inject` 语义仍是门内复现（非宿主 renderer 的 `declarationEpoch` 实现）；③ 第 4 项通知卡片
 待真实事件（与署名一并归用户）。
+
+### 重启后核验（2026-10-07，用户「已经重启，继续」；本轮零写入）
+
+用户在终端按常规重启宿主（`dsh web` 新 PID 56727；`~/.dsh/bots/started/instances.jsonl` 末行 `host`
+06:54:26Z）。核验记录：`artifacts/cutover-execution/org-v2-post-restart-20261007T065849Z-readiness-38304bad.json`。
+
+- ✅ **server 面代际已更新**：宿主内存态摘要由 `518ba0a0…`（7d3cc0b）转为 **`3cb6c1af…`**＝现役部署面
+  运行时文件集摘要——本次重启确实把部署面代码装进了运行态。
+- ✅ 名册 OK、60 条验收坐标 OK、宿主契约探针 **12 PASS／0 FAIL／0 SKIP**。
+- ⚠ `deployment.ok:false`（197/199 same）：差的 2 件是返工后漂移的 `scripts/host-contract-probe.mjs`
+  与 `tests/host-contract-gate.test.mjs`（工具／测试面，**不含 client**）——待用户点头补同步。
+- ⚠ `runtime.ok:false` 且 `channels: []`：**组织面零席**——双席进程（duty 9221／implementer 9790）
+  仍是旧宿主（03:4xZ）留下的进程，未与新宿主重建组织通道，与「16 号票＋仍可选题」所记通道偶发
+  不建立同源。**这正是 V-A6.8 第 4 项缺的「上线」事件源**；且通知 UI 为「最多 3 条、4 秒自动消失」
+  （`lib/client.js` `pushNoticeItems`），只能在场守候捕捉，不能事后回看。
+- 结论：第 4 项仍需一次**真实席位上线**——或用户重启双席（其终端动作），或点名授权我在 GUI 启一个
+  bot（真实副作用：拉进程、写 `instances.jsonl` 与台账）。署名与 `Status:` 翻转仍归用户。
