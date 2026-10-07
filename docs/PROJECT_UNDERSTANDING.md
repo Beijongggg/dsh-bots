@@ -177,12 +177,12 @@
 
 仍可选题（长期观察项，不立项、只记触发信号；边界见 docs/agents/issue-tracker.md）：
 
-- **手工启动宿主 ⇒ 组织通道静默休眠（2026-10-07 观察，触发信号已明确）**：宿主若不经
-  `~/.dsh/restart-split.sh`（或等价地携带 `DSH_BOTS_HOST_URL`／`DSH_BOTS_TURN_TIMEOUT_MS`）启动，
-  自身 env 无该缝，透传给席位后席位侧 `org-ready` 永不发出——表现为席位进程在、API 报 `online:true`，
-  但 `channels` 空／`gen:null`（`connected=Boolean(gen)&&live`），安静无报错。当日两次手工
-  `node /usr/bin/dsh web` 均复现；走重启链即恢复。可选题：宿主启动自检（缺变量即响亮报警或自动
-  补齐），或把该缝写进 `dsh web` 启动路径。触发＝再次出现「席位在线但组织面全静默」时。
+- **手工启动宿主 ⇒ 组织通道静默休眠（2026-10-07 观察）**：**已实施（39 号票，同日转立项）**
+  ——宿主启动自检 `DSH_BOTS_HOST_URL`：缺失或形状非法即 `ctx.logger.warn` 在宿主台面响亮，同一判定
+  产物随就绪面 `_ledger/readiness.hostEnv` 暴露（诊断位，不作门），根因不必再从 `channels` 空／
+  `gen:null` 反推。**仍留界**：自检**只报不修**——不自动补齐 origin、不动 `dsh web` 启动路径
+  （后者属宿主侧、非本仓面），故手工启动宿主后组织面照旧休眠，须人工走重启链。触发＝再次出现
+  「席位在线但组织面全静默」而宿主台面无 `[dsh-bots][seam]` 行时（自检自身失效）立票。
 - **评审扩大工程（F-R9-1）已闭环**：全门关闭、门态 READY（2026-09-04）；
   后续工程路线＝PLAN §十一（B1~B5＋结构债），进度以 CHANGELOG 为准。
 - DSH_BOTS_API_TOKEN 环境变量鉴权（约 10 行；威胁模型＝本机其他进程，
