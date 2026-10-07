@@ -16,7 +16,7 @@
 （16 号票、`lib/index.js`、`lib/org/ledger-host.js`、新增 `lib/org/cutover.js` 等）。
 本审计未触碰其任何文件；下文全部行号以下列 HEAD 干净副本为准，工作树行号可能漂移。
 
-**Status:** ready-for-human
+**Status:** resolved
 **Blocked by:** 无
 
 ## 摘要
@@ -319,3 +319,19 @@ baseline 落盘 = true {"seq":1,...}
 - **并行批次边界**：16 号票成品在制（工作树 staged＋未跟踪新文件），本批
   未触碰其任何文件；`lib/index.js`／changelog 卷为两批共改文件，提交经
   patch 拆分隔离归属（见提交说明）。本票票据与 CHANGELOG 事件随本批提交。
+- **Q2（F2）裁定（2026-10-07，用户）**：维持 `#35` 在案的「单腿 POST、非 POST 一律
+  405」，不补 GET 兼容；也不另立升级顺序条款——本仓部署实践是批次「停链→同步→重启」，
+  host 与实例同批换代，滚动混部窗口不成立（16 号票 2026-09-30 即按此收口）。残留形态
+  （若将来真出现滚动升级，旧实例游标腿 405、fail closed 停摆且消息不丢）登记为已知边界，
+  触发信号入 `docs/PROJECT_UNDERSTANDING.md`「仍可选题」。
+- **Q4（F4）裁定（2026-10-07，用户）**：维持 `_mail` 面自报身份与同机信任边界
+  （`actor.kind=post`＋在册，零 capability 门槛不变；规格 §E／`V-A3.7` 不动），
+  不加进程绑定——威胁模型自述同机不设防（`lib/api-security.js`），同机进程本可读
+  注册表、CSRF 令牌与环境，绑定收益低。「代他实例推水位／触发其基线写与回放」的
+  剩余可达性登记为已知边界，触发＝威胁模型扩展到跨机／多用户或出现真实滥用实例。
+- **收口复验（2026-10-07，本会话）**：基点 HEAD `c8e6aac`（工作树干净）。修复面在位——
+  `lib/org/mail-relay.js` 的 `hasRegisteredBot` 单源导出、`lib/index.js` 管理面 9 处守卫＋
+  `detectBotInstance`＋`create` 占用判定＋`isIdAvailable`、`lib/mail-plane.js`
+  `initialMailCursor` 的「`receipts/` 预建＋`hasResponseMarks`」判据。回归
+  `node tests/run.mjs` **80/80** 文件通过（37 号票两用例文件单跑 2/2）。本批只改票面、
+  领域总览与在办登记，未触 `lib/`、`tests/`。票面 `Status` 置 `resolved`。
