@@ -1,0 +1,206 @@
+{
+ "capturedAt": "2026-10-07T07:15:44.443Z",
+ "targetId": "A184477C4737BC4E7FF1D158B30147A7",
+ "results": [
+  {
+   "index": 0,
+   "action": "intercept",
+   "label": null,
+   "result": {
+    "intercepted": "524 chars pattern",
+    "bytes": 1167327
+   },
+   "ms": 3
+  },
+  {
+   "index": 1,
+   "action": "clearCache",
+   "label": null,
+   "result": {
+    "cleared": true
+   },
+   "ms": 7
+  },
+  {
+   "index": 2,
+   "action": "reload",
+   "label": null,
+   "ms": 9490
+  },
+  {
+   "index": 3,
+   "action": "eval",
+   "label": "U1-入口文案",
+   "result": {
+    "entryLabel": "Pod",
+    "entryAria": "Pod",
+    "entryTitle": "Pod"
+   },
+   "ms": 2
+  },
+  {
+   "index": 4,
+   "action": "shot",
+   "label": null,
+   "result": {
+    "path": "/home/beijong/project/dsh-bots/.tmp/ui/ui-01-native-entry.png",
+    "bytes": 81294
+   },
+   "ms": 123
+  },
+  {
+   "index": 5,
+   "action": "click",
+   "label": null,
+   "result": {
+    "clicked": true,
+    "tag": "button",
+    "text": "Pod"
+   },
+   "ms": 2521
+  },
+  {
+   "index": 6,
+   "action": "eval",
+   "label": "U2-侧栏左上角",
+   "result": {
+    "logoTitleNodes": 0,
+    "logoRowChildren": [
+     "dsh-bots-iconbtn",
+     "dsh-bots-iconbtn"
+    ],
+    "firstTextLeft": [
+     "新建 Bot",
+     "值班统筹",
+     "**收到，无待办。** 你的 3/3 独立复算与我侧逐项一致（ok=605／mismatch=1／missing=1／extra=1），且 A 项「伪装成较早 revision」这一判读已在报告 §三.A 留痕——你改用 git pin 对象作纯净参照后两批初审结论不受影响。 `TK-17c00003` 停在 **`delivered`／seq=174**（`owner=producer=implementer`）；两条 `fs.contains` 内容面满足、机械执行仍 `probe-read`（探针根＝`dshHome`，与 17c00001／17c00002 同源，仍是 `close` 的共同前置）。 **待用户/编排方**：① `settle`（两岗均无此 op）；② 副本内 A/B/C 的处置（重铺／隔离 `strays/`／凭据外泄流程——统筹岗只读沙箱无法落，需编排方或 host 侧）；③ 裁定①探针根机制落法（现影响三单）。我侧待命。"
+    ]
+   },
+   "ms": 4
+  },
+  {
+   "index": 7,
+   "action": "shot",
+   "label": null,
+   "result": {
+    "path": "/home/beijong/project/dsh-bots/.tmp/ui/ui-02-bot-mode.png",
+    "bytes": 227813
+   },
+   "ms": 67
+  },
+  {
+   "index": 8,
+   "action": "click",
+   "label": null,
+   "result": {
+    "clicked": true,
+    "tag": "button",
+    "text": ""
+   },
+   "ms": 2011
+  },
+  {
+   "index": 9,
+   "action": "eval",
+   "label": "U3-列表态头部",
+   "result": {
+    "modeChip": "Bot 模式",
+    "headerText": "Bot 模式"
+   },
+   "ms": 2
+  },
+  {
+   "index": 10,
+   "action": "shot",
+   "label": null,
+   "result": {
+    "path": "/home/beijong/project/dsh-bots/.tmp/ui/ui-03-bot-list.png",
+    "bytes": 48905
+   },
+   "ms": 33
+  },
+  {
+   "index": 11,
+   "action": "eval",
+   "label": "U4-退出",
+   "result": {
+    "found": true
+   },
+   "ms": 31
+  },
+  {
+   "index": 12,
+   "action": "sleep",
+   "label": null,
+   "result": {
+    "slept": 1500
+   },
+   "ms": 1500
+  },
+  {
+   "index": 13,
+   "action": "eval",
+   "label": "U5-还原",
+   "result": {
+    "botsRoots": 0,
+    "entryBack": true
+   },
+   "ms": 3
+  }
+ ],
+ "fulfilled": [
+  "http://127.0.0.1:3080/plugins/??dsh-screenshot/client.js,@de"
+ ],
+ "paused": [
+  "http://127.0.0.1:3080/",
+  "http://127.0.0.1:3080/plugins/??@deepseek-ai/dsh-client-ui-open-in-app/client.js,@deepseek-ai/dsh-api-gateway/client.js,",
+  "http://127.0.0.1:3080/plugins/??dsh-screenshot/client.js,@deepseek-ai/dsh-session-log-export/client.js,@deepseek-ai/dsh-",
+  "http://127.0.0.1:3080/plugins/??@deepseek-ai/dsh-client-modules/client.js&rev=b71002d28da8",
+  "http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js",
+  "http://127.0.0.1:3080/assets/vendor-CCJJTK99.js",
+  "http://127.0.0.1:3080/assets/vendor-BNsW4eBh.css",
+  "http://127.0.0.1:3080/assets/index-Cq6ljTv2.css",
+  "http://127.0.0.1:3080/manifest.webmanifest",
+  "http://127.0.0.1:3080/api/settings/describe",
+  "http://127.0.0.1:3080/api/dynamicCordisRunner/syncInspectManifest",
+  "http://127.0.0.1:3080/api/credentials/describe",
+  "http://127.0.0.1:3080/api/dynamicCordisRunner/inventory",
+  "http://127.0.0.1:3080/open-in-app/apps",
+  "http://127.0.0.1:3080/api/session/modelCatalog",
+  "http://127.0.0.1:3080/plugins/events",
+  "http://127.0.0.1:3080/api/bots/_events",
+  "http://127.0.0.1:3080/api/agentPresets/list",
+  "http://127.0.0.1:3080/api/bots",
+  "http://127.0.0.1:3080/api/bots",
+  "http://127.0.0.1:3080/api/session/list",
+  "http://127.0.0.1:3080/api/permissionPresets/catalog",
+  "http://127.0.0.1:3080/api/dynamicCordisRunner/inventory",
+  "http://127.0.0.1:3080/api/agentPresets/list",
+  "http://127.0.0.1:3080/api/agentPresets/list",
+  "http://127.0.0.1:3080/api/session/modelCatalog",
+  "http://127.0.0.1:3080/api/credentials/describe",
+  "http://127.0.0.1:3080/api/session/modelCatalog",
+  "http://127.0.0.1:3080/api/settings/describe",
+  "http://127.0.0.1:3080/favicon.svg",
+  "http://127.0.0.1:3080/api/dynamicCordisRunner/syncInspectManifest",
+  "http://127.0.0.1:3080/favicon.svg",
+  "http://127.0.0.1:3080/api/credentials/describe",
+  "http://127.0.0.1:3080/api/session/create",
+  "http://127.0.0.1:3080/api/schedule/catalog",
+  "http://127.0.0.1:3080/api/llm/listProviders",
+  "http://127.0.0.1:3080/api/llm/listConfigurableProviders",
+  "http://127.0.0.1:3080/api/agentPresets/list",
+  "http://127.0.0.1:3080/api/commands/list",
+  "http://127.0.0.1:3080/api/skills/list",
+  "http://127.0.0.1:3080/api/session/modelCatalog",
+  "http://127.0.0.1:3080/api/credentials/describe",
+  "http://127.0.0.1:3080/api/bots/duty-coordinator/stats",
+  "http://127.0.0.1:3080/api/bots/duty-coordinator/messages",
+  "http://127.0.0.1:3080/api/bots",
+  "http://127.0.0.1:3080/api/bots/duty-coordinator/messages?since=1791279750026",
+  "http://127.0.0.1:3080/api/schedule/catalog",
+  "http://127.0.0.1:3080/api/dynamicCordisRunner/inventory",
+  "http://127.0.0.1:3080/api/agentPresets/list"
+ ],
+ "console": [],
+ "exceptions": []
+}
