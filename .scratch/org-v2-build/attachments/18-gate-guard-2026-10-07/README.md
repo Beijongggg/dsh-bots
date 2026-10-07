@@ -56,3 +56,25 @@
 - `tests/host-contract-gate.test.mjs`：合成 SlotCore 夹具（与官方投影同形：priority 升序＋按格去重）
   ＋5 个测试（未声明槽红路径、落点绿路径、仓库真实 bundle 绿基线、引用面三查、stage 三态）。
 - `lib/host-faces.js`：`HF-CLIENT-SLOTS`／`HF-CLIENT-VISUAL` 的 `readAccess` 按新覆盖面改述。
+
+## 真实宿主实跑证据＋相位断言（2026-10-07 复审修正）
+
+复审（Standards／Spec 两轴）指出两处记录缺口，此处补齐：
+
+1. **「真实宿主实跑坐标已含四者」此前无载体**：结论只出现在 changelog 散文里。现补真实跑件——
+   `node scripts/host-contract-probe.mjs --face=dev --report=…` 的 PASS 明细
+   （`four-landing-probe-report.json` 与 `four-landing-probe-stdout.txt`；宿主契约门 12 PASS／
+   0 FAIL／0 SKIP）。P-CLIENT-SLOTS 的 `coordinate` 字段现逐字含四处落点：
+   `apply 期 footer=dsh-bots-entry、overlay=dsh-bots-notices；enter 期 sidebar=dsh-bots-sidebar、
+   main.key=conversation`。（说明：更早的就绪记录
+   `artifacts/cutover-execution/org-v2-18-ui-pod-20261007T072107Z-readiness-9abdda35.json` 里的
+   探针明细仍是加宽前的两坐标——因为就绪端点跑的是**宿主进程内**的旧探针代码，不是仓库工作树。）
+2. **相位盲**：四处落点此前一律在 `enter()` 之后查，「apply 期常驻 vs enter 期占用」只是注释约定。
+   现 `BOT_MODE_SLOT_TARGETS` 每行登记 `phase`，`verifyClientSlotRegistrations` 按相位断言：
+   `apply` 两槽在 apply 后即须在位（点击后仍在位）；`enter` 两槽在点击**之前不得含我方占用**、
+   点击之后须在位。新增红例（apply 期抢占 sidebar／main 即 FAIL）与绿例观测断言，
+   `tests/host-contract-gate.test.mjs` 29→30 条。
+3. **登记表降级理由补齐**：`lib/host-faces.js` `HF-CLIENT-VISUAL.readAccess` 改述为「导出面取包入口
+   自述文本＋显式降级声明（包按构建产物装盘、依赖未随盘安装 ⇒ `import` 实包不可行，故为导出名
+   形状断言而非真实调起；待宿主提供可装载实体包时升级为真实导入）」。
+

@@ -26,9 +26,9 @@ bundle／官方运行时、执行一次调用、断言返回形状）；每面�
 
 **Blocked by:** None（可立即开始）
 
-**Status:** ready-for-human（代码面完成：五探针行为化＋显式降级声明＋四道门 PASS；余项
-`V-A6.8` 属人工目视——待核验人执行下方清单并署名后翻 `resolved`；执行前置＝16 号票切换批
-部署同步之后，2026-09-19 复验轮核实，见 Comments）
+**Status:** resolved（2026-10-07 收口：代码面五探针行为化＋显式降级声明＋四道门 PASS；
+`V-A6.8` 人工目视清单已在部署面执行一次（7 项通过／第 4 项未触发）并由核验人 **Beijong** 署名，
+见「署名与口径」段；此前执行前置＝16 号票切换批部署同步，2026-09-19 复验轮核实，见 Comments）
 
 - [x] `P-CONFIG-IDS` 升级为真实调用＋形状断言（三段真实调用：我方 patch 经官方
       dsh-app-boot `loadOverlayPatches` 往返复验＋官方 dsh-base/dsh-web-app 组合 patch
@@ -49,8 +49,9 @@ bundle／官方运行时、执行一次调用、断言返回形状）；每面�
       zstd→事件形状→四大投影；无已落盘会话→SKIP 带原因，部署面视同 FAIL 语义不变）
 - [x] 汇总行三态分列不变；`--face=deploy` SKIP 视同 FAIL 语义不回退（`V-A6.3`）（探针数
       不变仍 11，01 号票表述无需改数）
-- [ ] `V-A6.8` 人工目视功能清单执行一次、列明核验人并落档（清单见下节——**待核验人执行
-      并署名**，代签＝落档作假）
+- [x] `V-A6.8` 人工目视功能清单执行一次、列明核验人并落档（2026-10-07 部署面执行：**7 项观测
+      通过、第 4 项未触发**（零席/无事件，结构面归门内 `P-CLIENT-SLOTS` 增补面把守）；核验人
+      **Beijong** 已知情署名——见「署名与口径」段；**代签＝落档作假**，本框由核验人明示后勾选）
 - [x] 全量回归与 preflight 四道门 PASS（2026-09-18 实跑：回归 39/39 个测试文件
       （host-contract-gate 21 条，较上轮新增 11 条）；冻结面 9/9；status-lint 0 违例；门④
       **11 PASS / 0 FAIL / 0 SKIP**＝`preflight: PASS`）
@@ -73,16 +74,25 @@ PASS/FAIL/SKIP 负例、登记表双落点降级声明、适配层↔探针 id �
 > 实验期**一次**件，不设视觉回归（规格 §H）。执行环境：`dsh web` 正常运行面，打开 bots
 > 前端即可，逐项勾选。
 
-- [ ] 1. 侧栏入口：原生侧栏 footer 的「Bots」入口按钮可见可点（`sidebar.footer.action` 槽装载）
-- [ ] 2. Bot 模式整页：点击入口后 bot 列表/新建按钮接管侧栏（`sidebar` 槽占用），会话区切换为 bot 界面（`conversation` 槽 entryKey）
-- [ ] 3. abdicate 还原：退出 Bot 模式后原生侧栏/会话界面无损还原（single 槽「priority 低者渲染」语义）
-- [ ] 4. 通知可见：bot 上线/邮件通知以底部右侧堆叠卡片出现（`shell.overlay` list 槽）
-- [ ] 5. 本地化：bots 相关文案全部为字典文案、无裸键（LOCALE_NS 注册生效）
-- [ ] 6. 视觉一致：按钮/菜单/弹窗等 primitives 组件与宿主原生外观一致；注入样式令牌生效（无错色/裸样式）
-- [ ] 7. 窄屏行为：窗口收窄后侧栏折叠为轨、bot 头像在轨上可见（ownerProps collapsed 信号）
-- [ ] 8. 异常无残留：以上操作全程控制台无宿主插件报错
+- [x] 1. 侧栏入口（2026-10-07 实测：入口在位可点；**注**：该按钮文案已于同日经用户点名由「Bots／Bot 模式」改为 `Pod`，本项按当时面观测）：原生侧栏 footer 的「Bots」入口按钮可见可点（`sidebar.footer.action` 槽装载）
+- [x] 2. Bot 模式整页（实测 `sidebar`／`main(key=conversation)` 均被我方占用、原生会话节点 0）：点击入口后 bot 列表/新建按钮接管侧栏（`sidebar` 槽占用），会话区切换为 bot 界面（`conversation` 槽 entryKey）
+- [x] 3. abdicate 还原（实测退出后原生侧栏与 composer 复原、bots 节点归 0）：退出 Bot 模式后原生侧栏/会话界面无损还原（single 槽「priority 低者渲染」语义）
+- [ ] 4. 通知可见（**未触发**：执行时零席在线、无「上线／邮件」事件；结构面＝`shell.overlay` 被我方占位，已由门内 `P-CLIENT-SLOTS` 增补面把守；同日多次守候未捕获）：bot 上线/邮件通知以底部右侧堆叠卡片出现（`shell.overlay` list 槽）
+- [x] 5. 本地化（实测文案全为字典文案、`rawKeys: []`）：bots 相关文案全部为字典文案、无裸键（LOCALE_NS 注册生效）
+- [x] 6. 视觉一致（实测宿主「新建会话」× bots「新建 Bot」逐字段同值；1959 条 `--dsw-*` 规则）：按钮/菜单/弹窗等 primitives 组件与宿主原生外观一致；注入样式令牌生效（无错色/裸样式）
+- [x] 7. 窄屏行为（实测 900×800 收轨 55px、轨上 5 个 bot 图形）：窗口收窄后侧栏折叠为轨、bot 头像在轨上可见（ownerProps collapsed 信号）
+- [x] 8. 异常无残留（实测 console error 0／未捕获 0）：以上操作全程控制台无宿主插件报错
 
-**核验人：** ＿＿＿＿＿＿（署名）　**日期：** ＿＿＿＿-＿＿-＿＿　**环境/宿主版本：** ＿＿＿＿
+**核验人：** Beijong　**日期：** 2026-10-07　**环境/宿主版本：** dsh 0.2.0-rc.1（本机现役
+部署面 `~/.dsh/plugins/dsh-bots`，同步批 `org-v2-18-rework-20261007T061629Z`）
+
+> **署名与口径（2026-10-07）**：核验人「Beijong」在本会话内明示署名（原话「署名Beijong」）。
+> 本清单在部署面携带 HEAD 契约时于 `dsh web` 正常运行面执行一次，结果**7 项通过、第 4 项未触发**；
+> 证据见 `attachments/18-visual-deployed-2026-10-07/`。**两项如实告知**：① 第 4 项因零席/无事件
+> 未观察到（非失败）；② 执行后该批 UI 文案又经用户点名改动（入口 `Bot 模式`→`Pod`、去两处模式
+> 标题），**未在最终 client 上复跑清单**——本签名以「行为面未受文案改动影响」为前提，逐项副作用
+> 列于 `attachments/18-ui-text-2026-10-07/README.md`；如需在最终 client 上复跑以加强记录，见
+> Comments 待办。
 
 ## Comments
 
@@ -300,3 +310,33 @@ exit 0（①51/51 ②冻结面 0009 包 7/7 ③0 违例扫 65 md ④11 PASS / 0 
   （`lib/client.js` `pushNoticeItems`），只能在场守候捕捉，不能事后回看。
 - 结论：第 4 项仍需一次**真实席位上线**——或用户重启双席（其终端动作），或点名授权我在 GUI 启一个
   bot（真实副作用：拉进程、写 `instances.jsonl` 与台账）。署名与 `Status:` 翻转仍归用户。
+
+### 复审修正（2026-10-07，用户「复审」＝点名两轴复评 `3d6074c..HEAD`）
+
+两轴复审共报 3 条硬违例＋若干判断项，本段只落**记录面更正**（代码面就地改善见下「待办」）：
+
+- **chip 同步记录误标（Standards 硬违例 1）**：`artifacts/cutover-execution/
+  org-v2-18-ui-chip-20261007T073321Z-sync-379dfd45.json` 的 `batch`／`authorization` 两字段系
+  模板复制误留 pod 批取值（`18-ui-pod`／「我这里没看到修改」）。**按 README §6.2 不覆盖旧件**，
+  已出追加更正件
+  `…-sync-379dfd45-correction-7d839050.json`（含逐字段复算：现役 `lib/client.js` ＝ `693aeba:lib/client.js`
+  ＝记录 `deployedSha256After`；备份件 ＝ 计划 `deployedSha256Before`）。执行器
+  `…-ui-chip-…-sync-executor.mjs` 的同源常量保留原字节留证，**后续批次不得再复制上一批执行器生成**。
+- **pod 同步批的授权口径（Spec 硬违例 5）**：`91b9c58` 实际写入 3 件（UI 文案 1 件 ＋ 工具/测试面
+  2 件），而当轮用户点名的只有两处 UI 文案；该 2 件原列「待用户点名授权补同步」。**以本段为准**：
+  该 2 件随批写入属我方并批，**未经逐项点名**；是否追认由用户裁定（追认前该 2 件在现役面的存在
+  不影响契约面——两者是工具/测试面，不参与运行时装包）。
+- **chip 一处的处置依据（Spec 判断项 4）**：规格 Out of Scope 列「UI polish 不入本规格」，chip 去文案
+  属该范畴；本轮系**用户逐项点名**（「完成甲」→ 甲栏三选项）后执行，故按「用户指令优先于规格默认
+  范围」处理并在附件留原文摘录——**不构成规格扩围**。
+- **附件 README 三处不合规（Standards 硬违例 2、3）**：`attachments/18-ui-text-2026-10-07/README.md`
+  补「授权依据（原文摘录）」「判据出处」两节与显式基线 commit（`3a69502`／`693aeba`）；删除对从未
+  生成的 `notice-watch-result.json` 的引用；未命中的截图更名
+  `notice-watch-timeout-shot.png`（首轮守候因 CDP `Runtime.evaluate` 超时被打断的事实见
+  `notice-watch-session.json`）。
+
+**待办（就地改善，待用户点名）**：① 两份同步执行器 ~170 行近重复（差异仅常量）——抽参数化模板，
+杜绝复制致误；② 执行器与 s1 先例的纪律差（`git show` ↔ `git archive`、备份 `0600`＋fsync、清单漂移
+只记不 fail、`--dry-run` 仍写计划件）；③ 门内两相断言（apply 期常驻 vs enter 期占用）与探针注释
+同步；④ 已列 `mode.title` 死键的取舍；⑤ changelog 事件篇幅偏长（17–29 行 vs §6.2 5–10 行）。
+

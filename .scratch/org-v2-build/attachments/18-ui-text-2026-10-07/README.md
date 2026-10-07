@@ -1,7 +1,21 @@
 # 18 号票附件：两处 UI 文案改动（2026-10-07）
 
 **产出模型＋基线 commit**：deepseek-v4.1-flash（dsh／DeepSeek Harness lead 会话）｜用户直接点名｜
-票面附件（非独立版交付、非 `artifacts/packages/` 证据包链件）。
+票面附件（非独立版交付、非 `artifacts/packages/` 证据包链件）｜基线 `3a69502`（前两处文案＋现役实测）
+与 `693aeba`（第三处 chip），对应同步批 `91b9c58`／`3dcc29f`。
+
+## 授权依据（用户指令原文摘录）
+
+1. 「已经重启，同时把bot模式页面里左上角的bot模式字符去除，同时把官方页面入口的bot模式改成Pod」
+2. 「我这里没看到修改，两处都没有」——据此执行 pod 同步批（此前两处只落仓库、未达现役）
+3. 「完成甲，乙中怎么重启duty席」——据此执行 chip 一处（甲栏三选项「chip 也去掉／改 Pod／留着」）
+4. 「已经重启，署名Beijong，复审」
+
+## 判据出处
+
+- 规格 `.scratch/org-v2/spec.md` 附录 A `V-A6.8`（渲染期语义清单：侧栏入口／整页接管／abdicate
+  还原／通知可见／本地化／视觉一致／窄屏／控制台无残留）与 18 号票「V-A6.8 人工目视功能清单」。
+- 入口文案与模式标题的处置以用户本轮指令为准（上「授权依据」1、3）；文案改动不影响清单行为面。
 
 ## 改动
 
@@ -59,4 +73,9 @@
 
 为清单第 4 项（通知卡片）挂了常连 CDP 轮询守候：页面内 `MutationObserver` 持续收
 `.dsh-bots-notices` 文本，检测到即抓 HTML＋截图（卡片只活 ~4 秒）。守候脚本
-`notice-watch.mjs` 与结果件 `notice-watch-result.json`（命中/超时均为结论）随本目录留档。
+`notice-watch.mjs` 随本目录留档。**结果说明**：首轮守候因把 25 分钟的长 Promise 交给 CDP
+`Runtime.evaluate` 而被驱动超时打断（`notice-watch-session.json` 记录 `CDP timeout` 与终值
+`notices: []`），驱动随后自动截的那张图**未命中任何通知**，故更名为 `notice-watch-timeout-shot.png`；
+二轮改常连轮询式守候（PID 留痕于会话记录），但宿主随后重启、其 token 只印在用户终端（`/proc/<host>/fd/1
+→ /dev/pts/0`），新宿主上无法再建会话——**第 4 项因此仍缺真实事件**，`notice-watch-result.json`
+从未生成（此前 README 误引，2026-10-07 复审后更正）。

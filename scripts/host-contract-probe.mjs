@@ -301,10 +301,10 @@ export async function runClientBundle(roots, pkg) {
  * 须同步改 `lib/client.js` 的 `HOST_SLOTS`，由本门把守，不许静默退回原生界面。
  */
 export const BOT_MODE_SLOT_TARGETS = Object.freeze([
-  { slot: "sidebar.footer.action", match: { field: "id", value: "dsh-bots-entry" } },
-  { slot: "shell.overlay", match: { field: "id", value: "dsh-bots-notices" } },
-  { slot: "sidebar", match: { field: "id", value: "dsh-bots-sidebar" } },
-  { slot: "main", match: { field: "key", value: "conversation" } }
+  { slot: "sidebar.footer.action", match: { field: "id", value: "dsh-bots-entry" }, phase: "apply" },
+  { slot: "shell.overlay", match: { field: "id", value: "dsh-bots-notices" }, phase: "apply" },
+  { slot: "sidebar", match: { field: "id", value: "dsh-bots-sidebar" }, phase: "enter" },
+  { slot: "main", match: { field: "key", value: "conversation" }, phase: "enter" }
 ]);
 
 /** 我方 client 调起用的 react 桩：模块级只用到 hooks 与 createElement（产物为可走查的普通对象）。 */
@@ -330,8 +330,12 @@ function findClickable(node) {
 /**
  * 我方 client 的**槽注册落地**复算（V-A6.8 门覆盖缺口收口；2026-10-07 返修批）：
  * 以真实（或夹具）SlotCore 承接 `ctx.slots`，实调我方 bundle 的 `apply`，
- * 再点入口走 `enter()`，断言——apply 与点击都不抛、Bot 模式确实落在宿主声明树的
- * 目标槽位（`sidebar` 单槽占位 + `main` keyed 槽的 `conversation` 键）。
+ * 再点入口走 `enter()`，**按相位**断言四处落点（2026-10-07 复审修正：此前四处一律在点击后
+ * 查，相位盲——apply 期就把宿主 `sidebar`/`main` 占掉的坏形态也能通过）：
+ *   - `phase:"apply"`（`sidebar.footer.action` 入口钮、`shell.overlay` 通知容器）：`apply` 后
+ *     即须在位，且点击后仍在位；
+ *   - `phase:"enter"`（`sidebar` 单槽占位、`main` keyed 槽的 `conversation` 键）：点击**之前
+ *     不得占用**（留待 Bot 模式接管＝abdicate 语义），点击之后须在位。
  *
  * 诚实口径：**宿主实体件只有 `SlotCore`**（真实槽注册表，对未声明槽 fail closed）；我方 bundle
  * 是真实装载协议取到的工厂产物，但**整个 `ctx` 是手写桩**——locale／layout／effect 为空桩，
@@ -393,20 +397,33 @@ function runClientSlotChecks({ core, apply, targets, entrySlot }) {
     violations.push("入口组件树内无带 onClick 的按钮（入口渲染形状漂移）");
     return { ok: false, violations, observations };
   }
+  const phaseOf = (target) => (target.phase === "apply" ? "apply" : "enter");
+  const seenOf = (target) => (core.entriesOfSlot(target.slot) ?? [])
+    .map((occupant) => occupant?.options?.[target.match.field] ?? "(未命名)");
+  const requirePresent = (target, phase) => {
+    const seen = seenOf(target);
+    observations[`${target.slot}.${target.match.field}`] = seen;
+    if (!seen.includes(target.match.value)) {
+      violations.push(`Bot 模式未占用宿主声明槽「${target.slot}」（${phase} 相；${target.match.field}=${target.match.value}；实测占用：${seen.join("／") || "无"}）`);
+    }
+  };
+
+  for (const target of targets.filter((t) => phaseOf(t) === "apply")) requirePresent(target, "apply");
+  for (const target of targets.filter((t) => phaseOf(t) === "enter")) {
+    const seen = seenOf(target);
+    observations[`${target.slot}.${target.match.field}.beforeEnter`] = seen;
+    if (seen.includes(target.match.value)) {
+      violations.push(`enter 前已占用宿主声明槽「${target.slot}」（${target.match.field}=${target.match.value}）——Bot 模式接管须发生在进入时，不得在 apply 期抢占`);
+    }
+  }
+
   try {
     button.props.onClick();
   } catch (error) {
     violations.push(`Bot 模式入口点击抛错：${errMsg(error)}`);
   }
 
-  for (const target of targets) {
-    const occupants = core.entriesOfSlot(target.slot) ?? [];
-    const seen = occupants.map((occupant) => occupant?.options?.[target.match.field] ?? "(未命名)");
-    observations[`${target.slot}.${target.match.field}`] = seen;
-    if (!seen.includes(target.match.value)) {
-      violations.push(`Bot 模式未占用宿主声明槽「${target.slot}」（${target.match.field}=${target.match.value}；实测占用：${seen.join("／") || "无"}）`);
-    }
-  }
+  for (const target of targets) requirePresent(target, phaseOf(target) === "apply" ? "apply 后仍在位" : "enter");
   return { ok: violations.length === 0, violations, observations };
 }
 

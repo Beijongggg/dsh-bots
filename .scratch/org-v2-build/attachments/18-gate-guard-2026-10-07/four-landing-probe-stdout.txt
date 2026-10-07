@@ -1,0 +1,4 @@
+宿主契约门（face=dev）：
+  PASS P-CLIENT-SLOTS [HF-CLIENT-SLOTS]：前端槽位：行为探针——真实 apply 官方 layout/sidebar bundle，断言声明槽树（sidebar single／main keyed／shell.overlay list／sidebar.footer.action list），并以真实 SlotCore 实跑我方 client 的槽注册落点（入口点击 → sidebar 占位 + main 槽 conversation 键；注册未声明槽即 FAIL）；渲染期 priority/abdicate 语义与渲染结果无头不可调起——显式降级归 V-A6.8 人工目视清单
+  PASS P-CLIENT-VISUAL [HF-CLIENT-VISUAL]：视觉件：行为探针——真实 apply 官方 theme bundle，断言运行期 --dsw-* 令牌注入与 theme 服务形状；primitives 实体包在盘（导出面作引用名与必需 props 判据，归 P-CLIENT-SLOTS 增补面），槽位 ownerProps（collapsed/wide）渲染形状无头不可调起——显式降级归 V-A6.8 人工目视清单
+宿主契约门: 12 PASS / 0 FAIL / 0 SKIP

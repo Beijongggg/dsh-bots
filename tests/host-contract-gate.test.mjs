@@ -795,6 +795,34 @@ test("18号票 P-CLIENT-SLOTS 增补：落点须命中 sidebar 与 main 槽 conv
   assert.deepEqual(verdict.observations["shell.overlay.id"], ["dsh-bots-notices"]);
   assert.deepEqual(verdict.observations["sidebar.id"], ["dsh-bots-sidebar"]);
   assert.deepEqual(verdict.observations["main.key"], ["conversation"]);
+  // 相位证据：enter 期两槽在点击前**不得含我方占用**（槽内可能有宿主声明占位条目，
+  // 故按「我方值不在其中」断言，与相位检查同一判据）
+  assert.ok(!verdict.observations["sidebar.id.beforeEnter"].includes("dsh-bots-sidebar"));
+  assert.ok(!verdict.observations["main.key.beforeEnter"].includes("conversation"));
+  // apply 期常驻两槽此时已在位（点击前观测）
+  assert.deepEqual(verdict.observations["sidebar.footer.action.id"], ["dsh-bots-entry"]);
+  assert.deepEqual(verdict.observations["shell.overlay.id"], ["dsh-bots-notices"]);
+});
+
+test("18号票 P-CLIENT-SLOTS 增补：apply 期抢占宿主槽即 FAIL（相位断言，2026-10-07 复审修正）", async () => {
+  const core = await declaredFixtureCore();
+  const h = makeClientReactStub().createElement;
+  // 坏形态：apply 期就把宿主 sidebar／main 占掉（不进入 Bot 模式也接管界面）——此前四处一律在
+  // 点击后查，这种形态也能通过；相位断言后必须报「enter 前已占用」。
+  const apply = (ctx) => {
+    ctx.slots.register({ name: "sidebar.footer.action", id: "dsh-bots-entry", order: -10 }, () => h("button", {
+      type: "button",
+      onClick: () => null
+    }, null));
+    ctx.slots.register({ name: "shell.overlay", id: "dsh-bots-notices", order: -10 }, () => null);
+    ctx.slots.register({ name: "sidebar", id: "dsh-bots-sidebar", priority: -100000 }, () => null);
+    ctx.slots.register({ name: "main", key: "conversation", id: "dsh-bots-main", priority: -100000 }, () => null);
+  };
+  const verdict = await verifyClientSlotRegistrations({ core, apply });
+  assert.equal(verdict.ok, false, "apply 期抢占必须报错");
+  assert.match(verdict.violations.join("；"), /enter 前已占用宿主声明槽「sidebar」/);
+  assert.match(verdict.violations.join("；"), /enter 前已占用宿主声明槽「main」/);
+  assert.deepEqual(verdict.observations["sidebar.id.beforeEnter"], ["dsh-bots-sidebar"]);
 });
 
 test("18号票：仓库真实 client bundle 在合成声明树下命中落点（套件内绿基线）", async () => {
