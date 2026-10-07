@@ -16,6 +16,8 @@
  *     脚本序列上逐项一致，且与既有读成员同一条 fail closed 口径（坏链／断号一律抛）；
  *   - **断号 fail closed**：序号断裂的 `events.jsonl` 经读面（台账读成员与新件查询）
  *     一律 fail closed，不得静默跳过——此前的显式覆盖只有 hash 失配一条路径；
+ *   - **收口（46 号票）**：整条历史读法 `events()`（无参＋任务域）从台账读面移除，
+ *     幸存读法一个不少；夹具改走 `since(0)`（同一份已校验的全量窗口）；
  *   - 新件依赖闭包：无环、无命令面件、无隐式全局读。
  *
  * 只测外部行为：命令面返回码、投影结论、事件文件内容；读依赖以**注入**形式进入投影
@@ -149,7 +151,8 @@ test("台账面导出面冻结：既有导入点改零行（导出名单逐名�
 
 /**
  * 装具：真台账跑一遍脚本序列，投影以**注入的 readLog** 接上该台账的读面
- * （`ledger.events()` 是已校验的事件流——与 41 号票接线同形），并记读次数。
+ * （`ledger.since(0)` 是已校验的全量窗口、seq 从 1 起——与 41 号票接线同形；
+ * 46 号票起整条历史读法 `events()` 已从读面移除），并记读次数。
  */
 async function withScriptedRig(fn) {
   const home = mkHome();
@@ -160,10 +163,10 @@ async function withScriptedRig(fn) {
     const reads = { count: 0 };
     const readLog = () => {
       reads.count += 1;
-      return ledger.events();
+      return ledger.since(0);
     };
     const projection = createTaskProjection({ readLog });
-    const all = ledger.events();
+    const all = ledger.since(0);
     return await fn({ home, ledger, clock, projection, readLog, reads, all, ...scripted });
   } finally {
     rmSync(home, { recursive: true, force: true });
@@ -250,7 +253,7 @@ test("taskEvents：某任务的全部事件按序给出；未开档＝空数组"
     assert.ok(own.every((event) => event.taskId === a), "不得夹带他任务行");
     assert.ok(own.some((event) => event.type === "command-rejected"), "非状态事件（拒绝回执）也在内");
     assert.ok(projection.taskEvents(b).length > 0 && projection.taskEvents(b)[0].taskId === b);
-    assert.deepEqual(projection.taskEvents("TK-unknown0001"), [], "未开档任务＝空数组（与 events({taskId}) 同口径）");
+    assert.deepEqual(projection.taskEvents("TK-unknown0001"), [], "未开档任务＝空数组");
   });
 });
 
@@ -305,7 +308,13 @@ test("接线：台账读面挂上 at／since／taskEvents，与投影件在真�
       assert.deepEqual(ledger.at(id, "latest"), projection.at(id, "latest"), "latest 须与投影件一致");
       assert.deepEqual(ledger.at(id, "latest"), ledger.task(id), "latest＝既有 task() 的当前投影");
       assert.deepEqual(ledger.taskEvents(id), projection.taskEvents(id), "taskEvents 须与投影件一致");
-      assert.deepEqual(ledger.taskEvents(id), ledger.events({ taskId: id }), "任务域读法与既有 events({taskId}) 等价");
+      // 域是语义的一部分：任务域读法＝**幸存的全量窗口**按 taskId 过滤（同一份已校验事件流，
+      // 只是不再有此读法）。旧 `events({taskId})` 的等价面由本断言承接；`events()` 两形态已随
+      // 46 号票从读面删除（形状判据见下方「收口」用例），本行不引用任何已删成员。
+      assert.deepEqual(
+        ledger.taskEvents(id), all.filter((event) => event.taskId === id),
+        "任务域读法＝全量窗口按任务域过滤（since(0) 与 taskEvents 同源同序）"
+      );
     }
     for (let cursor = 0; cursor <= lastSeq; cursor++) {
       assert.deepEqual(ledger.since(cursor), projection.since(cursor), `since(${String(cursor)}) 须与投影件一致`);
@@ -325,6 +334,40 @@ test("接线：台账读面挂上 at／since／taskEvents，与投影件在真�
       );
     }
   });
+});
+
+// ---------------- 收口：整条历史读法从读面移除（46 号票） ----------------
+
+/**
+ * 46 号票的形状判据：台账读面上**不再有整条历史的读法**——`events()` 的无参
+ * （整条序列）与任务域（`events({taskId})`）两形态一并消失，调用方不再有任何
+ * 一条路径可以拿到整条事件序列。删的是**对外读法**、不是内部能力：折叠与
+ * hash 链校验仍读全量（断号／坏链用例在本节之后照旧由幸存读法 fail closed）。
+ * 幸存读法一个不少——`openQueue`／`holdingsFor`／`notificationsAfter` 被
+ * `lib/org/acceptance-coordinates.js` 按源码缩进解析，名字不许动。
+ */
+test("收口：整条历史读法（events 两形态）从台账读面移除，幸存读法一个不少", async () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const taskId = "TK-00000043";
+    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
+    await openTask(ledger, taskId);
+    assert.equal(Object.hasOwn(ledger, "events"), false, "读面不得再挂整条历史读法（无参形态）");
+    assert.equal(ledger.events, undefined, "任务域形态（events({taskId})）一并消失，不得留兼容壳");
+    for (const name of [
+      "artifactsFor", "at", "since", "taskEvents", "task", "tasks",
+      "openQueue", "holdingsFor", "notificationsAfter", "view"
+    ]) {
+      assert.equal(typeof ledger[name], "function", `幸存读法 ${name} 须仍在读面上`);
+    }
+    // 删的是形状不是事实：幸存读法照旧给得出全量／任务域事件
+    assert.equal(ledger.since(0).length, 1, "since(0)＝全部事件（跨任务窗口）");
+    assert.equal(ledger.taskEvents(taskId).length, 1, "taskEvents＝任务域全部事件");
+    ledger.close();
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
 });
 
 // ---------------- 断号 fail closed ----------------
@@ -372,10 +415,12 @@ test("断号 fail closed：序号断裂的 events.jsonl 经读面与新读法一
     assert.throws(() => reader.openQueue(), /seq 不连续/);
     assert.throws(() => reader.tasks(), /seq 不连续/);
     assert.throws(() => reader.view(), /seq 不连续/);
-    assert.throws(() => reader.events(), /seq 不连续/);
+    // 46 号票起整条历史读法已删：幸存读法照旧 fail closed（域是语义的一部分，逐读法在案）
+    assert.throws(() => reader.since(0), /seq 不连续/);
+    assert.throws(() => reader.taskEvents(taskId), /seq 不连续/);
     assert.throws(() => reader.notificationsAfter(0), /seq 不连续/);
-    // 新读法经**注入的同一读面**照样 fail closed（投影不自己读盘，也就不会自己降级）
-    const projection = createTaskProjection({ readLog: () => reader.events() });
+    // 新读法经**注入的幸存读面**照样 fail closed（投影不自己读盘，也就不会自己降级）
+    const projection = createTaskProjection({ readLog: () => reader.since(0) });
     assert.throws(() => projection.at(taskId, "latest"), /seq 不连续/);
     assert.throws(() => projection.at(taskId, 1), /seq 不连续/, "历史读同样过事实源校验");
     assert.throws(() => projection.since(0), /seq 不连续/);
@@ -395,7 +440,7 @@ test("断号 fail closed：序号断裂的 events.jsonl 经读面与新读法一
     rewriteEvents(file, (rows) => rows.slice(1));
     const reader2 = createTaskLedger({ dshHome: home, now: clock.now, lockSpinMs: 0 });
     assert.throws(() => reader2.tasks(), /seq 不连续/, "链首缺失即断号");
-    const projection2 = createTaskProjection({ readLog: () => reader2.events() });
+    const projection2 = createTaskProjection({ readLog: () => reader2.since(0) });
     assert.throws(() => projection2.snapshot(), /seq 不连续/);
   } finally {
     rmSync(home, { recursive: true, force: true });
