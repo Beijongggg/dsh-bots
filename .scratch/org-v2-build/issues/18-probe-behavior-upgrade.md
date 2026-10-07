@@ -49,8 +49,8 @@ bundle／官方运行时、执行一次调用、断言返回形状）；每面�
       zstd→事件形状→四大投影；无已落盘会话→SKIP 带原因，部署面视同 FAIL 语义不变）
 - [x] 汇总行三态分列不变；`--face=deploy` SKIP 视同 FAIL 语义不回退（`V-A6.3`）（探针数
       不变仍 11，01 号票表述无需改数）
-- [x] `V-A6.8` 人工目视功能清单执行一次、列明核验人并落档（2026-10-07 部署面执行：**7 项观测
-      通过、第 4 项未触发**（零席/无事件，结构面归门内 `P-CLIENT-SLOTS` 增补面把守）；核验人
+- [x] `V-A6.8` 人工目视功能清单执行一次、列明核验人并落档（2026-10-07 部署面执行并经
+      16:07Z 补观测：**8 项全部观测通过**——首轮第 4 项因零席/无事件未触发，补观测段见下）；核验人
       **Beijong** 已知情署名——见「署名与口径」段；**代签＝落档作假**，本框由核验人明示后勾选）
 - [x] 全量回归与 preflight 四道门 PASS（2026-09-18 实跑：回归 39/39 个测试文件
       （host-contract-gate 21 条，较上轮新增 11 条）；冻结面 9/9；status-lint 0 违例；门④
@@ -77,7 +77,7 @@ PASS/FAIL/SKIP 负例、登记表双落点降级声明、适配层↔探针 id �
 - [x] 1. 侧栏入口（2026-10-07 实测：入口在位可点；**注**：该按钮文案已于同日经用户点名由「Bots／Bot 模式」改为 `Pod`，本项按当时面观测）：原生侧栏 footer 的「Bots」入口按钮可见可点（`sidebar.footer.action` 槽装载）
 - [x] 2. Bot 模式整页（实测 `sidebar`／`main(key=conversation)` 均被我方占用、原生会话节点 0）：点击入口后 bot 列表/新建按钮接管侧栏（`sidebar` 槽占用），会话区切换为 bot 界面（`conversation` 槽 entryKey）
 - [x] 3. abdicate 还原（实测退出后原生侧栏与 composer 复原、bots 节点归 0）：退出 Bot 模式后原生侧栏/会话界面无损还原（single 槽「priority 低者渲染」语义）
-- [ ] 4. 通知可见（**未触发**：执行时零席在线、无「上线／邮件」事件；结构面＝`shell.overlay` 被我方占位，已由门内 `P-CLIENT-SLOTS` 增补面把守；同日多次守候未捕获）：bot 上线/邮件通知以底部右侧堆叠卡片出现（`shell.overlay` list 槽）
+- [x] 4. 通知可见（2026-10-07 16:07Z **追加观测通过**：真实「上线」事件触发后，右下角堆叠卡片显示「值班统筹」已上线，容器为 `shell.overlay` 我方节点 `.dsh-bots-notices`，且**在 Bot 模式之外**的原生界面即可见——见下节与附件 `notice-watch-final*.png`／`notice-watch-final-result.json`。首轮执行时该卡未触发（零席/无事件），故此前留空）：bot 上线/邮件通知以底部右侧堆叠卡片出现（`shell.overlay` list 槽）
 - [x] 5. 本地化（实测文案全为字典文案、`rawKeys: []`）：bots 相关文案全部为字典文案、无裸键（LOCALE_NS 注册生效）
 - [x] 6. 视觉一致（实测宿主「新建会话」× bots「新建 Bot」逐字段同值；1959 条 `--dsw-*` 规则）：按钮/菜单/弹窗等 primitives 组件与宿主原生外观一致；注入样式令牌生效（无错色/裸样式）
 - [x] 7. 窄屏行为（实测 900×800 收轨 55px、轨上 5 个 bot 图形）：窗口收窄后侧栏折叠为轨、bot 头像在轨上可见（ownerProps collapsed 信号）
@@ -91,8 +91,10 @@ PASS/FAIL/SKIP 负例、登记表双落点降级声明、适配层↔探针 id �
 > 证据见 `attachments/18-visual-deployed-2026-10-07/`。**两项如实告知**：① 第 4 项因零席/无事件
 > 未观察到（非失败）；② 执行后该批 UI 文案又经用户点名改动（入口 `Bot 模式`→`Pod`、去两处模式
 > 标题），**未在最终 client 上复跑清单**——本签名以「行为面未受文案改动影响」为前提，逐项副作用
-> 列于 `attachments/18-ui-text-2026-10-07/README.md`；如需在最终 client 上复跑以加强记录，见
-> Comments 待办。
+> 列于 `attachments/18-ui-text-2026-10-07/README.md`。
+>
+> **补观测（2026-10-07 16:07Z，不改署名）**：第 4 项在真实「上线」事件触发后观测**通过**（卡片
+> 文案、容器节点与截图见下节）；至此 8 项全部观测通过。
 
 ## Comments
 
@@ -339,4 +341,22 @@ exit 0（①51/51 ②冻结面 0009 包 7/7 ③0 违例扫 65 md ④11 PASS / 0 
 杜绝复制致误；② 执行器与 s1 先例的纪律差（`git show` ↔ `git archive`、备份 `0600`＋fsync、清单漂移
 只记不 fail、`--dry-run` 仍写计划件）；③ 门内两相断言（apply 期常驻 vs enter 期占用）与探针注释
 同步；④ 已列 `mode.title` 死键的取舍；⑤ changelog 事件篇幅偏长（17–29 行 vs §6.2 5–10 行）。
+
+### 第 4 项补观测（2026-10-07 16:07Z，用户「完成继续」）
+
+首轮执行时组织面零席、无任何事件，第 4 项只能留空；本轮补齐观测，**未改署名与勾选口径之外的事实**：
+
+- **制造真实事件**：用产品自身控制面（`POST /api/bots/{id}/stop|start`，CSRF 走 `GET /api/bots/_csrf`）
+  把「值班统筹」做一次真实的状态翻转（先停后启，席位进程由宿主重新拉起：pid 88482）。
+- **捕获**：守候会话（用户给的现役 token）在**原生界面**（Bot 模式之外）捕到卡片——
+  `「值班统筹」已上线`；容器 HTML
+  `<div class="dsh-bots-notices" aria-live="polite"><div class="dsh-bots-notice dsh-bots-notice-ok">「值班统筹」已上线</div></div>`
+  （`shell.overlay` 我方节点，`notice-ok` 类＝上线态）。
+- 证据：`attachments/18-ui-text-2026-10-07/notice-watch-final.png`（截图）＋
+  `notice-watch-final-result.json`（含 `caughtAt`／`notices`／`visibleNow`／HTML 原文）。
+- **方法坑留痕**：首发守候 40 分钟未命中，根因不是产品而是驱动——`inject` 动作实为
+  `Page.addScriptToEvaluateOnNewDocument`（**下次加载才生效**），我在最后一次 `reload` 之后注入，
+  观察器从未安装；改用 `Runtime.evaluate` 装观察器后即刻命中。后续会话用驱动注入时须「先注入后导航」
+  或改用 eval。
+- 边界：卡片外观与位置按截图目视；邮件类通知未单独触发（同组件同槽，按上线卡证据推及）。
 

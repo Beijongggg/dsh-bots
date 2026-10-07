@@ -79,3 +79,17 @@
 二轮改常连轮询式守候（PID 留痕于会话记录），但宿主随后重启、其 token 只印在用户终端（`/proc/<host>/fd/1
 → /dev/pts/0`），新宿主上无法再建会话——**第 4 项因此仍缺真实事件**，`notice-watch-result.json`
 从未生成（此前 README 误引，2026-10-07 复审后更正）。
+
+## 第 4 项补观测：通知卡片捕获（2026-10-07 16:07Z）
+
+- 事件制造：`POST /api/bots/duty-coordinator/stop` → `start`（产品控制面，CSRF 走 `GET /api/bots/_csrf`），
+  席位由宿主重新拉起（pid 88482）；客户端由此得到真实的 `online: false → true` 翻转。
+- 命中证据：`notice-watch-final.png`（右下角**绿色**卡片）、`notice-watch-final-result.json`
+  （`status:"caught"`、`notices:["「值班统筹」已上线"]`、`visibleNow:true`、容器 HTML 原文）。
+  卡片出现在 **Bot 模式之外**的原生界面，容器为 `shell.overlay` 我方节点 `.dsh-bots-notices`。
+- **首个守候为何空转**（留痕，避免后人踩同坑）：驱动 `driver-cdp-rerun.mjs` 的 `inject` 动作实为
+  `Page.addScriptToEvaluateOnNewDocument`（**下一次文档加载才生效**），而当时顺序是
+  `goto → reload → inject`，观察器从未安装；改用 `Runtime.evaluate` 直接装观察器后立即命中。
+  用该驱动时须「先 inject 后 goto/reload」或改用 eval。
+- 边界：邮件类通知未单独触发（同组件同槽，按上线卡证据推及）；卡片 4 秒自动消失，故只能在场守候。
+
