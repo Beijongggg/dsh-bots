@@ -1,0 +1,57 @@
+# 18 号票附件：门覆盖缺口收口（P-CLIENT-SLOTS 增补面，2026-10-07）
+
+> 本目录是**票面附件**（18 号票的门内守卫证据），不是 `artifacts/packages/` 的证据包链件。
+
+## 1. 缺口是什么
+
+2026-10-07 首轮 V-A6.8 人工目视暴露三处宿主契约漂移（槽名／图标变体名／`MarkdownText.labels`），
+而门④ `P-CLIENT-SLOTS` 当时仍判 **12 PASS**——因为它只断言宿主**声明面**
+（`sidebar` single／`main` keyed／`shell.overlay` list／`sidebar.footer.action` list），
+**从不校验「我方 `HOST_SLOTS` 槽名 ∈ 宿主声明树」**。同类漂移（含图标名、必需 props）会再次静默放行。
+
+## 2. 收口方式（三层，同一探针 id，探针数不变）
+
+`P-CLIENT-SLOTS.run()` ＝ 声明面 stage（原样）→ 合规 stage（新增，`probeClientConformanceStage`）：
+
+1. **槽注册落点（行为面）**：以官方 `dsh-client-ui-slots` 的**真实 `SlotCore`** 承接 `ctx.slots`，
+   真实装载协议调起我方 bundle、实调 `apply`，再点 Bot 模式入口走 `enter()`，断言
+   ①apply 与点击都不抛；②`sidebar` 单槽被我方 `id="dsh-bots-sidebar"` 占位；
+   ③keyed 槽 `main` 的 `key="conversation"` 被我方占位（宿主改回独立 `conversation` 单槽即 FAIL）。
+2. **primitives 引用名（我方源码 × 官方导出面）**：官方 `dsh-client-ui-primitives` 实体包的
+   `export {...}` 面（280 名）作判据，我方 `primitives.<Name>` 引用名必须全在其中
+   （图标变体名漂移＝React #130 类）；入口渲染期访问到未导出名另记一笔。
+3. **必需 props**：`MarkdownText` 调用点必须带 `labels`（0.2.0-rc.1 起必填，缺件＝渲染期 TypeError）。
+
+真实宿主上的实跑归 preflight ④；套件内用合成 SlotCore 夹具把红/绿路径钉住（5 个测试）。
+
+## 3. 红/绿证据
+
+`red-green-output.txt`（由 `red-check.mjs` 重放，可原样复跑）：
+
+| 形态 | 槽注册查 | 引用面查 |
+|---|---|---|
+| 修复前（`b5932d2`：独立 `conversation` 槽 ＋ `Icon*16/14`） | **FAIL**（`slot "conversation" is not declared`＋`main` 未占用） | **FAIL**（11 个未导出图标名＋两处缺 `labels`） |
+| 中间态（修槽名与图标名、未补 `labels`） | PASS | **FAIL**（两处 `MarkdownText` 缺 `labels`） |
+| 当前工作树（三处全修） | PASS | PASS（引用 19 名 ⊆ 官方 280 名） |
+
+复跑：`node .scratch/org-v2-build/attachments/18-gate-guard-2026-10-07/red-check.mjs`
+
+## 4. 覆盖边界（诚实声明）
+
+- 官方 primitives 包按**构建产物**装盘：其 react／react-dom／shiki／katex／mdast 等依赖不在宿主
+  `node_modules` 中（实测 import 实包报 `Cannot find package 'react'`），故导出名集取自**包入口自身的
+  `export {...}` 声明**（包自述的公开面），而非扫描宿主产物推契约；渲染期**实际**使用由入口实跑兜底。
+- 本轮未覆盖：借用官方 common 命名空间的本地化键（`copy`／`copied`／`codeBlock.*`／`markdown.footnotes`）
+  仍只有套件级允许集（`tests/locale.test.mjs`）把守，没有「该键在官方 common 词典存在」的门口径断言。
+- 渲染结果本身（priority/abdicate 实际渲染、视觉一致）仍归 V-A6.8 人工目视清单——见同票
+  `../18-visual-2026-10-07/`。
+
+## 5. 触碰的文件
+
+- `scripts/host-contract-probe.mjs`：新增 `BOT_MODE_SLOT_TARGETS`／`makeClientReactStub`／
+  `verifyClientSlotRegistrations`／`checkPrimitivesReferences`／`probeClientConformanceStage`，
+  `withDomStubs` 增补 `EventSource`／`ResizeObserver` 形状桩，`P-CLIENT-SLOTS` 描述改述，
+  `P-CLIENT-VISUAL` 描述订正（原「primitives 仅存于 shell 种子表、无实体包」失实）。
+- `tests/host-contract-gate.test.mjs`：合成 SlotCore 夹具（与官方投影同形：priority 升序＋按格去重）
+  ＋5 个测试（未声明槽红路径、落点绿路径、仓库真实 bundle 绿基线、引用面三查、stage 三态）。
+- `lib/host-faces.js`：`HF-CLIENT-SLOTS`／`HF-CLIENT-VISUAL` 的 `readAccess` 按新覆盖面改述。

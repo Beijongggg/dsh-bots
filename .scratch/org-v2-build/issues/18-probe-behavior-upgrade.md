@@ -190,3 +190,29 @@ exit 0（①51/51 ②冻结面 0009 包 7/7 ③0 违例扫 65 md ④11 PASS / 0 
 第 4 项需一次真实「上线／邮件」事件；**门覆盖缺口**——`P-CLIENT-SLOTS` 仍不校验「我方 `HOST_SLOTS`
 槽名 ∈ 宿主声明树」，同类漂移仍会被 12 PASS 放行，建议另立票把 `prior-repro-slot-drift-20260930.mjs`
 的真实 SlotCore 手法升级为门内行为断言；核验人署名与 `Status:` 翻转仍归用户。
+
+### 门覆盖缺口收口（2026-10-07 同日第二批：P-CLIENT-SLOTS 增补面）
+
+首轮暴露的三处漂移此前**全被门④ 12 PASS 放行**（`P-CLIENT-SLOTS` 只断言宿主声明面，从不校验
+「我方 `HOST_SLOTS` 槽名 ∈ 宿主声明树」）。本轮把三类漂移钉进门内，**探针 id 与数量不变**：
+
+- `P-CLIENT-SLOTS.run()` ＝ 声明面 stage（原样）→ 新 `probeClientConformanceStage`：
+  ①**槽注册落点**（行为面）：官方 slots 包的**真实 `SlotCore`** 承接 `ctx.slots`，以真实装载协议
+  调起我方 bundle、实调 `apply` 并点入口走 `enter()`，断言「apply 与点击都不抛 ＋ `sidebar` 被我方
+  `id="dsh-bots-sidebar"` 占位 ＋ keyed 槽 `main` 的 `key="conversation"` 被我方占位」；
+  ②**primitives 引用名**：官方实体包 `export {...}` 面（280 名）作判据，我方 19 个引用名必须全在其中，
+  入口渲染期访问到未导出名另记一笔；③**必需 props**：`MarkdownText` 调用点须带 `labels`。
+- 红/绿证据（`attachments/18-gate-guard-2026-10-07/`）：修复前形态**两查皆 FAIL**（11 个未导出图标名＋
+  `slot "conversation" is not declared`＋`main` 未占用）、中间态引用面 FAIL（两处缺 `labels`）、
+  当前工作树全 PASS；`red-check.mjs` 可原样复跑。
+- 套件面：`tests/host-contract-gate.test.mjs` 增 5 个测试（合成 SlotCore 夹具，与官方投影同形：
+  priority 升序＋按格去重）；`withDomStubs` 增补 `EventSource`／`ResizeObserver` 形状桩。
+- 登记表：`HF-CLIENT-SLOTS`／`HF-CLIENT-VISUAL` 的 `readAccess` 按新覆盖面改述；`P-CLIENT-VISUAL`
+  描述订正（原「primitives 仅存于 shell 种子表、无实体包」失实——实体包在盘，导出面 280 名）。
+- 覆盖边界（诚实声明）：导出面取自**包入口自身的 `export {...}` 声明**（宿主按构建产物装盘、
+  react／shiki 等依赖未随盘安装，无法 import 实包）；借用官方 common 命名空间的本地化键
+  （`copy`／`copied`／`codeBlock.*`／`markdown.footnotes`）仍只有套件级允许集把守，**未进门口径**。
+
+验证（收口批次）：`TMPDIR=/dev/shm` 全量 **80/80**（`host-contract-gate` 29/29）；preflight
+①80/80 ②0010 包 10/10 ③0 违例 ④**12 PASS／0 FAIL／0 SKIP**（`P-CLIENT-SLOTS` 坐标已含增补面：
+「19 个 primitives 引用名 ⊆ 官方导出 280 名；sidebar.id=dsh-bots-sidebar、main.key=conversation」）。
