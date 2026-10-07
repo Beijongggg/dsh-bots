@@ -272,6 +272,19 @@ const PACKET_TASK = Object.freeze({
   brief: PACKET_BRIEF
 });
 
+/**
+ * 只读台账假面（42 号票后的读面）：**只给新读法**——`tasks`／`since`／`taskEvents`。
+ * 刻意**不提供整条历史的读法**：若生产侧还在问整条历史，这里立刻 TypeError
+ * （假面即判据，不靠注释）。
+ */
+function readOnlyLedger({ tasks, events }) {
+  return {
+    tasks: () => tasks,
+    since: (seq = 0) => events.filter((event) => event.seq > seq),
+    taskEvents: (taskId) => events.filter((event) => event.taskId === taskId)
+  };
+}
+
 test("裁定包五件齐备：冻结简报／判据事实／双方立场＋全轨迹指针／可选动作／模型身份（V-A5.6）", () => {
   const built = buildRulingPackage({
     task: PACKET_TASK, events: PACKET_EVENTS, taskId: PACKET_TASK_ID, modelIdentity: "glm-5.3-flash（初审代理）"
@@ -424,7 +437,7 @@ test("告知投影：交付回笼／取消失败／越权计数三类各有来�
 test("收件箱＝台账事件投影（只读）：待裁项带裁定包、可选动作、归属与到期标记，告知并列（V-A5.2／V-A5.3）", () => {
   const tasks = [PACKET_TASK, { taskId: "TK-TEST0003", status: "running", brief: null, lastSeq: 9 }];
   const events = [...PACKET_EVENTS, { seq: 6, taskId: PACKET_TASK_ID, type: "deliver" }];
-  const readOnly = { tasks: () => tasks, events: () => events }; // 只读面：没有 command
+  const readOnly = readOnlyLedger({ tasks, events }); // 只读面：没有 command
   const inbox = buildInbox({ ledger: readOnly, now: Date.parse("2026-10-02T00:00:00.000Z") });
   assert.equal(inbox.cursor, 6);
   assert.equal(inbox.pending.length, 1, "只有挂起任务进待裁列表");
@@ -439,25 +452,41 @@ test("收件箱＝台账事件投影（只读）：待裁项带裁定包、可�
   assert.deepEqual(inbox.notices.map((entry) => entry.kind), ["delivery-return"], "告知与待裁并列、互不混淆");
   // 到期投影：业务截止时间已过＝标记已过期（不改状态、不自动取消）
   const expiring = buildInbox({
-    ledger: {
-      tasks: () => [{ ...PACKET_TASK, brief: { ...PACKET_BRIEF, dueAt: "2026-10-01T00:00:00.000Z" } }],
-      events: () => PACKET_EVENTS
-    },
+    ledger: readOnlyLedger({
+      tasks: [{ ...PACKET_TASK, brief: { ...PACKET_BRIEF, dueAt: "2026-10-01T00:00:00.000Z" } }],
+      events: PACKET_EVENTS
+    }),
     now: Date.parse("2026-10-02T00:00:00.000Z")
   });
   assert.equal(expiring.pending[0].expired, true);
   assert.equal(expiring.pending[0].taskId, PACKET_TASK_ID);
   // 永不可代挂起点在投递面上明确标出（组装者身份可指定为初审代理实例）
   const domain = buildInbox({
-    ledger: {
-      tasks: () => [{ ...PACKET_TASK, waitingClass: "user-domain", escalationCause: null }],
-      events: () => PACKET_EVENTS
-    },
+    ledger: readOnlyLedger({
+      tasks: [{ ...PACKET_TASK, waitingClass: "user-domain", escalationCause: null }],
+      events: PACKET_EVENTS
+    }),
     now: Date.parse("2026-10-02T00:00:00.000Z"),
     modelIdentity: "glm-5.3-flash（初审代理）"
   });
   assert.ok(domain.pending[0].userRuling.reason.includes("用户域"));
   assert.equal(domain.pending[0].packet.modelIdentity, "glm-5.3-flash（初审代理）");
+});
+
+test("收件箱游标边界（42 号票）：读法改用 `since(cursor)` 窗口后，游标越过末序号＝空窗**不回退**（旧面回退到末序号）；待裁项仍吃每任务完整历史", () => {
+  const tasks = [PACKET_TASK];
+  const events = [...PACKET_EVENTS, { seq: 6, taskId: PACKET_TASK_ID, type: "deliver" }];
+  const readOnly = readOnlyLedger({ tasks, events });
+  const stale = buildInbox({ ledger: readOnly, now: Date.parse("2026-10-02T00:00:00.000Z"), cursor: 99 });
+  assert.equal(stale.cursor, 99, "游标越过末序号＝空窗：保持调用方游标，不回退（旧面回退到 6）");
+  assert.deepEqual(stale.notices, [], "空窗＝零告知");
+  assert.equal(stale.pending.length, 1, "待裁项不受游标影响");
+  // 待裁项裁定包吃的是**每任务完整历史**（taskEvents），不是 since 窗口：
+  // 游标之前的事件（report seq 2、review-reported seq 4）仍须在场，否则缺件不交包
+  assert.deepEqual(
+    stale.pending[0].packet.positions.entries.map((entry) => entry.side), ["producer", "reviewer"],
+    "游标之前的产出／复核事实不因窗口读法而丢（一读三消费者＝必须拆两读）"
+  );
 });
 
 test("到人告知三类＝交付回笼／取消失败／越权计数：纯告知、不挂起（与裁定类词表不交集，V-A5.1）", () => {

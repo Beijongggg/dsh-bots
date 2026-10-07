@@ -52,3 +52,29 @@
 **来源：** 2026-10-07 架构评审候选 1 ＋ grilling 定案 Q4／Q15。
 
 ## Comments
+
+- **2026-10-07 实施：游标边界差异一笔（`lib/org/human-inbox.js` `buildInbox`）。**
+  拆两读后 `cursor` 改由 `since(cursor)` 窗口给出（窗口末条 `seq`；空窗保持调用方
+  游标）。与旧面（`events()` 整条历史的末条 `seq`）的差异**只在一个边界**：
+  `cursor` **越过**台账末序号时，旧面回退到末序号，新面不回退（保持调用方游标）。
+  `cursor ≤ 末序号` 时两者同值（含 `cursor = 末序号` 的空窗）。可达路径
+  （`GET /api/bots/_ledger/inbox`）的游标是客户端自持水位，越界即在客户端；
+  不回退＝游标不倒退，不会造成重放，只是不再把「台账末序号」当权威游标回写。
+  现测均传 `cursor ≤ 末序号`，已就边界新增一条用例钉住新面语义
+  （`tests/org-human-inbox.test.mjs`「收件箱游标边界」）。
+- **2026-10-07 实施：`:1076` 坐标口径。** 票面「生产调用点 :1076／:1269」中的 `:1076`
+  是**整条历史读的组装点**（`close` 分支前的 `events = readEvents()`），`:1269` 是唯一
+  一处 `closePrecondition` 调用（本票基点行号：读在 `:1078`、调用在 `:1110`——
+  40／41 号票搬家后有位移）。改形后该整条日志不再进 `closePrecondition`：进门快照的
+  `events` 取 `ledger.taskEvents(taskId)`（任务域读法，与投影同源同一条读路径）。
+- **2026-10-07 实施：本票连带改了 `tests/org-human-inbox.test.mjs`。** 该文件不在
+  43／44／45 任一票的文件范围内（见批次 `notes-events-callsites.md` §5 伴生点表），
+  其只读假台账（`:427` 与两处内联 stub）必须随 `buildInbox` 迁移补新读法，否则一迁移
+  即 `TypeError`。已改为共用 `readOnlyLedger()` 假面（**只给新读法，不给整条历史读**）。
+- **2026-10-07 实施：`closePrecondition` 快照形状取定。** 新建门形状＝
+  `closePrecondition({ snapshot, criterionRunner })`，`snapshot = { task, events, artifacts }`
+  ——三件数据（任务投影／本任务域事件／产出登记面条目）捆成**一件**进门，`criterionRunner`
+  仍是注入缝。**取此形而非投影件的 `snapshot()`（`{lastSeq, tasks}`）**：后者不含事件与
+  产出登记面，且会把「任务域读取」的容忍度（整条历史／任务片段皆可，靠 `taskReviewScope`
+  内按 taskId 过滤）丢掉——该容忍度是本票硬约束，故保留 `events` 字段（生产侧填
+  `taskEvents(taskId)`）。判定码与事件序列均不变。
