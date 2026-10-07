@@ -12,6 +12,8 @@
  *   - **等价性**：同一脚本命令序列下，旧折叠 `projectEvents(all, id)` 与新件
  *     `at(id, seq)` 在**每个序号前缀**上结论相同（含跨任务行在场）；
  *   - 新增读法 `at`／`since`／`taskEvents`／快照各自的边界；
+ *   - **接线（本票增量）**：三名新读法挂在 `createTaskLedger` 读面上，与投影件在真台账
+ *     脚本序列上逐项一致，且与既有读成员同一条 fail closed 口径（坏链／断号一律抛）；
  *   - **断号 fail closed**：序号断裂的 `events.jsonl` 经读面（台账读成员与新件查询）
  *     一律 fail closed，不得静默跳过——此前的显式覆盖只有 hash 失配一条路径；
  *   - 新件依赖闭包：无环、无命令面件、无隐式全局读。
@@ -280,6 +282,51 @@ test("读依赖注入：每次查询恰读一次注入面；未注入即响亮�
   assert.throws(() => createTaskProjection({ readLog: "ledger" }), /需要注入 readLog/);
 });
 
+// ---------------- 接线：新读法挂到台账读面 ----------------
+
+/**
+ * 本票增量（40 号票的读面扩张落点）：`at`／`since`／`taskEvents` **挂在
+ * `createTaskLedger` 返回的读面上**，纯委派新件——不重造语义、不另开读路径。
+ * 故用例只验**接线**：读面存在三名成员、与投影件在真台账脚本序列上逐项一致、
+ * 且与既有读成员的 fail closed 口径相同；新件自身的边界与闭包由上游用例覆盖。
+ */
+test("接线：台账读面挂上 at／since／taskEvents，与投影件在真台账脚本序列上逐项一致", async () => {
+  await withScriptedRig(async ({ ledger, projection, all, a, b, steps }) => {
+    for (const name of ["at", "since", "taskEvents"]) {
+      assert.equal(typeof ledger[name], "function", `台账读面须挂上 ${name}（本票增量的落点）`);
+    }
+    const lastSeq = all[all.length - 1].seq;
+    assert.ok(lastSeq >= 16, `脚本序列应落足事件（实得 ${String(lastSeq)}）`);
+    // 同一条脚本序列、同一份事实源：读面结论与投影件在**每个序号前缀**上逐字段一致
+    for (const id of [a, b]) {
+      for (let seq = 0; seq <= lastSeq; seq++) {
+        assert.deepEqual(ledger.at(id, seq), projection.at(id, seq), `at(${id}, ${String(seq)}) 须与投影件一致`);
+      }
+      assert.deepEqual(ledger.at(id, "latest"), projection.at(id, "latest"), "latest 须与投影件一致");
+      assert.deepEqual(ledger.at(id, "latest"), ledger.task(id), "latest＝既有 task() 的当前投影");
+      assert.deepEqual(ledger.taskEvents(id), projection.taskEvents(id), "taskEvents 须与投影件一致");
+      assert.deepEqual(ledger.taskEvents(id), ledger.events({ taskId: id }), "任务域读法与既有 events({taskId}) 等价");
+    }
+    for (let cursor = 0; cursor <= lastSeq; cursor++) {
+      assert.deepEqual(ledger.since(cursor), projection.since(cursor), `since(${String(cursor)}) 须与投影件一致`);
+    }
+    assert.deepEqual(ledger.since(0), all, "since(0)＝全部事件（含跨任务行与非状态事件）");
+    assert.equal(ledger.at("TK-unknown0001", 5), null, "未开档任务＝null");
+    assert.equal(ledger.at("T-1", 5), null, "非法 taskId 形状＝null（与 task() 同口径）");
+    assert.deepEqual(ledger.taskEvents("TK-unknown0001"), [], "未开档任务＝空数组");
+    // 纯委派证据：参数校验的措辞只来自新件（读面不重造一套校验）
+    assert.throws(() => ledger.at(a, -1), /seq 须为整数或 "latest"/, "非法 seq 由新件口径拒绝");
+    assert.throws(() => ledger.at(a, 2.5), /seq 须为整数或 "latest"/);
+    // 独立真源：写路径自己的回执结论＝该序号处的读面投影
+    for (const step of steps) {
+      assert.equal(
+        ledger.at(step.taskId, step.seq).status, step.status,
+        `${step.op}（seq ${String(step.seq)}）的回执结论须是该序号处的投影`
+      );
+    }
+  });
+});
+
 // ---------------- 断号 fail closed ----------------
 
 /** 逐行改写事件文件（测试夹具：模拟外部篡改事实源）。 */
@@ -350,6 +397,56 @@ test("断号 fail closed：序号断裂的 events.jsonl 经读面与新读法一
     assert.throws(() => reader2.tasks(), /seq 不连续/, "链首缺失即断号");
     const projection2 = createTaskProjection({ readLog: () => reader2.events() });
     assert.throws(() => projection2.snapshot(), /seq 不连续/);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+// ---------------- 接线 fail closed（挂载点与既有读成员同口径） ----------------
+
+test("接线 fail closed：坏链与断号经台账读面新成员一律抛（不静默返回、每次重读不吃缓存）", async () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const taskId = "TK-00000041";
+    const ledger = createTaskLedger({ dshHome: home, now: clock.now });
+    await openTask(ledger, taskId);
+    await command(ledger, "task.triage", taskId, HOST, `${taskId}-triage`, { decision: "立项" });
+    const file = eventsFile(home);
+    const lines = readFileSync(file, "utf8").trim().split("\n");
+    assert.equal(lines.length, 2, "脚本序列落两行事件");
+
+    // 先取一次正常读（同一实例）：下面事实源被改坏后必须抛，否则即为吃了缓存
+    assert.equal(ledger.at(taskId, "latest").status, "triaged", "当前态＝折完两条事件");
+    assert.equal(ledger.at(taskId, 1).status, "intake", "历史读（序号 1）与 latest 分别成立");
+    assert.equal(ledger.taskEvents(taskId).length, 2);
+    assert.equal(ledger.since(0).length, 2);
+
+    // 坏链：只改负载、不重算 hash（走 hash 理由，与既有读成员同一条 catch 路径）
+    rewriteEvents(file, (rows) => {
+      const second = JSON.parse(rows[1]);
+      second.at = "2026-10-07T23:59:59.000Z";
+      return [rows[0], JSON.stringify(second)];
+    });
+    assert.throws(() => ledger.task(taskId), /hash 不符/, "既有读成员 fail closed");
+    assert.throws(() => ledger.at(taskId, "latest"), /hash 不符/, "同一实例不缓存结论（每次都过事实源校验）");
+    assert.throws(() => ledger.at(taskId, 1), /hash 不符/, "历史读同样过事实源校验");
+    assert.throws(() => ledger.since(0), /hash 不符/);
+    assert.throws(() => ledger.taskEvents(taskId), /hash 不符/);
+
+    // 断号：seq 跳号但**重算 hash**（链自洽），唯一被破坏的是全局 seq 连续性
+    writeFileSync(file, lines.join("\n") + "\n");
+    rewriteEvents(file, (rows) => {
+      const second = JSON.parse(rows[1]);
+      second.seq = 5;
+      second.eventHash = eventHashFor(second);
+      return [rows[0], JSON.stringify(second)];
+    });
+    assert.throws(() => ledger.task(taskId), /seq 不连续/, "既有读成员 fail closed");
+    assert.throws(() => ledger.at(taskId, "latest"), /seq 不连续/, "新读法不静默降级");
+    assert.throws(() => ledger.at(taskId, 5), /seq 不连续/);
+    assert.throws(() => ledger.since(0), /seq 不连续/);
+    assert.throws(() => ledger.taskEvents(taskId), /seq 不连续/);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
