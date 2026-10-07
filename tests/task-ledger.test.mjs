@@ -2206,17 +2206,27 @@ test("关闭前置（§B；V-A2.7，14 号票）：产出登记面不可读＝fa
     // 注入面（负例测试与别的接线走这条）：锚定与登记方两件都在谓词内判定——
     // 「他登记的」与「他任务的」都不算「谁产出谁登记」
     const task = throwing.task("TK-00000098");
-    const events = throwing.events({ taskId: "TK-00000098" });
+    // 42 号票起进门＝任务快照：事件域走任务域读法（本任务片段）
+    const events = throwing.taskEvents("TK-00000098");
     assert.equal(
-      (await closePrecondition({ task, events, artifacts: [{ task: "TK-00000098", botId: "someone-else" }], criterionRunner: ACCEPTANCE_RUNNER })).code,
+      (await closePrecondition({
+        snapshot: { task, events, artifacts: [{ task: "TK-00000098", botId: "someone-else" }] },
+        criterionRunner: ACCEPTANCE_RUNNER
+      })).code,
       "artifact-not-registered", "登记方≠产出方即拒"
     );
     assert.equal(
-      (await closePrecondition({ task, events, artifacts: [{ task: "TK-00000099", botId: "implementer" }], criterionRunner: ACCEPTANCE_RUNNER })).code,
+      (await closePrecondition({
+        snapshot: { task, events, artifacts: [{ task: "TK-00000099", botId: "implementer" }] },
+        criterionRunner: ACCEPTANCE_RUNNER
+      })).code,
       "artifact-not-registered", "未锚本任务即拒"
     );
     assert.equal(
-      (await closePrecondition({ task, events, artifacts: [{ task: "TK-00000098", botId: "implementer" }], criterionRunner: ACCEPTANCE_RUNNER })).ok,
+      (await closePrecondition({
+        snapshot: { task, events, artifacts: [{ task: "TK-00000098", botId: "implementer" }] },
+        criterionRunner: ACCEPTANCE_RUNNER
+      })).ok,
       true, "登记方＝产出方且锚本任务 → 过"
     );
     // duty 例程任务：承载面＝台账本身，登记门不适用（两件判定都跳过）
@@ -2226,7 +2236,9 @@ test("关闭前置（§B；V-A2.7，14 号票）：产出登记面不可读＝fa
     void duty;
     assert.equal(
       (await closePrecondition({
-        task: throwing.task("TK-00000100"), events: throwing.events({ taskId: "TK-00000100" }), artifacts: [],
+        snapshot: {
+          task: throwing.task("TK-00000100"), events: throwing.taskEvents("TK-00000100"), artifacts: []
+        },
         criterionRunner: ACCEPTANCE_RUNNER
       })).ok, true, "duty 任务不受产出登记门约束"
     );
@@ -2259,16 +2271,21 @@ test("产出方事实（16 号票 rv1 blocker）：租约回收清归属不清�
     });
     assert.equal(
       (await closePrecondition({
-        task: reclaimed, events: ledger.events({ taskId: "TK-00000101" }),
-        artifacts: ledger.artifactsFor("TK-00000101"), criterionRunner: ACCEPTANCE_RUNNER
+        snapshot: {
+          task: reclaimed, events: ledger.taskEvents("TK-00000101"), artifacts: ledger.artifactsFor("TK-00000101")
+        },
+        criterionRunner: ACCEPTANCE_RUNNER
       })).ok, true, "归属让渡后按产出方判定，不得误拒 artifact-not-registered"
     );
 
     // 两件判定保持：他人登记（即便归属已空）不算「谁产出谁登记」
     assert.equal(
       (await closePrecondition({
-        task: reclaimed, events: ledger.events({ taskId: "TK-00000101" }),
-        artifacts: [{ task: "TK-00000101", botId: "someone-else" }], criterionRunner: ACCEPTANCE_RUNNER
+        snapshot: {
+          task: reclaimed, events: ledger.taskEvents("TK-00000101"),
+          artifacts: [{ task: "TK-00000101", botId: "someone-else" }]
+        },
+        criterionRunner: ACCEPTANCE_RUNNER
       })).code, "artifact-not-registered", "登记方≠产出方即拒"
     );
 
@@ -2287,6 +2304,42 @@ test("产出方事实（16 号票 rv1 blocker）：租约回收清归属不清�
       })).ok, true, op);
     }
     assert.equal(ledger.task("TK-00000101").producer, "implementer-b", "产出方跟随最新 report");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("关闭前置收任务快照（42 号票）：快照＝{task, events, artifacts} 一件进；事件域可为任务片段或含他任务行的历史（任务域读取语义保留）", async () => {
+  const home = mkHome();
+  try {
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clockAt().now });
+    await walkToSettled(ledger, "TK-00000098", { brief: { ...VALID_BRIEF, reviewPoints: [] } });
+    const task = ledger.task("TK-00000098");
+    const registered = [{ task: "TK-00000098", botId: "implementer" }];
+    assert.equal(
+      (await closePrecondition({
+        snapshot: { task, events: ledger.taskEvents("TK-00000098"), artifacts: registered },
+        criterionRunner: ACCEPTANCE_RUNNER
+      })).ok, true, "快照一件进：登记方＝产出方且锚本任务 → 过"
+    );
+    // 任务域读取语义保留：事件域＝含他任务行的历史（旧面形状）时结论不变
+    // ——taskReviewScope 内部按 taskId 过滤，与喂任务片段等价
+    assert.equal(
+      (await closePrecondition({
+        snapshot: {
+          task,
+          events: [...ledger.taskEvents("TK-00000098"), { seq: 999, taskId: "TK-00000099", type: "intake" }],
+          artifacts: registered
+        },
+        criterionRunner: ACCEPTANCE_RUNNER
+      })).ok, true, "事件域含他任务行不改变结论（按 taskId 过滤）"
+    );
+    assert.equal(
+      (await closePrecondition({
+        snapshot: { task, events: ledger.taskEvents("TK-00000098"), artifacts: [{ task: "TK-00000098", botId: "someone-else" }] },
+        criterionRunner: ACCEPTANCE_RUNNER
+      })).code, "artifact-not-registered", "判定码不变：登记方≠产出方即拒"
+    );
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
