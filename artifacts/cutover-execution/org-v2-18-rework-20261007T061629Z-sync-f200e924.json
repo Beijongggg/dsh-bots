@@ -1,0 +1,55 @@
+{
+ "packageType": "deploy-sync-execution",
+ "runId": "org-v2-18-rework-20261007T061629Z",
+ "batch": "18-rework",
+ "planPath": "artifacts/cutover-preparation/org-v2-18-rework-20261007T061629Z-plan-685f9ae9.json",
+ "planSha8": "685f9ae9",
+ "commit": "c684aa9dbecb266548379a91fe87a3452a5c3b1f",
+ "dshHome": "/home/beijong/.dsh",
+ "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+ "backupDir": "/home/beijong/.dsh/backups/dsh-bots/org-v2-18-rework-20261007T061629Z-backup-685f9ae9",
+ "backupManifestSha8": "082208f3",
+ "capturedAt": "2026-10-07T06:16:51.181Z",
+ "authorization": "用户本轮「做」点名第 1 项（部署同步＋部署面正式重跑）",
+ "restart": "不做（宿主／席位重启链归用户终端执行）",
+ "written": [
+  "lib/client.js",
+  "lib/host-faces.js",
+  "scripts/host-contract-probe.mjs",
+  "tests/host-contract-gate.test.mjs",
+  "tests/locale.test.mjs"
+ ],
+ "verify": [
+  {
+   "path": "lib/client.js",
+   "sourceSha256": "1de6187c21386a89d5c118645de0bf748fc4c3e4c38292b10873844831201b0c",
+   "deployedSha256After": "1de6187c21386a89d5c118645de0bf748fc4c3e4c38292b10873844831201b0c",
+   "ok": true
+  },
+  {
+   "path": "lib/host-faces.js",
+   "sourceSha256": "4a75584e94391b9b70685a85aeba98de7c4384088738f1e6b0cc55baaf35629a",
+   "deployedSha256After": "4a75584e94391b9b70685a85aeba98de7c4384088738f1e6b0cc55baaf35629a",
+   "ok": true
+  },
+  {
+   "path": "scripts/host-contract-probe.mjs",
+   "sourceSha256": "4eb75380071b259bb4c4ef4123fa2e4b4a86903331df55f4d88843dcc2830e02",
+   "deployedSha256After": "4eb75380071b259bb4c4ef4123fa2e4b4a86903331df55f4d88843dcc2830e02",
+   "ok": true
+  },
+  {
+   "path": "tests/host-contract-gate.test.mjs",
+   "sourceSha256": "285dc4eefa18dd7dd1ff68acc4669ccd9ad163f5253830258cae813e6e1fdc80",
+   "deployedSha256After": "285dc4eefa18dd7dd1ff68acc4669ccd9ad163f5253830258cae813e6e1fdc80",
+   "ok": true
+  },
+  {
+   "path": "tests/locale.test.mjs",
+   "sourceSha256": "0a19f9123df7dc730fa27f963df9540c5efe7bd672b343b30051284ae45e2125",
+   "deployedSha256After": "0a19f9123df7dc730fa27f963df9540c5efe7bd672b343b30051284ae45e2125",
+   "ok": true
+  }
+ ],
+ "restoreNote": "cp -a /home/beijong/.dsh/backups/dsh-bots/org-v2-18-rework-20261007T061629Z-backup-685f9ae9/<path> /home/beijong/.dsh/plugins/dsh-bots/<path>（manifest.json.restore 段逐件给出）"
+}

@@ -77,15 +77,15 @@ test("腿一负例：岗位命令无信封即拒（capability-required），拒�
   const { gated } = mkRig(clock, { posts: { "bot-a": "implementer" } });
   await assignedTask(gated, "TK-00000001", "bot-a");
 
-  const before = gated.events().length;
+  const before = gated.view().lastSeq;
   const denied = await gated.command({
     op: "task.accept", taskId: "TK-00000001", actor: POST("bot-a"),
     idempotencyKey: "accept-no-cap", expectedStatus: "assigned", expectedSeq: 4, payload: {}
   });
   assert.equal(denied.ok, false);
   assert.equal(denied.code, "capability-required", "错误回执必须带鉴权码");
-  const rejections = gated.events().filter((event) => event.type === "command-rejected");
-  assert.equal(rejections.length, gated.events().length - before, "拒绝必须落台账事件（净增 1 条）");
+  const rejections = gated.since(0).filter((event) => event.type === "command-rejected");
+  assert.equal(rejections.length, gated.view().lastSeq - before, "拒绝必须落台账事件（净增 1 条）");
   const last = rejections[rejections.length - 1];
   assert.equal(last.op, "task.accept");
   assert.equal(last.code, "capability-required");
@@ -312,27 +312,27 @@ test("拒绝幂等：同幂等键重放拒绝命令返回首次结论（replayed
     idempotencyKey: "rej-1", expectedStatus: "assigned", expectedSeq: 4, payload: {}
   });
   assert.equal(first.code, "capability-required");
-  const count = gated.events().length;
+  const count = gated.view().lastSeq;
   const replay = await gated.command({
     op: "task.accept", taskId: "TK-00000011", actor: POST("bot-a"),
     idempotencyKey: "rej-1", expectedStatus: "assigned", expectedSeq: 4, payload: {}
   });
   assert.equal(replay.code, "capability-required");
   assert.equal(replay.replayed, true);
-  assert.equal(gated.events().length, count, "重放不落新事件");
+  assert.equal(gated.view().lastSeq, count, "重放不落新事件");
 });
 
 test("结构性拒绝仍不落账（unknown-op 等，守 05 号票语义；06 号票处置：四类无可信锚点，维持不落账）", async () => {
   const clock = clockAt();
   const { gated } = mkRig(clock, { posts: { "bot-a": "implementer" } });
   await assignedTask(gated, "TK-00000012", "bot-a");
-  const before = gated.events().length;
+  const before = gated.view().lastSeq;
   const unknown = await gated.command({
     op: "task.nonexistent", taskId: "TK-00000012", actor: POST("bot-a"),
     idempotencyKey: "x1", payload: {}
   });
   assert.equal(unknown.code, "unknown-op");
-  assert.equal(gated.events().length, before, "结构性拒绝不落账");
+  assert.equal(gated.view().lastSeq, before, "结构性拒绝不落账");
 });
 
 test("吊销投影腿（装具级）：host 取消任务后，原任务能力经鉴权面验签即 capability-revoked（V-A3.2 投影吊销）", async () => {

@@ -1,0 +1,48 @@
+{
+ "packageType": "deploy-sync-execution",
+ "runId": "org-v2-18-ui-pod-20261007T072107Z",
+ "batch": "18-ui-pod",
+ "planPath": "artifacts/cutover-preparation/org-v2-18-ui-pod-20261007T072107Z-plan-c6c50d35.json",
+ "planSha8": "c6c50d35",
+ "commit": "3a695029223cb6f039d8f69f30feecb7f69abcd3",
+ "dshHome": "/home/beijong/.dsh",
+ "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+ "backupDir": "/home/beijong/.dsh/backups/dsh-bots/org-v2-18-ui-pod-20261007T072107Z-backup-c6c50d35",
+ "backupManifestSha8": "2486887c",
+ "capturedAt": "2026-10-07T07:21:35.588Z",
+ "authorization": "用户反馈「我这里没看到修改，两处都没有」",
+ "restart": "不做（client 面无重启即生效）",
+ "written": [
+  "lib/client.js",
+  "scripts/host-contract-probe.mjs",
+  "tests/host-contract-gate.test.mjs"
+ ],
+ "verify": [
+  {
+   "path": "lib/client.js",
+   "sourceSha256": "f79ac9f0d8b6c49d6a241fe34a1e1df6085260ca47296d8b4951889389905a9f",
+   "deployedSha256After": "f79ac9f0d8b6c49d6a241fe34a1e1df6085260ca47296d8b4951889389905a9f",
+   "ok": true
+  },
+  {
+   "path": "scripts/host-contract-probe.mjs",
+   "sourceSha256": "6124d18c9ec7fd80c3dd42d1fe4dc50a71eda89cace2ed95634053fd0c813920",
+   "deployedSha256After": "6124d18c9ec7fd80c3dd42d1fe4dc50a71eda89cace2ed95634053fd0c813920",
+   "ok": true
+  },
+  {
+   "path": "tests/host-contract-gate.test.mjs",
+   "sourceSha256": "005e6130e417fe7dccced000b46b079e8ec779441dca1483cbd0e095056671ef",
+   "deployedSha256After": "005e6130e417fe7dccced000b46b079e8ec779441dca1483cbd0e095056671ef",
+   "ok": true
+  }
+ ],
+ "inventoryAfter": {
+  "ok": true,
+  "total": 199,
+  "same": 199,
+  "notSame": [],
+  "deploymentOnly": 0
+ },
+ "restoreNote": "cp -a /home/beijong/.dsh/backups/dsh-bots/org-v2-18-ui-pod-20261007T072107Z-backup-c6c50d35/<path> /home/beijong/.dsh/plugins/dsh-bots/<path>（manifest.json.restore 段逐件给出）"
+}

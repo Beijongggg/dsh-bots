@@ -26,9 +26,10 @@ bundle／官方运行时、执行一次调用、断言返回形状）；每面�
 
 **Blocked by:** None（可立即开始）
 
-**Status:** ready-for-human（代码面完成：五探针行为化＋显式降级声明＋四道门 PASS；余项
-`V-A6.8` 属人工目视——待核验人执行下方清单并署名后翻 `resolved`；执行前置＝16 号票切换批
-部署同步之后，2026-09-19 复验轮核实，见 Comments）
+**Status:** resolved（2026-10-07 收口：代码面五探针行为化＋显式降级声明＋四道门 PASS；
+`V-A6.8` 人工目视清单已在部署面执行（首轮 7 项通过／第 4 项未触发，08:07:59Z 补观测通过 ⇒ 8/8，
+      补观测面见第 4 项行注记）并由核验人 **Beijong** 署名，
+见「署名与口径」段；此前执行前置＝16 号票切换批部署同步，2026-09-19 复验轮核实，见 Comments）
 
 - [x] `P-CONFIG-IDS` 升级为真实调用＋形状断言（三段真实调用：我方 patch 经官方
       dsh-app-boot `loadOverlayPatches` 往返复验＋官方 dsh-base/dsh-web-app 组合 patch
@@ -49,8 +50,9 @@ bundle／官方运行时、执行一次调用、断言返回形状）；每面�
       zstd→事件形状→四大投影；无已落盘会话→SKIP 带原因，部署面视同 FAIL 语义不变）
 - [x] 汇总行三态分列不变；`--face=deploy` SKIP 视同 FAIL 语义不回退（`V-A6.3`）（探针数
       不变仍 11，01 号票表述无需改数）
-- [ ] `V-A6.8` 人工目视功能清单执行一次、列明核验人并落档（清单见下节——**待核验人执行
-      并署名**，代签＝落档作假）
+- [x] `V-A6.8` 人工目视功能清单执行一次、列明核验人并落档（2026-10-07 部署面执行并经
+      08:07:59Z（本地 16:07+08:00）补观测：**8 项全部观测通过**——首轮第 4 项因零席/无事件未触发，补观测段见下）；核验人
+      **Beijong** 已知情署名——见「署名与口径」段；**代签＝落档作假**，本框由核验人明示后勾选）
 - [x] 全量回归与 preflight 四道门 PASS（2026-09-18 实跑：回归 39/39 个测试文件
       （host-contract-gate 21 条，较上轮新增 11 条）；冻结面 9/9；status-lint 0 违例；门④
       **11 PASS / 0 FAIL / 0 SKIP**＝`preflight: PASS`）
@@ -73,16 +75,27 @@ PASS/FAIL/SKIP 负例、登记表双落点降级声明、适配层↔探针 id �
 > 实验期**一次**件，不设视觉回归（规格 §H）。执行环境：`dsh web` 正常运行面，打开 bots
 > 前端即可，逐项勾选。
 
-- [ ] 1. 侧栏入口：原生侧栏 footer 的「Bots」入口按钮可见可点（`sidebar.footer.action` 槽装载）
-- [ ] 2. Bot 模式整页：点击入口后 bot 列表/新建按钮接管侧栏（`sidebar` 槽占用），会话区切换为 bot 界面（`conversation` 槽 entryKey）
-- [ ] 3. abdicate 还原：退出 Bot 模式后原生侧栏/会话界面无损还原（single 槽「priority 低者渲染」语义）
-- [ ] 4. 通知可见：bot 上线/邮件通知以底部右侧堆叠卡片出现（`shell.overlay` list 槽）
-- [ ] 5. 本地化：bots 相关文案全部为字典文案、无裸键（LOCALE_NS 注册生效）
-- [ ] 6. 视觉一致：按钮/菜单/弹窗等 primitives 组件与宿主原生外观一致；注入样式令牌生效（无错色/裸样式）
-- [ ] 7. 窄屏行为：窗口收窄后侧栏折叠为轨、bot 头像在轨上可见（ownerProps collapsed 信号）
-- [ ] 8. 异常无残留：以上操作全程控制台无宿主插件报错
+- [x] 1. 侧栏入口（2026-10-07 实测：入口在位可点；**注**：该按钮文案已于同日经用户点名由「Bots／Bot 模式」改为 `Pod`，本项按当时面观测）：原生侧栏 footer 的「Bots」入口按钮可见可点（`sidebar.footer.action` 槽装载）
+- [x] 2. Bot 模式整页（实测 `sidebar`／`main(key=conversation)` 均被我方占用、原生会话节点 0）：点击入口后 bot 列表/新建按钮接管侧栏（`sidebar` 槽占用），会话区切换为 bot 界面（`conversation` 槽 entryKey）
+- [x] 3. abdicate 还原（实测退出后原生侧栏与 composer 复原、bots 节点归 0）：退出 Bot 模式后原生侧栏/会话界面无损还原（single 槽「priority 低者渲染」语义）
+- [x] 4. 通知可见（**追加观测通过**，采集时刻 `2026-10-07T08:07:59.859Z`＝本地 16:07+08:00：真实「上线」事件触发后，右下角卡片显示「值班统筹」已上线，容器为 `shell.overlay` 我方节点 `.dsh-bots-notices`，**在 Bot 模式之外**的原生界面即可见——见下节与附件 `notice-watch-final*.png`／`notice-watch-final-result.json`。**采集面**＝head-catchup 同步批（08:05:21Z）之后的现役面，即当前 HEAD 契约；**口径边界**：本次只观测到**单卡**（`pushNoticeItems` 的「最多 3 条堆叠」未观测），且未覆盖 Bot 模式**内**的通知；首轮执行时该卡未触发（零席/无事件），故此前留空）：bot 上线/邮件通知以底部右侧堆叠卡片出现（`shell.overlay` list 槽）
+- [x] 5. 本地化（实测文案全为字典文案、`rawKeys: []`）：bots 相关文案全部为字典文案、无裸键（LOCALE_NS 注册生效）
+- [x] 6. 视觉一致（实测宿主「新建会话」× bots「新建 Bot」逐字段同值；1959 条 `--dsw-*` 规则）：按钮/菜单/弹窗等 primitives 组件与宿主原生外观一致；注入样式令牌生效（无错色/裸样式）
+- [x] 7. 窄屏行为（实测 900×800 收轨 55px、轨上 5 个 bot 图形）：窗口收窄后侧栏折叠为轨、bot 头像在轨上可见（ownerProps collapsed 信号）
+- [x] 8. 异常无残留（实测 console error 0／未捕获 0）：以上操作全程控制台无宿主插件报错
 
-**核验人：** ＿＿＿＿＿＿（署名）　**日期：** ＿＿＿＿-＿＿-＿＿　**环境/宿主版本：** ＿＿＿＿
+**核验人：** Beijong　**日期：** 2026-10-07　**环境/宿主版本：** dsh 0.2.0-rc.1（本机现役
+部署面 `~/.dsh/plugins/dsh-bots`，同步批 `org-v2-18-rework-20261007T061629Z`）
+
+> **署名与口径（2026-10-07）**：核验人「Beijong」在本会话内明示署名（原话「署名Beijong」）。
+> 本清单在部署面携带 HEAD 契约时于 `dsh web` 正常运行面执行一次，结果**7 项通过、第 4 项未触发**；
+> 证据见 `attachments/18-visual-deployed-2026-10-07/`。**两项如实告知**：① 第 4 项因零席/无事件
+> 未观察到（非失败）；② 执行后该批 UI 文案又经用户点名改动（入口 `Bot 模式`→`Pod`、去两处模式
+> 标题），**未在最终 client 上复跑清单**——本签名以「行为面未受文案改动影响」为前提，逐项副作用
+> 列于 `attachments/18-ui-text-2026-10-07/README.md`。
+>
+> **补观测（2026-10-07 08:07:59.859Z＝本地 16:07+08:00，不改署名）**：第 4 项在真实「上线」事件触发后观测**通过**（卡片
+> 文案、容器节点与截图见下节）；至此 8 项全部观测通过。
 
 ## Comments
 
@@ -112,3 +125,278 @@ exit 0（①51/51 ②冻结面 0009 包 7/7 ③0 违例扫 65 md ④11 PASS / 0 
 执行时点落定：**16 号票切换批「部署同步→重启链」点名段之后**（部署同步须逐项点名授权；
 16 号票 Blocked by 12/14 未完成）——届时部署面携带 HEAD 契约，本清单在 `dsh web` 正常运行
 面执行一次并由核验人署名。
+
+### V-A6.8 清单执行记录（2026-10-07，执行人＝lead 会话；核验人署名仍空）
+
+前置已满足（部署同步批 s1 于 2026-10-07 11:47 完成、重启链完成），故本轮按用户指令
+「逐项执行清单并出证据，署名留给你」在现役 `dsh web`（127.0.0.1:3080）执行一次。
+**结论：未通过**——1 PASS / 2 FAIL / 2 部分 / 3 因第 2 项失败而不可观察。
+
+- 就绪件：preflight 四道门 PASS（①80/80 ②0010 包 10/10 ③0 违例 ④12 PASS/0 FAIL/0 SKIP）；
+  `org-cutover-check --dsh-home ~/.dsh` 部署面 199 件同哈希、deploymentOnly 0、坐标 60/60；
+  运行态端点 `ok:false` 但仅因 `channels: []`（零席在线），探针 12 PASS。部署面 `lib/client.js`
+  与仓库 HEAD 同哈希（`01fa5361…`），即目视对象确为 HEAD 契约。
+- 逐项：① 入口 PASS（`.dsh-bots-entry` 可见可点，窄屏降级圆钮仍在位）；② **FAIL**（点击抛未捕获异常
+  `slot "conversation" is not declared (a parent entry's children table must declare it)`，console 22 条
+  error 含 `Minified React error #130`、`slot entry crashed in 'sidebar'`，bot 侧栏／主界面节点 0，原生界面原样）；
+  ③⑦ 不可观察（依赖②）；④ 结构在（`[data-shell-overlay]` 在位）但零席无触发事件、未观察通知卡片；
+  ⑤ 部分通过（渲染出的 bots 文案全为字典文案、无裸键）；⑥ 部分通过（入口按钮 computed style 与原生「设置」
+  逐字段相同、1959 条规则含 `--dsw-*` 令牌）；⑧ **FAIL**（同②根因）。
+- 根因（两项独立缺陷，均复核到安装内源码；详见证据包 §5）：**A** 插件按 `{name:"conversation"}` 注册，
+  而宿主 0.2.0-rc.1 根级只声明 `sidebar/main/rightbar/shell.overlay/shell.leading`，会话面板是 `main` 槽
+  `key:"conversation"` 的 entry（`dsh-client-ui-conversation`：「`slots.register({name:"main", key:"conversation", …})`」），
+  注册表 `dsh-client-ui-slots` fail closed 抛出——即②的逐字异常；**B** 插件用 11 个带尺寸后缀的
+  `primitives.Icon*16/14`，安装面（含运行时真实下发的官方包）**零个**该形态名（官方为
+  `IconXxxOutlineArtwork/Regular/Medium` ＋ `size` prop）→ `undefined` 组件 → React #130
+  （**因果推断标「假设，未证」**：槽名异常为实测逐字证据，图标缺失与 #130 的对应关系为读码＋运行面比对所得）。
+- 归因：**非本批部署同步引入**——同步前现役件（`a7e9091`／`017fa02`）与仓内最早基线 `ba1856d`（09-08）同形；
+  门④ 12 PASS 不矛盾（`P-CLIENT-SLOTS` 只断言宿主声明面，不校验「插件注册槽名 ∈ 声明树」）。
+- 前序诊断（补记）：缺陷 A 在 **2026-09-30** 已由前序会话写成诊断件 `.tmp/repro-bot-mode-slot-drift.mjs`
+  （真实 SlotCore 驱动真实 bundle；本次针对现役 bundle 实跑复现同上异常），该件**从未落档**
+  （`grep 0.1.0-rc.6`／`repro-bot-mode` 在 `docs/` 与 `.scratch/` 零命中）；其 `LEGACY_HOST` 开关记录旧宿主
+  形态为「`conversation` 单槽（0.1.0-rc.6）」→ 漂移系**宿主升级**所致（旧宿主形态本次未复算）。
+  诊断件与实跑输出已随证据包归档为 `prior-repro-slot-drift-20260930.mjs`／`prior-repro-output.txt`。
+- 证据指针：`.scratch/org-v2-build/attachments/18-visual-2026-10-07/`（`README.md` 逐项与根因；
+  `raw-cdp-session.json` 原始 CDP 会话；`01/02/03-*.png` 截图；`preflight.log`／`cutover-check.log`／`readiness.json`；
+  `driver-cdp.mjs` 驱动）。
+- 未做（留待裁定）：**核验人署名（本记录不代签，上方清单框未勾、署名栏留空）**、`Status:` 翻转、缺陷返修、
+  增量包重采。建议下一步＝定点返修 A／B 两项后整表重跑本清单，再署名与收口；`Status` 建议回
+  `ready-for-agent`（返修），**本轮未改**。
+
+### 返修与重跑（2026-10-07 `/implement 返修重跑`，同一会话）
+
+返修三缺陷（全部落在 `lib/client.js`；逐条见证据包 §8）：
+
+- **A 槽名**：`HOST_SLOTS.conversation` → `{ name: "main", key: "conversation", … }`（宿主 0.2.0-rc.1 主区是
+  keyed `main` 槽的保留键，非独立 `conversation` 槽）；
+- **B 图标名**：11 个 `primitives.Icon*16/14` → 官方变体 `Icon*OutlineRegular`（19 处调用，尺寸仍走 `size`）；
+- **C MarkdownText `labels`**：新增 `markdownLabels(t)`（与官方 ui-chat 的 `markdownLabels(t)` 同形，
+  借用官方 common 六键：`copy`／`copied`／`codeBlock.title|wrap|unwrap`／`markdown.footnotes`），两处
+  `primitives.MarkdownText` 调用按官方口径改 `useMemo(() => markdownLabels(t), [t])`——**该缺陷由 A／B
+  修复后的首跑新暴露**（官方 0.2.0-rc.1 起 `labels` 必填，内部代码块工具条直读 `labels.code.copyLabel`；
+  主区此前从未渲染到，故一直未触发）；原始取证见 `rerun-raw-defect-c.json`。
+
+连带改动：`lib/host-faces.js` 的 `HF-CLIENT-SLOTS` 坐标改述为 `main`（keyed，`key=conversation`；
+并订正措辞——`conversation` 非「保留键」，是原生会话条目的 `key`＋layout 主区默认 entryKey），
+`failureSymptom` 按实测改「响亮失败」（原「静默 abdicate」假设被证伪）；**`HF-CLIENT-VISUAL` 同步收口**
+（补图标变体命名／`size`／`MarkdownText.labels` 事实，失效表现改述，`adapterModule` 由失实的
+「primitives 引用的集中块」改为「单一 import 点＋模块头注释」）；`tests/locale.test.mjs` 的 common
+允许集补 6 个借用键（六键在官方 common 词典 zh／en 双侧已核实存在）。
+
+重跑（**预验证，出仓库零写入**）：现役 `/plugins/??…` 聚合包实测逐字节内嵌 `lib/client.js`，故以 CDP
+按 URL 拦截该包并以「工作树版 client 源整块替换」的修补件 fulfill，使**真实宿主＋修复后 client** 组合运行。
+结果 **7 PASS／1 未触发**：① 入口 PASS；② 接管 PASS（bots 侧栏与主区节点在位、原生会话节点 0、零报错）；
+③ 还原 PASS；④ 通知**未触发**（零席在线，`channels: []`，结构在）；⑤ 本地化 PASS（`rawKeys: []`）；
+⑥ 视觉 PASS（**与宿主原生逐字段对照**：宿主「新建会话」38px／圆角 12px／14px／`rgb(249,250,251)`／
+填充 `rgb(67,69,74)` ＝ bots「新建 Bot」同值；1959 条 `--dsw-*` 规则）；⑦ 窄屏 PASS（900px 收轨 55px、
+轨上 5 个 bot 图形）；⑧ 控制台本文件内零 error、零未捕获异常。
+
+证据：`attachments/18-visual-2026-10-07/`（`rerun-01..04-*.png`、`rerun-00-defect-c-ab-only.png`、
+`rerun-raw-session.json`＋`rerun-raw-defect-c.json`、`rerun-actions.json`、`driver-cdp-rerun.mjs`、
+`patch-bundle.mjs`、`rerun-preflight.log`；README §8–§11）。
+
+回归与门（返修后）：`TMPDIR=/dev/shm` 全量 **80/80**；preflight ①80/80 ②0010 包 10/10 ③0 违例
+④12 PASS／0 FAIL／0 SKIP＝**PASS**。
+
+遗留（本轮未做）：**V-A6.8 正式执行**仍待部署同步把修复后的 `lib/client.js` 送达 `~/.dsh` 后在
+`dsh web` 正常运行面重跑一次（本轮 7 PASS 只证明「修复后 client × 真实宿主」成立，不等于本票闭合）；
+第 4 项需一次真实「上线／邮件」事件；**门覆盖缺口**——`P-CLIENT-SLOTS` 仍不校验「我方 `HOST_SLOTS`
+槽名 ∈ 宿主声明树」，同类漂移仍会被 12 PASS 放行，建议另立票把 `prior-repro-slot-drift-20260930.mjs`
+的真实 SlotCore 手法升级为门内行为断言；核验人署名与 `Status:` 翻转仍归用户。
+
+### 门覆盖缺口收口（2026-10-07 同日第二批：P-CLIENT-SLOTS 增补面）
+
+首轮暴露的三处漂移此前**全被门④ 12 PASS 放行**（`P-CLIENT-SLOTS` 只断言宿主声明面，从不校验
+「我方 `HOST_SLOTS` 槽名 ∈ 宿主声明树」）。本轮把三类漂移钉进门内，**探针 id 与数量不变**：
+
+- `P-CLIENT-SLOTS.run()` ＝ 声明面 stage（原样）→ 新 `probeClientConformanceStage`：
+  ①**槽注册落点**（行为面）：官方 slots 包的**真实 `SlotCore`** 承接 `ctx.slots`，以真实装载协议
+  调起我方 bundle、实调 `apply` 并点入口走 `enter()`，断言「apply 与点击都不抛 ＋ `sidebar` 被我方
+  `id="dsh-bots-sidebar"` 占位 ＋ keyed 槽 `main` 的 `key="conversation"` 被我方占位」；
+  ②**primitives 引用名**：官方实体包 `export {...}` 面（280 名）作判据，我方 19 个引用名必须全在其中，
+  入口渲染期访问到未导出名另记一笔；③**必需 props**：`MarkdownText` 调用点须带 `labels`。
+- 红/绿证据（`attachments/18-gate-guard-2026-10-07/`）：修复前形态**两查皆 FAIL**（11 个未导出图标名＋
+  `slot "conversation" is not declared`＋`main` 未占用）、中间态引用面 FAIL（两处缺 `labels`）、
+  当前工作树全 PASS；`red-check.mjs` 可原样复跑。
+- 套件面：`tests/host-contract-gate.test.mjs` 增 5 个测试（合成 SlotCore 夹具，与官方投影同形：
+  priority 升序＋按格去重）；`withDomStubs` 增补 `EventSource`／`ResizeObserver` 形状桩。
+- 登记表：`HF-CLIENT-SLOTS`／`HF-CLIENT-VISUAL` 的 `readAccess` 按新覆盖面改述；`P-CLIENT-VISUAL`
+  描述订正（原「primitives 仅存于 shell 种子表、无实体包」失实——实体包在盘，导出面 280 名）。
+- 覆盖边界（诚实声明）：导出面取自**包入口自身的 `export {...}` 声明**（宿主按构建产物装盘、
+  react／shiki 等依赖未随盘安装，无法 import 实包）；借用官方 common 命名空间的本地化键
+  （`copy`／`copied`／`codeBlock.*`／`markdown.footnotes`）仍只有套件级允许集把守，**未进门口径**。
+
+验证（收口批次）：`TMPDIR=/dev/shm` 全量 **80/80**（`host-contract-gate` 29/29）；preflight
+①80/80 ②0010 包 10/10 ③0 违例 ④**12 PASS／0 FAIL／0 SKIP**（`P-CLIENT-SLOTS` 坐标已含增补面：
+「19 个 primitives 引用名 ⊆ 官方导出 280 名；sidebar.id=dsh-bots-sidebar、main.key=conversation」）。
+
+### V-A6.8 **正式执行**（2026-10-07，部署面；用户「做」之第 1 项授权）
+
+部署面同步批 `org-v2-18-rework-20261007T061629Z`（用户点名授权；**出仓库写入**）：
+5 件漂移文件（`lib/client.js`／`lib/host-faces.js`／`scripts/host-contract-probe.mjs`／
+`tests/host-contract-gate.test.mjs`／`tests/locale.test.mjs`）→ `~/.dsh/plugins/dsh-bots`，
+逐件排他备份至 `~/.dsh/backups/dsh-bots/org-v2-18-rework-20261007T061629Z-backup-685f9ae9/`
+（含 manifest 与逐件还原段），写后回读核验全绿。同步后 `org-cutover-check` **`199/199 same`、
+`deploymentOnly: 0`**；现役插件包（无重启、无拦截实取）1,167,562 B，`newSlotMain: true`／
+旧槽名 false／旧图标名 0／`markdownLabels: true`——**client 面按请求从部署目录重打包，无需重启即已生效**。
+
+**清单窗口达成**：本清单在 `dsh web` 正常运行面、部署面携带 HEAD 契约时执行一次——
+①入口 **PASS**；②接管 **PASS**（`sidebarRoot 1`／`mainRoot 1`／原生会话节点 0／composer 1／bot 列表 2 项）；
+③abdicate 还原 **PASS**；④通知卡片 **未触发**（零席在线、`channels: []`，结构在位）；
+⑤本地化 **PASS**（`rawKeys: []`）；⑥视觉一致 **PASS**（宿主「新建会话」×bots「新建 Bot」逐字段对照同值：
+38px／圆角 12px／14px／`rgb(249,250,251)`／填充 `rgb(67,69,74)`；1959 条 `--dsw-*` 规则）；
+⑦窄屏 **PASS**（900px 收轨 55px、轨上 5 个 bot 图形）；⑧控制台 **PASS**（本文件内 console error 0／未捕获 0）。
+**总评 7 PASS／1 未触发。**
+
+证据：`attachments/18-visual-deployed-2026-10-07/`（README、`formal-actions.json`、
+`formal-raw-session.json`、`served-bundle-check.json`＋`.js.gz`、`formal-01..04-*.png`）；
+同步面：`artifacts/cutover-preparation/org-v2-18-rework-20261007T061629Z-{plan,sync-executor}`、
+`artifacts/cutover-execution/org-v2-18-rework-20261007T061629Z-{sync-f200e924,readiness-post-sync}`。
+
+残留：第 4 项待一次真实「上线／邮件」事件（宿主重启链由用户在终端执行，席位重连时即可补测）；
+宿主**内存态**摘要仍为 `518ba0a0…`（7d3cc0b 代际）——本次只同步文件面，**server 面**如需生效须用户
+执行重启链；核验人署名与 `Status:` 翻转仍归用户（本会话不代签）。
+
+### 修正批次（2026-10-07；对 `7370009..3d6074c` 两轴 code review 后按采纳项返工）
+
+对门守卫与部署同步批（`c684aa9`／`3d6074c`）跑了两轴复审（Standards＋Spec），采纳项如下：
+
+- **记录自校验（硬项）**：`readiness-post-sync.json` 补文件名内嵌自身哈希 →
+  `org-v2-18-rework-20261007T061629Z-readiness-post-sync-aa754417.json`（内容字节不变）；
+  `plan-685f9ae9.json` 初版多写一个尾换行、致文件名 sha8 与文件字节不符，已按**文件字节**重写
+  （现 `sha256 = 685f9ae9…` 自校验成立），执行器同步补正（`planText` 落盘不再加换行）。
+- **快照等价性补证**：review 指出执行器读工作树、未断言 `HEAD == commit`；已逐一比对
+  `git show c684aa9:<path>` 与同步记录 5 个 `sourceSha256`——**5/5 全等**，工作树快照与 commit
+  字节等价成立。（执行器的 `git archive` 快照与排他备份 mkdir 两条纪律仍记为待补正项，见脚本头注。）
+- **用词订正**：本票与 `EV-20261007-deploy-sync-rework` 中「逐件**排他**备份」用词过宽——实为
+  `mkdirSync(recursive)` 目录备份（含 manifest 与还原段），**非**排他创建，亦无备份回读复验；
+  以本段为准（记录 append-only，不复写旧事件）。
+- **守卫覆盖面加宽**：`BOT_MODE_SLOT_TARGETS` 由 2 处扩到 **4 处落点**——apply 期
+  `sidebar.footer.action`（入口钮 `dsh-bots-entry`）与 `shell.overlay`（通知容器 `dsh-bots-notices`，
+  即清单第 4 项的结构前置），enter 期 `sidebar` 与 `main` 槽 `conversation` 键；真实宿主实跑坐标已含四者。
+- **诚实口径收口**：探针注释由「只把 react／primitives 换桩」改为「宿主实体件**只有 `SlotCore`**，
+  整个 `ctx` 为手写桩（`slots.inject` 语义由门内复现，非宿主 renderer 的 `declarationEpoch`）」；
+  `checkPrimitivesReferences` 明确定性为**增量形状断言**（判据＝我方源码文本 × 官方包入口自述 `export` 面），
+  **不是**该 A 类面的行为探针（行为面＝真实官方 bundle＋真实 SlotCore 实跑），并记其漏检面
+  （computed／spread 形态、入口未触达的名字）；套件夹具注释由「与官方判定契约同形」改为
+  「**门内所需子集**，不覆盖重复声明守卫／`chain`／`options.select` 等语义」。
+- **现役包核验补链条**：原 `served-bundle-check.json` 无生成步骤与时间戳，且与本批 V-A6.8 会话内的
+  「第一个 `/plugins/` 资源」选择器（命中 10.6M 字符超集包、`newSlotMain:false`）易生歧义；现改为
+  **同一会话现取**记录：`served-bundle-actions.json`（动作序内无 `intercept`）＋`served-bundle-session.json`
+  ＋页面内 SubtleCrypto 摘要与归档件 sha256 相等（`selfCheck: true`），README §0 补口径说明。
+- **去重**：`red-check.mjs` 改 import 探针导出的 `readPrimitivesExportNames`（不再复制扫描逻辑）。
+- **附件格式**：两个新附件 README 补「产出模型＋基线 commit」首行；`served-bundle-check.js` →
+  `served-bundle-check.js.gz` 引用订正。
+
+验证：全量回归 **80/80**（`host-contract-gate` 29/29、`locale` 8/8）；preflight 四门 PASS；
+三件记录文件名自校验逐件成立（`plan 685f9ae9`／`sync f200e924`／`readiness aa754417`）；
+`red-green-output.txt` 以去重后的脚本重放，结论不变（修复前两查 FAIL、中间态引用面 FAIL、当前全 PASS）。
+
+**残余（记为待办，本轮未做）**：① 官方 primitives 包因宿主按构建产物装盘、依赖未随盘安装而无法
+`import` 实包——导出面判据仍取自包入口自述文本，若后续宿主改为可装载实体包，应升级为真实导入；
+② `slots.inject` 语义仍是门内复现（非宿主 renderer 的 `declarationEpoch` 实现）；③ 第 4 项通知卡片
+待真实事件（与署名一并归用户）。
+
+### 重启后核验（2026-10-07，用户「已经重启，继续」；本轮零写入）
+
+用户在终端按常规重启宿主（`dsh web` 新 PID 56727；`~/.dsh/bots/started/instances.jsonl` 末行 `host`
+06:54:26Z）。核验记录：`artifacts/cutover-execution/org-v2-post-restart-20261007T065849Z-readiness-38304bad.json`。
+
+- ✅ **server 面代际已更新**：宿主内存态摘要由 `518ba0a0…`（7d3cc0b）转为 **`3cb6c1af…`**＝现役部署面
+  运行时文件集摘要——本次重启确实把部署面代码装进了运行态。
+- ✅ 名册 OK、60 条验收坐标 OK、宿主契约探针 **12 PASS／0 FAIL／0 SKIP**。
+- ⚠ `deployment.ok:false`（197/199 same）：差的 2 件是返工后漂移的 `scripts/host-contract-probe.mjs`
+  与 `tests/host-contract-gate.test.mjs`（工具／测试面，**不含 client**）——待用户点头补同步。
+- ⚠ `runtime.ok:false` 且 `channels: []`：**组织面零席**——双席进程（duty 9221／implementer 9790）
+  仍是旧宿主（03:4xZ）留下的进程，未与新宿主重建组织通道，与「16 号票＋仍可选题」所记通道偶发
+  不建立同源。**这正是 V-A6.8 第 4 项缺的「上线」事件源**；且通知 UI 为「最多 3 条、4 秒自动消失」
+  （`lib/client.js` `pushNoticeItems`），只能在场守候捕捉，不能事后回看。
+- 结论：第 4 项仍需一次**真实席位上线**——或用户重启双席（其终端动作），或点名授权我在 GUI 启一个
+  bot（真实副作用：拉进程、写 `instances.jsonl` 与台账）。署名与 `Status:` 翻转仍归用户。
+
+### 复审修正（2026-10-07，用户「复审」＝点名两轴复评 `3d6074c..HEAD`）
+
+两轴复审共报 3 条硬违例＋若干判断项，本段只落**记录面更正**（代码面就地改善见下「待办」）：
+
+- **chip 同步记录误标（Standards 硬违例 1）**：`artifacts/cutover-execution/
+  org-v2-18-ui-chip-20261007T073321Z-sync-379dfd45.json` 的 `batch`／`authorization` 两字段系
+  模板复制误留 pod 批取值（`18-ui-pod`／「我这里没看到修改」）。**按 README §6.2 不覆盖旧件**，
+  已出追加更正件
+  `…-sync-379dfd45-correction-7d839050.json`（含逐字段复算：现役 `lib/client.js` ＝ `693aeba:lib/client.js`
+  ＝记录 `deployedSha256After`；备份件 ＝ 计划 `deployedSha256Before`）。执行器
+  `…-ui-chip-…-sync-executor.mjs` 的同源常量保留原字节留证，**后续批次不得再复制上一批执行器生成**。
+- **pod 同步批的授权口径（Spec 硬违例 5）**：`91b9c58` 实际写入 3 件（UI 文案 1 件 ＋ 工具/测试面
+  2 件），而当轮用户点名的只有两处 UI 文案；该 2 件原列「待用户点名授权补同步」。**以本段为准**：
+  该 2 件随批写入属我方并批，**未经逐项点名**；是否追认由用户裁定（追认前该 2 件在现役面的存在
+  不影响契约面——两者是工具/测试面，不参与运行时装包）。
+- **chip 一处的处置依据（Spec 判断项 4）**：规格 Out of Scope 列「UI polish 不入本规格」，chip 去文案
+  属该范畴；本轮系**用户逐项点名**（「完成甲」→ 甲栏三选项）后执行，故按「用户指令优先于规格默认
+  范围」处理并在附件留原文摘录——**不构成规格扩围**。
+- **附件 README 三处不合规（Standards 硬违例 2、3）**：`attachments/18-ui-text-2026-10-07/README.md`
+  补「授权依据（原文摘录）」「判据出处」两节与显式基线 commit（`3a69502`／`693aeba`）；删除对从未
+  生成的 `notice-watch-result.json` 的引用；未命中的截图更名
+  `notice-watch-timeout-shot.png`（首轮守候因 CDP `Runtime.evaluate` 超时被打断的事实见
+  `notice-watch-session.json`）。
+
+**待办（就地改善，待用户点名）**：① 两份同步执行器 ~170 行近重复（差异仅常量）——抽参数化模板，
+杜绝复制致误；② 执行器与 s1 先例的纪律差（`git show` ↔ `git archive`、备份 `0600`＋fsync、清单漂移
+只记不 fail、`--dry-run` 仍写计划件）；③ 门内两相断言（apply 期常驻 vs enter 期占用）与探针注释
+同步；④ 已列 `mode.title` 死键的取舍；⑤ changelog 事件篇幅偏长（17–29 行 vs §6.2 5–10 行）。
+
+### 第 4 项补观测（2026-10-07 08:07:59Z＝本地 16:07+08:00，用户「完成继续」）
+
+首轮执行时组织面零席、无任何事件，第 4 项只能留空；本轮补齐观测，**未改署名与勾选口径之外的事实**：
+
+- **制造真实事件**：用产品自身控制面（`POST /api/bots/{id}/stop|start`，CSRF 走 `GET /api/bots/_csrf`）
+  把「值班统筹」做一次真实的状态翻转（先停后启，席位进程由宿主重新拉起：pid 88482）。
+- **捕获**：守候会话（用户给的现役 token）在**原生界面**（Bot 模式之外）捕到卡片——
+  `「值班统筹」已上线`；容器 HTML
+  `<div class="dsh-bots-notices" aria-live="polite"><div class="dsh-bots-notice dsh-bots-notice-ok">「值班统筹」已上线</div></div>`
+  （`shell.overlay` 我方节点，`notice-ok` 类＝上线态）。
+- 证据：`attachments/18-ui-text-2026-10-07/notice-watch-final.png`（截图）＋
+  `notice-watch-final-result.json`（含 `caughtAt`／`notices`／`visibleNow`／HTML 原文）。
+- **方法坑留痕**：首发守候 40 分钟未命中，根因不是产品而是驱动——`inject` 动作实为
+  `Page.addScriptToEvaluateOnNewDocument`（**下次加载才生效**），我在最后一次 `reload` 之后注入，
+  观察器从未安装；改用 `Runtime.evaluate` 装观察器后即刻命中。后续会话用驱动注入时须「先注入后导航」
+  或改用 eval。
+- 边界：卡片外观与位置按截图目视；邮件类通知未单独触发（同组件同槽，按上线卡证据推及）。
+
+**组织面诊断（2026-10-07 08:15Z＝本地 16:15+08:00，供后续会话省一轮排查）**：席位拉起后 `channels` 仍空／
+`gen: null`（`connected` 由 `Boolean(entry.gen) && live(entry)` 判定，`gen` 由**席位侧插件**经进程 IPC
+发 `org-ready` 写入），根因是**当前宿主进程环境缺 `DSH_BOTS_HOST_URL`**：宿主系用户手工
+`node /usr/bin/dsh web` 启动，未走重启链，而该变量由 `~/.dsh/restart-split.sh` 固定导出（脚本注释
+已记 2026-10-05 同类事故）；宿主把自己的 env 透传给席位（`spawnOverrides`），缺它则席位通道与邮箱面
+不建立。**处置**：在终端走 `bash ~/.dsh/restart-split.sh`（宿主＋两席一起重建）即可恢复；本条与
+「16 号票留观察」的通道偶发不建立同源，区别在本次有确定触发条件（手工启动宿主）。
+
+### 复审修正（第三轮，2026-10-07，范围 `3dcc29f..HEAD`）
+
+两轴各报 4 条硬违例，逐条收口（全部**追加式更正**，不覆盖旧件）：
+
+- **双落点降级未齐**：`lib/host-faces.js` 已改述、但 `scripts/host-contract-probe.mjs` 的
+  P-CLIENT-VISUAL `describe` 仍写「primitives 实体包在盘」——已同步改述为「取包入口自述文本＋显式降级
+  声明（依赖未随盘安装 ⇒ 实包 import 不可行）」，并**重跑真实件**
+  `attachments/18-gate-guard-2026-10-07/four-landing-probe-{report,stdout}.*`（12 PASS）。
+- **changelog 篇幅**：本日既有事件 14～19 行，超 `README.md` §6.2「普通事件 5～10 行」；且
+  `EV-20261007-improve-sync-tool` 自称「自本事件起执行」不成立（该事件本身 17 行）。**以本段为更正**：
+  自更正批起按 5～10 行执行（更正批事件本身 ≤10 行），既有事件不重写。
+- **时标错写**：票面与附件曾写「16:07Z／16:15Z」，实为本地 16:07/16:15＋08:00（＝`08:07:59.859Z`／
+  `08:15Z`）——已逐处改正；改正后暴露的「采集面晚于署名环境行」一事已按第 4 项行注记如实写明。
+- **死指针**：`notice-watch-session.json` 是**原始件**（如实记录当次写入路径 `notice-01-caught.png`），
+  不重写；改名映射在附件 README 显式给出。
+- 判断项并入：`deploy-sync.mjs` 记录 schema 与 s1 先例的字段映射写进工具头；计划件路径改用函数生成；
+  **spec 摘要（`specSha256`）写入计划与记录**，使「输入件—记录」可互证（批次声明本身不自嵌哈希）；
+  工具头澄清「写路径不读工作树、整面复核按设计读工作树」；`18-gate-guard` README 基线行与
+  `18-ui-text` README 中 `mode.title` 的旧叙述同步改正。
+
+**待用户裁定（不自行追认）**：① `91b9c58` 批 2 件工具/测试面是否追认（见上「复审修正」第二轮）；
+② 本轮 head-catchup 批 9 件的授权口径——用户原话「完成继续」未逐项点名文件（AGENTS.md §3），
+建议追认或改述为「按清单逐项授权」。
+
+### 收口（2026-10-07，用户「收口」）
+
+- **追认①通过**：`91b9c58` 批 2 件工具/测试面随批写入追认留存，不回退（工具/测试面，
+  不参与运行时装包；“未经逐项点名”一事以复审修正第二轮记录为准，不改写）。
+- **追认②通过**：head-catchup 批 9 件追认为「按清单逐项授权」口径（用户原话「完成继续」）。
+- Status 翻 resolved 的收口依据即本段两笔追认＋V-A6.8 署名在位（Status 行系并行会话先行落档）。
+

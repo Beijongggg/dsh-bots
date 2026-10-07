@@ -1,0 +1,41 @@
+{
+ "packageType": "record-correction",
+ "corrects": {
+  "path": "artifacts/cutover-execution/org-v2-18-ui-chip-20261007T073321Z-sync-379dfd45.json",
+  "sha256": "379dfd45dba2113c9f87b7a780cc6680820f54837971a6b192fbc9e083e75a9a"
+ },
+ "runId": "org-v2-18-ui-chip-20261007T073321Z",
+ "capturedAt": "2026-10-07T07:45:00Z",
+ "source": "2026-10-07 复审（Standards 轴 硬违例 1）：记录档 batch／authorization 两字段系模板复制误留上一批取值",
+ "wrongFields": [
+  {
+   "field": "batch",
+   "recorded": "18-ui-pod",
+   "actual": "18-ui-chip",
+   "why": "该批实际执行的是列表态主区模式 chip 去文字的同步（1 件 lib/client.js）"
+  },
+  {
+   "field": "authorization",
+   "recorded": "用户反馈「我这里没看到修改，两处都没有」",
+   "actual": "用户「完成甲」（承接上一轮甲栏「chip 也去掉／改 Pod／留着」三选项）",
+   "why": "该引语属同日较早的 pod 批（072107Z）；chip 批点名原话为「完成甲」，见 CHANGELOG 事件 EV-20261007-ui-chip-sync"
+  }
+ ],
+ "unchangedFacts": {
+  "note": "其余字段经本次复算成立，不改",
+  "checks": {
+   "deployedSha256": "e9f2c94eaa830cd9ab5612bc854e17fee25d919f19966a28238ea937fda7dd33",
+   "headCommitSourceSha256": "e9f2c94eaa830cd9ab5612bc854e17fee25d919f19966a28238ea937fda7dd33",
+   "backupSha256": "f79ac9f0d8b6c49d6a241fe34a1e1df6085260ca47296d8b4951889389905a9f",
+   "recordedVerifyAfter": "e9f2c94eaa830cd9ab5612bc854e17fee25d919f19966a28238ea937fda7dd33",
+   "planSourceSha256": "e9f2c94eaa830cd9ab5612bc854e17fee25d919f19966a28238ea937fda7dd33",
+   "planDeployedSha256Before": "f79ac9f0d8b6c49d6a241fe34a1e1df6085260ca47296d8b4951889389905a9f",
+   "deployedEqualsHead": true,
+   "deployedEqualsRecordedAfter": true,
+   "backupEqualsPlanBefore": true,
+   "planMatchesRecord": true
+  }
+ },
+ "executorNote": "artifacts/cutover-preparation/org-v2-18-ui-chip-20261007T073321Z-sync-executor.mjs 的同源常量（:67、:144、:150）仍携带误值——保留原字节以留证；后续批次不得再以「复制上一批执行器」的方式生成（已列入就地改善待办）",
+ "correctionMethod": "追加更正件（不覆盖旧件，README §6.2）"
+}

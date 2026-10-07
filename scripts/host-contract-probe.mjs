@@ -143,6 +143,11 @@ const errMsg = (error) => (error instanceof Error ? error.message : String(error
 export async function withDomStubs(fn) {
   const previousWindow = globalThis.window;
   const previousDocument = globalThis.document;
+  const previousGlobals = new Map();
+  const stubGlobal = (name, value) => {
+    previousGlobals.set(name, Object.getOwnPropertyDescriptor(globalThis, name));
+    Object.defineProperty(globalThis, name, { value, writable: true, configurable: true });
+  };
   const elements = [];
   const makeElement = (tag) => ({
     tag, style: { setProperty: () => {}, getPropertyValue: () => "" }, dataset: {},
@@ -161,11 +166,18 @@ export async function withDomStubs(fn) {
     querySelector: () => null, querySelectorAll: () => [], getElementById: () => null,
     title: ""
   };
+  // 浏览器全局桩：真实 client bundle（官方与我方）在 apply 期会用到；只做形状，不驱动事件。
+  stubGlobal("EventSource", class { constructor() {} addEventListener() {} removeEventListener() {} close() {} });
+  stubGlobal("ResizeObserver", class { constructor() {} observe() {} unobserve() {} disconnect() {} });
   try {
     return await fn({ elements });
   } finally {
     if (previousWindow === undefined) delete globalThis.window; else globalThis.window = previousWindow;
     if (previousDocument === undefined) delete globalThis.document; else globalThis.document = previousDocument;
+    for (const [name, descriptor] of previousGlobals) {
+      if (descriptor === undefined) delete globalThis[name];
+      else Object.defineProperty(globalThis, name, descriptor);
+    }
   }
 }
 
@@ -280,11 +292,231 @@ export async function runClientBundle(roots, pkg) {
 }
 
 /**
+ * Bot 模式必须命中的槽落点（`HF-CLIENT-SLOTS` 的消费面，覆盖「apply 期常驻」与「enter 期占用」两相）：
+ *   - `sidebar.footer.action`（list）：入口钮 `dsh-bots-entry`（Bot 模式外可见）；
+ *   - `shell.overlay`（list）：全局通知容器 `dsh-bots-notices`（V-A6.8 第 4 项的结构前置）；
+ *   - `sidebar`（single）：Bot 模式接管 `dsh-bots-sidebar`；
+ *   - `main`（keyed）：Bot 模式接管 `key="conversation"`。
+ * 宿主把 `conversation` 改回独立单槽（旧宿主 0.1.0-rc.6 形态）也会在此报出——那是**宿主契约变更**，
+ * 须同步改 `lib/client.js` 的 `HOST_SLOTS`，由本门把守，不许静默退回原生界面。
+ */
+export const BOT_MODE_SLOT_TARGETS = Object.freeze([
+  { slot: "sidebar.footer.action", match: { field: "id", value: "dsh-bots-entry" }, phase: "apply" },
+  { slot: "shell.overlay", match: { field: "id", value: "dsh-bots-notices" }, phase: "apply" },
+  { slot: "sidebar", match: { field: "id", value: "dsh-bots-sidebar" }, phase: "enter" },
+  { slot: "main", match: { field: "key", value: "conversation" }, phase: "enter" }
+]);
+
+/** 我方 client 调起用的 react 桩：模块级只用到 hooks 与 createElement（产物为可走查的普通对象）。 */
+export function makeClientReactStub() {
+  const h = (type, props, ...children) => ({ type, props: props ?? {}, children });
+  const react = new Proxy({ createElement: h, memo: (component) => component, Fragment: Symbol("Fragment") }, {
+    get: (target, key) => (key in target ? target[key] : () => null)
+  });
+  return { react, createElement: h };
+}
+
+/** 组件树走查：取第一个带 onClick 的节点（入口按钮；宿主 renderer 不会在门内渲染）。 */
+function findClickable(node) {
+  if (!node || typeof node !== "object") return null;
+  if (node.props && typeof node.props.onClick === "function") return node;
+  for (const child of [].concat(node.children ?? [])) {
+    const hit = findClickable(child);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+/**
+ * 我方 client 的**槽注册落地**复算（V-A6.8 门覆盖缺口收口；2026-10-07 返修批）：
+ * 以真实（或夹具）SlotCore 承接 `ctx.slots`，实调我方 bundle 的 `apply`，
+ * 再点入口走 `enter()`，**按相位**断言四处落点（2026-10-07 复审修正：此前四处一律在点击后
+ * 查，相位盲——apply 期就把宿主 `sidebar`/`main` 占掉的坏形态也能通过）：
+ *   - `phase:"apply"`（`sidebar.footer.action` 入口钮、`shell.overlay` 通知容器）：`apply` 后
+ *     即须在位，且点击后仍在位；
+ *   - `phase:"enter"`（`sidebar` 单槽占位、`main` keyed 槽的 `conversation` 键）：点击**之前
+ *     不得占用**（留待 Bot 模式接管＝abdicate 语义），点击之后须在位。
+ *
+ * 诚实口径：**宿主实体件只有 `SlotCore`**（真实槽注册表，对未声明槽 fail closed）；我方 bundle
+ * 是真实装载协议取到的工厂产物，但**整个 `ctx` 是手写桩**——locale／layout／effect 为空桩，
+ * `slots.inject` 语义也由本函数复现（`specDynamic`＋`subscribeDeclaration` 声明订阅），
+ * **不是**宿主 renderer 的 `declarationEpoch` 语义；react／primitives 亦为桩。
+ * 故本函数证明的是「槽注册落点与调用不抛」，不是渲染结果（渲染语义归 V-A6.8 人工目视清单）。
+ *
+ * @returns `{ ok, violations, observations }`——本函数不抛，三态由调用方定。
+ */
+export async function verifyClientSlotRegistrations({ core, apply, createElement, targets = BOT_MODE_SLOT_TARGETS, entrySlot = "sidebar.footer.action" }) {
+  return withDomStubs(() => runClientSlotChecks({ core, apply, targets, entrySlot }));
+}
+
+/** `verifyClientSlotRegistrations` 的同步主体（DOM 桩已就位）。 */
+function runClientSlotChecks({ core, apply, targets, entrySlot }) {
+  const violations = [];
+  const observations = { entrySlot };
+  const NOOP = () => {};
+  const ctx = {
+    effect: (fn) => { const d = fn(); return typeof d === "function" ? d : NOOP; },
+    locale: {
+      register: () => NOOP, bind: () => (key) => key,
+      setLocale: () => {}, getLocale: () => ({ active: "zh" })
+    },
+    layout: { closeDetails: () => {}, toggleSidebar: () => {} },
+    slots: {
+      register: (opts, component) => core.register(opts, component),
+      inject: (key, callback) => {
+        let active = null;
+        const reconcile = () => {
+          if (active !== null) { active(); active = null; }
+          if (core.specDynamic(key) === undefined) return;
+          active = callback() ?? null;
+        };
+        const unsubscribe = core.subscribeDeclaration(key, reconcile);
+        reconcile();
+        return () => { unsubscribe(); if (active) active(); };
+      },
+      entriesOfSlot: (key) => core.entriesOfSlot(key)
+    }
+  };
+
+  try {
+    apply(ctx);
+  } catch (error) {
+    return { ok: false, violations: [`apply 抛错：${errMsg(error)}`], observations };
+  }
+
+  const entries = core.entriesOfSlot(entrySlot) ?? [];
+  observations.entryCount = entries.length;
+  const entry = entries[0];
+  if (!entry || typeof entry.component !== "function") {
+    violations.push(`入口未注册或组件非法（${entrySlot}）——入口槽坐标漂移`);
+    return { ok: false, violations, observations };
+  }
+  const tree = entry.component({ wide: true, t: (key) => key });
+  const button = findClickable(tree);
+  if (!button) {
+    violations.push("入口组件树内无带 onClick 的按钮（入口渲染形状漂移）");
+    return { ok: false, violations, observations };
+  }
+  const phaseOf = (target) => (target.phase === "apply" ? "apply" : "enter");
+  const seenOf = (target) => (core.entriesOfSlot(target.slot) ?? [])
+    .map((occupant) => occupant?.options?.[target.match.field] ?? "(未命名)");
+  const requirePresent = (target, phase) => {
+    const seen = seenOf(target);
+    observations[`${target.slot}.${target.match.field}`] = seen;
+    if (!seen.includes(target.match.value)) {
+      violations.push(`Bot 模式未占用宿主声明槽「${target.slot}」（${phase} 相；${target.match.field}=${target.match.value}；实测占用：${seen.join("／") || "无"}）`);
+    }
+  };
+
+  for (const target of targets.filter((t) => phaseOf(t) === "apply")) requirePresent(target, "apply");
+  for (const target of targets.filter((t) => phaseOf(t) === "enter")) {
+    const seen = seenOf(target);
+    observations[`${target.slot}.${target.match.field}.beforeEnter`] = seen;
+    if (seen.includes(target.match.value)) {
+      violations.push(`enter 前已占用宿主声明槽「${target.slot}」（${target.match.field}=${target.match.value}）——Bot 模式接管须发生在进入时，不得在 apply 期抢占`);
+    }
+  }
+
+  try {
+    button.props.onClick();
+  } catch (error) {
+    violations.push(`Bot 模式入口点击抛错：${errMsg(error)}`);
+  }
+
+  for (const target of targets) requirePresent(target, phaseOf(target) === "apply" ? "apply 后仍在位" : "enter");
+  return { ok: violations.length === 0, violations, observations };
+}
+
+/** 我方 client bundle 的真实调起（ModuleLoader 捕获 → 工厂 + react/primitives 桩）。 */
+async function loadOurClientForProbe(primitivesExportNames) {
+  const file = fileURLToPath(new URL("../lib/client.js", import.meta.url));
+  return withDomStubs(async () => {
+    const captured = await importViaModuleLoader(file);
+    if (!captured || typeof captured.factory !== "function") {
+      throw new Error("我方 client bundle 未走 __ModuleLoader__.load 装载协议");
+    }
+    const { react } = makeClientReactStub();
+    const unknownPrimitives = [];
+    const primitivesStub = new Proxy({}, {
+      get: (_target, key) => {
+        // 行为面：宿主真实导出名集内不存在的引用名一律记账（图标变体漂移＝React #130 类）。
+        if (primitivesExportNames && !primitivesExportNames.has(String(key))) unknownPrimitives.push(String(key));
+        return (props) => ({ type: `primitives.${String(key)}`, props: props ?? {}, children: [] });
+      }
+    });
+    const moduleExports = captured.factory((id) => {
+      if (id === "react") return react;
+      if (id === "@deepseek-ai/dsh-client-ui-primitives") return primitivesStub;
+      return {};
+    });
+    if (typeof moduleExports?.apply !== "function") throw new Error("我方 client 工厂产物未导出 apply");
+    return { moduleExports, unknownPrimitives };
+  });
+}
+
+/**
+ * 官方 primitives 实体包的导出名集（我方 `primitives.<Name>` 引用名的判据）。
+ *
+ * 宿主把官方前端按**构建产物**装盘：该包 import 的 react／react-dom／shiki／katex／
+ * mdast 等依赖都不在其 node_modules 中（实测 import 实包报 `Cannot find package 'react'`），
+ * 故导出面取自**包入口自己的 `export {...}` 声明**（包自述的公开面，280 名），
+ * 而非扫描宿主产物推契约；渲染期**实际**使用与否由入口实跑兜底
+ * （`loadOurClientForProbe` 的导出名比对＋`verifyClientSlotRegistrations`）。
+ */
+export function readPrimitivesExportNames(roots) {
+  const entry = resolveCandidates(roots, "dsh-client-ui-primitives", "lib", "index.js")[0];
+  if (!entry) return null;
+  const source = readFileSync(entry, "utf8");
+  const names = new Set();
+  for (const match of source.matchAll(/^export\s*\{([\s\S]*?)\}\s*;?\s*$/gm)) {
+    for (const part of match[1].split(",")) {
+      const name = part.trim().split(/\s+as\s+/).pop().trim();
+      if (name) names.add(name);
+    }
+  }
+  return names.size > 0 ? { names, entry } : null;
+}
+
+/**
+ * 我方 client 对宿主 primitives 面的**引用合规**（收口 2026-10-07 返修批的 B／C 两类漂移）：
+ *   - `primitives.<Name>` 引用名必须落在官方包的**真实导出名集**内（图标变体漂移类）；
+ *   - 必需 props 面：`MarkdownText` 自 0.2.0-rc.1 起 `labels` 必填，调用点必须带
+ *     （缺件＝渲染期 TypeError，宿主只记 `slot entry crashed`）。
+ * 定性（勿读作 A 类面的行为探针）：本函数是**增量形状断言**——判据＝我方源码文本 × 官方包
+ * 入口自述的 `export {...}` 面（宿主把前端按构建产物装盘、react/shiki 等依赖未随盘安装，
+ * 无法 `import` 实包，见 `readPrimitivesExportNames` 注释）。该 A 类面的行为探针是
+ * `probeClientSlotsStage`＋`verifyClientSlotRegistrations`（真实官方 bundle 与真实 SlotCore 实跑）；
+ * 本查的渲染期半边只覆盖**入口组件**所触达的名字，computed／spread 形态逃逸。
+ * 只做拒绝式断言：误报即 FAIL，漏检留给 V-A6.8 人工目视兜底。
+ */
+export function checkPrimitivesReferences(sourceText, exportNames, { requiredProps = { MarkdownText: ["labels"] } } = {}) {
+  const violations = [];
+  const names = [...new Set([...sourceText.matchAll(/primitives\.([A-Za-z0-9_]+)/g)].map((m) => m[1]))];
+  for (const name of names) {
+    if (!exportNames.has(name)) violations.push(`引用未导出的 primitives.${name}`);
+  }
+  for (const [component, props] of Object.entries(requiredProps)) {
+    const marker = `primitives.${component}`;
+    for (let at = sourceText.indexOf(marker); at !== -1; at = sourceText.indexOf(marker, at + 1)) {
+      const window = sourceText.slice(at, at + 240);
+      const missing = props.filter((prop) => !new RegExp(`\\b${prop}\\b`).test(window));
+      if (missing.length > 0) {
+        const line = sourceText.slice(0, at).split("\n").length;
+        violations.push(`${marker} 调用点（约第 ${line} 行）缺必需 props：${missing.join("／")}`);
+      }
+    }
+  }
+  return { ok: violations.length === 0, violations, referencedNames: names.length };
+}
+
+/**
  * P-CLIENT-SLOTS 行为化 stage：真实 apply 官方 layout/sidebar bundle，断言其
  * 声明的槽树覆盖组织层依赖的槽坐标（sidebar single／main keyed／shell.overlay
- * list／sidebar.footer.action list）。渲染期子坐标（priority/abdicate 语义与
- * conversation 的 entryKey 归属）无头环境不可调起——显式降级声明见探针
- * describe 与登记表 readAccess，归 V-A6.8 人工目视清单覆盖。
+ * list／sidebar.footer.action list）；**再以真实 SlotCore 复算我方 client 的槽注册
+ * 落点**（`verifyClientSlotRegistrations`：入口点击 → `sidebar` 占位 + `main` 的
+ * `conversation` 键），把「插件槽名 ⊆ 宿主声明树」纳入门内。渲染期 priority/abdicate
+ * 语义与渲染结果无头不可调起——显式降级声明见探针 describe 与登记表 readAccess，
+ * 归 V-A6.8 人工目视清单覆盖。
  */
 export async function probeClientSlotsStage(roots) {
   let layout;
@@ -315,16 +547,88 @@ export async function probeClientSlotsStage(roots) {
   if (footer?.kind !== "list") {
     return { state: "FAIL", reason: `sidebar 子槽声明漂移：「sidebar.footer.action」${footer ? `kind=${footer.kind}` : "未声明"}（入口槽失位＝按钮静默消失）`, coordinate: "dsh-client-ui-sidebar" };
   }
-  return { state: "PASS", coordinate: "layout root 槽树＋sidebar 子槽（真实 apply 断言）" };
+  return {
+    state: "PASS",
+    coordinate: "layout root 槽树＋sidebar 子槽（真实 apply 断言）",
+    declared: { rootChildren: children, sidebarChildren: sidebarReg.opts.children }
+  };
+}
+
+/**
+ * P-CLIENT-SLOTS 增补面：**我方 client ↔ 宿主面**的实跑复算（2026-10-07 返修批，
+ * 收口「我方槽名 ⊆ 宿主声明树」这一门覆盖缺口）。
+ *
+ * 三查：① `primitives.<Name>` 引用名 ⊆ 官方包导出面；② `MarkdownText` 调用点带
+ * `labels`（0.2.0-rc.1 起必填）；③ 真实 SlotCore 下实调我方 bundle：入口点击 →
+ * `sidebar` 占位 + `main` 槽 `key=conversation`。三类漂移（槽名／图标变体名／
+ * labels）在修复前的形态下均判 FAIL（红证据见 18 号票附件 gate-guard 件）。
+ *
+ * 与 `probeClientSlotsStage` 分开：前者只断言宿主**声明面**（合成 fixture 可测），
+ * 本 stage 需要真实宿主包（官方 layout/sidebar/slots/primitives 实体包）。
+ */
+export async function probeClientConformanceStage(roots, declared) {
+  if (!declared?.rootChildren || !declared?.sidebarChildren) {
+    return { state: "FAIL", reason: "缺少宿主声明树（须先跑 probeClientSlotsStage 取声明面）", coordinate: "probeClientSlotsStage.declared" };
+  }
+  const primitives = readPrimitivesExportNames(roots);
+  if (!primitives) {
+    return { state: "FAIL", reason: "官方 primitives 实体包不在本机或未声明导出面（导出名集无法取得）", coordinate: "dsh-client-ui-primitives/lib/index.js" };
+  }
+  const primitivesNames = primitives.names;
+  const clientSourcePath = fileURLToPath(new URL("../lib/client.js", import.meta.url));
+  const references = checkPrimitivesReferences(readFileSync(clientSourcePath, "utf8"), primitivesNames);
+  if (!references.ok) {
+    return {
+      state: "FAIL",
+      reason: `我方 client 引用面不合规：${references.violations.join("；")}（官方导出名 ${primitivesNames.size} 个）`,
+      coordinate: "lib/client.js ↔ 官方 primitives 导出名集"
+    };
+  }
+  let SlotCore;
+  try {
+    const slotsApi = await importHostIndex(roots, "dsh-client-ui-slots");
+    SlotCore = slotsApi?.SlotCore;
+  } catch (error) {
+    return { state: "FAIL", reason: `官方 slots 包无法装载：${errMsg(error)}`, coordinate: "dsh-client-ui-slots" };
+  }
+  if (typeof SlotCore !== "function") {
+    return { state: "FAIL", reason: "官方 slots 包未导出 SlotCore（槽装载协议漂移）", coordinate: "dsh-client-ui-slots/lib/index.js" };
+  }
+  let client;
+  try { client = await loadOurClientForProbe(primitivesNames); }
+  catch (error) {
+    return { state: "FAIL", reason: `我方 client bundle 无法调起：${errMsg(error)}`, coordinate: "lib/client.js" };
+  }
+  const core = new SlotCore();
+  core.register({ name: "root", children: declared.rootChildren }, () => null);
+  core.register({ name: "sidebar", children: declared.sidebarChildren }, () => null);
+  const verdict = await verifyClientSlotRegistrations({ core, apply: client.moduleExports.apply });
+  if (client.unknownPrimitives.length > 0) {
+    return {
+      state: "FAIL",
+      reason: `入口实跑访问了未导出的 primitives：${[...new Set(client.unknownPrimitives)].join("／")}`,
+      coordinate: "lib/client.js ↔ 官方 primitives 导出名集（入口渲染期）"
+    };
+  }
+  if (!verdict.ok) {
+    return {
+      state: "FAIL",
+      reason: `我方 client 槽注册不合规：${verdict.violations.join("；")}（实测落点 ${JSON.stringify(verdict.observations)}）`,
+      coordinate: "lib/client.js HOST_SLOTS ↔ 宿主声明槽树（真实 SlotCore 实跑）"
+    };
+  }
+  return {
+    state: "PASS",
+    coordinate: `我方引用面（${references.referencedNames} 个 primitives 引用名 ⊆ 官方导出 ${primitivesNames.size} 名）＋槽落点（apply 期 footer=${verdict.observations["sidebar.footer.action.id"]?.join("／")}、overlay=${verdict.observations["shell.overlay.id"]?.join("／")}；enter 期 sidebar=${verdict.observations["sidebar.id"]?.join("／")}、main.key=${verdict.observations["main.key"]?.join("／")}）`
+  };
 }
 
 /**
  * P-CLIENT-VISUAL 行为化 stage：真实 apply 官方 theme bundle（--dsw-* 令牌的
  * 官方提供方），断言运行期注入的样式文本确含令牌定义、theme 服务形状完整
- * （getTheme 可调）。primitives 导出形状与 ownerProps（collapsed/wide）无头
- * 不可调起（primitives 仅存于 shell 产物种子表、无实体包）——显式降级声明见
- * 探针 describe 与登记表 readAccess，存在性归 P-PLUGIN-IDENTITY（B 类），
- * 形状归 V-A6.8 人工目视清单。
+ * （getTheme 可调）。primitives 实体包在盘但导出面之外的使用（引用名／必需 props）
+ * 已在 P-CLIENT-SLOTS 增补面把守；槽位 ownerProps（collapsed/wide）渲染形状无头
+ * 不可调起——显式降级声明见探针 describe 与登记表 readAccess，归 V-A6.8 人工目视清单。
  */
 export async function probeClientVisualStage(roots) {
   let theme;
@@ -752,16 +1056,20 @@ export const HOST_CONTRACT_PROBES = [
   {
     id: "P-CLIENT-SLOTS",
     face: "HF-CLIENT-SLOTS",
-    describe: "前端槽位：行为探针——真实 apply 官方 layout/sidebar bundle，断言声明槽树（sidebar single／main keyed／shell.overlay list／sidebar.footer.action list）；渲染期 priority/abdicate 语义与 conversation entryKey 归属无头不可调起——显式降级归 V-A6.8 人工目视清单",
+    describe: "前端槽位：行为探针——真实 apply 官方 layout/sidebar bundle，断言声明槽树（sidebar single／main keyed／shell.overlay list／sidebar.footer.action list），并以真实 SlotCore 实跑我方 client 的槽注册落点（入口点击 → sidebar 占位 + main 槽 conversation 键；注册未声明槽即 FAIL）；渲染期 priority/abdicate 语义与渲染结果无头不可调起——显式降级归 V-A6.8 人工目视清单",
     async run(ctx) {
       if (!ctx.hostInstalled) return noHostSkip();
-      return probeClientSlotsStage(ctx.roots);
+      const declaration = await probeClientSlotsStage(ctx.roots);
+      if (declaration.state !== "PASS") return declaration;
+      const conformance = await probeClientConformanceStage(ctx.roots, declaration.declared);
+      if (conformance.state !== "PASS") return conformance;
+      return { state: "PASS", coordinate: `${declaration.coordinate}；${conformance.coordinate}` };
     }
   },
   {
     id: "P-CLIENT-VISUAL",
     face: "HF-CLIENT-VISUAL",
-    describe: "视觉件：行为探针——真实 apply 官方 theme bundle，断言运行期 --dsw-* 令牌注入与 theme 服务形状；primitives 导出形状与 ownerProps（collapsed/wide）无头不可调起（primitives 仅存于 shell 种子表、无实体包）——显式降级，存在性归 P-PLUGIN-IDENTITY（B 类）、形状归 V-A6.8 人工目视清单",
+    describe: "视觉件：行为探针——真实 apply 官方 theme bundle，断言运行期 --dsw-* 令牌注入与 theme 服务形状；primitives 导出面**取包入口自述的 `export {…}` 文本**作引用名与必需 props 判据（归 P-CLIENT-SLOTS 增补面）——**显式降级声明**：该包按构建产物装盘、依赖未随盘安装（react／react-dom 解析失败）⇒ `import` 实包在本环境不可行，故为「导出名形状断言」而非真实调起，字面漂移可守、语义漂移不可；待宿主提供可装载实体包时升级为真实导入。槽位 ownerProps 渲染形状无头不可调起——显式降级归 V-A6.8 人工目视清单",
     async run(ctx) {
       if (!ctx.hostInstalled) return noHostSkip();
       return probeClientVisualStage(ctx.roots);

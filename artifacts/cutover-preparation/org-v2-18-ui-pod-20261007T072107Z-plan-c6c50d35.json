@@ -1,0 +1,37 @@
+{
+ "packageType": "deploy-sync-executor",
+ "runId": "org-v2-18-ui-pod-20261007T072107Z",
+ "commit": "3a695029223cb6f039d8f69f30feecb7f69abcd3",
+ "reason": "用户点名 UI 文案改动（入口 → Pod／左上角去标题）＋前批返工漂移 2 件对齐 HEAD",
+ "authorization": "用户反馈「我这里没看到修改，两处都没有」——要求两处 UI 文案在现役面生效",
+ "dshHome": "/home/beijong/.dsh",
+ "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+ "restart": "不做（client 面按请求从部署目录重打包，无需重启；server 面重启归用户）",
+ "snapshot": "源字节取自 git show <commit>:<path>；HEAD 已断言等于本批 commit",
+ "entries": [
+  {
+   "path": "lib/client.js",
+   "action": "write",
+   "sourceSha256": "f79ac9f0d8b6c49d6a241fe34a1e1df6085260ca47296d8b4951889389905a9f",
+   "sourceByteLength": 162400,
+   "deployedSha256Before": "1de6187c21386a89d5c118645de0bf748fc4c3e4c38292b10873844831201b0c",
+   "changed": true
+  },
+  {
+   "path": "scripts/host-contract-probe.mjs",
+   "action": "write",
+   "sourceSha256": "6124d18c9ec7fd80c3dd42d1fe4dc50a71eda89cace2ed95634053fd0c813920",
+   "sourceByteLength": 75510,
+   "deployedSha256Before": "4eb75380071b259bb4c4ef4123fa2e4b4a86903331df55f4d88843dcc2830e02",
+   "changed": true
+  },
+  {
+   "path": "tests/host-contract-gate.test.mjs",
+   "action": "write",
+   "sourceSha256": "005e6130e417fe7dccced000b46b079e8ec779441dca1483cbd0e095056671ef",
+   "sourceByteLength": 44038,
+   "deployedSha256Before": "285dc4eefa18dd7dd1ff68acc4669ccd9ad163f5253830258cae813e6e1fdc80",
+   "changed": true
+  }
+ ]
+}

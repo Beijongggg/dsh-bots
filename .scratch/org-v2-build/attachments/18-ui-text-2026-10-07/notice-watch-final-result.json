@@ -1,0 +1,16 @@
+{
+ "status": "caught",
+ "waitedUntil": "2026-10-07T08:07:59.966Z",
+ "hit": {
+  "caughtAt": "2026-10-07T08:07:59.859Z",
+  "notices": [
+   "「值班统筹」已上线"
+  ],
+  "noticeAt": "2026-10-07T08:07:59.326Z",
+  "html": "<div class=\"dsh-bots-notices\" aria-live=\"polite\"><div class=\"dsh-bots-notice dsh-bots-notice-ok\">「值班统筹」已上线</div></div>",
+  "visibleNow": true,
+  "textNow": "「值班统筹」已上线"
+ },
+ "screenshot": ".scratch/org-v2-build/attachments/18-ui-text-2026-10-07/notice-watch-final.png",
+ "note": "通知卡片出现时抓取（截图与 HTML 同源）"
+}

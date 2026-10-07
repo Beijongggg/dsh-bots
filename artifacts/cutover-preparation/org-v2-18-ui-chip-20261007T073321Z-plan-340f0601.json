@@ -1,0 +1,21 @@
+{
+ "packageType": "deploy-sync-executor",
+ "runId": "org-v2-18-ui-chip-20261007T073321Z",
+ "commit": "693aeba34815cdc4f3d12b3b0fdcbee8b52639c7",
+ "reason": "用户点名「完成甲」：列表态主区模式 chip 去文字，入库后同步现役",
+ "authorization": "用户反馈「我这里没看到修改，两处都没有」——要求两处 UI 文案在现役面生效",
+ "dshHome": "/home/beijong/.dsh",
+ "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+ "restart": "不做（client 面按请求从部署目录重打包，无需重启；server 面重启归用户）",
+ "snapshot": "源字节取自 git show <commit>:<path>；HEAD 已断言等于本批 commit",
+ "entries": [
+  {
+   "path": "lib/client.js",
+   "action": "write",
+   "sourceSha256": "e9f2c94eaa830cd9ab5612bc854e17fee25d919f19966a28238ea937fda7dd33",
+   "sourceByteLength": 162364,
+   "deployedSha256Before": "f79ac9f0d8b6c49d6a241fe34a1e1df6085260ca47296d8b4951889389905a9f",
+   "changed": true
+  }
+ ]
+}

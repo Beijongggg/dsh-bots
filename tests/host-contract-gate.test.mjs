@@ -9,9 +9,10 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
   HOST_FACES, HOST_FACE_FIELDS, LAYER_REFUSE_ONLY_FACE, hostFaceById,
@@ -21,7 +22,9 @@ import {
   HOST_CONTRACT_PROBES, findMarkerFile, parseFaceMode, pendingFaces,
   registryGateChecks, summarizeGate, runClientBundle, probeClientSlotsStage,
   probeClientVisualStage, probeCtxServicesNamesStage, probeCtxServicesBaseUrlStage,
-  probeSessionLogStage, probeConfigIdsStage, CONFIG_IDS_CRITICAL
+  probeSessionLogStage, probeConfigIdsStage, CONFIG_IDS_CRITICAL,
+  verifyClientSlotRegistrations, checkPrimitivesReferences, makeClientReactStub, withDomStubs,
+  probeClientConformanceStage
 } from "../scripts/host-contract-probe.mjs";
 import { zstdCompressSync } from "node:zlib";
 import { buildPatchYaml, READ_ONLY_TOOLS } from "../lib/shared.cjs";
@@ -533,7 +536,7 @@ test("18号票 P-CTX-SERVICES baseUrl：官方 boot() 空树产出经适配层�
   try {
     writeHostIndexFixture(root, "dsh-app-boot", `
 import { dirname } from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 export async function boot(binName, absoluteConfigPath) {
 	return { baseUrl: pathToFileURL(dirname(absoluteConfigPath)).href + "/", fiber: { dispose() {} } };
 }
@@ -660,5 +663,227 @@ test("18号票 P-CLIENT-SLOTS 行为化：官方 layout/sidebar bundle 槽树声
     }
   } finally {
     rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// ---------------- 18 号票：我方槽注册与 primitives 引用面的门内增补 ----------------
+// 2026-10-07 返修批：首轮人工目视暴露的三类漂移（槽名／图标变体名／MarkdownText.labels）
+// 此前全被门④ 12 PASS 放行——本节把三查钉进套件（真实宿主上的实跑归 preflight ④）。
+
+/**
+ * 合成 SlotCore 源码：**门内所需子集**（未声明槽 fail closed、keyed/list 必带选择子、
+ * 同格同 priority 判重、children 表建声明）。**不**覆盖官方实现的其他语义（重复声明守卫、
+ * `chain`／`options.select` 等）；真实 SlotCore 的行为证据在 preflight ④ 与附件
+ * `18-gate-guard-2026-10-07/red-green-output.txt`。两个用途——套件内 `import("data:…")`
+ * 取类当夹具；`writeHostPackagesFixture` 写盘当假宿主包。
+ */
+const FIXTURE_SLOT_CORE_SOURCE = `export class SlotCore {
+  constructor() {
+    this.records = new Map();
+    // 宿主 shell 先声明 root（真实 SlotCore 亦然）；夹具把它预置好。
+    this.records.set("root", { spec: { kind: "single" }, entries: [], listeners: new Set() });
+  }
+  rec(name) {
+    if (!this.records.has(name)) this.records.set(name, { spec: undefined, entries: [], listeners: new Set() });
+    return this.records.get(name);
+  }
+  register(options, component) {
+    const rec = this.records.get(options.name);
+    if (!rec?.spec) throw new Error('slot "' + options.name + '" is not declared (a parent entry\\'s children table must declare it)');
+    const kind = rec.spec.kind;
+    const priority = options.priority ?? 0;
+    if (kind === "keyed" && options.key === undefined) throw new Error('keyed slot "' + options.name + '" requires options.key');
+    if (kind === "list" && options.id === undefined) throw new Error('list slot "' + options.name + '" requires options.id');
+    const cell = kind === "keyed" ? options.key : kind === "list" ? options.id : undefined;
+    const clash = rec.entries.some((entry) => (entry.options.priority ?? 0) === priority
+      && (kind === "keyed" ? entry.options.key === cell : kind === "list" ? entry.options.id === cell : true));
+    if (clash) throw new Error('slot "' + options.name + '" already has a registration at priority ' + priority);
+    const entry = { options, component };
+    rec.entries.push(entry);
+    rec.entries.sort((a, b) => (a.options.priority ?? 0) - (b.options.priority ?? 0));
+    for (const [child, spec] of Object.entries(options.children ?? {})) this.rec(child).spec = spec;
+    return () => { rec.entries = rec.entries.filter((candidate) => candidate !== entry); };
+  }
+  entriesOfSlot(name) {
+    const rec = this.records.get(name);
+    if (!rec?.spec) return [];
+    const kind = rec.spec.kind;
+    const seen = new Set();
+    const heads = [];
+    for (const entry of rec.entries) {
+      const cell = kind === "keyed" ? entry.options.key : kind === "list" ? entry.options.id : undefined;
+      if (seen.has(cell)) continue;
+      seen.add(cell);
+      heads.push(entry);
+    }
+    return heads;
+  }
+  specDynamic(name) { return this.records.get(name)?.spec; }
+  subscribeDeclaration(name, fn) { const rec = this.rec(name); rec.listeners.add(fn); return () => rec.listeners.delete(fn); }
+}
+`;
+
+/** 合成宿主声明树（与安装内 layout/sidebar bundle 的声明同形）。 */
+const FIXTURE_DECLARED = {
+  rootChildren: {
+    sidebar: { kind: "single" }, main: { kind: "keyed" }, rightbar: { kind: "single" },
+    "shell.overlay": { kind: "list" }, "shell.leading": { kind: "single" }
+  },
+  sidebarChildren: { "sidebar.footer.action": { kind: "list" } }
+};
+
+/** 起一棵「宿主声明树」的夹具 SlotCore（root ＋ sidebar 子槽）。 */
+async function declaredFixtureCore() {
+  const { SlotCore } = await import("data:text/javascript," + encodeURIComponent(FIXTURE_SLOT_CORE_SOURCE));
+  const core = new SlotCore();
+  core.register({ name: "root", children: FIXTURE_DECLARED.rootChildren }, () => null);
+  core.register({ name: "sidebar", children: FIXTURE_DECLARED.sidebarChildren }, () => null);
+  return core;
+}
+
+/** 合成宿主包目录：官方 primitives 实体包（导出面可调）＋slots 包（SlotCore 夹具）。 */
+function writeHostPackagesFixture(dir, { primitiveNames = ["Button"] } = {}) {
+  const primitives = join(dir, "dsh-client-ui-primitives", "lib");
+  mkdirSync(primitives, { recursive: true });
+  writeFileSync(join(primitives, "index.js"), `export { ${primitiveNames.join(", ")} };\n`);
+  const slots = join(dir, "dsh-client-ui-slots", "lib");
+  mkdirSync(slots, { recursive: true });
+  writeFileSync(join(slots, "index.js"), FIXTURE_SLOT_CORE_SOURCE);
+  return dir;
+}
+
+/** 仓库真实 client 引用的 primitives 名（合成导出面的原料；数量下限防正则失效）。 */
+function repoClientPrimitiveReferences() {
+  const source = readFileSync(new URL("../lib/client.js", import.meta.url), "utf8");
+  const names = [...new Set([...source.matchAll(/primitives\.([A-Za-z0-9_]+)/g)].map((m) => m[1]))];
+  assert.ok(names.length >= 15, `client.js primitives 引用面异常：${names.length} 名`);
+  return names;
+}
+
+test("18号票 P-CLIENT-SLOTS 增补：未声明槽即 FAIL（合成 SlotCore fail closed，红路径）", async () => {
+  const core = await declaredFixtureCore();
+  const h = makeClientReactStub().createElement;
+  const apply = (ctx) => {
+    ctx.slots.register({ name: "sidebar.footer.action", id: "dsh-bots-entry", order: 10 }, () => h("button", {
+      type: "button",
+      onClick: () => { ctx.slots.register({ name: "conversation", id: "dsh-bots-main" }, () => null); }
+    }, null));
+  };
+  const verdict = await verifyClientSlotRegistrations({ core, apply });
+  assert.equal(verdict.ok, false, "旧形态（独立 conversation 槽）必须报错");
+  assert.match(verdict.violations.join("；"), /入口点击抛错.*not declared/);
+  assert.match(verdict.violations.join("；"), /未占用宿主声明槽「main」/);
+});
+
+test("18号票 P-CLIENT-SLOTS 增补：落点须命中 sidebar 与 main 槽 conversation 键（绿路径）", async () => {
+  const core = await declaredFixtureCore();
+  const h = makeClientReactStub().createElement;
+  const apply = (ctx) => {
+    // apply 期常驻两槽（入口钮＋通知容器）＋ enter 期两槽（接管侧栏与主区），与 lib/client.js 同形
+    ctx.slots.register({ name: "sidebar.footer.action", id: "dsh-bots-entry", order: -10 }, () => h("button", {
+      type: "button",
+      onClick: () => {
+        ctx.slots.register({ name: "sidebar", id: "dsh-bots-sidebar", priority: -100000 }, () => null);
+        ctx.slots.register({ name: "main", key: "conversation", id: "dsh-bots-main", priority: -100000 }, () => null);
+      }
+    }, null));
+    ctx.slots.register({ name: "shell.overlay", id: "dsh-bots-notices", order: -10 }, () => null);
+  };
+  const verdict = await verifyClientSlotRegistrations({ core, apply });
+  assert.equal(verdict.ok, true, verdict.violations.join("；"));
+  assert.deepEqual(verdict.observations["sidebar.footer.action.id"], ["dsh-bots-entry"]);
+  assert.deepEqual(verdict.observations["shell.overlay.id"], ["dsh-bots-notices"]);
+  assert.deepEqual(verdict.observations["sidebar.id"], ["dsh-bots-sidebar"]);
+  assert.deepEqual(verdict.observations["main.key"], ["conversation"]);
+  // 相位证据：enter 期两槽在点击前**不得含我方占用**（槽内可能有宿主声明占位条目，
+  // 故按「我方值不在其中」断言，与相位检查同一判据）
+  assert.ok(!verdict.observations["sidebar.id.beforeEnter"].includes("dsh-bots-sidebar"));
+  assert.ok(!verdict.observations["main.key.beforeEnter"].includes("conversation"));
+  // apply 期常驻两槽此时已在位（点击前观测）
+  assert.deepEqual(verdict.observations["sidebar.footer.action.id"], ["dsh-bots-entry"]);
+  assert.deepEqual(verdict.observations["shell.overlay.id"], ["dsh-bots-notices"]);
+});
+
+test("18号票 P-CLIENT-SLOTS 增补：apply 期抢占宿主槽即 FAIL（相位断言，2026-10-07 复审修正）", async () => {
+  const core = await declaredFixtureCore();
+  const h = makeClientReactStub().createElement;
+  // 坏形态：apply 期就把宿主 sidebar／main 占掉（不进入 Bot 模式也接管界面）——此前四处一律在
+  // 点击后查，这种形态也能通过；相位断言后必须报「enter 前已占用」。
+  const apply = (ctx) => {
+    ctx.slots.register({ name: "sidebar.footer.action", id: "dsh-bots-entry", order: -10 }, () => h("button", {
+      type: "button",
+      onClick: () => null
+    }, null));
+    ctx.slots.register({ name: "shell.overlay", id: "dsh-bots-notices", order: -10 }, () => null);
+    ctx.slots.register({ name: "sidebar", id: "dsh-bots-sidebar", priority: -100000 }, () => null);
+    ctx.slots.register({ name: "main", key: "conversation", id: "dsh-bots-main", priority: -100000 }, () => null);
+  };
+  const verdict = await verifyClientSlotRegistrations({ core, apply });
+  assert.equal(verdict.ok, false, "apply 期抢占必须报错");
+  assert.match(verdict.violations.join("；"), /enter 前已占用宿主声明槽「sidebar」/);
+  assert.match(verdict.violations.join("；"), /enter 前已占用宿主声明槽「main」/);
+  assert.deepEqual(verdict.observations["sidebar.id.beforeEnter"], ["dsh-bots-sidebar"]);
+});
+
+test("18号票：仓库真实 client bundle 在合成声明树下命中落点（套件内绿基线）", async () => {
+  const core = await declaredFixtureCore();
+  const client = await withDomStubs(async () => {
+    let captured = null;
+    globalThis.window.__ModuleLoader__ = { load: (opts) => { captured = opts; } };
+    const bundle = fileURLToPath(new URL("../lib/client.js", import.meta.url));
+    await import(pathToFileURL(bundle).href + "?suite=" + Date.now());
+    const { react } = makeClientReactStub();
+    const primitivesStub = new Proxy({}, { get: (_target, key) => () => ({ type: key, props: {}, children: [] }) });
+    return captured.factory((id) => (id === "react" ? react
+      : id === "@deepseek-ai/dsh-client-ui-primitives" ? primitivesStub : {}));
+  });
+  const verdict = await verifyClientSlotRegistrations({ core, apply: client.apply });
+  assert.equal(verdict.ok, true, `仓库 client 落点漂移：${verdict.violations.join("；")}`);
+  assert.deepEqual(verdict.observations["main.key"], ["conversation"]);
+});
+
+test("18号票：primitives 引用面三查（未导出名／必填 props／合法引用）", () => {
+  const exportNames = new Set(["MarkdownText", "Button", "IconPlusOutlineRegular"]);
+  const bad = checkPrimitivesReferences(`
+		h(primitives.IconPlusOutline16, { size: 16 });
+		h(primitives.MarkdownText, { text: "x" });
+	`, exportNames);
+  assert.equal(bad.ok, false);
+  assert.match(bad.violations.join("；"), /未导出的 primitives\.IconPlusOutline16/);
+  assert.match(bad.violations.join("；"), /MarkdownText 调用点.*缺必需 props：labels/);
+
+  const good = checkPrimitivesReferences(`
+		h(primitives.IconPlusOutlineRegular, { size: 16 });
+		const labels = useMemo(() => markdownLabels(t), [t]);
+		h(primitives.MarkdownText, { text: "x", labels });
+	`, exportNames);
+  assert.equal(good.ok, true, good.violations.join("；"));
+  assert.equal(good.referencedNames, 2);
+});
+
+test("18号票 P-CLIENT-SLOTS 增补 stage：声明树/宿主包缺失与导出面不足均 FAIL，覆盖齐全则 PASS", async () => {
+  const missingDeclared = await probeClientConformanceStage(["whatever"]);
+  assert.equal(missingDeclared.state, "FAIL");
+  assert.match(missingDeclared.reason, /声明树/);
+
+  const bare = mkdtempSync(join(tmpdir(), "dsh-gate-conformance-bare-"));
+  const thin = mkdtempSync(join(tmpdir(), "dsh-gate-conformance-thin-"));
+  const full = mkdtempSync(join(tmpdir(), "dsh-gate-conformance-full-"));
+  try {
+    const noPackages = await probeClientConformanceStage([bare], FIXTURE_DECLARED);
+    assert.equal(noPackages.state, "FAIL");
+    assert.match(noPackages.reason, /primitives 实体包/);
+
+    writeHostPackagesFixture(thin, { primitiveNames: ["Button", "MarkdownText"] });
+    const thinSurface = await probeClientConformanceStage([thin], FIXTURE_DECLARED);
+    assert.equal(thinSurface.state, "FAIL");
+    assert.match(thinSurface.reason, /引用未导出的 primitives\./);
+
+    writeHostPackagesFixture(full, { primitiveNames: repoClientPrimitiveReferences() });
+    const ok = await probeClientConformanceStage([full], FIXTURE_DECLARED);
+    assert.equal(ok.state, "PASS", `${ok.reason ?? ""}`);
+    assert.match(ok.coordinate, /main\.key=conversation/);
+  } finally {
+    for (const dir of [bare, thin, full]) rmSync(dir, { recursive: true, force: true });
   }
 });

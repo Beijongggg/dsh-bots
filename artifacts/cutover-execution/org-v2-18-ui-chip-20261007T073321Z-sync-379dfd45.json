@@ -1,0 +1,34 @@
+{
+ "packageType": "deploy-sync-execution",
+ "runId": "org-v2-18-ui-chip-20261007T073321Z",
+ "batch": "18-ui-pod",
+ "planPath": "artifacts/cutover-preparation/org-v2-18-ui-chip-20261007T073321Z-plan-340f0601.json",
+ "planSha8": "340f0601",
+ "commit": "693aeba34815cdc4f3d12b3b0fdcbee8b52639c7",
+ "dshHome": "/home/beijong/.dsh",
+ "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+ "backupDir": "/home/beijong/.dsh/backups/dsh-bots/org-v2-18-ui-chip-20261007T073321Z-backup-340f0601",
+ "backupManifestSha8": "c412b3b3",
+ "capturedAt": "2026-10-07T07:33:27.292Z",
+ "authorization": "用户反馈「我这里没看到修改，两处都没有」",
+ "restart": "不做（client 面无重启即生效）",
+ "written": [
+  "lib/client.js"
+ ],
+ "verify": [
+  {
+   "path": "lib/client.js",
+   "sourceSha256": "e9f2c94eaa830cd9ab5612bc854e17fee25d919f19966a28238ea937fda7dd33",
+   "deployedSha256After": "e9f2c94eaa830cd9ab5612bc854e17fee25d919f19966a28238ea937fda7dd33",
+   "ok": true
+  }
+ ],
+ "inventoryAfter": {
+  "ok": true,
+  "total": 199,
+  "same": 199,
+  "notSame": [],
+  "deploymentOnly": 0
+ },
+ "restoreNote": "cp -a /home/beijong/.dsh/backups/dsh-bots/org-v2-18-ui-chip-20261007T073321Z-backup-340f0601/<path> /home/beijong/.dsh/plugins/dsh-bots/<path>（manifest.json.restore 段逐件给出）"
+}

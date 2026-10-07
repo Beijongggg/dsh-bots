@@ -136,10 +136,20 @@ test("人工判据白名单恰两类且核验人状态自洽（白名单外的�
   );
   assert.equal(HUMAN_CRITERION_CATEGORIES[0].criterionId, "V-A6.8", "目视清单锚定 V-A6.8");
   for (const entry of HUMAN_CRITERION_CATEGORIES) {
-    assert.ok(entry.verifier === null, `${entry.id}: 核验人须由人署名（代签＝落档作假），现态不得预填`);
-    assert.equal(entry.verifierStatus, "pending-signature");
+    // 核验人：**署名归人**（代签＝落档作假）。2026-10-07 起 V-A6.8 目视清单项由核验人
+    // 「Beijong」署名，故该项现态＝有名＋signed（同拍）；知识复用率项仍为未署名占位。
+    if (entry.verifierStatus === "signed") {
+      assert.equal(typeof entry.verifier, "string", `${entry.id}: signed 态必须有名有姓（不许空署名）`);
+      assert.ok(entry.verifier.trim() !== "", `${entry.id}: signed 态署名不得为空白`);
+    } else {
+      assert.equal(entry.verifier, null, `${entry.id}: 未署名态不得预填核验人（代签＝落档作假）`);
+      assert.equal(entry.verifierStatus, "pending-signature");
+    }
     assert.ok(entry.window.trim() !== "" && entry.landing.trim() !== "", `${entry.id}: 须登记执行窗口与落档面`);
   }
+  assert.equal(HUMAN_CRITERION_CATEGORIES[0].verifier, "Beijong", "V-A6.8 目视清单核验人＝Beijong（2026-10-07 署名）");
+  assert.equal(HUMAN_CRITERION_CATEGORIES[0].verifierStatus, "signed");
+  assert.equal(HUMAN_CRITERION_CATEGORIES[1].verifierStatus, "pending-signature", "知识复用率项未到执行窗口，仍待署名");
   // 负例：署名与状态不同拍即违例（防「填个名字就算执行过」）
   const inconsistent = validateAcceptanceCoordinates({
     repoRoot,

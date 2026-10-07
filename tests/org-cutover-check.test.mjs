@@ -15,9 +15,9 @@ import { createCapabilityIssuer } from "../lib/org/capability-issue.js";
 import { createCapabilityDelivery } from "../lib/org/capability-delivery.js";
 import { createLedgerHost } from "../lib/org/ledger-host.js";
 import { createPostChannel } from "../lib/org/post-channel.js";
-import { HOST_FACES } from "../lib/host-faces.js";
 import { internals } from "../lib/index.js";
 import { writeInstanceRow } from "./helpers/capability-fixture.mjs";
+import { deployProbeRows, twoSeatRegistry } from "./helpers/readiness-fixture.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const run = (args) => new Promise((resolve) => execFile(process.execPath,
@@ -51,17 +51,11 @@ test("旧四席或未部署状态返回非零，报告准确列出缺口且运�
 test("切换 CLI 只在部署、双席代际通道与近期 deploy 探针全齐时就绪；缺测试资源或多旧席都阻断", async () => {
   const home = await mkdtemp(join(tmpdir(), "dsh-cutover-ready-"));
   const inventory = deploymentInventory(root);
-  const registry = {
-    coordinator: { id: "coordinator", post: "duty-coordinator", bootstrapAnchor: true, pid: process.pid,
-      modelProvider: "fixture", model: "fixture-model", permission: "read-only" },
-    implementer: { id: "implementer", post: "implementer", pid: process.pid,
-      modelProvider: "fixture", model: "fixture-model", permission: "workspace-write" }
-  };
+  const registry = twoSeatRegistry();
   const issuer = createCapabilityIssuer({ dshHome: home });
   const ledger = createTaskLedger({ dshHome: home });
   issuer.bindLedger(ledger);
-  const rows = HOST_FACES.filter((face) => face.category !== "C" && !face.pending)
-    .map((face) => ({ probeId: face.probeId, face: face.id, state: "PASS" }));
+  const rows = deployProbeRows();
   const host = createLedgerHost({ ledger, issuer, probeHostContract: async () => ({
     face: "deploy", results: rows, counts: { pass: rows.length, fail: 0, skip: 0 }, gatePass: true
   }) });

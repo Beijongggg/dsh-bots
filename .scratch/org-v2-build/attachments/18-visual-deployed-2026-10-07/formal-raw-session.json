@@ -1,0 +1,300 @@
+{
+ "capturedAt": "2026-10-07T06:18:18.889Z",
+ "targetId": "E59089267FF1783621694E8E7D607615",
+ "results": [
+  {
+   "index": 0,
+   "action": "inject",
+   "label": null,
+   "result": {
+    "identifier": "1"
+   },
+   "ms": 1
+  },
+  {
+   "index": 1,
+   "action": "reload",
+   "label": null,
+   "ms": 9456
+  },
+  {
+   "index": 2,
+   "action": "eval",
+   "label": "F0-部署面现役包核验",
+   "result": {
+    "url": "http://127.0.0.1:3080/plugins/??@deepseek-ai/dsh-client-ui-open-in-app/client.js,@deepseek-ai/dsh-api-gateway/",
+    "bytes": 10616794,
+    "newSlotMain": false,
+    "oldSlot": false,
+    "oldIcons": false,
+    "markdownLabels": true
+   },
+   "ms": 74
+  },
+  {
+   "index": 3,
+   "action": "eval",
+   "label": "F1-入口",
+   "result": {
+    "entry": true,
+    "label": "Bot 模式",
+    "errors": 0
+   },
+   "ms": 6
+  },
+  {
+   "index": 4,
+   "action": "eval",
+   "label": "F6-native-baseline",
+   "result": {
+    "newSession": {
+     "h": "38px",
+     "radius": "12px",
+     "font": "-apple-system, BlinkMacSyste",
+     "size": "14px",
+     "color": "rgb(249, 250, 251)",
+     "bg": "rgb(67, 69, 74)"
+    },
+    "settings": {
+     "h": "42px",
+     "radius": "12px",
+     "font": "-apple-system, BlinkMacSyste",
+     "size": "14px",
+     "color": "rgb(249, 250, 251)",
+     "bg": "rgba(0, 0, 0, 0)"
+    },
+    "sessionRow": {
+     "h": "32px",
+     "radius": "12px",
+     "font": "-apple-system, BlinkMacSyste",
+     "size": "14px",
+     "color": "rgb(249, 250, 251)",
+     "bg": "rgba(255, 255, 255, 0.08)"
+    }
+   },
+   "ms": 1
+  },
+  {
+   "index": 5,
+   "action": "shot",
+   "label": null,
+   "result": {
+    "path": "/home/beijong/project/dsh-bots/.scratch/org-v2-build/attachments/18-visual-deployed-2026-10-07/formal-01-entry.png",
+    "bytes": 81914
+   },
+   "ms": 97
+  },
+  {
+   "index": 6,
+   "action": "click",
+   "label": null,
+   "result": {
+    "clicked": true,
+    "tag": "button",
+    "text": "Bot 模式"
+   },
+   "ms": 3035
+  },
+  {
+   "index": 7,
+   "action": "eval",
+   "label": "F2-接管",
+   "result": {
+    "sidebarRoot": 1,
+    "mainRoot": 1,
+    "nativeConversation": 0,
+    "composer": 1,
+    "botsListed": 2,
+    "errors": 0
+   },
+   "ms": 2
+  },
+  {
+   "index": 8,
+   "action": "eval",
+   "label": "F6-bot-styles",
+   "result": {
+    "newBot": {
+     "h": "38px",
+     "radius": "12px",
+     "font": "-apple-system, BlinkMacSyste",
+     "size": "14px",
+     "color": "rgb(249, 250, 251)",
+     "bg": "rgb(67, 69, 74)"
+    },
+    "iconBtn": {
+     "h": "28px",
+     "radius": "50%",
+     "font": "-apple-system, BlinkMacSyste",
+     "size": "13.3333px",
+     "color": "rgb(207, 211, 214)",
+     "bg": "rgba(0, 0, 0, 0)"
+    },
+    "botRow": {
+     "h": "48px",
+     "radius": "8px",
+     "font": "-apple-system, BlinkMacSyste",
+     "size": "14px",
+     "color": "rgb(249, 250, 251)",
+     "bg": "rgb(67, 69, 74)"
+    },
+    "tokensCssRules": 1959
+   },
+   "ms": 22
+  },
+  {
+   "index": 9,
+   "action": "shot",
+   "label": null,
+   "result": {
+    "path": "/home/beijong/project/dsh-bots/.scratch/org-v2-build/attachments/18-visual-deployed-2026-10-07/formal-02-bot-mode.png",
+    "bytes": 229594
+   },
+   "ms": 70
+  },
+  {
+   "index": 10,
+   "action": "eval",
+   "label": "F5-本地化",
+   "result": {
+    "texts": [
+     "Bot 模式",
+     "新建 Bot",
+     "值班统筹",
+     "实施者",
+     "· deepseek-v4.1-flash",
+     "TK-20260929",
+     "我 · 12:56 PM",
+     "12:56 PM",
+     "我 · 01:44 PM",
+     "01:44 PM",
+     "我 · 02:18 PM",
+     "02:28 PM"
+    ],
+    "rawKeys": []
+   },
+   "ms": 9
+  },
+  {
+   "index": 11,
+   "action": "eval",
+   "label": "F4-通知面",
+   "result": {
+    "overlay": true,
+    "noticeNodes": 0
+   },
+   "ms": 2
+  },
+  {
+   "index": 12,
+   "action": "viewport",
+   "label": null,
+   "result": {},
+   "ms": 44
+  },
+  {
+   "index": 13,
+   "action": "sleep",
+   "label": null,
+   "result": {
+    "slept": 1600
+   },
+   "ms": 1602
+  },
+  {
+   "index": 14,
+   "action": "eval",
+   "label": "F7-窄屏",
+   "result": {
+    "viewport": {
+     "w": 900,
+     "h": 800
+    },
+    "collapsed": 1,
+    "sidebarWidth": 55,
+    "railGlyphs": 5,
+    "errors": 0
+   },
+   "ms": 2
+  },
+  {
+   "index": 15,
+   "action": "shot",
+   "label": null,
+   "result": {
+    "path": "/home/beijong/project/dsh-bots/.scratch/org-v2-build/attachments/18-visual-deployed-2026-10-07/formal-03-narrow-900px.png",
+    "bytes": 158457
+   },
+   "ms": 48
+  },
+  {
+   "index": 16,
+   "action": "viewport",
+   "label": null,
+   "result": {},
+   "ms": 26
+  },
+  {
+   "index": 17,
+   "action": "sleep",
+   "label": null,
+   "result": {
+    "slept": 1200
+   },
+   "ms": 1201
+  },
+  {
+   "index": 18,
+   "action": "eval",
+   "label": "F3-退出",
+   "result": {
+    "found": true
+   },
+   "ms": 40
+  },
+  {
+   "index": 19,
+   "action": "sleep",
+   "label": null,
+   "result": {
+    "slept": 1600
+   },
+   "ms": 1602
+  },
+  {
+   "index": 20,
+   "action": "eval",
+   "label": "F3-还原",
+   "result": {
+    "sidebarRoot": 0,
+    "mainRoot": 0,
+    "nativeSidebarRow": 1,
+    "nativeComposer": 16,
+    "entry": true,
+    "errors": 0
+   },
+   "ms": 2
+  },
+  {
+   "index": 21,
+   "action": "shot",
+   "label": null,
+   "result": {
+    "path": "/home/beijong/project/dsh-bots/.scratch/org-v2-build/attachments/18-visual-deployed-2026-10-07/formal-04-after-exit.png",
+    "bytes": 81926
+   },
+   "ms": 93
+  },
+  {
+   "index": 22,
+   "action": "eval",
+   "label": "F8-控制台终值",
+   "result": [],
+   "ms": 2
+  }
+ ],
+ "fulfilled": [],
+ "paused": [],
+ "console": [],
+ "exceptions": []
+}

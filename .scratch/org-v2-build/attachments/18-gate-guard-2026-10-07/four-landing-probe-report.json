@@ -1,0 +1,95 @@
+{
+  "face": "dev",
+  "gatePass": true,
+  "counts": {
+    "pass": 12,
+    "fail": 0,
+    "skip": 0
+  },
+  "diagnostics": {
+    "hostVersion": "0.2.0-rc.1"
+  },
+  "results": [
+    {
+      "probeId": "P-PLUGIN-IDENTITY",
+      "face": "HF-PLUGIN-IDENTITY",
+      "describe": "组织层身份面：cordis CLI 在位＋client inject 清单可解析＋ModuleLoader 装载协议标记",
+      "state": "PASS"
+    },
+    {
+      "probeId": "P-CONFIG-IDS",
+      "face": "HF-CONFIG-IDS",
+      "describe": "配置面 id/key：行为探针——我方 patch 经官方装载器往返＋官方组合 id 对照＋模型 pin 读回与合成 provider 模型解析（旧宿主核命名空间，不绑定用户模型值）＋web patch tools 行 DSH_TOOLS_MODE 环境缝形状（PTC 呈现静默失效面）",
+      "state": "PASS",
+      "coordinate": "官方装载器往返＋官方 id 全集对照＋模型 pin 与 provider 配置真实读回"
+    },
+    {
+      "probeId": "P-CLIENT-SLOTS",
+      "face": "HF-CLIENT-SLOTS",
+      "describe": "前端槽位：行为探针——真实 apply 官方 layout/sidebar bundle，断言声明槽树（sidebar single／main keyed／shell.overlay list／sidebar.footer.action list），并以真实 SlotCore 实跑我方 client 的槽注册落点（入口点击 → sidebar 占位 + main 槽 conversation 键；注册未声明槽即 FAIL）；渲染期 priority/abdicate 语义与渲染结果无头不可调起——显式降级归 V-A6.8 人工目视清单",
+      "state": "PASS",
+      "coordinate": "layout root 槽树＋sidebar 子槽（真实 apply 断言）；我方引用面（19 个 primitives 引用名 ⊆ 官方导出 280 名）＋槽落点（apply 期 footer=dsh-bots-entry、overlay=dsh-bots-notices；enter 期 sidebar=dsh-bots-sidebar、main.key=conversation）"
+    },
+    {
+      "probeId": "P-CLIENT-VISUAL",
+      "face": "HF-CLIENT-VISUAL",
+      "describe": "视觉件：行为探针——真实 apply 官方 theme bundle，断言运行期 --dsw-* 令牌注入与 theme 服务形状；primitives 导出面**取包入口自述的 `export {…}` 文本**作引用名与必需 props 判据（归 P-CLIENT-SLOTS 增补面）——**显式降级声明**：该包按构建产物装盘、依赖未随盘安装（react／react-dom 解析失败）⇒ `import` 实包在本环境不可行，故为「导出名形状断言」而非真实调起，字面漂移可守、语义漂移不可；待宿主提供可装载实体包时升级为真实导入。槽位 ownerProps 渲染形状无头不可调起——显式降级归 V-A6.8 人工目视清单",
+      "state": "PASS",
+      "coordinate": "theme bundle 运行期样式注入＋theme 服务形状（真实 apply 断言）"
+    },
+    {
+      "probeId": "P-CLIENT-LOCALE",
+      "face": "HF-CLIENT-LOCALE",
+      "describe": "本地化面：真实调起官方 LocaleRuntime（行为探针——装载 bundle、apply、断言服务形状）",
+      "state": "PASS"
+    },
+    {
+      "probeId": "P-CTX-SERVICES",
+      "face": "HF-CTX-SERVICES",
+      "describe": "宿主服务容器：行为探针——真实实例化官方 ToolRuntime/SystemPrompt 断言服务名，＋官方 boot() 空树产出 baseUrl 经适配层回读",
+      "state": "PASS",
+      "coordinate": "boot() 空树最小调用＋适配层回读（baseUrl 语义断言）"
+    },
+    {
+      "probeId": "P-HOST-RPC",
+      "face": "HF-HOST-RPC",
+      "describe": "宿主会话调用：公开 SessionController 经原生 adapter 校验 create/selectModel/prompt/inspect 形状，HTTP client-request 信封在位",
+      "state": "PASS",
+      "coordinate": "dsh-api-session-controller/lib/index.js:SessionController"
+    },
+    {
+      "probeId": "P-REVIEW-SESSION",
+      "face": "HF-REVIEW-SESSION",
+      "describe": "原生独立复核会话：AgentRegistry.create 与 scoped tools.restrict/register 公开形状在位",
+      "state": "PASS"
+    },
+    {
+      "probeId": "P-SPAWN-CLI",
+      "face": "HF-SPAWN-CLI",
+      "describe": "spawn CLI：dsh --profile＋web-app --no-open＋DSH_HOME 语义标记在位",
+      "state": "PASS"
+    },
+    {
+      "probeId": "P-V2-LEDGER-FORMAT",
+      "face": "HF-V2-LEDGER-FORMAT",
+      "describe": "v2 台账落盘格式：events.jsonl 行级 append-only＋事件 schema/hash 链可复算＋投影可从盘重建",
+      "state": "PASS",
+      "coordinate": "bots/ledger/events.jsonl"
+    },
+    {
+      "probeId": "P-LEDGER-COMMANDS",
+      "face": "HF-LEDGER-COMMANDS",
+      "describe": "v2 台账命令面：host 路由在位＋命令信封与拒绝形状（fail closed）＋bot 无台账直写通道",
+      "state": "PASS",
+      "coordinate": "POST /api/bots/_ledger/commands"
+    },
+    {
+      "probeId": "P-SESSION-LOG",
+      "face": "HF-SESSION-LOG",
+      "describe": "会话日志面：行为探针——本机最新真实会话日志经 lib/stats.js 读取解析实调（多帧 zstd→事件形状→四大投影）",
+      "state": "PASS",
+      "coordinate": "--home-beijong-~7F13~5B58--/session-488cdbe6-20c5-49c5-99c1-7891656748a6"
+    }
+  ],
+  "pending": []
+}

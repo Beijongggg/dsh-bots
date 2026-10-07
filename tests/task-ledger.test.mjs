@@ -20,7 +20,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -44,7 +44,7 @@ import {
   validateEventRecord
 } from "../lib/org/task-ledger.js";
 import { ESCALATION_CAUSE_IDS, RULING_CLASS_IDS, applyRuling } from "../lib/org/human-inbox.js";
-import { eventHashFor } from "../lib/org/store-base.js";
+import { eventHashFor, readJsonl } from "../lib/org/store-base.js";
 
 function mkHome() {
   return mkdtempSync(join(tmpdir(), "dsh-task-ledger-"));
@@ -157,7 +157,7 @@ test("主干转移：intake→triaged→planned→assigned→accepted→running 
     assert.equal(task.status, "running");
     assert.equal(task.owner, "implementer");
     // 投影＝事件序列：逐条事件按序落盘，seq 连续
-    const events = ledger.events({ taskId: "TK-00000001" });
+    const events = ledger.taskEvents("TK-00000001");
     assert.deepEqual(events.map((e) => e.type), ["intake", "triage", "plan", "assign", "accept", "start"]);
     assert.deepEqual(events.map((e) => e.seq), [1, 2, 3, 4, 5, 6]);
     // append-only：文件行数＝事件数
@@ -183,7 +183,7 @@ test("非法转移被确定性层拒绝且 fail closed：状态不变、拒绝�
     assert.equal(illegal.code, "illegal-transition");
     assert.equal(ledger.task("TK-00000002").status, "intake", "拒绝不得改变状态");
     // 拒绝本身记台账事件（可核），但不算状态事件
-    const rejects = ledger.events({ taskId: "TK-00000002" }).filter((e) => e.type === "command-rejected");
+    const rejects = ledger.taskEvents("TK-00000002").filter((e) => e.type === "command-rejected");
     assert.equal(rejects.length, 1);
     assert.equal(ledger.task("TK-00000002").status, "intake");
   } finally {
@@ -226,12 +226,12 @@ test("命令自带幂等键：重复提交返回首次结论且不再落事件",
     assert.equal(again.ok, true);
     assert.equal(again.replayed, true);
     assert.equal(again.status, "intake");
-    assert.equal(ledger.events({ taskId: "TK-00000010" }).length, 1, "重复提交不得产生第二条事件");
+    assert.equal(ledger.taskEvents("TK-00000010").length, 1, "重复提交不得产生第二条事件");
     // 拒绝也幂等：同一键重放不再落第二条拒绝事件
     const illegal = { op: "task.deliver", taskId: "TK-00000010", actor: HOST, ...cas(ledger, "TK-00000010"), idempotencyKey: "k-idem" };
     assert.equal((await ledger.command(illegal)).ok, false);
     assert.equal((await ledger.command(illegal)).replayed, true);
-    assert.equal(ledger.events({ taskId: "TK-00000010" }).filter((e) => e.type === "command-rejected").length, 1);
+    assert.equal(ledger.taskEvents("TK-00000010").filter((e) => e.type === "command-rejected").length, 1);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
@@ -277,7 +277,7 @@ test("单一写者：宿主持有台账写锁时，第二个写者被拒（bot �
     });
     assert.equal(blocked.ok, false);
     assert.equal(blocked.code, "ledger-locked");
-    assert.equal(host.events({ taskId: "TK-00000014" }).length, 0, "第二写者不得落任何事件");
+    assert.equal(host.taskEvents("TK-00000014").length, 0, "第二写者不得落任何事件");
     host.close();
     // 宿主释放后（重启语义）同一数据根可再次写入
     const restarted = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now, lockSpinMs: 0 });
@@ -314,7 +314,7 @@ test("关闭不可重开、归档不删档；改动用 supersedesTaskId 开新�
     assert.equal(reopen.code, "task-closed");
     assert.equal(ledger.task("TK-00000015").status, "closed");
     assert.ok(ledger.tasks().some((t) => t.taskId === "TK-00000015"), "归档不删档：任务仍在投影内");
-    assert.ok(ledger.events({ taskId: "TK-00000015" }).length > 0, "归档不删档：事件仍在事实源内");
+    assert.ok(ledger.taskEvents("TK-00000015").length > 0, "归档不删档：事件仍在事实源内");
     assert.equal(ledger.openQueue().some((t) => t.taskId === "TK-00000015"), false, "已闭合任务不在未闭合队列");
     // 改动用新任务引用旧 id
     const amend = await openTask(ledger, "TK-00000016", { supersedesTaskId: "TK-00000015" });
@@ -376,7 +376,7 @@ test("派单租约：逾期未接释放回队列并通知派单方；租约到�
     const notes = ledger.notificationsAfter(0).notifications;
     assert.ok(notes.some((n) => n.type === "lease-expired" && n.to === "project-lead"),
       "释放须通知派单方");
-    assert.ok(ledger.events({ taskId: "TK-00000030" }).some((e) => e.type === "exception" && e.kind === "task-stalled"));
+    assert.ok(ledger.taskEvents("TK-00000030").some((e) => e.type === "exception" && e.kind === "task-stalled"));
     // ② 租约到期（已接单、心跳缺失）→ 回收回队列
     await ledger.command({
       op: "task.assign", taskId: "TK-00000030", actor: HOST, ...cas(ledger, "TK-00000030"),
@@ -395,7 +395,7 @@ test("派单租约：逾期未接释放回队列并通知派单方；租约到�
     await ledger.command({ op: "task.accept", taskId: "TK-00000030", actor: POST("researcher"), ...cas(ledger, "TK-00000030"), idempotencyKey: "t30-accept-2", payload: {} });
     const swept3 = await ledger.sweep({ isInstanceAlive: () => false });
     assert.deepEqual(swept3.released.map((r) => r.cause), ["instance-death"]);
-    assert.ok(ledger.events({ taskId: "TK-00000030" }).some((e) => e.type === "exception" && e.kind === "instance-death"));
+    assert.ok(ledger.taskEvents("TK-00000030").some((e) => e.type === "exception" && e.kind === "instance-death"));
     assert.equal(ledger.task("TK-00000030").status, "planned");
   } finally {
     rmSync(home, { recursive: true, force: true });
@@ -498,7 +498,7 @@ test("LLM 岗位只提交判断输入：judgement 不改状态；管理类转移
     });
     assert.equal(judged.ok, true);
     assert.equal(ledger.task("TK-00000040").status, "intake", "判断输入不得直接写状态");
-    assert.equal(ledger.events({ taskId: "TK-00000040" }).filter((e) => e.type === "judgement").length, 1);
+    assert.equal(ledger.taskEvents("TK-00000040").filter((e) => e.type === "judgement").length, 1);
     // 管理类转移（06 号票起）：确定性层只守角色类粗门——post 放行；岗位细分
     // 白名单（谁可以 triage）在鉴权器，负例见 tests/org-ledger-authz.test.mjs
     const posted = await ledger.command({
@@ -541,7 +541,7 @@ test("wait-user 挂起：host／user 上浮裁定放行，post 触发须归属�
     assert.equal(notOwner.ok, false);
     assert.equal(notOwner.code, "not-owner");
     assert.equal(ledger.task("TK-00000080").status, "running", "越权挂起不得改变状态");
-    assert.equal(ledger.events({ taskId: "TK-00000080" }).filter((e) => e.type === "command-rejected").length, 1);
+    assert.equal(ledger.taskEvents("TK-00000080").filter((e) => e.type === "command-rejected").length, 1);
     // 归属者 post（不可逆写入放行请求）与 host（上浮终裁）／user（用户域裁定）三类触发均放行（规格 §F）
     const ownerWait = await ledger.command({
       op: "task.wait-user", taskId: "TK-00000080", actor: POST("implementer"),
@@ -631,7 +631,7 @@ test("异常四类统一走台账：非法类别拒、四类均可登记且不�
     }
     assert.equal(ledger.task("TK-00000041").status, "intake", "异常是告警事件，不改状态");
     assert.deepEqual(
-      ledger.events({ taskId: "TK-00000041" }).filter((e) => e.type === "exception").map((e) => e.kind).sort(),
+      ledger.taskEvents("TK-00000041").filter((e) => e.type === "exception").map((e) => e.kind).sort(),
       [...EXCEPTION_KINDS].sort()
     );
   } finally {
@@ -795,7 +795,7 @@ test("intake：简报在场即必须合法（fail closed，零事件落账）；
     });
     assert.equal(invalid.ok, false);
     assert.equal(invalid.code, "invalid-brief");
-    assert.equal(ledger.events({ taskId: "TK-00000080" }).some((event) => event.type === "intake"), false,
+    assert.equal(ledger.taskEvents("TK-00000080").some((event) => event.type === "intake"), false,
       "非法简报不得开档（拒绝本身落 command-rejected 事件，状态事件零落）");
     const absent = await ledger.command({
       op: "task.intake", taskId: "TK-00000081", actor: HOST, idempotencyKey: "i81",
@@ -876,7 +876,7 @@ test("接单响应携带简报（V-A4.3）：task.accept 成功结论内含冻�
     await ledger.command({ op: "task.plan", taskId: "TK-00000085", actor: HOST, ...cas(ledger, "TK-00000085"), idempotencyKey: "p85", payload: {} });
     await ledger.command({ op: "task.assign", taskId: "TK-00000085", actor: HOST, ...cas(ledger, "TK-00000085"), idempotencyKey: "a85", payload: { assignee: "implementer" } });
     // 从 intake 事件取登记简报（独立真源）比对响应携带件
-    const registered = ledger.events({ taskId: "TK-00000085" }).find((event) => event.type === "intake").brief;
+    const registered = ledger.taskEvents("TK-00000085").find((event) => event.type === "intake").brief;
     const accepted = await ledger.command({
       op: "task.accept", taskId: "TK-00000085", actor: POST("implementer"), ...cas(ledger, "TK-00000085"),
       idempotencyKey: "acc85", payload: {}
@@ -930,7 +930,7 @@ test("带理由拒收：assigned→planned 归队、清除归属、通知派单�
     const task = ledger.task("TK-00000087");
     assert.equal(task.status, "planned", "拒收归队（回 planned 队列）");
     assert.equal(task.owner, null, "归属随拒收清除");
-    const declineEvents = ledger.events({ taskId: "TK-00000087" }).filter((event) => event.type === "decline");
+    const declineEvents = ledger.taskEvents("TK-00000087").filter((event) => event.type === "decline");
     assert.equal(declineEvents.length, 1);
     assert.equal(declineEvents[0].reason, "边界要求改代码，越出研究员岗位边界");
     const notes = ledger.notificationsAfter(0).notifications.filter((n) => n.type === "decline");
@@ -1019,7 +1019,7 @@ test("上浮终裁原因封闭：escalated 的 cause 与 wait-user 的 class 同
     await ledger.command({ op: "task.plan", taskId: "TK-00000082", actor: HOST, ...cas(ledger, "TK-00000082"), idempotencyKey: "p82", payload: {} });
     clock.advance(1500);
     await ledger.sweep({ at: clock.now() });
-    const escalated = ledger.events({ taskId: "TK-00000082" }).find((event) => event.type === "escalated");
+    const escalated = ledger.taskEvents("TK-00000082").find((event) => event.type === "escalated");
     assert.ok(ESCALATION_CAUSE_IDS.includes(escalated.cause), "在位事件原因须在枚举内");
     assert.equal(ledger.task("TK-00000082").waitingClass, "escalation", "上浮＝上浮终裁类（投影随事件）");
     assert.equal(validateEventRecord(escalated, escalated.seq - 1).ok, true, "在位的上浮事件须过 schema");
@@ -1034,7 +1034,7 @@ test("上浮终裁原因封闭：escalated 的 cause 与 wait-user 的 class 同
     await openTask(ledger, "TK-00000083");
     clock.advance(1500);
     await ledger.sweep({ at: clock.now() });
-    const waited = ledger.events({ taskId: "TK-00000083" }).find((event) => event.type === "wait-user");
+    const waited = ledger.taskEvents("TK-00000083").find((event) => event.type === "wait-user");
     assert.equal(waited.class, "escalation", "队列滞留上浮＝上浮终裁类");
     assert.equal(validateEventRecord(waited, waited.seq - 1).ok, true);
     const tampered = validateEventRecord({ ...waited, class: "闲聊", eventHash: eventHashFor({ ...waited, class: "闲聊" }) }, waited.seq - 1);
@@ -1120,7 +1120,7 @@ test("挂起语义：waiting-user 不占租约、无超时自动动作、可原�
       idempotencyKey: "t86-assign-2", payload: { assignee: "implementer" }
     })).ok, true, "挂起不占租约：同实例可接第二张（对比挂起前的机械拒绝）");
     // 无超时自动动作：时间推进远超所有时限，sweep 对该任务零动作、零事件、通知不重复
-    const before = ledger.events({ taskId: "TK-00000085" }).length;
+    const before = ledger.taskEvents("TK-00000085").length;
     const notesFor = (taskId) => ledger.notificationsAfter(0).notifications.filter((n) => n.taskId === taskId).length;
     const notesBefore = notesFor("TK-00000085");
     clock.advance(24 * 60 * 60 * 1000);
@@ -1128,7 +1128,7 @@ test("挂起语义：waiting-user 不占租约、无超时自动动作、可原�
     assert.equal(swept.released.filter((entry) => entry.taskId === "TK-00000085").length, 0);
     assert.equal(swept.escalated.filter((entry) => entry.taskId === "TK-00000085").length, 0);
     assert.equal(swept.stalled.filter((entry) => entry.taskId === "TK-00000085").length, 0);
-    assert.equal(ledger.events({ taskId: "TK-00000085" }).length, before, "挂起无限期：无任何自动动作落事件");
+    assert.equal(ledger.taskEvents("TK-00000085").length, before, "挂起无限期：无任何自动动作落事件");
     assert.equal(notesFor("TK-00000085"), notesBefore, "不重复提醒（提醒属投递面节律，不烧 token）");
     assert.equal(ledger.task("TK-00000085").status, "waiting-user");
     // 可恢复：归位点＝挂起前状态，归属者未变（挂起不夺归属），恢复后回到在手态
@@ -1173,7 +1173,7 @@ test("结算/关闭超时：delivered／settled 滞留＝登记异常并上浮�
     assert.equal(task.status, "waiting-user", "结算超时＝上浮用户终裁（不自动结算）");
     assert.equal(task.waitingClass, "escalation");
     assert.equal(task.escalationCause, "settle-timeout");
-    const exceptions = ledger.events({ taskId: "TK-00000087" }).filter((event) => event.type === "exception");
+    const exceptions = ledger.taskEvents("TK-00000087").filter((event) => event.type === "exception");
     assert.equal(exceptions.length, 1, "异常统一走台账、无静默丢失");
     assert.equal(exceptions[0].kind, "task-stalled");
     assert.equal(exceptions[0].detail.cause, "settle-timeout");
@@ -1238,7 +1238,7 @@ test("终裁＝台账命令特化视图：接单／驳回／授权修复落既�
     });
     assert.equal(replayed.ok, true);
     assert.equal(replayed.results[0].replayed, true);
-    assert.equal(ledger.events({ taskId }).filter((event) => event.type === "resume").length, 1, "重放不重复落事件");
+    assert.equal(ledger.taskEvents(taskId).filter((event) => event.type === "resume").length, 1, "重放不重复落事件");
     // CAS 错值：台账照旧拒绝（终裁不绕过 CAS），且回报失败步
     waiting = await suspend("t89-wait-2");
     const stale = await applyRuling({
@@ -1268,7 +1268,7 @@ test("终裁＝台账命令特化视图：接单／驳回／授权修复落既�
     });
     assert.equal(rejected.ok, true);
     assert.equal(ledger.task(taskId).status, "cancelled");
-    for (const event of ledger.events({ taskId }).filter((entry) => ["resume", "cancel", "amend"].includes(entry.type))) {
+    for (const event of ledger.taskEvents(taskId).filter((entry) => ["resume", "cancel", "amend"].includes(entry.type))) {
       assert.equal(event.actor.kind, "user", "终裁动作的 actor 须为 user（事件审计）");
     }
   } finally {
@@ -1461,7 +1461,7 @@ test("必审拦截（V-A2.7）：简报点未闭合时交付转移被拒；闭�
   assert.equal(blocked.code, "review-gaps-open");
   assert.ok(blocked.reason.includes("before-external-visibility"));
   // 拒绝落账（command-rejected 在案）
-  assert.ok(ledger.events({ taskId: "TK-00000093" }).some((e) => e.type === "command-rejected" && e.op === "task.deliver"));
+  assert.ok(ledger.taskEvents("TK-00000093").some((e) => e.type === "command-rejected" && e.op === "task.deliver"));
   // 召集复核并闭合 → 放行（报告须持帽入账：27 号票台账腿权威门）
   assert.equal((await ledger.command({
     op: "review.request", taskId: "TK-00000093", actor: HOST, ...cas(ledger, "TK-00000093"),
@@ -1592,7 +1592,7 @@ test("复核事件入事实源且可重建：事件 schema 校验通过、投影
     taskId: "TK-00000097", reviewer: "bot-reviewer", report: CLOSED_REPORT,
     capability: hat(), idempotencyKey: "rr-closed"
   })).ok, true);
-  const events = ledger.events({ taskId: "TK-00000097" });
+  const events = ledger.taskEvents("TK-00000097");
   const requested = events.find((e) => e.type === "review-requested");
   const reported = events.find((e) => e.type === "review-reported");
   assert.equal(requested.reviewer, "bot-reviewer");
@@ -1672,7 +1672,7 @@ test("复核报告入账验帽（27 号票台账腿权威门）：无帽／他�
     }
 
     // 一路被拒：事实源里一条复核报告也不该有
-    assert.equal(ledger.events({ taskId: "TK-00000110" }).filter((e) => e.type === "review-reported").length, 0);
+    assert.equal(ledger.taskEvents("TK-00000110").filter((e) => e.type === "review-reported").length, 0);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
@@ -1768,7 +1768,7 @@ test("初审裁决执行面：命中必审清单不可处置；通过＝只留�
     assert.equal(forbidden.code, "pre-screen-dispose-forbidden");
     assert.equal(ledger.task("TK-00000101").status, "produced", "拒绝不得改状态");
     assert.equal(
-      ledger.events({ taskId: "TK-00000101" }).filter((event) => event.type === "judgement").length, 0,
+      ledger.taskEvents("TK-00000101").filter((event) => event.type === "judgement").length, 0,
       "被拒的处置不得留判断痕（未处置即未发生）"
     );
     // 未命中必审清单：通过＝只落判断事实（非状态），不改状态、不上浮
@@ -1779,7 +1779,7 @@ test("初审裁决执行面：命中必审清单不可处置；通过＝只留�
     assert.equal(approved.ok, true);
     assert.equal(approved.escalated, false);
     assert.equal(ledger.task("TK-00000102").status, "produced");
-    const fact = ledger.events({ taskId: "TK-00000102" }).find((event) => event.type === "judgement");
+    const fact = ledger.taskEvents("TK-00000102").find((event) => event.type === "judgement");
     assert.equal(fact.intent, "pre-screen");
     assert.equal(fact.input.disposition, "approve");
     assert.equal(fact.input.reviewer, "bot-prescreen");
@@ -1789,7 +1789,7 @@ test("初审裁决执行面：命中必审清单不可处置；通过＝只留�
     });
     assert.equal(replayed.ok, true);
     assert.equal(replayed.replayed, true);
-    assert.equal(ledger.events({ taskId: "TK-00000102" }).filter((event) => event.type === "judgement").length, 1);
+    assert.equal(ledger.taskEvents("TK-00000102").filter((event) => event.type === "judgement").length, 1);
     // 初审拒绝（回笼）＝强制上浮用户终裁：escalated(pre-screen-rejected) → waiting-user
     const bounced = await ledger.recordPreScreen({
       taskId: "TK-00000102", reviewer: "bot-prescreen", disposition: "return", note: "与判据不符，退回承接方", idempotencyKey: "ps-102-return"
@@ -1841,7 +1841,7 @@ test("轮询处置的异常登记失败响亮可核：sweep 回报 exceptionFail
     const swept = await ledger.sweep({ at: clock.now() });
     assert.deepEqual(swept.exceptionFailures, [], "正常路径：无异常登记失败");
     assert.equal(swept.stalled.length, 1, "结算超时仍按滞留处置上浮");
-    assert.equal(ledger.events({ taskId: "TK-00000103" }).filter((event) => event.type === "exception").length, 1);
+    assert.equal(ledger.taskEvents("TK-00000103").filter((event) => event.type === "exception").length, 1);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
@@ -1970,7 +1970,7 @@ test("19⑤ recordNeedsUser：判据缺口分解不出上浮 waiting-user（caus
     assert.equal(task.escalationCause, "needs-user");
     assert.equal(task.waitingClass, "escalation");
     // judgement 事实留痕（intent=needs-user，携带锚与归因）
-    const judgement = ledger.events({ taskId: "TK-00000102" }).find((event) => event.type === "judgement");
+    const judgement = ledger.taskEvents("TK-00000102").find((event) => event.type === "judgement");
     assert.equal(judgement.intent, "needs-user");
     assert.equal(judgement.input.anchor.code, "criteria-gap");
     assert.ok(judgement.input.reason.includes("分解"));
@@ -2002,11 +2002,11 @@ test("19⑤ recordNeedsUser 机械锚与幂等：无在案 criteria-gap 拒绝�
     const first = await ledger.recordNeedsUser({ taskId: "TK-00000103", reason: "分解不出来", idempotencyKey: "nu103b" });
     assert.equal(first.escalated, true);
     // 已挂起：换新幂等键再调不重复上浮（零新事件）
-    const eventsBefore = ledger.events({ taskId: "TK-00000103" }).length;
+    const eventsBefore = ledger.taskEvents("TK-00000103").length;
     const second = await ledger.recordNeedsUser({ taskId: "TK-00000103", reason: "分解不出来", idempotencyKey: "nu103c" });
     assert.equal(second.ok, true);
     assert.equal(second.escalated, false, "已挂起不重复上浮");
-    assert.equal(ledger.events({ taskId: "TK-00000103" }).length, eventsBefore, "重复上浮零事件");
+    assert.equal(ledger.taskEvents("TK-00000103").length, eventsBefore, "重复上浮零事件");
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
@@ -2110,7 +2110,7 @@ test("关闭前置（§B；V-A2.7／V-A2.9，14 号票）：产出未按「谁�
     assert.equal(blocked.code, "artifact-not-registered");
     assert.equal(ledger.task("TK-00000095").status, "settled", "拒绝不得改状态");
     assert.ok(
-      ledger.events({ taskId: "TK-00000095" }).some((e) => e.type === "command-rejected" && e.op === "task.close"),
+      ledger.taskEvents("TK-00000095").some((e) => e.type === "command-rejected" && e.op === "task.close"),
       "拒绝落账（command-rejected 在案）"
     );
 
@@ -2206,17 +2206,27 @@ test("关闭前置（§B；V-A2.7，14 号票）：产出登记面不可读＝fa
     // 注入面（负例测试与别的接线走这条）：锚定与登记方两件都在谓词内判定——
     // 「他登记的」与「他任务的」都不算「谁产出谁登记」
     const task = throwing.task("TK-00000098");
-    const events = throwing.events({ taskId: "TK-00000098" });
+    // 42 号票起进门＝任务快照：事件域走任务域读法（本任务片段）
+    const events = throwing.taskEvents("TK-00000098");
     assert.equal(
-      (await closePrecondition({ task, events, artifacts: [{ task: "TK-00000098", botId: "someone-else" }], criterionRunner: ACCEPTANCE_RUNNER })).code,
+      (await closePrecondition({
+        snapshot: { task, events, artifacts: [{ task: "TK-00000098", botId: "someone-else" }] },
+        criterionRunner: ACCEPTANCE_RUNNER
+      })).code,
       "artifact-not-registered", "登记方≠产出方即拒"
     );
     assert.equal(
-      (await closePrecondition({ task, events, artifacts: [{ task: "TK-00000099", botId: "implementer" }], criterionRunner: ACCEPTANCE_RUNNER })).code,
+      (await closePrecondition({
+        snapshot: { task, events, artifacts: [{ task: "TK-00000099", botId: "implementer" }] },
+        criterionRunner: ACCEPTANCE_RUNNER
+      })).code,
       "artifact-not-registered", "未锚本任务即拒"
     );
     assert.equal(
-      (await closePrecondition({ task, events, artifacts: [{ task: "TK-00000098", botId: "implementer" }], criterionRunner: ACCEPTANCE_RUNNER })).ok,
+      (await closePrecondition({
+        snapshot: { task, events, artifacts: [{ task: "TK-00000098", botId: "implementer" }] },
+        criterionRunner: ACCEPTANCE_RUNNER
+      })).ok,
       true, "登记方＝产出方且锚本任务 → 过"
     );
     // duty 例程任务：承载面＝台账本身，登记门不适用（两件判定都跳过）
@@ -2226,7 +2236,9 @@ test("关闭前置（§B；V-A2.7，14 号票）：产出登记面不可读＝fa
     void duty;
     assert.equal(
       (await closePrecondition({
-        task: throwing.task("TK-00000100"), events: throwing.events({ taskId: "TK-00000100" }), artifacts: [],
+        snapshot: {
+          task: throwing.task("TK-00000100"), events: throwing.taskEvents("TK-00000100"), artifacts: []
+        },
         criterionRunner: ACCEPTANCE_RUNNER
       })).ok, true, "duty 任务不受产出登记门约束"
     );
@@ -2259,16 +2271,21 @@ test("产出方事实（16 号票 rv1 blocker）：租约回收清归属不清�
     });
     assert.equal(
       (await closePrecondition({
-        task: reclaimed, events: ledger.events({ taskId: "TK-00000101" }),
-        artifacts: ledger.artifactsFor("TK-00000101"), criterionRunner: ACCEPTANCE_RUNNER
+        snapshot: {
+          task: reclaimed, events: ledger.taskEvents("TK-00000101"), artifacts: ledger.artifactsFor("TK-00000101")
+        },
+        criterionRunner: ACCEPTANCE_RUNNER
       })).ok, true, "归属让渡后按产出方判定，不得误拒 artifact-not-registered"
     );
 
     // 两件判定保持：他人登记（即便归属已空）不算「谁产出谁登记」
     assert.equal(
       (await closePrecondition({
-        task: reclaimed, events: ledger.events({ taskId: "TK-00000101" }),
-        artifacts: [{ task: "TK-00000101", botId: "someone-else" }], criterionRunner: ACCEPTANCE_RUNNER
+        snapshot: {
+          task: reclaimed, events: ledger.taskEvents("TK-00000101"),
+          artifacts: [{ task: "TK-00000101", botId: "someone-else" }]
+        },
+        criterionRunner: ACCEPTANCE_RUNNER
       })).code, "artifact-not-registered", "登记方≠产出方即拒"
     );
 
@@ -2287,6 +2304,231 @@ test("产出方事实（16 号票 rv1 blocker）：租约回收清归属不清�
       })).ok, true, op);
     }
     assert.equal(ledger.task("TK-00000101").producer, "implementer-b", "产出方跟随最新 report");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+// ---------------- 常驻投影（41 号票：读不再全文重折） ----------------
+
+/**
+ * 读依赖注入（票面验收判据①「经注入的读依赖计数，不窥内部」）：
+ *   - `readEventsFile(file)`＝**整文件读**这一动作本身（缺省 `readJsonl`）：计数即全文读次数；
+ *   - `statEventsFile(file)`＝**失效检查**这一动作（缺省 `statSync`；契约同 `fs.statSync`）：
+ *     用于钉「每次读先查文件」与「取得写锁的跨越点再查一次」。
+ * 两者都不窥台账内部：计数发生在注入件里，台账只把它们当读依赖用。
+ */
+function newCounts() {
+  return { reads: 0, stats: 0, statsWhileLocked: 0 };
+}
+
+/** 注入的读依赖；`ledgerRef()` 在场时另记「检查发生在持有写锁之后」的次数。 */
+function injectedIo(counts, ledgerRef = () => null, onStat = null) {
+  return {
+    readEventsFile(file) {
+      counts.reads += 1;
+      return readJsonl(file);
+    },
+    statEventsFile(file) {
+      counts.stats += 1;
+      const info = statSync(file);
+      if (ledgerRef()?.holdsWriterLock() === true) counts.statsWhileLocked += 1;
+      return onStat === null ? info : onStat(info);
+    }
+  };
+}
+
+test("常驻投影（41 号票）：单条命令全文读 ≤1 次；稳态同进程读为 0 次", async () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const counts = newCounts();
+    const ledger = createTaskLedger({
+      ...CRITERION_INJECTION, dshHome: home, now: clock.now, ...injectedIo(counts)
+    });
+
+    // 冷启第一条命令：至多一次整折（读全文）——门链与写路径共用同一份常驻态
+    assert.equal((await openTask(ledger, "TK-00000201")).ok, true);
+    assert.ok(counts.reads <= 1, `单条命令全文读须 ≤1 次（实得 ${String(counts.reads)}）`);
+
+    // 稳态：六个读面＋三个新读法，同进程连续调用一律 0 次全文读（每次读仍先查文件）
+    const afterCold = counts.reads;
+    const statsBefore = counts.stats;
+    ledger.task("TK-00000201");
+    ledger.tasks();
+    ledger.openQueue();
+    ledger.holdingsFor("implementer");
+    ledger.view();
+    ledger.notificationsAfter(0);
+    ledger.since(0);
+    ledger.taskEvents("TK-00000201");
+    assert.equal(counts.reads, afterCold, "稳态读不得重读全文");
+    assert.ok(counts.stats > statsBefore, "每次读都先查文件（失效检查是必需项，不是保险）");
+
+    // 稳态命令：本进程自己的追加＝续折（不重读、不重折全文）
+    const beforeSteadyCommand = counts.reads;
+    assert.equal((await ledger.command({
+      op: "task.triage", taskId: "TK-00000201", actor: HOST, ...cas(ledger, "TK-00000201"),
+      idempotencyKey: "TK-00000201-triage", payload: { decision: "立项" }
+    })).ok, true);
+    assert.equal(counts.reads, beforeSteadyCommand, "稳态命令不得重折全文（自写续折）");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("常驻投影（41 号票）：进程外追加后下一次读必须看到新内容", async () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const counts = newCounts();
+    const reader = createTaskLedger({
+      ...CRITERION_INJECTION, dshHome: home, now: clock.now, ...injectedIo(counts)
+    });
+    assert.deepEqual(reader.tasks(), [], "空数据根＝空投影（冷折一次）");
+    const coldReads = counts.reads;
+
+    // 「进程外」写者＝同一数据根上的**另一个实例**（常驻态实例私有，彼此不可见）
+    const writer = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    assert.equal((await openTask(writer, "TK-00000202")).ok, true);
+    writer.close();
+
+    assert.deepEqual(reader.tasks().map((task) => task.taskId), ["TK-00000202"], "外部追加必须在下一次读可见");
+    assert.equal(counts.reads, coldReads + 1, "文件键变了＝重折一次");
+    assert.equal(reader.task("TK-00000202").status, "intake");
+    assert.equal(counts.reads, coldReads + 1, "键已刷新：随后读不再重折");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("常驻投影（41 号票）：取得写锁的跨越点强制重查并重折一次", async () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const counts = newCounts();
+    let ledger = null;
+    // 注入的文件检查在**持锁后**虚报一次变更（size+1）：常驻态键随之不符 → 当场重折。
+    // 事实源内容其实未变——故这一次额外整折只可能来自「跨越点」的强制检查。
+    let armed = true;
+    const io = injectedIo(counts, () => ledger, (info) => {
+      if (armed && ledger !== null && ledger.holdsWriterLock()) {
+        armed = false;
+        return { size: info.size + 1, mtimeMs: info.mtimeMs };
+      }
+      return info;
+    });
+    ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now, ...io });
+
+    // 冷启（1 次冷折）＋首写＝跨越点（键不符 → 再折一次）
+    assert.equal((await openTask(ledger, "TK-00000203")).ok, true);
+    assert.equal(counts.reads, 2, "跨越点的强制检查发现键不符 → 当场重折一次");
+    assert.ok(counts.statsWhileLocked >= 1, "跨越点的文件检查发生在持有写锁之后");
+    assert.equal(ledger.view().lastSeq, 1, "重折不改事实源、不改投影结论");
+
+    // 已持锁＝再无跨越点：后续命令 0 次全文读
+    const afterCrossing = counts.reads;
+    assert.equal((await ledger.command({
+      op: "task.triage", taskId: "TK-00000203", actor: HOST, ...cas(ledger, "TK-00000203"),
+      idempotencyKey: "TK-00000203-triage", payload: { decision: "立项" }
+    })).ok, true);
+    assert.equal(counts.reads, afterCrossing, "已持锁＝无跨越点：不得再重折");
+    assert.equal(ledger.at("TK-00000203", "latest").status, "triaged");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("常驻投影（41 号票）：松锁期间的外部追加不得被常驻态吞掉（写命令的判定看到它）", async () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const counts = newCounts();
+    const reader = createTaskLedger({
+      ...CRITERION_INJECTION, dshHome: home, now: clock.now, ...injectedIo(counts)
+    });
+    assert.deepEqual(reader.openQueue(), [], "读实例先折一次常驻态（此后长命且松锁）");
+
+    // 进程外写者（另一实例）建档后关停（释放写锁）——读实例在此期间从未持锁
+    const writer = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    assert.equal((await openTask(writer, "TK-00000204")).ok, true);
+    writer.close();
+
+    // 读实例转写：取得写锁（跨越点）并落拒绝事件——判定必须基于含外部追加的事实源
+    const result = await reader.command({
+      op: "task.intake", taskId: "TK-00000204", actor: HOST,
+      idempotencyKey: "TK-00000204-again", payload: { class: "project" }
+    });
+    assert.equal(result.ok, false);
+    assert.equal(result.code, "task-exists", "松锁期间的追加不得被常驻态吞掉");
+    assert.equal(reader.view().lastSeq, 2, "拒绝结论落账：外部追加（1）＋拒绝事件（2）");
+    const lines = readFileSync(eventsFile(home), "utf8").trim().split("\n");
+    assert.equal(lines.length, 2, "拒绝不落半截事件");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("常驻投影（41 号票）：at 的历史读一律回落磁盘折叠（不经常驻态）", async () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const counts = newCounts();
+    const ledger = createTaskLedger({
+      ...CRITERION_INJECTION, dshHome: home, now: clock.now, ...injectedIo(counts)
+    });
+    assert.equal((await openTask(ledger, "TK-00000205")).ok, true);
+    assert.equal((await ledger.command({
+      op: "task.triage", taskId: "TK-00000205", actor: HOST, ...cas(ledger, "TK-00000205"),
+      idempotencyKey: "TK-00000205-triage", payload: { decision: "立项" }
+    })).ok, true);
+
+    // 常驻态新鲜（文件键未变）时 at 仍重读磁盘：每次 at 都是一次整折
+    const before = counts.reads;
+    assert.equal(ledger.at("TK-00000205", 1).status, "intake");
+    assert.equal(counts.reads, before + 1, "历史读不经常驻态");
+    assert.equal(ledger.at("TK-00000205", "latest").status, "triaged");
+    assert.equal(counts.reads, before + 2, "latest 同样走磁盘折叠（读面口径统一）");
+    // 既有读成员仍从常驻态出（键未变＝0 次全文读）
+    assert.equal(ledger.task("TK-00000205").status, "triaged");
+    assert.equal(ledger.tasks().length, 1);
+    assert.equal(counts.reads, before + 2, "既有读成员不重读全文");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("关闭前置收任务快照（42 号票）：快照＝{task, events, artifacts} 一件进；事件域可为任务片段或含他任务行的历史（任务域读取语义保留）", async () => {
+  const home = mkHome();
+  try {
+    const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clockAt().now });
+    await walkToSettled(ledger, "TK-00000098", { brief: { ...VALID_BRIEF, reviewPoints: [] } });
+    const task = ledger.task("TK-00000098");
+    const registered = [{ task: "TK-00000098", botId: "implementer" }];
+    assert.equal(
+      (await closePrecondition({
+        snapshot: { task, events: ledger.taskEvents("TK-00000098"), artifacts: registered },
+        criterionRunner: ACCEPTANCE_RUNNER
+      })).ok, true, "快照一件进：登记方＝产出方且锚本任务 → 过"
+    );
+    // 任务域读取语义保留：事件域＝含他任务行的历史（旧面形状）时结论不变
+    // ——taskReviewScope 内部按 taskId 过滤，与喂任务片段等价
+    assert.equal(
+      (await closePrecondition({
+        snapshot: {
+          task,
+          events: [...ledger.taskEvents("TK-00000098"), { seq: 999, taskId: "TK-00000099", type: "intake" }],
+          artifacts: registered
+        },
+        criterionRunner: ACCEPTANCE_RUNNER
+      })).ok, true, "事件域含他任务行不改变结论（按 taskId 过滤）"
+    );
+    assert.equal(
+      (await closePrecondition({
+        snapshot: { task, events: ledger.taskEvents("TK-00000098"), artifacts: [{ task: "TK-00000098", botId: "someone-else" }] },
+        criterionRunner: ACCEPTANCE_RUNNER
+      })).code, "artifact-not-registered", "判定码不变：登记方≠产出方即拒"
+    );
   } finally {
     rmSync(home, { recursive: true, force: true });
   }

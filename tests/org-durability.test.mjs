@@ -497,7 +497,7 @@ test("①触发：host 登记腿把评测任务落成 class=duty 任务；同窗
     assert.ok(task.brief.acceptance[0].args.location.startsWith("bot-workspaces/bot-a/eval/"), "判据坐标落受影响实例 workspace");
     // ②步绑定：任务与受影响实例的绑定写在台账事件里（routineId＋window 幂等窗含实例 id
     // 与目标指派），不只写在目标文案里——「新模型下由谁跑」可事后从台账投影回核
-    const intake = ledger.events({ taskId: task.taskId }).find((event) => event.type === "intake");
+    const intake = ledger.taskEvents(task.taskId).find((event) => event.type === "intake");
     assert.equal(intake.routineId, "eval-researcher-report");
     assert.equal(intake.window, "bot-a:researcher-report:样例厂商/样例模型二@high", "幂等窗即实例×样本×目标指派的绑定面");
     assert.equal(intake.class, "duty");

@@ -1,0 +1,15 @@
+
+== 修复前（b5932d2：独立 conversation 槽 ＋ Icon*16/14） ==
+槽注册查： FAIL → Bot 模式入口点击抛错：slot "conversation" is not declared (a parent entry's children table must declare it)；Bot 模式未占用宿主声明槽「main」（key=conversation；实测占用：无）
+引用面查： FAIL → 引用未导出的 primitives.IconWarningOutline16；引用未导出的 primitives.IconEllipsisOutline16；引用未导出的 primitives.IconChevronDownOutline14；引用未导出的 primitives.IconChevronRightOutline14；引用未导出的 primitives.IconCheckOutline16；引用未导出的 primitives.IconPlusOutline16；引用未导出的 primitives.IconSendOutline14；引用未导出的 primitives.IconPanelLeftOutline16；引用未导出的 primitives.IconChevronLeftOutline14；引用未导出的 primitives.IconSearchOutline16；引用未导出的 primitives.IconCloseOutline16；primitives.MarkdownText 调用点（约第 1958 行）缺必需 props：labels；primitives.MarkdownText 调用点（约第 2023 行）缺必需 props：labels
+入口实跑未导出名： （无）
+
+== 中间态（修槽名与图标名，未补 MarkdownText.labels） ==
+槽注册查： PASS
+引用面查： FAIL → primitives.MarkdownText 调用点（约第 1971 行）缺必需 props：labels；primitives.MarkdownText 调用点（约第 2037 行）缺必需 props：labels
+入口实跑未导出名： （无）
+
+== 当前工作树（三处全修） ==
+槽注册查： PASS
+引用面查： PASS（引用 19 名）
+入口实跑未导出名： （无）

@@ -1,0 +1,286 @@
+{
+ "capturedAt": "2026-10-07T05:16:22.867Z",
+ "targetId": "4B3DDD595C7BAFC71A15B6C2292D71EE",
+ "results": [
+  {
+   "index": 0,
+   "action": "reload",
+   "label": null,
+   "result": {
+    "reloaded": true
+   },
+   "ms": 6569
+  },
+  {
+   "index": 1,
+   "action": "eval",
+   "label": "L1-entry-visible",
+   "result": {
+    "present": true,
+    "label": "Bot 模式",
+    "aria": "Bot 模式",
+    "rect": {
+     "x": 10,
+     "y": 902,
+     "w": 260,
+     "h": 42
+    },
+    "visible": true,
+    "cursor": "pointer",
+    "parentClass": "dsh-bots-entry-layer"
+   },
+   "ms": 2
+  },
+  {
+   "index": 2,
+   "action": "eval",
+   "label": "L4-overlay-slot",
+   "result": {
+    "present": true,
+    "children": 1,
+    "noticeNodes": 0
+   },
+   "ms": 2
+  },
+  {
+   "index": 3,
+   "action": "eval",
+   "label": "L5-locale",
+   "result": {
+    "botsTexts": [
+     "Bot 模式",
+     "Bot 模式",
+     "Bot 模式"
+    ],
+    "rawKeyLookalikes": [
+     "index.js.bak"
+    ]
+   },
+   "ms": 3
+  },
+  {
+   "index": 4,
+   "action": "eval",
+   "label": "L6-style-parity",
+   "result": {
+    "equal": true,
+    "botsEntry": {
+     "font": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+     "size": "14px",
+     "color": "rgb(249, 250, 251)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "0px none rgb(249, 250, 251)",
+     "radius": "12px",
+     "pad": "0px 10px 0px 8px",
+     "h": "42px"
+    },
+    "hostSettings": {
+     "font": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+     "size": "14px",
+     "color": "rgb(249, 250, 251)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "0px none rgb(249, 250, 251)",
+     "radius": "12px",
+     "pad": "0px 10px 0px 8px",
+     "h": "42px"
+    },
+    "dswRuleCount": 1959
+   },
+   "ms": 18
+  },
+  {
+   "index": 5,
+   "action": "shot",
+   "label": null,
+   "result": {
+    "path": "/home/beijong/project/dsh-bots/.scratch/org-v2-build/attachments/18-visual-2026-10-07/01-sidebar-entry.png",
+    "bytes": 241337
+   },
+   "ms": 166
+  },
+  {
+   "index": 6,
+   "action": "click",
+   "label": null,
+   "result": {
+    "clicked": true,
+    "tag": "button",
+    "text": "Bot 模式"
+   },
+   "ms": 3028
+  },
+  {
+   "index": 7,
+   "action": "eval",
+   "label": "L2-after-entry-click",
+   "result": {
+    "bodyText": "新会话 插件 自动化任务 工作区 Amadeus mc mod dsh-bots 当前开放票据现状和阻塞情况 13小时 进行中 接18票 51分钟 接37票 54分钟 1. Re-check mattpocock/skills for the 11小时 /implement 17 在隔离工作树上完 7天 /implement 17 在隔离工作树上完 7天 展开其余 14 个会话 测试 缓存 project 知识库 未分组 Bot 模式 ",
+    "botsSidebarRoot": 0,
+    "botsMain": 0,
+    "nativeSidebarIntact": 2
+   },
+   "ms": 3
+  },
+  {
+   "index": 8,
+   "action": "eval",
+   "label": "L8-errors",
+   "result": {
+    "injectedCollector": null
+   },
+   "ms": 2
+  },
+  {
+   "index": 9,
+   "action": "shot",
+   "label": null,
+   "result": {
+    "path": "/home/beijong/project/dsh-bots/.scratch/org-v2-build/attachments/18-visual-2026-10-07/02-after-entry-click.png",
+    "bytes": 241350
+   },
+   "ms": 151
+  },
+  {
+   "index": 10,
+   "action": "viewport",
+   "label": null,
+   "result": {},
+   "ms": 14
+  },
+  {
+   "index": 11,
+   "action": "sleep",
+   "label": null,
+   "result": {
+    "slept": 1200
+   },
+   "ms": 1202
+  },
+  {
+   "index": 12,
+   "action": "eval",
+   "label": "L7-narrow",
+   "result": {
+    "viewport": {
+     "w": 900,
+     "h": 800
+    },
+    "botsSidebarRoot": 0,
+    "botAvatars": 0,
+    "bodyText": "接37票 智能体团队 标准模式 对话 轨迹 加载更早 继续1,2 11:31 已完成工作 用时 4分56秒 1,2 进展 1）推送 ✅ — main 已推上 GitHub：c8e6aac..7d3cc0b（SSH 走 ssh -F /dev/null 绕过本机 /etc/ssh/ssh_config.d 的 owner"
+   },
+   "ms": 3
+  },
+  {
+   "index": 13,
+   "action": "shot",
+   "label": null,
+   "result": {
+    "path": "/home/beijong/project/dsh-bots/.scratch/org-v2-build/attachments/18-visual-2026-10-07/03-narrow-900px.png",
+    "bytes": 151901
+   },
+   "ms": 39
+  },
+  {
+   "index": 14,
+   "action": "viewport",
+   "label": null,
+   "result": {},
+   "ms": 14
+  }
+ ],
+ "console": [
+  {
+   "type": "error",
+   "text": "Error: Minified React error #130; visit https://reactjs.org/docs/error-decoder.html?invariant=130&args[]=undefined&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at bi (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:56:49799)\n    at qe (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:11104)\n    at ft (http://127.0.0.1:308"
+  },
+  {
+   "type": "error",
+   "text": "slot entry crashed in 'sidebar': Error: Minified React error #130; visit https://reactjs.org/docs/error-decoder.html?invariant=130&args[]=undefined&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at bi (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:56:49799)\n    at qe (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:11104"
+  },
+  {
+   "type": "error",
+   "text": "Error: Minified React error #130; visit https://reactjs.org/docs/error-decoder.html?invariant=130&args[]=undefined&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at bi (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:56:49799)\n    at qe (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:11104)\n    at ft (http://127.0.0.1:308"
+  },
+  {
+   "type": "error",
+   "text": "slot entry crashed in 'sidebar': Error: Minified React error #130; visit https://reactjs.org/docs/error-decoder.html?invariant=130&args[]=undefined&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at bi (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:56:49799)\n    at qe (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:11104"
+  },
+  {
+   "type": "error",
+   "text": "Error: Minified React error #130; visit https://reactjs.org/docs/error-decoder.html?invariant=130&args[]=undefined&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at bi (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:56:49799)\n    at U (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:7883)\n    at de (http://127.0.0.1:3080/"
+  },
+  {
+   "type": "error",
+   "text": "slot entry crashed in 'sidebar': Error: Minified React error #130; visit https://reactjs.org/docs/error-decoder.html?invariant=130&args[]=undefined&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at bi (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:56:49799)\n    at U (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:7883)\n"
+  },
+  {
+   "type": "error",
+   "text": "Error: Minified React error #130; visit https://reactjs.org/docs/error-decoder.html?invariant=130&args[]=undefined&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at bi (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:56:49799)\n    at U (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:7883)\n    at de (http://127.0.0.1:3080/"
+  },
+  {
+   "type": "error",
+   "text": "slot entry crashed in 'sidebar': Error: Minified React error #130; visit https://reactjs.org/docs/error-decoder.html?invariant=130&args[]=undefined&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at bi (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:56:49799)\n    at U (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:7883)\n"
+  },
+  {
+   "type": "log:error",
+   "text": "network: Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+   "type": "log:error",
+   "text": "network: Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+   "type": "log:error",
+   "text": "network: Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+   "type": "log:error",
+   "text": "network: Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+   "type": "log:error",
+   "text": "network: Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+   "type": "log:error",
+   "text": "network: Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+   "type": "error",
+   "text": "Error: Minified React error #130; visit https://reactjs.org/docs/error-decoder.html?invariant=130&args[]=undefined&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at bi (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:56:49799)\n    at qe (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:11104)\n    at ft (http://127.0.0.1:308"
+  },
+  {
+   "type": "error",
+   "text": "slot entry crashed in 'sidebar': Error: Minified React error #130; visit https://reactjs.org/docs/error-decoder.html?invariant=130&args[]=undefined&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at bi (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:56:49799)\n    at qe (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:11104"
+  },
+  {
+   "type": "error",
+   "text": "Error: Minified React error #130; visit https://reactjs.org/docs/error-decoder.html?invariant=130&args[]=undefined&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at bi (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:56:49799)\n    at qe (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:11104)\n    at ft (http://127.0.0.1:308"
+  },
+  {
+   "type": "error",
+   "text": "slot entry crashed in 'sidebar': Error: Minified React error #130; visit https://reactjs.org/docs/error-decoder.html?invariant=130&args[]=undefined&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at bi (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:56:49799)\n    at qe (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:11104"
+  },
+  {
+   "type": "error",
+   "text": "Error: Minified React error #130; visit https://reactjs.org/docs/error-decoder.html?invariant=130&args[]=undefined&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at bi (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:56:49799)\n    at U (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:7883)\n    at de (http://127.0.0.1:3080/"
+  },
+  {
+   "type": "error",
+   "text": "slot entry crashed in 'sidebar': Error: Minified React error #130; visit https://reactjs.org/docs/error-decoder.html?invariant=130&args[]=undefined&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at bi (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:56:49799)\n    at U (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:7883)\n"
+  },
+  {
+   "type": "error",
+   "text": "Error: Minified React error #130; visit https://reactjs.org/docs/error-decoder.html?invariant=130&args[]=undefined&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at bi (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:56:49799)\n    at U (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:7883)\n    at de (http://127.0.0.1:3080/"
+  },
+  {
+   "type": "error",
+   "text": "slot entry crashed in 'sidebar': Error: Minified React error #130; visit https://reactjs.org/docs/error-decoder.html?invariant=130&args[]=undefined&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at bi (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:56:49799)\n    at U (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:54:7883)\n"
+  }
+ ],
+ "exceptions": [
+  "Error: slot \"conversation\" is not declared (a parent entry's children table must declare it)\n    at dh.register (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:56:72232)\n    at Proxy._register (http://127.0.0.1:3080/plugins/??@deepseek-ai/dsh-client-ui-open-in-app/client.js,@deepseek-ai/dsh-api-gateway/client.js,@deepseek-ai/dsh-api-job-controller/client.js,@deepseek-ai/dsh-api-terminal-controller/client.js,@deepseek-ai/dsh-api-workspace-files/client.js,@deepseek-ai/dsh-client-ui-settings-account/client.js,@deepseek-ai/dsh-client-hmr/client.js,@deepseek-ai/dsh-cordis-client-runner/client.js,@d",
+  "Error: slot \"conversation\" is not declared (a parent entry's children table must declare it)\n    at dh.register (http://127.0.0.1:3080/assets/index-Dy0OhsZ5.js:56:72232)\n    at Proxy._register (http://127.0.0.1:3080/plugins/??@deepseek-ai/dsh-client-ui-open-in-app/client.js,@deepseek-ai/dsh-api-gateway/client.js,@deepseek-ai/dsh-api-job-controller/client.js,@deepseek-ai/dsh-api-terminal-controller/client.js,@deepseek-ai/dsh-api-workspace-files/client.js,@deepseek-ai/dsh-client-ui-settings-account/client.js,@deepseek-ai/dsh-client-hmr/client.js,@deepseek-ai/dsh-cordis-client-runner/client.js,@d"
+ ]
+}

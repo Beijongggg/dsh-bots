@@ -317,7 +317,8 @@ test("复核面 gate：帽信封须 post=verifier＋op 在帽内；读／写两�
     }
   };
   const ledger = {
-    events({ taskId } = {}) {
+    // 42 号票起指定腿走任务域读法；假台账只给新读法（不给整条历史读）
+    taskEvents(taskId) {
       return taskId === "TK-REVIEW-KIT" ? [requested({ point: "before-external-visibility", mandatory: true, reviewer: "bot-r" }, 1)] : [];
     }
   };
@@ -339,7 +340,7 @@ test("复核面 gate：非帽信封（post≠verifier）／帽缺 op／未被指
     }
   };
   const ledger = {
-    events: () => [requested({ point: "before-external-visibility", mandatory: true, reviewer: "bot-r" }, 1)]
+    taskEvents: () => [requested({ point: "before-external-visibility", mandatory: true, reviewer: "bot-r" }, 1)]
   };
   const gate = createReviewFaceGate({ issuer, ledger });
   const notHat = gate.authorizeReport({ envelope: { payload: {}, sig: "s" }, botId: "bot-x", taskId: "TK-REVIEW-KIT" });

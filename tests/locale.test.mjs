@@ -27,8 +27,13 @@ const mod = captured.factory((id) => {
 const results = [];
 const test = (name, fn) => results.push([name, fn]);
 
-// 通用词走官方 common 命名空间回退（关/取消/删除/编辑/保存——文本与 common 完全一致）
-const COMMON_NS_WORDS = ["close", "cancel", "delete", "edit", "save"];
+// 通用词走官方 common 命名空间回退（关/取消/删除/编辑/保存——文本与 common 完全一致）。
+// markdown 面六个键同源：官方 MarkdownText 的 labels 形状（markdownLabelsFor）借用
+// common 的 copy／copied／codeBlock.*／markdown.footnotes，勿另立本插件副本。
+const COMMON_NS_WORDS = [
+  "close", "cancel", "delete", "edit", "save",
+  "copy", "copied", "codeBlock.title", "codeBlock.wrap", "codeBlock.unwrap", "markdown.footnotes"
+];
 
 test("localeDicts / LOCALE_NS 导出存在，命名空间为 bots", () => {
   assert.ok(mod.localeDicts, "localeDicts 缺失");
