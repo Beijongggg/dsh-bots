@@ -20,7 +20,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -44,7 +44,7 @@ import {
   validateEventRecord
 } from "../lib/org/task-ledger.js";
 import { ESCALATION_CAUSE_IDS, RULING_CLASS_IDS, applyRuling } from "../lib/org/human-inbox.js";
-import { eventHashFor } from "../lib/org/store-base.js";
+import { eventHashFor, readJsonl } from "../lib/org/store-base.js";
 
 function mkHome() {
   return mkdtempSync(join(tmpdir(), "dsh-task-ledger-"));
@@ -2287,6 +2287,195 @@ test("产出方事实（16 号票 rv1 blocker）：租约回收清归属不清�
       })).ok, true, op);
     }
     assert.equal(ledger.task("TK-00000101").producer, "implementer-b", "产出方跟随最新 report");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+// ---------------- 常驻投影（41 号票：读不再全文重折） ----------------
+
+/**
+ * 读依赖注入（票面验收判据①「经注入的读依赖计数，不窥内部」）：
+ *   - `readEventsFile(file)`＝**整文件读**这一动作本身（缺省 `readJsonl`）：计数即全文读次数；
+ *   - `statEventsFile(file)`＝**失效检查**这一动作（缺省 `statSync`；契约同 `fs.statSync`）：
+ *     用于钉「每次读先查文件」与「取得写锁的跨越点再查一次」。
+ * 两者都不窥台账内部：计数发生在注入件里，台账只把它们当读依赖用。
+ */
+function newCounts() {
+  return { reads: 0, stats: 0, statsWhileLocked: 0 };
+}
+
+/** 注入的读依赖；`ledgerRef()` 在场时另记「检查发生在持有写锁之后」的次数。 */
+function injectedIo(counts, ledgerRef = () => null, onStat = null) {
+  return {
+    readEventsFile(file) {
+      counts.reads += 1;
+      return readJsonl(file);
+    },
+    statEventsFile(file) {
+      counts.stats += 1;
+      const info = statSync(file);
+      if (ledgerRef()?.holdsWriterLock() === true) counts.statsWhileLocked += 1;
+      return onStat === null ? info : onStat(info);
+    }
+  };
+}
+
+test("常驻投影（41 号票）：单条命令全文读 ≤1 次；稳态同进程读为 0 次", async () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const counts = newCounts();
+    const ledger = createTaskLedger({
+      ...CRITERION_INJECTION, dshHome: home, now: clock.now, ...injectedIo(counts)
+    });
+
+    // 冷启第一条命令：至多一次整折（读全文）——门链与写路径共用同一份常驻态
+    assert.equal((await openTask(ledger, "TK-00000201")).ok, true);
+    assert.ok(counts.reads <= 1, `单条命令全文读须 ≤1 次（实得 ${String(counts.reads)}）`);
+
+    // 稳态：六个读面＋三个新读法，同进程连续调用一律 0 次全文读（每次读仍先查文件）
+    const afterCold = counts.reads;
+    const statsBefore = counts.stats;
+    ledger.task("TK-00000201");
+    ledger.tasks();
+    ledger.openQueue();
+    ledger.holdingsFor("implementer");
+    ledger.view();
+    ledger.notificationsAfter(0);
+    ledger.since(0);
+    ledger.taskEvents("TK-00000201");
+    assert.equal(counts.reads, afterCold, "稳态读不得重读全文");
+    assert.ok(counts.stats > statsBefore, "每次读都先查文件（失效检查是必需项，不是保险）");
+
+    // 稳态命令：本进程自己的追加＝续折（不重读、不重折全文）
+    const beforeSteadyCommand = counts.reads;
+    assert.equal((await ledger.command({
+      op: "task.triage", taskId: "TK-00000201", actor: HOST, ...cas(ledger, "TK-00000201"),
+      idempotencyKey: "TK-00000201-triage", payload: { decision: "立项" }
+    })).ok, true);
+    assert.equal(counts.reads, beforeSteadyCommand, "稳态命令不得重折全文（自写续折）");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("常驻投影（41 号票）：进程外追加后下一次读必须看到新内容", async () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const counts = newCounts();
+    const reader = createTaskLedger({
+      ...CRITERION_INJECTION, dshHome: home, now: clock.now, ...injectedIo(counts)
+    });
+    assert.deepEqual(reader.tasks(), [], "空数据根＝空投影（冷折一次）");
+    const coldReads = counts.reads;
+
+    // 「进程外」写者＝同一数据根上的**另一个实例**（常驻态实例私有，彼此不可见）
+    const writer = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    assert.equal((await openTask(writer, "TK-00000202")).ok, true);
+    writer.close();
+
+    assert.deepEqual(reader.tasks().map((task) => task.taskId), ["TK-00000202"], "外部追加必须在下一次读可见");
+    assert.equal(counts.reads, coldReads + 1, "文件键变了＝重折一次");
+    assert.equal(reader.task("TK-00000202").status, "intake");
+    assert.equal(counts.reads, coldReads + 1, "键已刷新：随后读不再重折");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("常驻投影（41 号票）：取得写锁的跨越点强制重查并重折一次", async () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const counts = newCounts();
+    let ledger = null;
+    // 注入的文件检查在**持锁后**虚报一次变更（size+1）：常驻态键随之不符 → 当场重折。
+    // 事实源内容其实未变——故这一次额外整折只可能来自「跨越点」的强制检查。
+    let armed = true;
+    const io = injectedIo(counts, () => ledger, (info) => {
+      if (armed && ledger !== null && ledger.holdsWriterLock()) {
+        armed = false;
+        return { size: info.size + 1, mtimeMs: info.mtimeMs };
+      }
+      return info;
+    });
+    ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now, ...io });
+
+    // 冷启（1 次冷折）＋首写＝跨越点（键不符 → 再折一次）
+    assert.equal((await openTask(ledger, "TK-00000203")).ok, true);
+    assert.equal(counts.reads, 2, "跨越点的强制检查发现键不符 → 当场重折一次");
+    assert.ok(counts.statsWhileLocked >= 1, "跨越点的文件检查发生在持有写锁之后");
+    assert.equal(ledger.view().lastSeq, 1, "重折不改事实源、不改投影结论");
+
+    // 已持锁＝再无跨越点：后续命令 0 次全文读
+    const afterCrossing = counts.reads;
+    assert.equal((await ledger.command({
+      op: "task.triage", taskId: "TK-00000203", actor: HOST, ...cas(ledger, "TK-00000203"),
+      idempotencyKey: "TK-00000203-triage", payload: { decision: "立项" }
+    })).ok, true);
+    assert.equal(counts.reads, afterCrossing, "已持锁＝无跨越点：不得再重折");
+    assert.equal(ledger.at("TK-00000203", "latest").status, "triaged");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("常驻投影（41 号票）：松锁期间的外部追加不得被常驻态吞掉（写命令的判定看到它）", async () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const counts = newCounts();
+    const reader = createTaskLedger({
+      ...CRITERION_INJECTION, dshHome: home, now: clock.now, ...injectedIo(counts)
+    });
+    assert.deepEqual(reader.openQueue(), [], "读实例先折一次常驻态（此后长命且松锁）");
+
+    // 进程外写者（另一实例）建档后关停（释放写锁）——读实例在此期间从未持锁
+    const writer = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: clock.now });
+    assert.equal((await openTask(writer, "TK-00000204")).ok, true);
+    writer.close();
+
+    // 读实例转写：取得写锁（跨越点）并落拒绝事件——判定必须基于含外部追加的事实源
+    const result = await reader.command({
+      op: "task.intake", taskId: "TK-00000204", actor: HOST,
+      idempotencyKey: "TK-00000204-again", payload: { class: "project" }
+    });
+    assert.equal(result.ok, false);
+    assert.equal(result.code, "task-exists", "松锁期间的追加不得被常驻态吞掉");
+    assert.equal(reader.view().lastSeq, 2, "拒绝结论落账：外部追加（1）＋拒绝事件（2）");
+    const lines = readFileSync(eventsFile(home), "utf8").trim().split("\n");
+    assert.equal(lines.length, 2, "拒绝不落半截事件");
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("常驻投影（41 号票）：at 的历史读一律回落磁盘折叠（不经常驻态）", async () => {
+  const home = mkHome();
+  try {
+    const clock = clockAt();
+    const counts = newCounts();
+    const ledger = createTaskLedger({
+      ...CRITERION_INJECTION, dshHome: home, now: clock.now, ...injectedIo(counts)
+    });
+    assert.equal((await openTask(ledger, "TK-00000205")).ok, true);
+    assert.equal((await ledger.command({
+      op: "task.triage", taskId: "TK-00000205", actor: HOST, ...cas(ledger, "TK-00000205"),
+      idempotencyKey: "TK-00000205-triage", payload: { decision: "立项" }
+    })).ok, true);
+
+    // 常驻态新鲜（文件键未变）时 at 仍重读磁盘：每次 at 都是一次整折
+    const before = counts.reads;
+    assert.equal(ledger.at("TK-00000205", 1).status, "intake");
+    assert.equal(counts.reads, before + 1, "历史读不经常驻态");
+    assert.equal(ledger.at("TK-00000205", "latest").status, "triaged");
+    assert.equal(counts.reads, before + 2, "latest 同样走磁盘折叠（读面口径统一）");
+    // 既有读成员仍从常驻态出（键未变＝0 次全文读）
+    assert.equal(ledger.task("TK-00000205").status, "triaged");
+    assert.equal(ledger.tasks().length, 1);
+    assert.equal(counts.reads, before + 2, "既有读成员不重读全文");
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
