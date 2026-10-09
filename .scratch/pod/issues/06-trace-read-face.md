@@ -99,8 +99,11 @@
 |---|---|
 | `TMPDIR=/tmp node tests/pod-trace.test.mjs` | **18/18 用例通过**（投影单测 10＋读面契约 5＋形状/负例 3） |
 | `TMPDIR=/tmp node tests/export-face.test.mjs` | 2/2 通过（见 §5 偏离①） |
-| `TMPDIR=/tmp node tests/run.mjs` | **85/85 个测试文件通过**（基线 84/84＋新增 `pod-trace.test.mjs`） |
-| `TMPDIR=/tmp node scripts/preflight.mjs` | ① 回归 85/85 ✅ ② 冻结面（0010 包）10/10 ✅ ③ status-lint 0 违例 ✅ ④ 宿主契约 12 PASS / 0 FAIL / 0 SKIP ✅ |
+| `TMPDIR=/tmp node tests/run.mjs` | **87/87 个测试文件通过**（main 基线 84/84 ＋ 本票 `pod-trace.test.mjs` ＋ 集成分支已并入的 `pod-harness-base`／`client-disclosure`） |
+| `TMPDIR=/tmp node scripts/preflight.mjs` | ① 回归 87/87 ✅ ② 冻结面（0010 包）10/10 ✅ ③ status-lint 0 违例 ✅ ④ 宿主契约 12 PASS / 0 FAIL / 0 SKIP ✅（`preflight: PASS`） |
+
+计数口径：上表 `run.mjs`／preflight 的 87/87 是 `git merge integration/pod`（并入 10 号票
+`be95fbb`）**之后**的终态；本票单件 `pod-trace.test.mjs` 为 18/18，`export-face.test.mjs` 2/2。
 
 判据→测试映射：V-P4.1＝读面/路由/since/缓存 4 例；V-P4.2＝正常回合字段＋形状键集封闭 2 例；
 V-P4.3＝PTC 信封 1 例（内层名/结果/父指/子状态）；V-P4.4＝邮件行键负例；V-P4.5＝session-driver
