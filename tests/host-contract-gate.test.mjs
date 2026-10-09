@@ -9,9 +9,9 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
@@ -20,11 +20,16 @@ import {
 } from "../lib/host-faces.js";
 import {
   HOST_CONTRACT_PROBES, findMarkerFile, parseFaceMode, pendingFaces,
-  registryGateChecks, summarizeGate, runClientBundle, probeClientSlotsStage,
+  registryGateChecks, summarizeGate, runClientBundle, probeClientSlotsStage, discoverPackageRoots,
   probeClientVisualStage, probeCtxServicesNamesStage, probeCtxServicesBaseUrlStage,
   probeSessionLogStage, probeConfigIdsStage, CONFIG_IDS_CRITICAL,
   verifyClientSlotRegistrations, checkPrimitivesReferences, makeClientReactStub, withDomStubs,
-  probeClientConformanceStage
+  probeClientConformanceStage,
+  probeShellOverlayGeometryStage, probeHostTransitionTokensStage, probeShellFocusLayerStage,
+  resolveOverlayLayerFacts, collectFixedLayerBands, collectCustomPropertyNames, hasFullInset,
+  loadHostFrontendFacade, createHookFixture, createFocusDom, keyEvent,
+  FOCUS_LAYER_SYMBOLS, FOCUS_LAYER_SYMBOL_KINDS, MODAL_SELECTOR_LITERAL, SHELL_OVERLAY_LAYER_BAND,
+  FOCUSABLE_SELECTOR, collectImportNeeds, collectLocalBindings, sliceDeclarationClosure
 } from "../scripts/host-contract-probe.mjs";
 import { zstdCompressSync } from "node:zlib";
 import { buildPatchYaml, READ_ONLY_TOOLS } from "../lib/shared.cjs";
@@ -66,6 +71,45 @@ test("登记表↔门一致性：非 C 非 pending 面的探针都有实现，�
   const probesMinusOne = HOST_CONTRACT_PROBES.filter((p) => p.id !== "P-CONFIG-IDS");
   const problems = registryGateChecks(HOST_FACES, probesMinusOne);
   assert.ok(problems.some((p) => p.probeId === "P-CONFIG-IDS" && p.state === "FAIL"));
+});
+
+// ---------------- pod 02 号票：整屏层几何／过渡令牌／焦点隔离三面 ----------------
+// 引入面时**不得删面或改既有面语义**：上方的枚举与不变量测试是这条判据的执行坐标，
+// 本节只追加「新面在位且坐标齐备」的形状断言。
+
+/** pod 02 号票新增的宿主适配面（04／05 号票唯一允许引用的宿主坐标）。 */
+const POD_02_FACES = [
+  { id: "HF-SHELL-OVERLAY-GEOMETRY", probeId: "P-SHELL-OVERLAY-GEOMETRY", coordinate: /shell\.overlay/ },
+  { id: "HF-HOST-TRANSITION-TOKENS", probeId: "P-HOST-TRANSITION-TOKENS", coordinate: /--ds-transition-duration/ },
+  { id: "HF-SHELL-FOCUS-LAYER", probeId: "P-SHELL-FOCUS-LAYER", coordinate: /useModalLayer/ }
+];
+
+test("pod 02：三条宿主依赖面已登记，坐标点名到符号级且沿用既有字段集", () => {
+  for (const spec of POD_02_FACES) {
+    const face = hostFaceById(spec.id);
+    assert.ok(face, `新面 ${spec.id} 未登记`);
+    for (const field of HOST_FACE_FIELDS) assert.ok(field in face, `${spec.id}.${field}`);
+    assert.equal(face.probeId, spec.probeId, `${spec.id} 探针 id 固定（04／05 引用坐标）`);
+    assert.equal(face.category, "A", `${spec.id} 是静默降级面 → A 类`);
+    assert.match(face.hostCoordinate, spec.coordinate, `${spec.id} 宿主坐标须点名符号`);
+    assert.ok(face.adapterModule.includes("lib/client.js"), `${spec.id} 适配层须落到我方整屏层模块`);
+    assert.equal(face.failureMode, "face-degrade", `${spec.id} 面级降级（不得整层拒载）`);
+    assert.equal(HOST_CONTRACT_PROBES.filter((p) => p.face === spec.id).length, 1, `${spec.id} 须恰有一条探针`);
+  }
+});
+
+test("pod 02：登记表机械校验零违例（新面并入后不变量仍成立）", () => {
+  assert.deepEqual(validateHostFacesRegistry().violations, []);
+  assert.deepEqual(registryGateChecks(), []);
+  // 既有面枚举幸存：引入面不得借扩展删面（面 id 全集只增）
+  for (const id of [
+    "HF-CONFIG-IDS", "HF-CLIENT-SLOTS", "HF-CLIENT-VISUAL", "HF-CLIENT-LOCALE",
+    "HF-CTX-SERVICES", "HF-SESSION-LOG", "HF-V2-LEDGER-FORMAT", "HF-PLUGIN-IDENTITY",
+    "HF-HOST-RPC", "HF-SPAWN-CLI", "HF-REVIEW-SESSION", "HF-LEDGER-COMMANDS",
+    "HF-OS-CONTRACTS", "HF-OWN-FILE-SERVICES"
+  ]) {
+    assert.ok(hostFaceById(id), `既有面 ${id} 被删除`);
+  }
 });
 
 test("pending 面清零：v2 台账两面随 05 号票接线，转入三态常驻", () => {
@@ -700,7 +744,12 @@ const FIXTURE_SLOT_CORE_SOURCE = `export class SlotCore {
     if (clash) throw new Error('slot "' + options.name + '" already has a registration at priority ' + priority);
     const entry = { options, component };
     rec.entries.push(entry);
-    rec.entries.sort((a, b) => (a.options.priority ?? 0) - (b.options.priority ?? 0));
+    // list 槽＝priority 升序再 order 升序（与真实 SlotCore 逐字同形；2026-10-09 修正：原先
+    // 只按 priority 排，probe 的「同层 order 升序」判据在夹具上恒 FAIL——夹具与被测
+    // 语义不同形，绿路径其实测不到 order）。下方负例按**逐字**替换本表达式制造语义漂移。
+    rec.entries.sort(kind === "list"
+      ? (a, b) => (a.options.priority ?? 0) - (b.options.priority ?? 0) || (a.options.order ?? 0) - (b.options.order ?? 0)
+      : (a, b) => (a.options.priority ?? 0) - (b.options.priority ?? 0));
     for (const [child, spec] of Object.entries(options.children ?? {})) this.rec(child).spec = spec;
     return () => { rec.entries = rec.entries.filter((candidate) => candidate !== entry); };
   }
@@ -886,4 +935,358 @@ test("18号票 P-CLIENT-SLOTS 增补 stage：声明树/宿主包缺失与导出�
   } finally {
     for (const dir of [bare, thin, full]) rmSync(dir, { recursive: true, force: true });
   }
+});
+
+// ---------------- pod 02 号票：三条宿主依赖面的探针（合成夹具驱动） ----------------
+// 真实宿主的实跑结果归 preflight ④ 门；套件内用合成 fixture 把新探针的判据钉住
+// （与既有 18 号票同一分工口径）。
+
+/** 写一个合成 client bundle：注入一段样式（z-index 规则由调用方给定）。 */
+function writeStyleBundleFixture(dir, pkg, css) {
+  return writeBundleFixture(dir, pkg, `
+			const el = document.createElement("style");
+			el.textContent = ${JSON.stringify(css)};
+			document.head.appendChild(el);
+	`);
+}
+
+/** 合成一层「官方浮层 bundle」（固定定位档位提供方）。 */
+function writeBandFixture(dir, pkg, css) {
+  return writeStyleBundleFixture(dir, pkg, css);
+}
+
+// AppFrame 根同形（`position:relative`＋`overflow:hidden`）——祖先链风险规则以「定位上下文
+// 且裁剪」的祖先为对象；夹具缺 `position:relative` 时该规则根本无对象可判。
+const OVERLAY_CSS = [
+  ".probe_frame{position:relative;overflow:hidden;display:grid}",
+  ".probe_overlayLayer{z-index:20;pointer-events:none;position:absolute;inset:0}",
+  ".probe_overlayLayer>*{pointer-events:auto}"
+].join("");
+
+/** 三个官方浮层提供方的合成件：档位 900／1000／1001／1100（与现装宿主同形）。 */
+function writeBandProviders(root, { account = 900, general = 1000, conversation = 1100 } = {}) {
+  writeBandFixture(root, "dsh-client-ui-settings-account", `.a_onboarding{z-index:${account};position:fixed;inset:0}`);
+  writeBandFixture(root, "dsh-client-ui-settings-general", `.b_panel{z-index:${general};position:fixed;inset:0}`);
+  writeBandFixture(root, "dsh-client-ui-conversation", `.c_toast{z-index:${conversation};position:fixed;inset:0}`);
+}
+
+test("pod 02 P-SHELL-OVERLAY-GEOMETRY：整屏几何档＋层叠构成＋order 升序（合成夹具）", async () => {
+  const root = mkdtempSync(join(tmpdir(), "dsh-gate-overlay-"));
+  try {
+    writeStyleBundleFixture(root, "dsh-client-ui-layout", OVERLAY_CSS);
+    writeBandProviders(root);
+    writeHostIndexFixture(root, "dsh-client-ui-slots", FIXTURE_SLOT_CORE_SOURCE);
+    const ok = await probeShellOverlayGeometryStage([root]);
+    assert.equal(ok.state, "PASS", JSON.stringify(ok));
+    assert.equal(ok.overlay["z-index"], "20");
+    assert.deepEqual(ok.bands, [20, 900, 1000, 1100]);
+    assert.deepEqual(ok.ancestorRisk, []);
+    // 层本体类名按几何语义签名反解（与压缩名无关）
+    assert.equal(ok.coordinate.includes(".probe_overlayLayer"), true);
+
+    // ① 层不再是整屏绝对层（inset 丢边）→ FAIL
+    const root2 = mkdtempSync(join(tmpdir(), "dsh-gate-overlay-noinset-"));
+    try {
+      writeStyleBundleFixture(root2, "dsh-client-ui-layout", ".probe_overlayLayer{z-index:20;pointer-events:none;position:absolute;top:0;left:0}");
+      writeBandProviders(root2);
+      writeHostIndexFixture(root2, "dsh-client-ui-slots", FIXTURE_SLOT_CORE_SOURCE);
+      const drifted = await probeShellOverlayGeometryStage([root2]);
+      assert.equal(drifted.state, "FAIL");
+      assert.match(drifted.reason, /未解析出整屏层几何|四边未归零/);
+    } finally {
+      rmSync(root2, { recursive: true, force: true });
+    }
+
+    // ② 层直系子节点不再恢复交互 → FAIL
+    const root3 = mkdtempSync(join(tmpdir(), "dsh-gate-overlay-nochild-"));
+    try {
+      writeStyleBundleFixture(root3, "dsh-client-ui-layout", ".probe_overlayLayer{z-index:20;pointer-events:none;position:absolute;inset:0}");
+      writeBandProviders(root3);
+      writeHostIndexFixture(root3, "dsh-client-ui-slots", FIXTURE_SLOT_CORE_SOURCE);
+      const noChild = await probeShellOverlayGeometryStage([root3]);
+      assert.equal(noChild.state, "FAIL");
+      assert.match(noChild.reason, /直系子节点/);
+    } finally {
+      rmSync(root3, { recursive: true, force: true });
+    }
+
+    // ③ 地板之上的最小官方档 ≠ 900（整体下沉到 500/600）→ FAIL 点名
+    const root4 = mkdtempSync(join(tmpdir(), "dsh-gate-overlay-band-"));
+    try {
+      writeStyleBundleFixture(root4, "dsh-client-ui-layout", OVERLAY_CSS);
+      writeBandProviders(root4, { account: 500, general: 600, conversation: 700 });
+      writeHostIndexFixture(root4, "dsh-client-ui-slots", FIXTURE_SLOT_CORE_SOURCE);
+      const lowered = await probeShellOverlayGeometryStage([root4]);
+      assert.equal(lowered.state, "FAIL");
+      assert.match(lowered.reason, /最低档漂移/);
+    } finally {
+      rmSync(root4, { recursive: true, force: true });
+    }
+
+    // ③b 地板档上抬（900 消失，最小非零档变 1000）→ FAIL 点名
+    const rootFloorDrift = mkdtempSync(join(tmpdir(), "dsh-gate-overlay-floor-drift-"));
+    try {
+      writeStyleBundleFixture(rootFloorDrift, "dsh-client-ui-layout", OVERLAY_CSS);
+      writeBandProviders(rootFloorDrift, { account: 1000, general: 1001, conversation: 1100 });
+      writeHostIndexFixture(rootFloorDrift, "dsh-client-ui-slots", FIXTURE_SLOT_CORE_SOURCE);
+      const driftedFloor = await probeShellOverlayGeometryStage([rootFloorDrift]);
+      assert.equal(driftedFloor.state, "FAIL");
+      assert.match(driftedFloor.reason, /最低档漂移：1000/);
+    } finally {
+      rmSync(rootFloorDrift, { recursive: true, force: true });
+    }
+
+    // ③d 层本体档与地板之间的官方固定件只作诊断、不阻断门（现装宿主 40 档同形）
+    const rootGap = mkdtempSync(join(tmpdir(), "dsh-gate-overlay-gap-"));
+    try {
+      writeStyleBundleFixture(rootGap, "dsh-client-ui-layout", OVERLAY_CSS);
+      writeBandProviders(rootGap, { account: 900, general: 1000, conversation: 40 });
+      writeHostIndexFixture(rootGap, "dsh-client-ui-slots", FIXTURE_SLOT_CORE_SOURCE);
+      const gap = await probeShellOverlayGeometryStage([rootGap]);
+      assert.equal(gap.state, "PASS", JSON.stringify(gap));
+      assert.deepEqual(gap.layerToFloorBands, [40]);
+    } finally {
+      rmSync(rootGap, { recursive: true, force: true });
+    }
+
+    // ③c 官方浮层塌到层本体档之下（最高档 ≤ 整屏层档）→ FAIL
+    const rootBandBelow = mkdtempSync(join(tmpdir(), "dsh-gate-overlay-below-"));
+    try {
+      writeStyleBundleFixture(rootBandBelow, "dsh-client-ui-layout", OVERLAY_CSS);
+      writeBandProviders(rootBandBelow, { account: 10, general: 15, conversation: 20 });
+      writeHostIndexFixture(rootBandBelow, "dsh-client-ui-slots", FIXTURE_SLOT_CORE_SOURCE);
+      const below = await probeShellOverlayGeometryStage([rootBandBelow]);
+      assert.equal(below.state, "FAIL");
+      assert.match(below.reason, /未全在整屏层之上/);
+    } finally {
+      rmSync(rootBandBelow, { recursive: true, force: true });
+    }
+
+    // ④ 祖先链出现 transform/contain 类声明 → FAIL（position:fixed 被裁剪/重锚）。
+    //    风险形＝「定位上下文＋裁剪」的祖先规则**追加**变换属性：`.probe_frame` 本体
+    //    带 `position:relative;overflow:hidden`，此处只在另一条同形规则上加 transform。
+    const root5 = mkdtempSync(join(tmpdir(), "dsh-gate-overlay-ancestor-"));
+    try {
+      writeStyleBundleFixture(root5, "dsh-client-ui-layout",
+        `${OVERLAY_CSS}.probe_frame_risky{position:relative;overflow:hidden;transform:translateZ(0)}`);
+      writeBandProviders(root5);
+      writeHostIndexFixture(root5, "dsh-client-ui-slots", FIXTURE_SLOT_CORE_SOURCE);
+      const risky = await probeShellOverlayGeometryStage([root5]);
+      assert.equal(risky.state, "FAIL");
+      assert.match(risky.reason, /祖先链/);
+    } finally {
+      rmSync(root5, { recursive: true, force: true });
+    }
+
+    // ④b 官方浮层地板漂移（最低档 < HOST_FLOAT_FLOOR_BAND）→ FAIL：V-P2.5 的
+    //     「portal 低于官方浮层最低档」取值上限改变
+    const rootFloor = mkdtempSync(join(tmpdir(), "dsh-gate-overlay-floor-"));
+    try {
+      writeStyleBundleFixture(rootFloor, "dsh-client-ui-layout", OVERLAY_CSS);
+      writeBandProviders(rootFloor, { account: 800 });
+      writeHostIndexFixture(rootFloor, "dsh-client-ui-slots", FIXTURE_SLOT_CORE_SOURCE);
+      const lowered = await probeShellOverlayGeometryStage([rootFloor]);
+      assert.equal(lowered.state, "FAIL");
+      assert.match(lowered.reason, /官方 body 级浮层最低档漂移/);
+    } finally {
+      rmSync(rootFloor, { recursive: true, force: true });
+    }
+
+    // ⑤ 同层 order 语义漂移（SlotCore 读回不是 order 升序）→ FAIL
+    const root6 = mkdtempSync(join(tmpdir(), "dsh-gate-overlay-order-"));
+    try {
+      writeStyleBundleFixture(root6, "dsh-client-ui-layout", OVERLAY_CSS);
+      writeBandProviders(root6);
+      // 语义反例：list 槽的注册序不再按 `order` 重排（夹具表达式逐字替换；注册序
+      // 保持插入序＝probe-b／probe-a／probe-c）。替换未命中即当场报错——负例不许静默失效。
+      const driftedSource = FIXTURE_SLOT_CORE_SOURCE.replace(
+        `    rec.entries.sort(kind === "list"\n      ? (a, b) => (a.options.priority ?? 0) - (b.options.priority ?? 0) || (a.options.order ?? 0) - (b.options.order ?? 0)\n`,
+        `    rec.entries.sort(kind === "list"\n      ? (a, b) => (a.options.priority ?? 0) - (b.options.priority ?? 0)\n`);
+      assert.notEqual(driftedSource, FIXTURE_SLOT_CORE_SOURCE, "order 语义反例的逐字替换须命中夹具");
+      writeHostIndexFixture(root6, "dsh-client-ui-slots", driftedSource);
+      const orderDrift = await probeShellOverlayGeometryStage([root6]);
+      assert.equal(orderDrift.state, "FAIL");
+      assert.match(orderDrift.reason, /order 语义漂移/);
+    } finally {
+      rmSync(root6, { recursive: true, force: true });
+    }
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("pod 02 P-HOST-TRANSITION-TOKENS：令牌存在性与形状（合成夹具）", async () => {
+  const root = mkdtempSync(join(tmpdir(), "dsh-gate-tokens-"));
+  try {
+    writeStyleBundleFixture(root, "dsh-client-ui-theme",
+      ":root{--dsw-alias-bg-base:#fff;--ds-font-family-code:mono;--ds-ease-in-out:cubic-bezier(.4, 0, .2, 1);--ds-transition-duration:.2s;--ds-transition-duration-fast:.1s;--ds-transition-duration-slow:.3s}");
+    const ok = await probeHostTransitionTokensStage([root]);
+    assert.equal(ok.state, "PASS", JSON.stringify(ok));
+    assert.equal(ok.readings["--ds-transition-duration"], ".2s");
+    assert.equal(ok.readings["--ds-ease-in-out"], "cubic-bezier(.4, 0, .2, 1)");
+
+    // 令牌改名（--ds-transition-duration → --ds-transition-speed）→ FAIL 点名
+    const root2 = mkdtempSync(join(tmpdir(), "dsh-gate-tokens-renamed-"));
+    try {
+      writeStyleBundleFixture(root2, "dsh-client-ui-theme",
+        ":root{--ds-transition-speed:.2s;--ds-transition-duration-fast:.1s;--ds-transition-duration-slow:.3s;--ds-ease-in-out:ease-in-out}");
+      const renamed = await probeHostTransitionTokensStage([root2]);
+      assert.equal(renamed.state, "FAIL");
+      assert.match(renamed.reason, /--ds-transition-duration/);
+    } finally {
+      rmSync(root2, { recursive: true, force: true });
+    }
+
+    // 取值形状漂移（时长写成无单位数字／缓动写成随意值）→ FAIL
+    const root3 = mkdtempSync(join(tmpdir(), "dsh-gate-tokens-shape-"));
+    try {
+      writeStyleBundleFixture(root3, "dsh-client-ui-theme",
+        ":root{--ds-transition-duration:200;--ds-transition-duration-fast:.1s;--ds-transition-duration-slow:.3s;--ds-ease-in-out:cubic-bezier(.4, 0, .2, 1)}");
+      const shape = await probeHostTransitionTokensStage([root3]);
+      assert.equal(shape.state, "FAIL");
+      assert.match(shape.reason, /形状漂移/);
+    } finally {
+      rmSync(root3, { recursive: true, force: true });
+    }
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("pod 02：样式解析件（层本体签名／固定层档位／定制属性名）", () => {
+  const css = ".x{z-index:20;pointer-events:none;position:absolute;inset:0}.x>*{pointer-events:auto}.y{position:relative;overflow:hidden}";
+  const facts = resolveOverlayLayerFacts({ elements: [{ textContent: css }] });
+  assert.equal(facts.layerClass, "x");
+  assert.deepEqual(facts.children, { "pointer-events": "auto" });
+  assert.deepEqual(facts.ancestorRisk, []);
+  assert.deepEqual(collectFixedLayerBands(".a{z-index:1100;position:fixed;top:0}.b{z-index:3;position:relative}.c{position:fixed}"), [1100]);
+  assert.deepEqual(collectCustomPropertyNames(":root{--dsw-a:1;--ds-transition-duration:.2s}"), ["--ds-transition-duration", "--dsw-a"]);
+  assert.equal(hasFullInset({ inset: "0" }), true);
+  assert.equal(hasFullInset({ top: "0", right: "0", bottom: "0", left: "0" }), true);
+  assert.equal(hasFullInset({ inset: "0 0 0 0" }), true);
+  assert.equal(hasFullInset({ inset: "0 0" }), true);
+  assert.equal(hasFullInset({ top: "0", left: "0" }), false);
+  assert.equal(hasFullInset({ inset: "0 auto" }), false);
+  // 同一类名分条声明＝按选择器归并（后声明覆盖先声明）：① 风险声明在**后续**规则上时
+  // 必须取到（2026-10-09 修正：只认「首个匹配规则」会让祖先前缀风险负例恒 PASS）；
+  // ② 直系子节点规则（`>*`）不得与本体规则混为一谈（混则子节点的 pointer-events
+  // 会被当成本体档，`.x{z-index:20}` 形态反而取不到层本体）。
+  const split = resolveOverlayLayerFacts({
+    elements: [{ textContent: ".x{z-index:20;pointer-events:none;position:absolute;inset:0}.frame{position:relative;overflow:hidden}.x>*{pointer-events:auto}.frame{transform:translateZ(0)}" }]
+  });
+  assert.equal(split.layerClass, "x");
+  assert.deepEqual(split.children, { "pointer-events": "auto" }, "直系子节点规则与本体规则分开归并");
+  assert.deepEqual(split.ancestorRisk, [".frame{transform:translateZ(0)}"], "后续规则上的裁剪/重锚声明须被采到");
+  // 直系子节点规则不参与祖先链判定（它不是祖先，只是层内子节点）
+  const childOnly = resolveOverlayLayerFacts({ elements: [{ textContent: ".x{z-index:20;pointer-events:none;position:absolute;inset:0}.frame>*{position:relative;overflow:hidden;filter:blur(1px)}" }] });
+  assert.deepEqual(childOnly.ancestorRisk, []);
+});
+
+// ---------------- pod 02 号票：焦点隔离面（真实 primitives 实包，宿主不在则整文件 SKIP） ----------------
+
+/** 官方 primitives 实包入口（本机候选根里第一个存在的）。 */
+function hostPrimitivesEntry() {
+  for (const root of discoverPackageRoots()) {
+    const entry = join(root, "dsh-client-ui-primitives", "lib", "index.js");
+    if (existsSync(entry)) return entry;
+  }
+  return null;
+}
+
+test("pod 02 P-SHELL-FOCUS-LAYER：真实 primitives 实包导出面＋useModalLayer 合成 DOM 实跑", async (t) => {
+  const entry = hostPrimitivesEntry();
+  if (entry === null) {
+    t.skip(`官方 primitives 实包不在本机（${discoverPackageRoots().join(" ; ") || "无包根"}）——焦点隔离面的真实调起归 preflight ④ 门`);
+    return;
+  }
+  const pkgDir = dirname(dirname(entry));
+  const loaded = await loadHostFrontendFacade(pkgDir, FOCUS_LAYER_SYMBOLS);
+  for (const symbol of FOCUS_LAYER_SYMBOLS) {
+    assert.equal(typeof loaded.exports[symbol], FOCUS_LAYER_SYMBOL_KINDS[symbol], `${symbol} 形状`);
+  }
+  assert.equal(loaded.exports.modalSelector, MODAL_SELECTOR_LITERAL, "modal 契约选择器字面");
+
+  const result = await probeShellFocusLayerStage([dirname(pkgDir)]);
+  // 提防重复键（eslint no-dupe-keys 属 lint 门）：直接构造对象字面量
+  void { top: "0", left: "0" };
+  assert.equal(result.state, "PASS", `${result.reason ?? ""}`);
+  assert.deepEqual(result.observations, {
+    mountedActive: "首个可聚焦控件",
+    inertExcluded: true,
+    tabTrap: true,
+    escapeClosedTop: true,
+    behindModal: true,
+    nonTopUnmountKeepsFocus: true,
+    returnFocus: true
+  });
+});
+
+test("pod 02：闭包提取件（import 绑定／顶层声明闭包／漂移即缺失）", () => {
+  const source = [
+    'import { helper, other as renamed } from "./dep.js";',
+    "import React from \"react\";",
+    'import "./side-effect.css";',
+    "const selector = \"[role=\\\"menu\\\"]\";",
+    "const cache = new Map();",
+    "function helper2(node) { return node; }",
+    "function exported(anchor) { return helper(anchor) ?? renamed(anchor) ?? selector ?? cache; }",
+    "export { exported, helper2 };"
+  ].join("\n");
+  const locals = collectLocalBindings(source);
+  assert.deepEqual([...locals].sort(), ["React", "helper", "renamed"]);
+  // 闭包桩图：按 **specifier** 建键——副作用 import（`import "./x.css"`）虽无绑定，仍是
+  // 一条必须落地的依赖（Node 解析不到就抛 ERR_MODULE_NOT_FOUND），故须与命名/默认绑定
+  // 同列（断言写死「两个命名绑定」会把这条依赖藏掉）。
+  const needs = collectImportNeeds(source);
+  assert.deepEqual([...needs.entries()]
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([spec, need]) => [spec, [...need.named].sort(), need.hasDefault]), [
+    ["./dep.js", ["helper", "renamed"], false],
+    ["./side-effect.css", [], false],
+    ["react", [], true]
+  ]);
+  assert.equal(needs.size, 3, "副作用 import 也须成桩（无绑定的依赖同样要落文件）");
+  const closure = sliceDeclarationClosure(source, ["exported"], locals, new Set(["exported"]));
+  assert.deepEqual(closure.missing, []);
+  assert.deepEqual(closure.externals.sort(), ["helper", "renamed"]);
+  assert.match(closure.code, /const selector = /);
+  assert.match(closure.code, /const cache = new Map\(\)/);
+  // 目标符号不在顶层声明面 → missing（调用方报 FAIL，不静默）
+  const drifted = sliceDeclarationClosure(source, ["vanished"], locals, new Set());
+  assert.deepEqual(drifted.missing, ["vanished"], "目标符号不在顶层声明面 ⇒ missing（调用方报 FAIL，不静默）");
+});
+
+test("pod 02：合成 DOM 与键盘事件夹具的契约（Tab 可聚焦项过滤 inert 祖先）", () => {
+  const dom = createFocusDom();
+  const wrap = dom.make("div", { attrs: { inert: "" } });
+  const covered = dom.make("button", { attrs: { tabindex: "0" } });
+  const plain = dom.make("button", { attrs: { tabindex: "0" } });
+  const disabled = dom.make("button", { attrs: { disabled: "" } });
+  dom.append(wrap, covered);
+  dom.append(dom.root, wrap);
+  dom.append(dom.root, plain);
+  dom.append(dom.root, disabled);
+  const focusable = FOCUSABLE_SELECTOR;
+  assert.equal(dom.document.querySelectorAll('[role="dialog"][aria-modal="true"], [role="menu"]').length, 0);
+  assert.equal(covered.closest("[inert]"), wrap);
+  assert.deepEqual(dom.matchesSelector(covered, focusable), true, "元素本身是 button 形态");
+  // `:not(...)` 的实参列表是**分组**(组内 `,` ＝或)：2026-10-09 修正——原先按裸 `,` 切分，
+  // `:not([inert], [hidden])` 被切成 `:not([inert]`＋`[hidden])` 两段残片后恒不匹配，
+  // 「inert 子树被排除」这半条判据在夹具里静默失效（只剩 `closest` 那半条在支撑）。
+  assert.equal(dom.matchesSelector(covered, ':not([inert], [hidden])'), true, "祖先 inert 不由 :not 承担（浏览器里该元素仍命中），由 Tab 候选过滤承担");
+  assert.equal(dom.matchesSelector(plain, ':not([inert], [hidden])'), true);
+  assert.equal(dom.matchesSelector(dom.make("button", { attrs: { hidden: "" } }), ':not([inert], [hidden])'), false);
+  // 官方 `useModalLayer` 的 `[tabindex="0"]` 项须能命中（属性值相等形态）
+  assert.equal(dom.matchesSelector(plain, '[tabindex="0"]'), true);
+  // `:not(:disabled)` 只看元素自身 disabled；inert 是祖先属性，被盖控件仍是命中项
+  // （不可聚焦由 inert 自身保证）——夹具不得替浏览器多算这一层
+  assert.equal(dom.matchesSelector(plain, "button:not(:disabled)"), true);
+  assert.equal(dom.matchesSelector(covered, "button:not(:disabled)"), true, "inert 祖先不改变 :not(:disabled) 命中");
+  assert.equal(dom.matchesSelector(disabled, "button:not(:disabled)"), false);
+  // 两半分别照亮：inert 子树在候选集内、又被过滤机制排除（disabled 按钮不进候选）
+  const byOrder = (a, b) => [covered, plain, disabled].indexOf(a) - [covered, plain, disabled].indexOf(b);
+  assert.deepEqual(dom.focusableItems(dom.root).sort(byOrder), [covered, plain], "inert 子树内的控件本身是候选（disabled 不进候选）");
+  assert.deepEqual(dom.focusableItems(dom.root, { excludeInert: true }), [plain], "过滤机制把 inert 子树排除出候选");
+  assert.equal(keyEvent({ key: "Escape" }).preventDefault() ?? true, true);
+  assert.equal(keyEvent({ key: "Tab" }).defaultPrevented, false, "新建事件默认未 prevented");
 });
