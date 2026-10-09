@@ -87,7 +87,9 @@ test("client.js 源码：tr/t 调用键全部有定义（含 common 允许集）
   }
   // 三元键选择的字面量（t(cond ? "a" : "b", …) 形态）
   for (const key of ["chat.turn", "chat.turns", "chat.message", "chat.messages",
-    "discussion.exchange", "discussion.exchanges", "sidebar.expand", "sidebar.collapse"]) {
+    "discussion.exchange", "discussion.exchanges", "sidebar.expand", "sidebar.collapse",
+    // pod 09 外部触发行：分类键经静态表取（TRIGGER_KIND_KEYS），逐键核对无 fallback 缺口
+    "trigger.title", "trigger.kind.agent", "trigger.kind.mail", "trigger.note"]) {
     assert.ok(enKeys.has(key), `三元键缺失：${key}`);
   }
 });
