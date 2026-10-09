@@ -41,10 +41,10 @@
 **验证命令与实际计数**（全部在本工作树、`TMPDIR=/tmp`）
 
 - `node tests/pod-transition.test.mjs` → **6/6**（`V-P3.1…V-P3.6` 六条判据逐条落在用例名）。
-- `node tests/run.mjs` → **91/91 个测试文件通过**（基线 89＋票 07 并入 1＋本票新增 1；合并 `integration/pod` 头 `d3b0d86`（票 07 并入）后复跑）。
+- `node tests/run.mjs` → **93/93 个测试文件通过**（基线 89＋票 07／08／09 并入 3＋本票新增 1；合并 `integration/pod` 头 `03a741d`（票 07／08／09 并入）后复跑）。
 - `node tests/pod-overlay.test.mjs` → **13/13**（票 04 结构零回归）。
 - `node scripts/host-contract-probe.mjs` → **15 PASS / 0 FAIL / 0 SKIP**，其中 `P-HOST-TRANSITION-TOKENS` PASS。
-- `node scripts/preflight.mjs` → **PASS**：①回归 **91/91** ②冻结面（0010 包）**10/10** ③status-lint **0 违例** ④宿主契约 **15 PASS / 0 FAIL / 0 SKIP**（四门齐平或高于基线；`preflight: PASS`）。
+- `node scripts/preflight.mjs` → **PASS**：①回归 **93/93** ②冻结面（0010 包）**10/10** ③status-lint **0 违例** ④宿主契约 **15 PASS / 0 FAIL / 0 SKIP**（四门齐平或高于基线；`preflight: PASS`）。
 - **变异检验**（证明用例有判别力，非空转）：把 `distancePx` 4→6 ⇒ `V-P3.1` 红；把切席位标记从主区视图挪到侧栏列 ⇒ `V-P3.3` 红。
 
 **口径判定与偏离**
@@ -54,7 +54,7 @@
 3. **撤层＝同步撤（不播放退出动画）**：`exit()` 仍同步 dispose（票 04 的 `V-P2.1`「退出＝撤层」逐字依赖该同步语义，且 `exiting` 稳态取值照旧保留）。**无白屏帧的结构性理由**：整屏层始终盖在**常驻**官方页之上（票 04 保活），撤层即露官方页，不存在「层已撤而官方页未挂载」或「两层皆空」的帧。退出侧的方向性动效（若 11 号票收口时要求）＝只动计时落点，不动结构。
 4. **`props.s` 测试缝**：与 `props.useModalLayer` 同款的显式可选口，真宿主不传；仅为让「切席位」在不假造 fetch／SSE 的前提下可驱动。属**测试缝**，不进对外契约（票 04 的 `__podControl` 一类内视缝同口径）。
 5. **未改**：`POD_LAYER`（层叠档 21）、`POD_LAYER_CLASSES`（结构类名）、`HOST_SLOTS`、进出契约、inert 采集／还原、`useModalLayer` 通路——本票只在壳与视图切换处追加动效。
-6. **未动同批并行面**：消息流形制区（票 09／07 施工区）零改动；合并 `integration/pod` 时 `lib/client.js` 自动合并无冲突。
+6. **未动同批并行面**：消息流形制区（票 07／08／09 施工区）零改动；三次合并 `integration/pod`（`d3b0d86`／`03a741d`）时 `lib/client.js` 均自动合并无冲突，合并后本票 6 条用例仍全绿。
 
 **未闭合项（转 11 号票收口）**
 
