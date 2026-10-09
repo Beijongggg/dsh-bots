@@ -419,16 +419,18 @@ test("V-P6.6 上浮口径：不可执行输入分解为可观测诊断（锚点�
 // ═══════════════════════════════════════════════════════════════════════
 test("V-P5.1 通用行：图标＋工具名＋参数摘要＋状态（五态）＋时间＋chevron；展开看参数体与输出体（pre-wrap、限高、可滚动）", () => {
 	assert.equal(typeof mod.ToolRow, "function", "导出面缺 ToolRow");
+	// 夹具走**通用行**（08 号票起 bash／write／edit／read／grep／glob 走专用形制，
+	// 通用行的字段齐备改由仍在通用面的 `read_image` 举证；判据 V-P5.1 语义不变）。
 	const record = settled({
-		callId: "c1", name: "bash", state: "ok", outputText: "total 12\ndrwxr-xr-x",
-		argsRaw: JSON.stringify({ description: "列目录", command: "ls -la" }),
+		callId: "c1", name: "read_image", state: "ok", outputText: "total 12\ndrwxr-xr-x",
+		argsRaw: JSON.stringify({ path: "a/b.png", description: "列目录" }),
 		time: Date.parse("2026-10-09T06:03:00.000Z")
 	});
 	const view = harness.mount(mod.ToolRow, { record, t: (key) => key });
 	const root = view.tree;
 	assert.equal(root.type, "section", "通用行复用 03 的 DisclosureRow 基座（section 根）");
 	assert.ok(hasClass(root, "dsh-bots-tool-row"), "行级类名供状态色／间距");
-	assert.equal(root.props["data-variant"], "bash", "变体落 data-variant（08 的专用行按此派生）");
+	assert.equal(root.props["data-variant"], "read", "变体落 data-variant（08 的专用行按此派生）");
 	assert.equal(root.props["data-state"], "ok", "状态落 data-state");
 
 	const head = findOne(root, (node) => node.type === "button");
@@ -442,10 +444,10 @@ test("V-P5.1 通用行：图标＋工具名＋参数摘要＋状态（五态）�
 	const icon = findOne(iconSlot, (n) => typeof n.type === "string" && /^Icon/.test(n.type));
 	assert.ok(icon, "图标须走官方 primitives 变体名");
 	assert.equal(icon.props.size, 14, "官方工具行图标 14px");
-	assert.equal(textOf(byClass(head, "dsh-bots-disclosure-title")), "tool.title.bash", "工具名走变体标题键");
+	assert.equal(textOf(byClass(head, "dsh-bots-disclosure-title")), "tool.title.readImage", "工具名走变体标题键");
 	const meta = textOf(byClass(head, "dsh-bots-disclosure-meta"));
-	assert.ok(meta.includes("列目录"), "参数摘要取自 argsRaw（官方 SUMMARY_KEYS 口径：description 优先）：" + meta);
-	assert.equal(meta.includes("ls -la"), false, "摘要只取一键／一行（不把 command 拼进来）");
+	assert.ok(meta.includes("a/b.png"), "参数摘要取自 argsRaw（官方 SUMMARY_KEYS 口径：path 优先）：" + meta);
+	assert.equal(meta.includes("列目录"), false, "摘要只取键偏好里的第一个键（不把其它参数拼进来）");
 	assert.equal(mod.toolSummaryLabel("bash", JSON.stringify({ command: "ls -la" })), "ls -la",
 		"无 description 时摘要回退链须覆盖 command");
 	assert.equal(mod.toolSummaryLabel("read", JSON.stringify({ file_path: "a/b.md" })), "a/b.md",
@@ -461,7 +463,7 @@ test("V-P5.1 通用行：图标＋工具名＋参数摘要＋状态（五态）�
 	const body = byClass(view.tree, "dsh-bots-disclosure-body");
 	assert.ok(body, "展开后渲染参数体与输出体");
 	assert.equal(body.props.id, head.props["aria-controls"], "aria-controls 指向展开体");
-	assert.ok(textOf(byClass(body, "dsh-bots-tool-input")).includes("ls -la"), "参数体须显示原样参数");
+	assert.ok(textOf(byClass(body, "dsh-bots-tool-input")).includes("a/b.png"), "参数体须显示原样参数");
 	assert.ok(textOf(byClass(body, "dsh-bots-tool-output")).includes("drwxr-xr-x"), "输出体须显示输出文本");
 	const cssText = mod.toolRowCss;
 	assert.match(cssText, /\.dsh-bots-tool-io-text\{[^}]*white-space:pre-wrap/, "参数／输出体须 pre-wrap");
