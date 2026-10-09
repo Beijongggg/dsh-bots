@@ -39,6 +39,10 @@ const crypto = require("node:crypto");
 
 // zstd 帧魔数
 const MAGIC = Buffer.from([0x28, 0xb5, 0x2f, 0xfd]);
+// 会话日志文件名代际（与 lib/stats.js 同口径）：v0 → 旧名 session.jsonl.zstd；
+// v≥1 → 版本化名 session.v<N>.jsonl.zstd（现役宿主与现役 bot 会话写的就是后者）。
+const SESSION_LOG_LEGACY_NAME = "session.jsonl.zstd";
+const SESSION_LOG_VERSIONED_RE = /^session\.v(\d+)\.jsonl\.zstd$/;
 // 本脚本所在目录（scripts/）与 dsh-bots 项目根
 const SCRIPT_DIR = __dirname;
 const PROJECT_DIR = path.join(SCRIPT_DIR, "..");
@@ -205,7 +209,45 @@ function readSessionMeta(root, botId, entry) {
 // ---------------------------------------------------------------------------
 
 /**
- * 解析 session.jsonl.zstd。
+ * 会话目录内的日志候选路径，**按优先级排序**（先命中者胜）：
+ *   ① 全部 `session.v<N>.jsonl.zstd` 按 N 降序（同 N 按文件名升序，保证同目录
+ *      同内容的确定性）——现役宿主（dsh-session-format v≥1）写的就是版本化名；
+ *   ② 最后回落无版本旧名 `session.jsonl.zstd`（v0 产物；两者并存时版本化名胜出）。
+ * 目录不存在／不可读 → 空数组（调用方走「会话文件缺失」分支）。
+ * 口径与 `lib/stats.js::sessionLogCandidates` 完全一致（票 06 代际盲区返修），
+ * **两处实现必须同步演进**。
+ */
+function sessionLogCandidates(dir) {
+  let names;
+  try {
+    names = fs.readdirSync(dir);
+  } catch {
+    return [];
+  }
+  const versioned = [];
+  for (const name of names) {
+    const m = SESSION_LOG_VERSIONED_RE.exec(name);
+    if (m !== null) versioned.push({ name, version: Number(m[1]) });
+  }
+  versioned.sort((a, b) => b.version - a.version
+    || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+  const candidates = versioned.map((e) => path.join(dir, e.name));
+  if (names.includes(SESSION_LOG_LEGACY_NAME)) candidates.push(path.join(dir, SESSION_LOG_LEGACY_NAME));
+  return candidates;
+}
+
+/** 在**已定位的会话目录**内命中候选序第一个存在者；无候选／均不存在 → null。
+ * （`lib/stats.js::findSessionLogFile` 是 dshHome/workspace/sessionId 三元签名，
+ * 此处只负责单目录取件，两步合起来才是同一发现口径。） */
+function findSessionLogInDir(dir) {
+  for (const file of sessionLogCandidates(dir)) {
+    if (fs.existsSync(file)) return file;
+  }
+  return null;
+}
+
+/**
+ * 解析会话日志（候选由 `sessionLogCandidates` 定位：版本化名优先、旧名垫底）。
  * 文件 = 多个 zstd 帧 + 明文 JSONL 记录交错。逐帧解析：
  *   魔数 28 B5 2F FD；帧头描述字节 fhd；
  *   single_segment 标志 = fhd & 0x20；
@@ -469,9 +511,15 @@ function checkBot(root, botId, entry) {
     if (sdir === null) {
       repAdd(rep, "FAIL", "会话日志", `会话文件缺失（${session.sessionId} 不在 sessions 作用域下）`, "a");
     } else {
-      const sessionFile = path.join(sdir, "session.jsonl.zstd");
-      if (!fs.existsSync(sessionFile)) {
-        repAdd(rep, "FAIL", "会话日志", `会话文件缺失: ${sessionFile}`, "a");
+      const sessionFile = findSessionLogInDir(sdir);
+      if (sessionFile === null) {
+        repAdd(
+          rep,
+          "FAIL",
+          "会话日志",
+          `会话文件缺失: ${path.join(sdir, SESSION_LOG_LEGACY_NAME)}（候选 session.v<N>.jsonl.zstd / ${SESSION_LOG_LEGACY_NAME} 均不存在）`,
+          "a"
+        );
       } else {
         let parsed;
         try {
@@ -487,7 +535,7 @@ function checkBot(root, botId, entry) {
             rep,
             "OK",
             "会话日志",
-            `${parsed.records.length} 条记录${parsed.frameCount ? `（${parsed.frameCount} 帧）` : ""}，seq 单调递增`
+            `${path.basename(sessionFile)}：${parsed.records.length} 条记录${parsed.frameCount ? `（${parsed.frameCount} 帧）` : ""}，seq 单调递增`
           );
           for (const w of parsed.issues.filter((i) => i.status === "WARN")) repAdd(rep, "WARN", "会话日志", w.msg);
         }
@@ -718,15 +766,15 @@ function syncLlmPiAi(root, botId) {
   return { ok: true, msg: `已追加 llm-pi-ai 段（原文件归档 → ${snapshot}）` };
 }
 
-/** 疑似进行中：session.jsonl.zstd mtime 或 inbox 最后入站时间距今 < 60s。 */
+/** 疑似进行中：会话日志（候选序首个命中者，含版本化名）mtime 或 inbox 最后入站时间距今 < 60s。 */
 function isInProgress(root, botId, entry) {
   const session = readSessionMeta(root, botId, entry);
   if (session.metaOk && session.sessionId) {
     const sdir = findSessionDir(root, botId, session.sessionId);
     if (sdir) {
-      const f = path.join(sdir, "session.jsonl.zstd");
+      const f = findSessionLogInDir(sdir);
       try {
-        if (fs.existsSync(f) && Date.now() - fs.statSync(f).mtimeMs < 60 * 1000) return true;
+        if (f !== null && Date.now() - fs.statSync(f).mtimeMs < 60 * 1000) return true;
       } catch {
         /* 忽略 */
       }
@@ -896,4 +944,9 @@ function main() {
   process.exitCode = code;
 }
 
-main();
+// 入口守护：直跑（CLI）才执行 main；被 require（测试取纯函数）时不执行。
+if (require.main === module) main();
+
+// 仅导出只读纯函数／判定（供 tests/bot-health-session-log.test.mjs 直接断言；
+// 均为无副作用读盘，不触发任何 repair 动作）。
+module.exports = { sessionLogCandidates, findSessionLogInDir, isInProgress };

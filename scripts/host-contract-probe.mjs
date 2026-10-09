@@ -37,7 +37,7 @@ import { profileIdFromBaseUrl } from "../lib/host-services.js";
 import { createNativeSessionRpc } from "../lib/native-session-rpc.js";
 import { createRequire } from "node:module";
 import { createTaskLedger, eventsFile, validateEventRecord } from "../lib/org/task-ledger.js";
-import { deriveStats, readSessionEventsFromFile } from "../lib/stats.js";
+import { deriveStats, readSessionEventsFromFile, sessionLogCandidates } from "../lib/stats.js";
 
 // CJS 共享层（仓库惯例经 createRequire 消费，见 lib/index.js）：patch 构造单一坐标
 const requireCjs = createRequire(import.meta.url);
@@ -791,7 +791,12 @@ export async function probeCtxServicesBaseUrlStage(roots) {
   }
 }
 
-/** 定位本机最新的真实会话日志（<DSH_HOME>/sessions/<分片>/<会话>/session.jsonl.zstd）。 */
+/**
+ * 定位本机最新的真实会话日志（<DSH_HOME>/sessions/<分片>/<会话>/<日志名>，
+ * 日志名＝`session[.v<N>].jsonl.zstd`，代际解析复用 lib/stats.js::sessionLogCandidates
+ * ——只认旧名会让现役 v4 会话日志不可达）。同目录多代并存时逐个按 mtime 比较，
+ * 仍取「最新」语义。
+ */
 export function findNewestSessionLog(dshHome) {
   const sessionsRoot = join(dshHome, "sessions");
   let shards;
@@ -805,12 +810,14 @@ export function findNewestSessionLog(dshHome) {
     catch { continue; }
     for (const session of sessions) {
       if (!session.isDirectory()) continue;
-      const file = join(sessionsRoot, shard.name, session.name, "session.jsonl.zstd");
-      if (!existsSync(file)) continue;
-      try {
-        const mtime = statSync(file).mtimeMs;
-        if (best === null || mtime > best.mtime) best = { file, mtime, coordinate: join(shard.name, session.name) };
-      } catch { /* 不可读 → 跳过 */ }
+      const dir = join(sessionsRoot, shard.name, session.name);
+      for (const file of sessionLogCandidates(dir)) {
+        if (!existsSync(file)) continue;
+        try {
+          const mtime = statSync(file).mtimeMs;
+          if (best === null || mtime > best.mtime) best = { file, mtime, coordinate: join(shard.name, session.name) };
+        } catch { /* 不可读 → 跳过 */ }
+      }
     }
   }
   return best;
