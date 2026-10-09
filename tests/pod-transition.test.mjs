@@ -461,9 +461,8 @@ test("V-P3.3 范围差分：进出时侧栏与主区同一过渡；Pod 内切席
 				false,
 				"任何一帧都不得给侧栏列打切席位标记（范围差分的另一半）"
 			);
-			// 过渡结束：层根切 shown（进出过渡只跑一次）
-			// （计时的推进由下一条 V-P3.5 用例同一状态机复算）
-			// Pod 内切席位：只主区（席位视图）打标记，侧栏列不动
+			// Pod 内切席位：只主区（席位视图）打标记，侧栏列不动（进出过渡的一次性已由
+			// V-P3.5 用同一状态机复算：计时推进后层根落 shown）
 			const second = fixture.select("bot-a");
 			const detail = byClass(second, SEAT_DETAIL);
 			const list = byClass(second, SEAT_LIST);
