@@ -515,7 +515,7 @@ Status: ready-for-agent
 | # | 判据 | 执行坐标 | 证据落点 | 级别 |
 |---|---|---|---|---|
 | `V-P3.1` | 进出：淡入＋约 4px 上浮、约 200ms；无方向位移 | tests/pod-transition.test.mjs::V-P3.1（待票 05） | 回归记录 | 常驻 |
-| `V-P3.2` | 时长／缓动取 `--ds-transition-duration(-fast/-slow)`＋`--ds-ease-in-out` 并带常量回退；扩 `HF-CLIENT-VISUAL` 登记 | 探针 HF-CLIENT-VISUAL 扩条（待票 02）＋tests/pod-transition.test.mjs::V-P3.2 | 探针报告＋回归记录 | 常驻 |
+| `V-P3.2` | 时长／缓动取 `--ds-transition-duration(-fast/-slow)`＋`--ds-ease-in-out` 并带常量回退 | 探针 P-HOST-TRANSITION-TOKENS（面 HF-HOST-TRANSITION-TOKENS，见票 02 Comments）＋tests/pod-transition.test.mjs::V-P3.2 | 探针报告＋回归记录 | 常驻 |
 | `V-P3.3` | 范围差分：进出时侧栏与主区同一过渡；Pod 内切席位只过渡主区 | tests/pod-transition.test.mjs::V-P3.3 | 回归记录 | 常驻 |
 | `V-P3.4` | `prefers-reduced-motion: reduce` 退化为瞬时切换 | tests/pod-transition.test.mjs::V-P3.4（媒体查询桩） | 回归记录 | 常驻 |
 | `V-P3.5` | 过渡期间无白屏帧、无布局跳动 | tests/pod-transition.test.mjs::V-P3.5（首帧断言）＋人工:human-visual-checklist | 回归记录＋人工件 | 常驻＋验收期一次 |
@@ -627,5 +627,7 @@ Status: ready-for-agent
 | M-6 | 票 01 Comments 的悬空指涉改为指向本修订记录实测计数 |
 | M-7 | `GLOSSARY.md`「Pod」词条格式对齐既有风格（`_Avoid_` 紧接正文、去文末空行、溯源写「01 号票裁定」） |
 | M-8 | §F2 注明 A 组分票口径（票 12＝非身份标识符／票 13＝身份与 wire 段） |
+
+**补执行坐标（实施期，2026-10-09 票 05 施工）**：V-P3.2 的执行坐标原写「扩 `HF-CLIENT-VISUAL` 登记」——票 02 因「面↔探针一一对应」不变量（`HF-CLIENT-VISUAL` 的 `probeId` 已被占用，扩面会迫使两面共用探针 id）**新建**了 `HF-HOST-TRANSITION-TOKENS`。本表该条坐标据此改为**票 02 登记的面与探针**（`HF-HOST-TRANSITION-TOKENS`／`P-HOST-TRANSITION-TOKENS`，登记见票 02 Comments）；**判据语义（令牌取值＋常量回退）不变**。同批 §C2 的「扩 `HF-CLIENT-VISUAL` 登记一条」按同一口径读作该面（不另改判据文本）。
 
 **判据计数**：附录 A 由 62 条增至 **64 条**（V-P5 由 9 增至 11；其余组不变）。
