@@ -105,6 +105,16 @@
 计数口径：上表 `run.mjs`／preflight 的 87/87 是 `git merge integration/pod`（并入 10 号票
 `be95fbb`）**之后**的终态；本票单件 `pod-trace.test.mjs` 为 18/18，`export-face.test.mjs` 2/2。
 
+**真实数据只读实跑**（仓内已落档的会话事件样本，非合成夹具；只读，不写运行面）：
+
+| 载体 | 结果 |
+|---|---|
+| `artifacts/cutover-preparation/`… 之外仓内 PTC 会话样本：`.scratch/org-v2-build/experiments/run-20261005-v2/assembly-partial.json` 内嵌的一份**真实 PTC 会话**（365 事件，含 `tool/call`／`tool/ptc-dispatch-start`／`tool/ptc-dispatch`／`tool/result`） | 顶层记录 38、子调用记录 75、`gap=0`；样例信封 `seq=18 name=run_code state=ok turn=1 step=1 subCalls=3`；内层名集合 `bash knowledge_search read skill todo_write write`（**全部非空、不别名化**）；子调用 `parentCallId` 全部回指信封 `callId` |
+| 本机真实会话日志 `~/.dsh/sessions/**/session.jsonl.zstd` 抽样 12 份（只读；最大 22 MB／87619 事件） | 形状校验（13 字段必填＋枚举＋`subCalls[]`）与 `seq` 严格递增**零异常**；`gap` 全为 0——真实完整日志上投影无缺口 |
+
+（`~/.dsh` 只读打开、零写入；该抽样不进仓、不复现为测试——仓内可复现证据仍是上表的
+`pod-trace.test.mjs` 合成流与临时 `DSH_HOME` 夹具。）
+
 判据→测试映射：V-P4.1＝读面/路由/since/缓存 4 例；V-P4.2＝正常回合字段＋形状键集封闭 2 例；
 V-P4.3＝PTC 信封 1 例（内层名/结果/父指/子状态）；V-P4.4＝邮件行键负例；V-P4.5＝session-driver
 返回形状负例；V-P4.6＝损坏日志 fail-closed（经 HTTP 面）；V-P4.7＝并发子调用/中断/未闭合/
