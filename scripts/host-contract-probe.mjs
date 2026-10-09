@@ -830,19 +830,22 @@ export function probeSessionLogStage(dshHome) {
 }
 
 /**
- * 关键配置 id（静默 no-op 即伤核心配置者：模型 pin／人设／沙箱／审批／settings
- * 重定向／模型路由／只读禁用的两个 shell 工具）。只读禁用的其余 tool-* id 属
- * shared.cjs 已声明可选（条目 id 不存在时 patch loader 无害忽略），只核往返、
- * 不核官方全集在位。
+ * 关键配置 id（静默 no-op 即伤核心配置者：模型 pin／人设／沙箱／审批／官方
+ * dsh-settings 服务／模型路由／只读禁用的两个 shell 工具）。只读禁用的其余
+ * tool-* id 属 shared.cjs 已声明可选（条目 id 不存在时 patch loader 无害忽略），
+ * 只核往返、不核官方全集在位。
+ * 注：pod 10 号票起我方 patch 不再写 settings 重定向行（`dsh-settings` 不声明
+ * Config schema，写了也不进入解析＝死键），本清单的 `settings` 只作官方组合
+ * patch 的宿主侧改名看守，不再要求出现在我方 patch（见 OUR_PATCH_MUST_RETAIN）。
  */
 export const CONFIG_IDS_CRITICAL = Object.freeze([
   "agent-default-model", "system-prompt", "sandbox-policy", "approval",
   "settings", "llm-pi-ai", "tool-bash", "tool-pwsh"
 ]);
 
-/** 我方 workspace-write patch 往返后必须全数保留的 id（含 insert 的 bots；与 CONFIG_IDS_CRITICAL 语义不同集）。 */
+/** 我方 workspace-write patch 往返后必须全数保留的 id（含 insert 的 bots；与 CONFIG_IDS_CRITICAL 语义不同集；settings 重定向行已按 pod 10 号票删除，故不在此集）。 */
 const OUR_PATCH_MUST_RETAIN = Object.freeze([
-  "agent-default-model", "system-prompt", "sandbox-policy", "approval", "settings", "bots"
+  "agent-default-model", "system-prompt", "sandbox-policy", "approval", "bots"
 ]);
 
 /** 从官方装载器的解析产物里收全部 id（含 insert 子项）。 */
@@ -885,7 +888,7 @@ export async function probeConfigIdsStage(roots) {
     } } };
     writeFileSync(patchFile, buildPatchYaml({
       botId: "dsh-contract-probe", role: "probe", ...modelPin,
-      permission: "workspace-write", workspace: "/tmp/dsh-contract-probe-ws", settingsPath: "/tmp/dsh-contract-probe-settings.yaml",
+      permission: "workspace-write", workspace: "/tmp/dsh-contract-probe-ws",
       settingsText: `llm-pi-ai: ${JSON.stringify(providerConfig)}\n`
     }));
     let ours;
