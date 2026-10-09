@@ -8,7 +8,7 @@ import { copyFile, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promi
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { deploymentInventory } from "../lib/org/cutover.js";
+import { deploymentInventory } from "../lib/org/deployment-inventory.js";
 import { createCutoverReadiness } from "../lib/org/cutover-readiness.js";
 import { createTaskLedger } from "../lib/org/task-ledger.js";
 import { createCapabilityIssuer } from "../lib/org/capability-issue.js";
