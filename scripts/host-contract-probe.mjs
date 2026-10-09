@@ -37,7 +37,7 @@ import { profileIdFromBaseUrl } from "../lib/host-services.js";
 import { createNativeSessionRpc } from "../lib/native-session-rpc.js";
 import { createRequire } from "node:module";
 import { createTaskLedger, eventsFile, validateEventRecord } from "../lib/org/task-ledger.js";
-import { deriveStats, readSessionEventsFromFile } from "../lib/stats.js";
+import { deriveStats, readSessionEventsFromFile, sessionLogCandidates } from "../lib/stats.js";
 
 // CJS 共享层（仓库惯例经 createRequire 消费，见 lib/index.js）：patch 构造单一坐标
 const requireCjs = createRequire(import.meta.url);
@@ -297,19 +297,23 @@ export async function runClientBundle(roots, pkg) {
 }
 
 /**
- * Bot 模式必须命中的槽落点（`HF-CLIENT-SLOTS` 的消费面，覆盖「apply 期常驻」与「enter 期占用」两相）：
- *   - `sidebar.footer.action`（list）：入口钮 `dsh-bots-entry`（Bot 模式外可见）；
- *   - `shell.overlay`（list）：全局通知容器 `dsh-bots-notices`（V-A6.8 第 4 项的结构前置）；
- *   - `sidebar`（single）：Bot 模式接管 `dsh-bots-sidebar`；
- *   - `main`（keyed）：Bot 模式接管 `key="conversation"`。
+ * Bot 模式必须命中的槽落点（`HF-CLIENT-SLOTS` 的消费面）。**pod 04 起 Pod 改为覆盖式常驻**
+ * （规格 §B3-1；附录 A `V-P2.1`），故本表按三类坐标断言：
+ *   - `phase:"apply"`：装置期常驻条目——入口钮 `dsh-bots-entry`、全局通知容器 `dsh-bots-notices`（V-A6.8
+ *     第 4 项的结构前置）；
+ *   - `phase:"enter"`：进出 Pod 期增删的条目——覆盖层 `dsh-bots-pod`（唯一新增条目）；
+ *   - `phase:"never"`：**任何相位都不得**占用的宿主槽——官方 `sidebar` 单槽与主区 `main` 的
+ *     `conversation` 键必须是「无我方条目」。这条是保活的机制判据：一旦 Pod 去占槽，
+ *     官方会话页与侧栏就会随槽位切换（key 自增）卸载重挂，滚动位置与展开态即丢。
  * 宿主把 `conversation` 改回独立单槽（旧宿主 0.1.0-rc.6 形态）也会在此报出——那是**宿主契约变更**，
  * 须同步改 `lib/client.js` 的 `HOST_SLOTS`，由本门把守，不许静默退回原生界面。
  */
 export const BOT_MODE_SLOT_TARGETS = Object.freeze([
   { slot: "sidebar.footer.action", match: { field: "id", value: "dsh-bots-entry" }, phase: "apply" },
   { slot: "shell.overlay", match: { field: "id", value: "dsh-bots-notices" }, phase: "apply" },
-  { slot: "sidebar", match: { field: "id", value: "dsh-bots-sidebar" }, phase: "enter" },
-  { slot: "main", match: { field: "key", value: "conversation" }, phase: "enter" }
+  { slot: "shell.overlay", match: { field: "id", value: "dsh-bots-pod" }, phase: "enter" },
+  { slot: "sidebar", match: { field: "id", value: "dsh-bots-sidebar" }, phase: "never" },
+  { slot: "main", match: { field: "key", value: "conversation" }, phase: "never" }
 ]);
 
 /** 我方 client 调起用的 react 桩：模块级只用到 hooks 与 createElement（产物为可走查的普通对象）。 */
@@ -339,8 +343,10 @@ function findClickable(node) {
  * 查，相位盲——apply 期就把宿主 `sidebar`/`main` 占掉的坏形态也能通过）：
  *   - `phase:"apply"`（`sidebar.footer.action` 入口钮、`shell.overlay` 通知容器）：`apply` 后
  *     即须在位，且点击后仍在位；
- *   - `phase:"enter"`（`sidebar` 单槽占位、`main` keyed 槽的 `conversation` 键）：点击**之前
- *     不得占用**（留待 Bot 模式接管＝abdicate 语义），点击之后须在位。
+ *   - `phase:"enter"`（`shell.overlay` 的 Pod 覆盖层条目 `dsh-bots-pod`）：点击**之前**
+ *     不得注册（覆盖层是进出期增删的条目），点击之后须在位；
+ *   - `phase:"never"`（宿主 `sidebar` 单槽、`main` keyed 槽的 `conversation` 键）：apply 前与
+ *     点击后都**不得**有我方条目——pod 04 起 Pod 为覆盖式常驻，占槽即卸载官方页（`V-P2.1`）。
  *
  * 诚实口径：**宿主实体件只有 `SlotCore`**（真实槽注册表，对未声明槽 fail closed）；我方 bundle
  * 是真实装载协议取到的工厂产物，但**整个 `ctx` 是手写桩**——locale／layout／effect 为空桩，
@@ -402,7 +408,7 @@ function runClientSlotChecks({ core, apply, targets, entrySlot }) {
     violations.push("入口组件树内无带 onClick 的按钮（入口渲染形状漂移）");
     return { ok: false, violations, observations };
   }
-  const phaseOf = (target) => (target.phase === "apply" ? "apply" : "enter");
+  const phaseOf = (target) => (target.phase === "never" ? "never" : target.phase === "apply" ? "apply" : "enter");
   const seenOf = (target) => (core.entriesOfSlot(target.slot) ?? [])
     .map((occupant) => occupant?.options?.[target.match.field] ?? "(未命名)");
   const requirePresent = (target, phase) => {
@@ -412,13 +418,24 @@ function runClientSlotChecks({ core, apply, targets, entrySlot }) {
       violations.push(`Bot 模式未占用宿主声明槽「${target.slot}」（${phase} 相；${target.match.field}=${target.match.value}；实测占用：${seen.join("／") || "无"}）`);
     }
   };
+  /** `phase:"never"`：进出前后都不许出现我方条目（覆盖式常驻的机制判据，pod 04 起）。 */
+  const requireAbsent = (target, phase) => {
+    const seen = seenOf(target);
+    observations[`${target.slot}.${target.match.field}.${phase}`] = seen;
+    if (seen.includes(target.match.value)) {
+      violations.push(`覆盖式常驻被破坏：${phase} 时占用了宿主声明槽「${target.slot}」`
+        + `（${target.match.field}=${target.match.value}）——Pod 须以 shell.overlay 覆盖层呈现，`
+        + `占槽会令官方页随槽位切换卸载重挂（滚动位置与展开态即丢）`);
+    }
+  };
 
   for (const target of targets.filter((t) => phaseOf(t) === "apply")) requirePresent(target, "apply");
+  for (const target of targets.filter((t) => phaseOf(t) === "never")) requireAbsent(target, "beforeEnter");
   for (const target of targets.filter((t) => phaseOf(t) === "enter")) {
     const seen = seenOf(target);
     observations[`${target.slot}.${target.match.field}.beforeEnter`] = seen;
     if (seen.includes(target.match.value)) {
-      violations.push(`enter 前已占用宿主声明槽「${target.slot}」（${target.match.field}=${target.match.value}）——Bot 模式接管须发生在进入时，不得在 apply 期抢占`);
+      violations.push(`enter 前已占用宿主声明槽「${target.slot}」（${target.match.field}=${target.match.value}）——Pod 覆盖层须在进入时注册，不得在 apply 期抢占`);
     }
   }
 
@@ -428,7 +445,11 @@ function runClientSlotChecks({ core, apply, targets, entrySlot }) {
     violations.push(`Bot 模式入口点击抛错：${errMsg(error)}`);
   }
 
-  for (const target of targets) requirePresent(target, phaseOf(target) === "apply" ? "apply 后仍在位" : "enter");
+  const enterable = targets.filter((t) => phaseOf(t) !== "never");
+  for (const target of enterable) requirePresent(target, phaseOf(target) === "apply" ? "apply 后仍在位" : "enter");
+  // `never` 相在**进入后**仍须成立；退出相不经此路径驱动（无头 harness 没有公开 exit 出口，
+  // 退出＝撤层的账本断言归 tests/pod-overlay.test.mjs 的 `V-P2.1` 与 preflight ④ 实跑）
+  for (const target of targets.filter((t) => phaseOf(t) === "never")) requireAbsent(target, "afterEnter");
   return { ok: violations.length === 0, violations, observations };
 }
 
@@ -624,7 +645,7 @@ export async function probeClientConformanceStage(roots, declared) {
   }
   return {
     state: "PASS",
-    coordinate: `我方引用面（${references.referencedNames} 个 primitives 引用名 ⊆ 官方导出 ${primitivesNames.size} 名）＋槽落点（apply 期 footer=${verdict.observations["sidebar.footer.action.id"]?.join("／")}、overlay=${verdict.observations["shell.overlay.id"]?.join("／")}；enter 期 sidebar=${verdict.observations["sidebar.id"]?.join("／")}、main.key=${verdict.observations["main.key"]?.join("／")}）`
+    coordinate: `我方引用面（${references.referencedNames} 个 primitives 引用名 ⊆ 官方导出 ${primitivesNames.size} 名）＋槽落点（apply 期 footer=${verdict.observations["sidebar.footer.action.id"]?.join("／")}、overlay=${verdict.observations["shell.overlay.id"]?.join("／")}；enter 期 overlay=${verdict.observations["shell.overlay.id"]?.join("／")}；官方 sidebar／main 占用＝${verdict.observations["sidebar.id"]?.filter((id) => id === "dsh-bots-sidebar").join("／") || "无"}／${verdict.observations["main.key"]?.filter((key) => key === "conversation").join("／") || "无"}）`
   };
 }
 
@@ -770,7 +791,12 @@ export async function probeCtxServicesBaseUrlStage(roots) {
   }
 }
 
-/** 定位本机最新的真实会话日志（<DSH_HOME>/sessions/<分片>/<会话>/session.jsonl.zstd）。 */
+/**
+ * 定位本机最新的真实会话日志（<DSH_HOME>/sessions/<分片>/<会话>/<日志名>，
+ * 日志名＝`session[.v<N>].jsonl.zstd`，代际解析复用 lib/stats.js::sessionLogCandidates
+ * ——只认旧名会让现役 v4 会话日志不可达）。同目录多代并存时逐个按 mtime 比较，
+ * 仍取「最新」语义。
+ */
 export function findNewestSessionLog(dshHome) {
   const sessionsRoot = join(dshHome, "sessions");
   let shards;
@@ -784,12 +810,14 @@ export function findNewestSessionLog(dshHome) {
     catch { continue; }
     for (const session of sessions) {
       if (!session.isDirectory()) continue;
-      const file = join(sessionsRoot, shard.name, session.name, "session.jsonl.zstd");
-      if (!existsSync(file)) continue;
-      try {
-        const mtime = statSync(file).mtimeMs;
-        if (best === null || mtime > best.mtime) best = { file, mtime, coordinate: join(shard.name, session.name) };
-      } catch { /* 不可读 → 跳过 */ }
+      const dir = join(sessionsRoot, shard.name, session.name);
+      for (const file of sessionLogCandidates(dir)) {
+        if (!existsSync(file)) continue;
+        try {
+          const mtime = statSync(file).mtimeMs;
+          if (best === null || mtime > best.mtime) best = { file, mtime, coordinate: join(shard.name, session.name) };
+        } catch { /* 不可读 → 跳过 */ }
+      }
     }
   }
   return best;

@@ -150,3 +150,149 @@ outputText?, isError, errorText?, turn, step, subCalls[]}`、`state ∈
 preparing|running|ok|error|stopped`，`since` 只过滤顶层信封（子调用随信封整体到达），
 PTC 内层真实名挂在信封 `subCalls[].name` 且不别名化；`turn` 是拼装锚定键、`seq` 是排序键。
 
+### 返修记录（2026-10-09）：会话日志文件名代际盲区
+
+#### 1. 缺陷与证据
+
+- **缺陷**：`lib/stats.js::findSessionLogFile` 只拼旧名 `session.jsonl.zstd`；现役宿主
+  `dsh-session-format/lib/index.js::sessionFormatLogFilename` 在 v≥1 写版本化名
+  `session.v<N>.jsonl.zstd`（现役 bot 会话＝`session.v4.jsonl.zstd`）。后果：`offlineStats`
+  与 06 号票新增的 `offlineTrace`（`BotsApi.trace` 的离线回落）对 v4-only 会话**静默全零／空轨迹**；
+  探针 `scripts/host-contract-probe.mjs::findNewestSessionLog` 同病（只认旧名）。
+- **Lead 实测（返修前 HEAD `fdc587f`）**：`~/.dsh/sessions/--home-beijong-.dsh-bot-workspaces-implementer--/session-e56304de-63bb-4644-a32b-51bcfcd10d52/`
+  仅 `session.v4.jsonl.zstd`（2,451,039 B）；`findSessionLogFile(...)` → `null`；`offlineStats(...)` 全零；
+  `offlineTrace(...)` → `{records: 0, gap: 0}`。
+- **本次现状复算（只读）**：扫 `~/.dsh/sessions/--…-bot-workspaces-*--` 下有日志的会话目录 34 个
+  → 旧名-only 8、版本化-only 26（全 v4）、两者并存 0 ⇒ **26/34 目录在旧 discovery 下不可达**。
+  前序 §4「本机真实会话日志 `session.jsonl.zstd` 抽样 12 份」的口径本身即代际盲选（只挑到旧名件），
+  故当时未暴露此缺陷——该行结论不撤销，但覆盖不到 v4 代际。
+
+#### 2. 修法（符号级）
+
+1. `lib/stats.js`
+   - 新增 `SESSION_LOG_LEGACY_NAME = "session.jsonl.zstd"` 与
+     `SESSION_LOG_VERSIONED_RE = /^session\.v(\d+)\.jsonl\.zstd$/`；
+   - 新增 `sessionLogCandidates(dir)`（**导出**，供单测与宿主探针复用）：readdir 一次，收全部版本化名按
+     **N 降序**（同 N 按文件名升序兜底确定性），旧名**垫底**（仅当目录内存在该名）；目录缺失／不可读 → `[]`；
+   - `findSessionLogFile(dshHome, workspace, sessionId)`：**签名与返回语义（绝对路径／null）不变**；分片目录
+     候选集构造不变；每个候选目录内按 `sessionLogCandidates` 序**先命中者胜**；
+   - `offlineStats` 的 mtime/size 缓存（`diskStatsCache`）、`readSessionEventsFromFile`、`scanZstdFrames`
+     **零改动**（解码行为不动；仅 discovery 换代）。
+2. `lib/trace-projection.js`：**零改动**——第 30 行 import 的就是 `findSessionLogFile`，`offlineTrace` 随
+   discovery 修复直接受益（下方新增 v4-only 读面用例把守）。
+3. `scripts/host-contract-probe.mjs::findNewestSessionLog`：同病同修，逐 session 目录用 `sessionLogCandidates`
+   枚举（多代并存时逐个按 mtime 比较），保留「最新者胜」语义。
+4. `lib/host-faces.js` HF-SESSION-LOG `hostCoordinate` 文案补记版本化名（登记表与实际读面同拍；
+   `adapterModule`／`probeId`／`failureMode` 不动）。
+
+#### 3. 测试改动与实际计数
+
+| 件 | 改动 | 计数 |
+|---|---|---|
+| `tests/stats.test.mjs` | 旧名多帧／撕裂尾帧／缓存稳定用例**原样保留**；新增：仅旧名时候选序、目录不存在 → `[]`、v4-only 发现并解出 2 回合（outputTokens 80）、多代并存（旧名 1／v3 2／v10 3 回合）候选序＋**v10 胜出**（turns=3／outputTokens=120） | 原 2 组断言 ＋ 新增 1 组，全绿 |
+| `tests/host-contract-gate.test.mjs` P-SESSION-LOG | 旧名 PASS／空根 SKIP／坏 magic FAIL／异形行 FAIL **四例原样保留**；新增 v4-only 夹具 → `PASS` 且 coordinate 含 `sess-v4` | `node:test` 38/38 subtests |
+| `tests/pod-trace.test.mjs` | 新增 `V-P4.1 读面：v4 版本化日志（代际盲区）→ BotsApi.trace 返回非空记录`：`findSessionLogFile` 命中 v4 件、`api.trace` 非空 `run_code`＋PTC 子调用 `read`、`GET /api/bots/worker/trace` 同值 | 18 → **19/19** 用例 |
+
+未放宽任何既有断言；旧名（向后兼容）用例全部保留。
+
+#### 4. 真实 v4 会话修复前后数字（只读，零写入）
+
+对象：`~/.dsh/sessions/--home-beijong-.dsh-bot-workspaces-implementer--/session-e56304de-63bb-4644-a32b-51bcfcd10d52/session.v4.jsonl.zstd`
+（2,451,039 B，mtime 2026-10-06 17:42:34 +08:00）
+
+| 读面 | 修复前（`fdc587f`） | 修复后 |
+|---|---|---|
+| `findSessionLogFile` | `null` | `…/session.v4.jsonl.zstd` |
+| `offlineStats.tokenUsage` | 全 0 | `{uncachedInputTokens: 1674417, outputTokens: 346618, cacheReadTokens: 37695023, cacheWriteTokens: 171587}` |
+| `offlineStats.sessionStats` | `{turns: 0, steps: 0, llmMs: 0, toolMs: 0, …}` | `{turns: 65, steps: 349, llmMs: 4963803, toolMs: 6611185, ttftMs: 0, ttftSteps: 0, decodeMs: 0, decodeTokens: 0}` |
+| `offlineStats.contextPressure` | `{}` | `{pressureTokens: 156518, contextWindow: 262144, provider: "opencode-go", model: "deepseek-v4.1-flash"}` |
+| `offlineTrace` | `records: 0, gap: 0` | `records: 284, gap: 0`；顶层名全为 `run_code`（PTC 信封）；`state` 分布 `{ok: 273, error: 11}`；`subCalls` 合计 388（最长信封 9 个）；46 个不同 `turn`；`seq` 严格递增 ✅ |
+| `offlineTrace` 内层真实名（不别名化、不丢失） | —（不可达） | `bash×143, ledger.read×55, mail.send×30, evidence.probe×28, read×21, task.accept×17, task.heartbeat×15, grep×14, job_output×14, task.start×10, task.report×9, task.deliver×9, brief.refresh×5, glob×5, knowledge_search×3, knowledge.register×2, write×2, present×2, edit×2, job_list×1, job_kill×1` |
+
+另只读抽 3 个 v4-only bot 会话：`traceRecords 0/9/5`（0 的那件仅 328 B，解出 4 条非工具事件
+`session/permission/preset/sandbox/approval`，空轨迹正确，非解码失败）。
+
+#### 5. 验证命令（本工作树实跑；`git merge integration/pod` 为 Already up to date，HEAD＝`fdc587f`）
+
+| 命令 | 结果 |
+|---|---|
+| `TMPDIR=/tmp node tests/run.mjs` | **87/87 个测试文件通过** |
+| `TMPDIR=/tmp node scripts/preflight.mjs` | ①回归 87/87 ✅ ②冻结面（0010 包）10/10 ✅ ③status-lint 0 违例 ✅ ④宿主契约 **15 PASS／0 FAIL／0 SKIP** ✅（`preflight: PASS`，exit 0） |
+| `TMPDIR=/tmp node tests/stats.test.mjs` | 3 组断言全绿 |
+| `TMPDIR=/tmp node tests/pod-trace.test.mjs` | 19/19 |
+| `TMPDIR=/tmp node tests/host-contract-gate.test.mjs` | 38/38 subtests、0 fail |
+
+#### 6. 未闭合项
+
+- `scripts/bot-health.cjs`（`:472` 拼 `session.jsonl.zstd`、`:727` 疑似进行中判据）仍是同一代际盲区，
+  v4-only 会话的健康读数失真；该件不在本返修点名面（交付 1–3 未列），且为 CJS（消费 ESM `lib/stats.js`
+  需动态 import 或自带候选），留作后续票／观察项登记。
+- 真机 HTTP 面（真实注册表＋现役 bot 进程）未端到端实跑；本批证据＝临时 `DSH_HOME` 夹具的读面契约测试
+  ＋ 真实日志只读投影复算（与票面既有「未证声明」口径一致）。
+- `?since=` 对截断日志的边界语义仍为票面已登记未闭合项（本次未动）。
+
+### 附属修复（2026-10-09）：`scripts/bot-health.cjs` 会话日志文件名代际盲区
+
+#### 1. 缺陷与证据
+
+- **缺陷**：上节 §6 未闭合项点名的同一代际盲区落在本件两处：
+  ① `checkBot` 会话日志项硬编码旧名 `path.join(sdir, "session.jsonl.zstd")`（返修前 `:472`）——
+  v4-only 会话判「会话文件缺失」FAIL（action `a`），并连带 `repair` 的 `needReset` 误判
+  （会把完好会话当缺失 → 归档）；② `isInProgress`（返修前 `:727`）同拼旧名——v4-only 会话的
+  mtime 判据永不命中，「疑似进行中」保护对现役 bot 会话失效（`repair` 可归档进行中的会话）。
+  `:208` docblock 也写着旧名。
+- **真实面只读复验（修复前后同一命令，零写入 `~/.dsh`）**：对象 `duty-coordinator`
+  （`~/.dsh/bots/bots.json` 两个注册 bot 之一，其会话目录**仅**有 `session.v4.jsonl.zstd`，
+  1,710,074 B）；命令 `node scripts/bot-health.cjs check duty-coordinator --root ~/.dsh`
+  （修复前用 `git show eb19fcd:scripts/bot-health.cjs` 落 `/tmp` 的 HEAD 版脚本跑）：
+
+| 行项 | 修复前（HEAD 版脚本） | 修复后（本工作树） |
+|---|---|---|
+| 会话日志 | `FAIL  会话文件缺失: …/session-e21b956a-…/session.jsonl.zstd` | `OK    session.v4.jsonl.zstd：1728 条记录（614 帧），seq 单调递增` |
+| 会话状态／邮局／配置 | OK（不变） | OK（不变） |
+| 进程注册 | `FAIL  pid 1293 不存在（stale）` | `FAIL  pid 1293 不存在（stale）`（独立缺陷，未修） |
+| 汇总 | 有 FAIL（退出码 2） | 有 FAIL（退出码 2，仅剩 stale pid） |
+
+#### 2. 修法（脚本内同步 FS／零依赖风格，不动 `lib/stats.js`）
+
+1. 新增常量 `SESSION_LOG_LEGACY_NAME = "session.jsonl.zstd"` 与
+   `SESSION_LOG_VERSIONED_RE = /^session\.v(\d+)\.jsonl\.zstd$/`；
+2. 新增 `sessionLogCandidates(dir)`：readdir 一次，全部版本化名按 **N 降序**（同 N 按文件名升序
+   兜底确定性），旧名**垫底**（仅当目录内存在），目录缺失／不可读 → `[]`——**与
+   `lib/stats.js::sessionLogCandidates` 同口径**，注释写明「两处实现必须同步演进」；
+3. 新增 `findSessionLogInDir(dir)`：候选序**先命中者胜**，均不存在 → `null`（调用方报缺失）；
+4. 两处使用点改走该 helper：`checkBot` 会话日志项（命中后证据打印**实际文件名**，如
+   `session.v4.jsonl.zstd：N 条记录…`；未命中仍报「会话文件缺失」并注明候选口径）、
+   `isInProgress`（mtime 取命中件）；
+5. 入口改 `if (require.main === module) main();` 并
+   `module.exports = { sessionLogCandidates, findSessionLogInDir, isInProgress }`——仅供测试断言
+   （三符号全部只读，不触发任何 repair 动作），CLI 行为与退出码不变。
+
+#### 3. 测试改动与实际计数
+
+新增 `tests/bot-health-session-log.test.mjs`（临时夹具，不跑任何 repair 动作）：
+
+| 断言组 | 内容 |
+|---|---|
+| ① 候选序纯逻辑 | 多代并存（旧名／v3／v10）→ N 降序＋旧名垫底；目录不存在 → `[]`／`null`；仅旧名 → 旧名；**与 `lib/stats.js::sessionLogCandidates` 逐字对拍**（防两处实现漂移） |
+| ② 疑似进行中保护 | v4-only 且 mtime < 60s → `isInProgress` true；`utimesSync` 拨到 2 小时前 → false |
+| ③ CLI check（v4-only） | 临时 root 真跑 `check`：退出码 0、`OK 会话日志`、**不含**「会话文件缺失」、证据含 `session.v4.jsonl.zstd：2 条记录（1 帧）` |
+| ④ CLI check（多代并存） | 同目录旧名 1 帧／v3 2 帧／v10 3 帧 → 读 v10：`session.v10.jsonl.zstd：6 条记录（3 帧）` |
+| ⑤ check 零写入 | 前后目录快照（相对路径＋字节数）逐项一致 |
+
+| 命令（本工作树实跑；`git merge integration/pod` 为 fast-forward `eb19fcd`→`90adfa8`，树内容相同） | 结果 |
+|---|---|
+| `TMPDIR=/tmp node tests/bot-health-session-log.test.mjs` | 5 组断言全绿 |
+| `TMPDIR=/tmp node tests/run.mjs` | **88/88 个测试文件通过**（87 ＋ 本新增件） |
+| `TMPDIR=/tmp node scripts/preflight.mjs` | ①回归 88/88 ✅ ②冻结面（0010 包）10/10 ✅ ③status-lint 0 违例 ✅ ④宿主契约 15 PASS／0 FAIL／0 SKIP ✅（`preflight: PASS`，exit 0） |
+
+#### 4. 未闭合项
+
+- 真实面 `duty-coordinator` 的 **stale pid 1293** FAIL 是独立缺陷（与日志代际无关），本次未修：
+  `repair` 清除 pid 属写运行面动作，按工作边界须出仓授权；复验表中原样保留。
+- 候选枚举在仓内仍是**两份实现**（`lib/stats.js` 为 ESM，`bot-health.cjs` 为 CJS；后者动态 import
+  会破坏「零第三方依赖全同步 FS」风格）——已由断言组①的逐字对拍把守，同步演进仍靠纪律。
+- `repair` 未在真实面实跑（会写盘）：其两条判据所调用的 `checkBot` 与 `isInProgress` 均有覆盖，
+  但归档动作本身无新增测试。
+
+
