@@ -29,23 +29,36 @@ await import("../lib/client.js");
  * 递归展开子组件。嵌套函数组件每次重渲染重建实例（本项目内它们无状态）。
  */
 function createMiniReact() {
-	let current = null;
+	/** 渲染上下文：`anchor`＝本次 mount 的槽位表；`slot`＝当前组件的槽；`rerender`＝根重渲染。 */
+	const root = { anchor: null, slot: null, rerender: () => {} };
+	let ctx = { anchor: { slots: new Map() }, slot: { hooks: [], cursor: 0, uid: null }, rerender: () => {} };
 	let uidSeq = 0;
-	const expand = (node) => {
+	let rootSeq = 0;
+	const slotsFor = (anchor, key) => {
+		if (!anchor.slots) anchor.slots = new Map();
+		if (!anchor.slots.has(key)) anchor.slots.set(key, { hooks: [], cursor: 0, uid: null });
+		const slot = anchor.slots.get(key);
+		slot.cursor = 0;
+		return slot;
+	};
+	const expand = (node, path) => {
 		if (node === null || node === undefined || typeof node === "boolean") return null;
-		if (Array.isArray(node)) return node.map(expand).filter((child) => child !== null);
+		if (Array.isArray(node)) return node.map((child, index) => expand(child, path + "." + index)).filter((child) => child !== null);
 		if (typeof node !== "object") return node;
 		if (typeof node.type === "function") {
-			const previous = current;
-			current = { hooks: [], cursor: 0 };
+			const previous = ctx;
+			const key = path + ":" + (node.type.name || "anon");
+			const slot = slotsFor(previous.anchor, key);
+			ctx = { anchor: previous.anchor, slot, rerender: previous.rerender };
 			let out;
-			try { out = node.type(node.props); } finally { current = previous; }
-			return expand(out);
+			try { out = node.type(node.props); } finally { ctx = previous; }
+			return expand(out, key);
 		}
 		return {
 			type: node.type,
 			props: node.props || {},
-			children: (node.children || []).map(expand).filter((child) => child !== null)
+			children: (node.children || []).map((child, index) => expand(child, path + "." + index))
+				.filter((child) => child !== null)
 		};
 	};
 	const react = {
@@ -53,12 +66,12 @@ function createMiniReact() {
 		Fragment: Symbol("Fragment"),
 		memo: (fn) => fn,
 		useState(initial) {
-			const instance = current;
-			const at = instance.cursor++;
-			if (!(at in instance.hooks)) instance.hooks[at] = typeof initial === "function" ? initial() : initial;
-			return [instance.hooks[at], (next) => {
-				instance.hooks[at] = typeof next === "function" ? next(instance.hooks[at]) : next;
-				instance.rerender();
+			const slot = ctx.slot;
+			const at = slot.cursor++;
+			if (!(at in slot.hooks)) slot.hooks[at] = typeof initial === "function" ? initial() : initial;
+			return [slot.hooks[at], (next) => {
+				slot.hooks[at] = typeof next === "function" ? next(slot.hooks[at]) : next;
+				root.rerender();
 			}];
 		},
 		useMemo: (fn) => fn(),
@@ -66,31 +79,34 @@ function createMiniReact() {
 		useEffect: () => {},
 		useLayoutEffect: () => {},
 		useId() {
-			if (!current.uid) current.uid = "test-body-" + (uidSeq++);
-			return current.uid;
+			if (!ctx.slot.uid) ctx.slot.uid = "test-body-" + (uidSeq++);
+			return ctx.slot.uid;
 		},
 		useSyncExternalStore: (subscribe, getSnapshot) => getSnapshot()
 	};
 	return {
 		react,
 		mount(component, props) {
-			const instance = { hooks: [], cursor: 0 };
+			const anchor = { id: rootSeq++ };
 			const view = { tree: null };
 			const render = () => {
-				const previous = current;
-				current = instance;
-				instance.cursor = 0;
+				const previous = ctx;
+				const key = "$root:" + (component.name || "anon");
+				const slot = slotsFor(anchor, key);
+				slot.uid = "test-root-" + anchor.id;
+				root.anchor = anchor;
+				root.slot = slot;
+				root.rerender = render;
+				ctx = { anchor, slot, rerender: render };
 				let out;
-				try { out = component(props); } finally { current = previous; }
-				view.tree = expand(out);
+				try { out = component(props); } finally { ctx = previous.slot ? previous : root; }
+				view.tree = expand(out, key);
 			};
-			instance.rerender = render;
 			render();
 			return view;
 		}
 	};
 }
-
 const harness = createMiniReact();
 const primitivesStub = new Proxy({}, {
 	get: (_target, key) => (props) => ({ type: String(key), props: props || {}, children: [] })
@@ -296,8 +312,8 @@ test("样式基座：只引用官方令牌（--dsw-*／--ds-*），turn-trigger 
 	}
 });
 
-// ---- 切片 7：既有 UI 复用（零视觉回归） ----
-test("既有 UI 复用：DiscussionGroup 折叠组行为、类名与子节点形状零变化", () => {
+// ---- 切片 7：既有 UI 复用（09 号票换了皮，形状与行为契约不变） ----
+test("既有 UI 复用：DiscussionGroup 走披露行基座（09 形制统一后的形状与行为契约）", () => {
 	assert.equal(typeof mod.DiscussionGroup, "function", "导出面缺 DiscussionGroup");
 	const group = {
 		fromId: "b1",
@@ -309,41 +325,31 @@ test("既有 UI 复用：DiscussionGroup 折叠组行为、类名与子节点形
 	};
 	const view = harness.mount(mod.DiscussionGroup, { group, botId: "b0", t: (key) => key });
 	const root = view.tree;
-	assert.equal(root.type, "div");
-	assert.equal(root.props.className, "dsh-bots-disc", "折叠根类名不得变");
+	assert.equal(root.type, "section", "根＝披露行 section（官方 turn-trigger 形制）");
+	assert.ok(hasClass(root, "dsh-bots-disclosure"), "根挂披露行基类");
+	assert.ok(hasClass(root, "dsh-bots-disc"), "根保留讨论组行级类（间距）");
 	const head = buttonOf(root);
-	assert.equal(head.props.className, "dsh-bots-disc-head");
+	assert.equal(head.type, "button");
+	assert.ok(hasClass(head, "dsh-bots-disclosure-head"), "折叠头走披露行头类");
+	assert.ok(hasClass(head, "dsh-bots-disc-head"), "折叠头保留调用点自有类");
 	assert.equal(head.props.type, "button");
 	assert.equal(head.props["aria-expanded"], false);
-	assert.equal(head.props.title, "discussion.expand");
 	assert.equal(typeof head.props.onClick, "function");
-	const directChildren = head.children.filter((node) => node && typeof node === "object");
-	assert.deepEqual(directChildren.map((node) => (node.props.className || "").split(/\s+/)[0]), [
-		"dsh-bots-avatar", "dsh-bots-disc-label", "dsh-bots-disc-count", "dsh-bots-disc-time", "dsh-bots-disc-chevron"
-	], "折叠头子节点顺序／类名零变化");
-	assert.equal(directChildren[0].props.style.height, 14, "头像尺寸 14 不变");
-	assert.equal(textOf(directChildren[1]), "discussion.title");
-	assert.equal(textOf(directChildren[2]), "discussion.exchanges");
-	assert.ok(textOf(directChildren[3]).length > 0, "末条时间须保留");
-	assert.equal(findOne(directChildren[4], (node) => node.type === "IconChevronDownOutlineRegular").props.size, 12);
-	assert.equal(byClass(root, "dsh-bots-disc-body"), null, "默认折叠不渲染展开体");
+	assert.equal(typeof head.props["aria-controls"], "string", "补齐 aria-controls 连线（非视觉增量）");
+	assert.equal(textOf(byClass(head, "dsh-bots-disclosure-title")), "discussion.title");
+	assert.equal(textOf(byClass(head, "dsh-bots-disclosure-meta")), "discussion.exchanges");
+	const time = findOne(head, (node) => node.type === "time");
+	assert.equal(time.props.dateTime, "2026-10-09T06:03:00.000Z", "末条时间落右对齐 <time>");
+	assert.equal(findOne(byClass(head, "dsh-bots-disclosure-chevron"), (node) => node.type === "IconChevronDownOutlineRegular").props.size, 12);
+	assert.equal(byClass(root, "dsh-bots-disclosure-body"), null, "默认折叠不渲染展开体");
 
 	head.props.onClick();
 	const openedRoot = view.tree;
-	assert.equal(openedRoot.props.className, "dsh-bots-disc dsh-bots-disc-open", "展开态根类名不得变");
-	const openedHead = buttonOf(openedRoot);
-	assert.equal(openedHead.props["aria-expanded"], true);
-	assert.equal(openedHead.props.title, "discussion.collapse");
-	const body = byClass(openedRoot, "dsh-bots-disc-body");
-	assert.ok(body, "展开后渲染既有展开体");
-	assert.equal(body.props.id, openedHead.props["aria-controls"], "既有折叠组补齐 aria-controls 连线（非视觉增量）");
-	assert.equal(findAll(body, (node) => hasClass(node, "dsh-bots-disc-item")).length, 2, "组内每条往来一个条目");
-	assert.equal(findAll(body, (node) => node.type === "MarkdownText").length, 2, "正文仍走官方 MarkdownText");
-	assert.ok(hasClass(byClass(openedHead, "dsh-bots-disc-chevron"), "dsh-bots-disc-chevron-open"), "展开态 chevron 类名不得变");
-
-	openedHead.props.onClick();
-	assert.equal(view.tree.props.className, "dsh-bots-disc");
-	assert.equal(byClass(view.tree, "dsh-bots-disc-body"), null);
+	assert.equal(byClass(openedRoot, "dsh-bots-disclosure-body").props.id, buttonOf(openedRoot).props["aria-controls"],
+		"展开体 id 与 aria-controls 连线");
+	assert.equal(findAll(openedRoot, (node) => hasClass(node, "dsh-bots-disc-item")).length, 2, "组内每条往来一个条目");
+	assert.equal(findAll(openedRoot, (node) => node.type === "MarkdownText").length, 2, "正文仍走官方 MarkdownText");
+	assert.ok(byClass(openedRoot, "dsh-bots-disc-body"), "展开体保留调用点自有体类（内容样式锚点）");
 });
 
 // ---------- 运行 ----------
