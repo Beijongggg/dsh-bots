@@ -246,6 +246,17 @@
   收窄须同核文档引用。冻结件组 20 项不收窄（0010 冻结面内，触碰须新 runId）。触发＝
   接口清理批或触及这些模块的功能批顺手收窄——基线只减不增，新增零引用导出已被该门把红。
 
+- `.agent-presets/` 死目录与 13 条断链软链（pod 10 号票留界，2026-10-09；来源＝pod 设计
+  裁定观察项登记＋本轮只读复核）：① 死目录＝`~/.dsh/.agent-presets/bot-nopersona/
+  {preset.yml,agent.cordis.yml}`（2026-08-20 落盘，另有 `~/.dsh/agent-presets-backup/`），
+  官方明说无代码读者；② 断链＝`~/.dsh/profiles/node_modules/@deepseek-ai/` 下 13 条
+  （含 `dsh-agent-presets`、`dsh-settings-file`、`dsh-client-*`），目标指向安装树内已不存在
+  的旧包（0.2.0-rc.1 只余单数 `dsh-agent-preset`），无任何 profile 的 package.json／
+  cordis.patch.yml 引用。影响面＝只读噪声与迁移误读（把死目录／断链当活配置排查），无
+  运行时行为影响；与「人物设定不裁」同源（`bot-nopersona` 从未生效，其 `agent-presets:`
+  死段已随 pod 10 从生成器清除）。触发＝宿主升级清理报目录异常、或有人按断链排查 preset
+  生效问题时立票（改动面＝运行面目录／软链删除，属运行面写入，须逐项点名授权）。
+
 ## 方法论（跨轮持续有效，单一权威）
 
 > 分散于各轮 CHANGELOG / 审查报告的方法论条目在此合并为单一权威小节；
