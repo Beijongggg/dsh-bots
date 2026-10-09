@@ -64,10 +64,10 @@
     改正；M-2…M-8 分别落票 15／11／09／08 与 `GLOSSARY.md`、`spec.md`。
   - **判据计数**：附录 A **64 条**（原 62 条＋票 03 的 V-P5.10／V-P5.11）；`V-P5` 组由 9 条
     增至 11 条，其余组条数不变。
-  - **验证计数（本次修订后实测）**：`TMPDIR=/tmp node tests/run.mjs` → **85/85**；
-    `TMPDIR=/tmp node scripts/preflight.mjs` → ①回归 **85/85** ②冻结面（0010 包）**10/10**
+  - **验证计数（本次修订后实测）**：`TMPDIR=/tmp node tests/run.mjs` → **86/86**；
+    `TMPDIR=/tmp node scripts/preflight.mjs` → ①回归 **86/86** ②冻结面（0010 包）**10/10**
     ③status-lint **0 违例** ④宿主契约 **12 PASS／0 FAIL／0 SKIP**，总判 **PASS**
-    （≥ 基线：85／10／0／12-0-0）。
+    （≥ 集成头：修订期间集成分支并入 10 号票终态后的计数 86/86／10/10／0／12-0-0）。
   - **本次修订触达面**：`.scratch/pod/spec.md`（正文＋附录 A＋修订记录节）、票面 11／09／15／08／01、
     `GLOSSARY.md` 词条格式；`docs/adr/0001-*` 实质内容**未动**（复核已判四要件齐备）。
   - **未动**：本票 `Status:` 保持 `ready-for-agent`；CHANGELOG 事件由 Lead 落档（修订后）。

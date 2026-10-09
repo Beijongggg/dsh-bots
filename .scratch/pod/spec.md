@@ -567,7 +567,7 @@ Status: ready-for-agent
 | `V-P7.1` | 规格显式写明「基底＝官方默认 preset `standard`（27 工具）＋呈现面 ptc」，人物设定不裁；附实测证据 | tests/pod-harness-base.test.mjs::V-P7.1（待票 10；文档＋配置扫描） | 回归记录＋票 10 Comments | 常驻 |
 | `V-P7.2` | 27 工具清单与官方默认 preset 逐项一致（防静默漂移） | tests/pod-harness-base.test.mjs::V-P7.2（preset／`--dump-config` 对照） | 回归记录 | 常驻 |
 | `V-P7.3` | `DSH_TOOLS_MODE` 无条件注入不动，不得改为按 provider 分叉 | tests/pod-harness-base.test.mjs::V-P7.3＋tests/bot-faces-ready.test.mjs | 回归记录 | 常驻 |
-| `V-P7.4` | 死配置清理：per-bot `settings.yaml` 的 `agent-presets` 段＋profile patch 的 `settings` 死重定向行清除，生成器同步 | tests/pod-harness-base.test.mjs::V-P7.4＋tests/bot-profile.test.mjs::生成器不写出死键：patch 无 settings 重定向行、settings.yaml 无 agent-presets 段（票 10 落点） | 回归记录 | 常驻 |
+| `V-P7.4` | 死配置清理：per-bot `settings.yaml` 的 `agent-presets` 段＋profile patch 的 `settings` 死重定向行清除，生成器同步 | tests/pod-harness-base.test.mjs::V-P7.4 死配置清理：生成器同步（patch 无 settings 重定向、settings 模板无 agent-presets）＋tests/bot-profile.test.mjs::生成器不写出死键：patch 无 settings 重定向行、settings.yaml 无 agent-presets 段（票 10 落点） | 回归记录 | 常驻 |
 | `V-P7.5` | 反向验证：`dsh --dump-config` 不再出现该段 | tests/pod-harness-base.test.mjs::V-P7.5（`--dump-config` 输出） | 回归记录＋票 10 Comments | 常驻 |
 | `V-P7.6` | 不碰岗位 op 集与 op 命名合同 | tests/org-op-set.test.mjs 全绿＋tests/pod-harness-base.test.mjs::V-P7.6（负例） | 回归记录 | 常驻 |
 | `V-P7.7` | 观察项登记：`.agent-presets/` 死目录＋13 断链软链入 `docs/PROJECT_UNDERSTANDING.md`「仍可选题」＋ CHANGELOG 留界 | tests/pod-harness-base.test.mjs::V-P7.7（文档面） | 文档＋回归记录 | 常驻 |
@@ -623,7 +623,7 @@ Status: ready-for-agent
 | M-2 | 票 15 补「新 `runId` 增量证据包」逐项授权点名（对齐 V-P8.7） |
 | M-3 | 票 08「每类一条真机目视记录」并入 V-P5.7 判据文本 |
 | M-4 | 票 09 注明「以 §D5 表为唯一形制源」＋6 项子细节指针 |
-| M-5 | V-P7.4 坐标改为票 10 实际落点用例名（`tests/bot-profile.test.mjs::生成器不写出死键…`） |
+| M-5 | V-P7.4 坐标改为票 10 实际落点用例名（`tests/pod-harness-base.test.mjs::V-P7.4 死配置清理：…`＋`tests/bot-profile.test.mjs::生成器不写出死键…`） |
 | M-6 | 票 01 Comments 的悬空指涉改为指向本修订记录实测计数 |
 | M-7 | `GLOSSARY.md`「Pod」词条格式对齐既有风格（`_Avoid_` 紧接正文、去文末空行、溯源写「01 号票裁定」） |
 | M-8 | §F2 注明 A 组分票口径（票 12＝非身份标识符／票 13＝身份与 wire 段） |
