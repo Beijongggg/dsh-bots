@@ -28,6 +28,7 @@ const projectTrace = projection?.projectTrace;
 const offlineTrace = projection?.offlineTrace;
 assert.equal(typeof projectTrace, "function", "待实现：lib/trace-projection.js 应导出 projectTrace（票 06 实施面）");
 assert.equal(typeof offlineTrace, "function", "待实现：lib/trace-projection.js 应导出 offlineTrace（票 06 实施面）");
+const { findSessionLogFile } = await import("../lib/stats.js");
 
 const { internals } = await import("../lib/index.js");
 const { BotsApi, handleApi, writeRegistryAtomic, readConversation, readBotSessionId, appendOutbox } = internals;
@@ -85,15 +86,15 @@ function writeSessionId(home, id, sessionId) {
 }
 
 /** 会话日志路径（分片目录名 = workspace 路径把 '/' 换 '-' 再首尾加 '-'）。 */
-function sessionLogPath(home, id, sessionId) {
+function sessionLogPath(home, id, sessionId, filename = "session.jsonl.zstd") {
   const workspace = workspaceFor(home, id);
   const shard = "-" + workspace.split("/").join("-") + "-";
-  return path.join(home, "sessions", shard, sessionId, "session.jsonl.zstd");
+  return path.join(home, "sessions", shard, sessionId, filename);
 }
 
-/** 写多帧 zstd 会话日志（每批一帧，与官方持久化写法一致）。 */
-function writeSessionLog(home, id, sessionId, batches) {
-  const file = sessionLogPath(home, id, sessionId);
+/** 写多帧 zstd 会话日志（每批一帧，与官方持久化写法一致；filename 缺省旧名）。 */
+function writeSessionLog(home, id, sessionId, batches, filename = "session.jsonl.zstd") {
+  const file = sessionLogPath(home, id, sessionId, filename);
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const frames = batches.map((batch) =>
     zstdCompressSync(Buffer.from(batch.map((e) => JSON.stringify(e)).join("\n") + "\n")));
@@ -535,6 +536,36 @@ test("V-P4.1 读面：离线读盘投影 ＋ mtime/size 缓存复用 ＋ since �
   ));
   const grownTrace = await api.trace("worker", full.trace[1].seq);
   assert.deepEqual(grownTrace.trace.map((r) => r.name), ["glob"], "追加帧后增量拿到新记录（缓存随 mtime/size 失效）");
+});
+
+test("V-P4.1 读面：v4 版本化日志（代际盲区）→ BotsApi.trace 返回非空记录", async () => {
+  const home = mkHome({ worker: bot() });
+  const api = new BotsApi(makeCtx(), home);
+  writeSessionId(home, "worker", "sid-v4");
+
+  // 现役宿主（dsh-session-format v≥1）写 session.v<N>.jsonl.zstd；bot 会话是 v4。
+  // 修复前 discovery 只认旧名 session.jsonl.zstd → 该会话 trace 恒为空。
+  resetWriter();
+  turn(1);
+  tstep(1, [
+    ...toolCall({ turn: 1, step: 1, callId: "v4env", name: "run_code", args: { code: "…" }, output: "envelope" }),
+    ...subcall("v4env", 1, { name: "read", args: { path: "/a" }, output: "A" })
+  ]);
+  tend(COMPLETED);
+  const file = writeSessionLog(home, "worker", "sid-v4", [order()], "session.v4.jsonl.zstd");
+  assert.ok(file.endsWith("session.v4.jsonl.zstd"), "夹具前提：写的是现役版本化文件名");
+  assert.equal(findSessionLogFile(home, workspaceFor(home, "worker"), "sid-v4"), file,
+    "discovery 命中 v4 文件（修复前返回 null）");
+
+  const viaApi = await api.trace("worker", null);
+  assert.ok(viaApi.trace.length > 0, "v4-only 会话 → trace 非空（修复前恒为空）");
+  assert.deepEqual(viaApi.trace.map((r) => r.name), ["run_code"]);
+  assert.equal(viaApi.trace[0].subCalls.length, 1, "PTC 子调用经 v4 日志同样归入信封");
+  assert.equal(viaApi.trace[0].subCalls[0].name, "read", "内层真实名不丢");
+
+  const viaRoute = await call(api, "GET", "/api/bots/worker/trace");
+  assert.equal(viaRoute.status, 200);
+  assert.deepEqual(viaRoute.body.trace.map((r) => r.name), ["run_code"], "HTTP 读面同样拿到 v4 轨迹");
 });
 
 test("V-P4.1 读面：在线 RPC 优先（session.history）；RPC 失败回落读盘", async () => {
