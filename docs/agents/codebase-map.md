@@ -9,14 +9,18 @@
 
 - 找导出：`grep -n "^export" lib/org/<模块>.js`；找定义：`grep -n "function <名>" lib/**/*.js`。
 - 判据 ID 在规格里的位置：`node scripts/project-context.mjs --spec-index <feature>`。
-- 冻结面（哪些文件不能碰）：当前终版包的 `sourceManifest`，见 `artifacts/packages/` 最新序号包。
+- 冻结面（哪些文件不能碰）＝当前终版包（`artifacts/packages/` 最新序号包）的
+  `executionEvidence.provenance.sourceManifest` 路径清单；漂移由 preflight ②门把守，
+  agent 只需读清单判断可碰性，不必逐层探 JSON 或复验 sha。
+- 全库文本搜索先排除 `.scratch/`（实验装配快照内嵌整文件文本，非代码引用面；
+  死码判定以 lib／scripts／tests／preview 为准）。
 
 ## lib/ 根
 
 | 文件 | 职责 |
 |---|---|
-| `index.js`（3122 行） | 宿主插件主面：注册表与进程管理、Bot 管理 API、邮件接线、bot 面注册、apply 装配。区域划分见下节 |
-| `client.js`（3124 行） | web 前端插件面（UI 槽位体系），按请求从磁盘 serve |
+| `index.js` | 宿主插件主面：注册表与进程管理、Bot 管理 API、邮件接线、bot 面注册、apply 装配。区域划分见下节 |
+| `client.js` | web 前端插件面（UI 槽位体系），按请求从磁盘 serve |
 | `session-driver.js` | bot 回合轮询驱动：RPC 方法序、消息形状、turn baseline 与错误终止不变量 |
 | `native-session-rpc.js` | 进程内直调官方 sessionController 的 RPC 包装 |
 | `bot-supervisor.js` | bot 子进程生命周期与自愈 |
