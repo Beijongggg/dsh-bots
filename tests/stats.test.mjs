@@ -10,7 +10,7 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { zstdCompressSync } from "node:zlib";
-import { deriveStats, offlineStats } from "../lib/stats.js";
+import { deriveStats, offlineStats, findSessionLogFile, sessionLogCandidates } from "../lib/stats.js";
 
 // ---- ① 合成事件：精确断言 ----
 const U = { inputTokens: 100, outputTokens: 40, cacheReadTokens: 10, cacheWriteTokens: 5 };
@@ -87,5 +87,47 @@ assert.deepEqual(zero.tokenUsage, { uncachedInputTokens: 0, outputTokens: 0, cac
 const stats2 = offlineStats(home, workspace, "sid-1");
 assert.deepEqual(stats2, stats1);
 console.log("✓ offlineStats 多帧 zstd（逐帧解压/撕裂尾帧容错/无日志全零/缓存稳定）");
+
+// ---- ③ 版本化文件名代际（票 06 返修：v4-only ＋ 多版本取最高 N） ----
+// 官方 dsh-session-format::sessionFormatLogFilename：v0 → session.jsonl(.zstd)，
+// v≥1 → session.v<N>.jsonl(.zstd)；现役宿主写版本化名，现役 bot 会话是 v4。
+/** 把前 count 个回合各压成一帧（与官方「每 flush 一批一帧」的写法一致）。 */
+const logBytes = (count) => Buffer.concat(
+  Array.from({ length: count }, (_, i) => zstdCompressSync(
+    Buffer.from(mkEvents(i + 1).map((e) => JSON.stringify(e)).join("\n") + "\n"))));
+
+// 旧名目录：候选只有无版本旧名（向后兼容不回退）
+assert.deepEqual(sessionLogCandidates(sessionDir), [path.join(sessionDir, "session.jsonl.zstd")],
+  "仅旧名时候选＝旧名，且顺序稳定");
+// 目录不存在 → 空候选（不抛）
+assert.deepEqual(sessionLogCandidates(path.join(home, "sessions", shard, "sid-nope")), []);
+
+// v4-only（现役 bot 代际）：能被发现并解出事件（修复前 findSessionLogFile 返回 null → 全零）
+const v4Dir = path.join(home, "sessions", shard, "sid-v4");
+fs.mkdirSync(v4Dir, { recursive: true });
+const v4File = path.join(v4Dir, "session.v4.jsonl.zstd");
+fs.writeFileSync(v4File, logBytes(2));
+assert.equal(findSessionLogFile(home, workspace, "sid-v4"), v4File, "v4-only 目录：发现版本化日志");
+const v4stats = offlineStats(home, workspace, "sid-v4");
+assert.equal(v4stats.sessionStats.turns, 2, "v4-only 日志解出全部帧（不是只解首帧）");
+assert.equal(v4stats.tokenUsage.outputTokens, 80, "两回合各 40（v4 代际不再全零）");
+
+// 多版本并存：取版本号最高的 N（数值比较，非字典序——v10 胜 v3；旧名垫底）
+const multiDir = path.join(home, "sessions", shard, "sid-multi");
+fs.mkdirSync(multiDir, { recursive: true });
+fs.writeFileSync(path.join(multiDir, "session.jsonl.zstd"), logBytes(1));
+fs.writeFileSync(path.join(multiDir, "session.v3.jsonl.zstd"), logBytes(2));
+fs.writeFileSync(path.join(multiDir, "session.v10.jsonl.zstd"), logBytes(3));
+assert.deepEqual(sessionLogCandidates(multiDir), [
+  path.join(multiDir, "session.v10.jsonl.zstd"),
+  path.join(multiDir, "session.v3.jsonl.zstd"),
+  path.join(multiDir, "session.jsonl.zstd")
+], "候选序：版本化按 N 降序，旧名垫底（确定性）");
+assert.equal(findSessionLogFile(home, workspace, "sid-multi"), path.join(multiDir, "session.v10.jsonl.zstd"),
+  "多版本并存 → 最高版本号胜出");
+const multiStats = offlineStats(home, workspace, "sid-multi");
+assert.equal(multiStats.sessionStats.turns, 3, "统计走最高版本文件（v10＝3 回合；v3＝2、旧名＝1）");
+assert.equal(multiStats.tokenUsage.outputTokens, 120);
+console.log("✓ 版本化日志代际（v4-only 发现 ＋ 多版本取最高 N ＋ 旧名回落）");
 
 process.exit(0);

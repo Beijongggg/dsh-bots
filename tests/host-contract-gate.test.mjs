@@ -535,6 +535,20 @@ test("18号票 P-SESSION-LOG 行为化：真实格式日志经适配层读取解
     assert.equal(ok.state, "PASS", JSON.stringify(ok));
     assert.match(String(ok.coordinate), /sess-0001/);
 
+    // v4（现役宿主写版本化名 session.v4.jsonl.zstd）：v4-only 目录同样能被发现并解出事件
+    // ——修复前探针只认旧名，该目录不可达（票 06 代际盲区返修）
+    const v4Home = mkdtempSync(join(tmpdir(), "dsh-gate-sessions-v4-"));
+    try {
+      const v4Dir = join(v4Home, "sessions", "-home-probe-ws-", "sess-v4");
+      mkdirSync(v4Dir, { recursive: true });
+      writeFileSync(join(v4Dir, "session.v4.jsonl.zstd"), Buffer.concat([frame1, frame2]));
+      const v4ok = probeSessionLogStage(v4Home);
+      assert.equal(v4ok.state, "PASS", JSON.stringify(v4ok));
+      assert.match(String(v4ok.coordinate), /sess-v4/);
+    } finally {
+      rmSync(v4Home, { recursive: true, force: true });
+    }
+
     // 空数据根 → SKIP（无真实格式可核；部署面由门汇总把 SKIP 视同 FAIL）
     const empty = mkdtempSync(join(tmpdir(), "dsh-gate-sessions-empty-"));
     try {
