@@ -113,3 +113,49 @@
     `view` 互斥类）、`podLayerCss`（`[data-state]`＝`shown`／`exiting`）、`PodOverlayLayer`／
     `PodOverlayHost`、`resolvePodDraft`；05 号票在此三处追加动效，07／08／09 在 `PodOverlayLayer` 的
     席位详情视图内落行组件（不再占宿主 `main` 槽）。
+
+- 2026-10-09 复核返修（复核结论＝**需修订**；1 阻断＋4 重要＋10 次要逐条处置）：
+  - **逐条处置表**（B1／I1–I4／M1–M10）：
+
+    | 条 | 处置 | 改法（符号级） | 验证 |
+    |---|---|---|---|
+    | B1 | 修 | `.dsh-bots-pod-view[hidden]{position:absolute;inset:0;…}`（脱流但保持挂载；**不换** `display:none`／不卸载）；`.dsh-bots-pod-body` 补 `width:100%` | `tests/pod-overlay.test.mjs::B1`：声明级（`position:absolute`／`inset:0`／无作者源 `display`）＋**headless Chrome 真实布局复算**：活动视图左/右边界＝容器内容起/终点、宽＝容器内容宽；另跑「仅 visibility」反例，实测活动视图被挤右、宽小于容器 ⇒ 判据非恒真 |
+    | I1 | 修（择①） | 通知在 Pod 期抬档：`INITIAL_BOT_STATE.podActive` 随 `enter`／`exit` 翻转，`BotNotices` 落 `data-state="pod"`，`.dsh-bots-notices[data-state="pod"]{z-index:23}`（`POD_LAYER.zIndexNoticesInPod`，> 我方层 21、**< 官方浮层地板 900**） | `::I1`：档位由常量插值、严格介于层与地板之间；真实进出驱动 `podActive`；Pod 期通知容器确实落 `data-state="pod"`（非 Pod 期不落） |
+    | I2 | 修 | 删恒真断言（`layoutModals=[]`／硬编码 scope 列表）；改为**对照真机注册表**：从 `~/.dsh/…/dsh-client-ui-layout\|sidebar-right/lib/client.js` 读出 `sidebar.left.toggle` 的 `modals: []` 与关闭命令的 `kind === "close" ? ["settings","shortcuts","other"] : []`，用宿主分发器判定式（`dsh-client-shortcuts` 646／689 行口径）复算 blocked／allowed；并实跑宿主 `closeTopModal` 语义 | `::V-P2.9`：侧栏切换＝blocked；**`page.close` 带 `"other"` ⇒ 放行、走 `closeTopModal` 关掉 Pod（Cmd/Ctrl+W 在 Pod 期＝关闭 Pod，可接受行为，已写明）**；`page.refresh` 分支＝`[]` ⇒ blocked；官方层占文档序末位时不得误关 Pod |
+    | I3 | 修 | V-P2.2 改**机制级**：真 `SlotCore` 语义夹具下用真实 `apply` 跑进出，快照＝槽账本＋body 子元素表＋官方节点身份／子节点数／属性表／滚动／展开态／文本；inert 经真实挂载效应施加（layer ref 指到宿主容器下的真节点） | `::V-P2.2`：覆盖期与退出后官方节点属性逐字一致、body 子元素表逐字还原、槽账本逐字不变、（自造假节点、`children.length >= 0` 一类恒真断言已删） |
+    | I4 | 修（恢复旧语义） | `enter` 改为 `setBotState({ selectionInit:false, showDetails:false, podActive:true })`（**不再**清 `selectedBotId`）；选中收敛抽成纯函数 `resolveSelectionAfterRefresh`（`refreshBots` 唯一实现）并导出 | `::I4＋M7`：有效选中续用；无选中＋未初始化 ⇒ `sortBots()[0]`；选中项消失＋已初始化 ⇒ 置空；空注册表 ⇒ null。**未自行采用新行为**（新「每次进都落列表」口径已回退） |
+    | M1 | 修 | V-P2.3 扫描口径写实（声明 `podSection` 实为「Pod 段落所在的大段代码」并说明为何不构成假绿）＋注释先剥；拼写补全：`.hidden = <非 false>`／`setAttribute("hidden",…)`／`style.display =`／`style.setProperty("display",…)` | `::V-P2.3`（同名用例，断言由 11 条增至 18 条） |
+    | M2 | 修（改措辞） | `acquireOverlayInert` 注释改准：「跳过已有 inert 属主＋保存自己看到的值＋逆序还原＋幂等」，与宿主 `count++` 参考实现的差异＝**可达序等价**（不再写「引用计数」）；`lib/host-faces.js` HF-SHELL-FOCUS-LAYER 同步改准 | `::V-P2.8`／`::V-P2.8c`；preflight ④ 面登记 lint 绿 |
+    | M3 | 修 | 补真实可达序用例：Pod 采集中官方浮层后开（官方层看不到可采集项、释放不改我方值）→ Pod 后关各还原**真原值**；另补「他人 inert 值不得被还原成 false」 | `::V-P2.8c`（新增用例） |
+    | M4 | 修 | `lib/host-faces.js` HF-CLIENT-SLOTS.readAccess ＋ `scripts/host-contract-probe.mjs` 的 `probeClientSlotsStage` 注释、`probeClientConformanceStage` 注释、P-CLIENT-SLOTS `describe` 全部改写为「apply 期常驻两槽；enter 期只在 shell.overlay 增一条；官方 sidebar／main 两相皆不占」 | `tests/host-contract-gate.test.mjs` 金路径（`# pass 39/0`）＋preflight ④ 15 PASS |
+    | M5 | 修 | 探针坐标行改**相位后缀读取**（`sidebar.id.beforeEnter/afterEnter`、`main.key.*`），两相分别落字；gate 增补断言 + 「无后缀读取恒为『无』」的区分度反例 | `::host-contract-gate`「增补 stage」用例（39 通过）；preflight ④ 实跑 P-CLIENT-SLOTS PASS |
+    | M6 | 修（补断言） | V-P2.11 补：无选中／有效选中／返回列表三态下两视图 `hidden` 翻转（节点始终同挂载）＋选中态经 `__podStateForTest` 以「SSE 刷新后同形状态」驱动同一组件；并注明滚动保留的机制（同挂载＋`scrollTop` 不被实现触碰） | `::V-P2.11`（19 个用例之一） |
+    | M7 | 修 | 新增 `isPortaledLayer(layer)`：层不在我方宿主容器下（=就地降级）时**不采集背景 inert**（否则把层祖先 AppFrame 置 inert 自锁）；`PodOverlayLayer` 挂载效应据此判分支 | `::I4＋M7`：就地降级 ⇒ 祖先 inert 为 `undefined`；已 portal ⇒ 照常采集 |
+    | M8 | 修 | `enablePodFocusContainment` 增让位判定：焦点目标 `closest(modalSelector)` 命中、或文档序末位 modal≠我方层 ⇒ 不拉回（按宿主 `modalSelector` 公开契约，与分发器同口径） | `::M8`：层外抢焦拉回；官方高层浮层内／官方层占末位 ⇒ 让位；官方层关后恢复拉回；层内不重复聚焦 |
+    | M9 | 修 | **删** `podLayerCss` 里对宿主令牌的本地重声明；新增 `POD_TRANSITION_TOKENS`＋`podTokenVar(name)`（唯一 `var(<宿主令牌>, <常量回退>)` 生成器，**不重声明**、未登记令牌响亮抛错），供 05 号票拼 `transition`／`animation`；两处导出 | `::M9`：真实 CSS 内宿主令牌零重声明；生成器产出形态逐令牌断言；未登记令牌抛错；令牌字面只允许作为 `var()` 第一实参出现 |
+    | M10 | 修 | 删 `BotSidebar` 折叠钮的 `layoutService.toggleSidebar()` 兜底与 `layoutService` 变量／`ctx.layout` 捕获（覆盖式常驻下不可达，且违反 V-P2.10 零触达）；注释写明无操作语义 | `::V-P2.10`＋`::V-P2.2`（进出／覆盖期 `ctx.calls.layout` 均空） |
+
+  - **验证命令与计数**（返修后实测，工作树 `.worktrees/pod-04-pod-overlay-persistent`，集成头 `d3b0d86`）：
+    - `TMPDIR=/tmp node tests/run.mjs` → **90/90 个测试文件通过**（计数只增；`tests/pod-overlay.test.mjs`
+      用例 14→19、断言 122→231；`tests/host-contract-gate.test.mjs` 断言 220→224）。
+    - `TMPDIR=/tmp node scripts/preflight.mjs` → ①回归 **90/90** ✅／②冻结面（0010 包）**10/10** ✅／
+      ③status-lint **0 违例**（扫 114 个 md）✅／④宿主契约 **15 PASS / 0 FAIL / 0 SKIP** ✅。
+    - B1 的真实布局复算在测试内起 headless Chrome（`/usr/bin/google-chrome`）；本机回读实测：
+      容器内容宽 380px、活动视图 380px（左/右边界与容器一致）、非活动视图 `position:absolute`；
+      反例（仅 visibility）活动视图被挤右且宽 < 容器宽 ⇒ 该断言有区分度。
+  - **仍未闭合项**：
+    1. **真机项（单列，转 11 号票人工目视清单）**：进／出 Pod 的滚动位置／工具卡展开态／进行中回合进度
+       目视留证；Tab／Escape 与「焦点不被 composer 抢」；常用快捷键实拦效果（含 `page.close` 关闭 Pod 的
+       实机确认）；3080 运行面是 web 还是 desktop；portal 落点未被祖先 `transform／contain` 重锚、
+       官方浮层 900／1000／1001／1100 正常盖在 Pod 之上；通知抬档后的实机可见性（本票只有档位与
+       `data-state` 落点的仓内证据）。
+    2. **待用户裁定（不自行决定）**：① 新「每次进 Pod 都落席位列表」口径已按复核要求**回退**为改造前
+       语义（有效选中续用／无选中收敛到 `sortBots()[0]`）；若期望恢复新口径须用户显式裁定。
+       ② `page.close` 的 `"other"` scope 使 Cmd/Ctrl+W 在 Pod 期关闭 Pod（属可接受行为，但
+       「是否要拦成 no-op」需用户裁定）。
+    3. **仍然显式降级**（无头不可调起，非本票返修范围）：槽位 ownerProps（collapsed/wide）渲染形状、
+       primitives 实体包真实导入、真实浏览器 `inert` 语义——归 V-A6.8 人工目视清单。
+  - **供下游票依赖的接口契约（返修后增补）**：`POD_TRANSITION_TOKENS`／`podTokenVar`（05 号票唯一的
+    过渡令牌 `var()` 生成器，**不得**再本地重声明宿主令牌）、`POD_LAYER.zIndexNoticesInPod`（通知 Pod 期档）、
+    `data-state="pod"`（通知容器）、`podOverlayMarkup()`／`isPortaledLayer()`／`resolveSelectionAfterRefresh()`
+    （回归与探索用内视缝，不进对外契约）。

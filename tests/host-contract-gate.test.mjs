@@ -972,6 +972,17 @@ test("18号票 P-CLIENT-SLOTS 增补 stage：声明树/宿主包缺失与导出�
     assert.equal(ok.state, "PASS", `${ok.reason ?? ""}`);
     assert.match(ok.coordinate, /overlay=dsh-bots-notices／dsh-bots-pod/);
     assert.match(ok.coordinate, /官方 sidebar／main 占用＝无／无/);
+    // pod 04 复核 M5：相位观测须**带相位后缀读取**且两相都取到值——否则坐标行恒打印「无／无」
+    // （相位盲区：`never` 相只写 *.beforeEnter／*.afterEnter 键）。夹具的自声明记录（合成
+    // SlotCore 把 `sidebar` 声明本身也记成一条无 id 条目）会显示成「(未命名)」，故只断言
+    // 「取到了数组」（不再是空 `无`）＋我方 id 不在其中。
+    assert.match(ok.coordinate, /sidebar\.id 相位观测［beforeEnter=[^、]+、afterEnter=[^］]+］/);
+    assert.match(ok.coordinate, /main\.key 相位观测［beforeEnter=无、afterEnter=无］/);
+    assert.match(ok.coordinate, /sidebar\.id 相位观测［(?!.*dsh-bots-sidebar).*］/);
+    // 判据有区分度（非恒真）：无后缀读取在 `never` 相上恒为「无」——旧实现的相位盲区
+    const phaseBlind = (observations, slot, field) => (observations[`${slot}.${field}`] ?? []).join("／") || "无";
+    assert.equal(phaseBlind({ "sidebar.id.beforeEnter": ["x"], "sidebar.id.afterEnter": ["x"] }, "sidebar", "id"), "无",
+      "无后缀读取在 never 相上恒为「无」（旧实现形态）；带相位后缀才取到值⇒本判据非恒真");
   } finally {
     for (const dir of [bare, thin, full]) rmSync(dir, { recursive: true, force: true });
   }

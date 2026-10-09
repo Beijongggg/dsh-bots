@@ -17,8 +17,17 @@
  * 真机走查（进/出、Tab/Escape、常用快捷键、焦点不被 composer 抢）归 11 号票人工清单。
  */
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
-import { SHELL_OVERLAY_LAYER_BAND } from "../scripts/host-contract-probe.mjs";
+import {
+	HOST_TRANSITION_TOKENS,
+	SHELL_OVERLAY_LAYER_BAND,
+	discoverPackageRoots,
+	parseDeclarations
+} from "../scripts/host-contract-probe.mjs";
 
 // ---------- 装载：捕获型 loader（官方 client bundle 装载协议同形） ----------
 let captured = null;
@@ -59,7 +68,8 @@ function createHarness() {
 			const value = typeof initial === "function" ? initial() : initial;
 			return [value, (next) => { hooks.useState.push(typeof next === "function" ? next(value) : next); }];
 		},
-		useRef(initial) { hooks.useRef.push(initial); return { current: initial }; },
+		// 记账**ref 对象本身**（真 ref 语义；commit 期赋值由用例显式模拟——无头环境不跑提交）
+		useRef(initial) { const ref = { current: initial }; hooks.useRef.push(ref); return ref; },
 		useMemo(fn) { hooks.useMemo.push(fn); return fn(); },
 		useEffect(fn) { hooks.useEffect.push(fn); hooks.useEffectCleanups.push(fn); },
 		useLayoutEffect(fn) { hooks.useLayoutEffect.push(fn); },
@@ -229,6 +239,150 @@ const withFakeDom = (fn) => {
 	try { return fn(dom); } finally { globalThis.document = previousDocument; mod.__podControl.reset(); }
 };
 
+// ---------- 样式断言助手：真实 CSS 文本上的**声明级复算**（复核 B1／I1／M9） ----------
+/** 去掉选择器前缀里的块注释（规则文本里的注释先行态；如 `/* … *\/ .a{…}`）。 */
+const stripLeadingComments = (text) => String(text).replace(/^(?:\s*\/\*[\s\S]*?\*\/\s*)*/, "").trim();
+
+/**
+ * 从**真实样式文本**里取某选择器的声明表：按文档序合并、后声明覆盖前声明（无特异性
+ * 冲突的夹具内等价于级联结果），并用 `parseDeclarations`（票 02 探针的同一解析器）
+ * 拆成对象。只服务本文件的**同源规则**断言：不做选择器求值，调用方须给出逐字选择器。
+ */
+function declaredProps(css, selector) {
+	const wanted = "." + selector.replace(/^\./, "");
+	const merged = {};
+	for (const match of css.matchAll(/(?:^|(?<=\}))\s*([^{}@]+)\{([^}]*)\}/g)) {
+		const selectors = stripLeadingComments(match[1]).split(",").map((part) => part.trim());
+		if (!selectors.includes(wanted)) continue;
+		Object.assign(merged, parseDeclarations(match[2]));
+	}
+	return merged;
+}
+/** 规则体原文（用于形状断言，如「变量只以 var() 形态出现」）。 */
+function declaredBody(css, selector) {
+	const wanted = "." + selector.replace(/^\./, "");
+	let body = null;
+	for (const match of css.matchAll(/(?:^|(?<=\}))\s*([^{}@]+)\{([^}]*)\}/g)) {
+		if (stripLeadingComments(match[1]).split(",").map((part) => part.trim()).includes(wanted)) body = match[2];
+	}
+	return body;
+}
+
+/** 无头浏览器候选（真实布局复算的载体；缺失时该用例打印 SKIP 标记）。 */
+function findHeadlessBrowser() {
+	for (const candidate of ["/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/usr/bin/chromium", "/usr/bin/chromium-browser"]) {
+		if (existsSync(candidate)) return candidate;
+	}
+	return null;
+}
+
+/**
+ * 用真实布局引擎复算一段 HTML＋CSS 的几何与计算样式：
+ * 页面内注入测量脚本 → `--dump-dom` 回读 `<pre id="dsh-bots-pod-metrics">` 的 JSON。
+ * 返回 null＝本机无无头浏览器（调用方按跳过协议处置，不得当绿）。
+ */
+function measureLayout(title, bodyHtml, css) {
+	const binary = findHeadlessBrowser();
+	if (!binary) return null;
+	const dir = mkdtempSync(join(tmpdir(), "dsh-bots-pod-b1-"));
+	try {
+		const html = `<!doctype html><html><head><style>
+body{margin:0}
+${css}
+</style></head><body>${bodyHtml}
+<script>
+const box = (selector) => { const el = document.querySelector(selector); if (!el) return null; const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width }; };
+const pos = (selector) => { const el = document.querySelector(selector); return el ? getComputedStyle(el).position : null; };
+const out = document.createElement("pre");
+out.id = "dsh-bots-pod-metrics";
+out.textContent = JSON.stringify({
+  container: box("[data-dsh-bots-pod-body-fixture]"),
+  active: box("[data-dsh-bots-pod-view-fixture=\\"active\\"]"),
+  inactive: box("[data-dsh-bots-pod-view-fixture=\\"inactive\\"]"),
+  inactivePosition: pos("[data-dsh-bots-pod-view-fixture=\\"inactive\\"]"),
+  viewportWidth: window.innerWidth
+});
+document.body.appendChild(out);
+</script></body></html>`;
+		const file = join(dir, "fixture.html");
+		writeFileSync(file, html);
+		const run = spawnSync(binary, [
+			"--headless=new", "--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage",
+			`--user-data-dir=${join(dir, "profile")}`,
+			"--virtual-time-budget=2000", "--dump-dom", "file://" + file
+		], { encoding: "utf8", timeout: 60_000, env: { ...process.env, HOME: dir } });
+		const dom = run.stdout ?? "";
+		const match = dom.match(/<pre id="dsh-bots-pod-metrics">([\s\S]*?)<\/pre>/);
+		assert.ok(match, `${title}：无头浏览器未回读几何（stderr：${(run.stderr ?? "").split("\n").slice(-2).join(" / ")}）`);
+		return JSON.parse(match[1].replace(/&quot;/g, "\"").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">"));
+	} finally {
+		rmSync(dir, { recursive: true, force: true });
+	}
+}
+
+/** 旧样式基座（复核 B1 的**反例**：作者源 display:flex 覆盖 UA `[hidden]{display:none}`）。
+ *  与真实样式基座的差别只有「视图基座未脱流」一处，其余同形（shell 的 flex 照旧）。 */
+const legacyVisibilityOnlyCss = () => {
+	const c = mod.POD_LAYER_CLASSES;
+	return mod.podLayerCss.replace(
+		`.${c.view}[hidden]{position:absolute;inset:0;`,
+		`.${c.view}[hidden]{`
+	);
+};
+
+// ================= B1（复核）：整屏几何——活动视图占满容器宽 =================
+test("B1 整屏几何：非活动视图脱流但仍挂载（真实 CSS＋真实布局引擎复算），活动视图占满容器宽", () => {
+	const css = mod.podLayerCss;
+	const body = declaredProps(css, mod.POD_LAYER_CLASSES.body);
+	const view = declaredProps(css, mod.POD_LAYER_CLASSES.view);
+	const hiddenView = declaredProps(css, mod.POD_LAYER_CLASSES.view + "[hidden]");
+	// ① 作者源盒模型：活动视图须能占满容器（flex 增长＋可收缩＋零最小宽）
+	assert.match(view.display, /^flex/, "活动视图盒模型须走 flex（占满容器宽的前提）");
+	assert.match(view["flex-grow"] ?? view.flex ?? "", /^1\b/, "活动视图须 flex-grow:1（占满剩余宽）");
+	assert.match(view["min-width"] ?? "", /^0/, "活动视图须 min-width:0（不得阻止收缩到容器宽）");
+	assert.match(body.display, /^flex/, "pod-body 须为 flex 容器（双视图互斥布局的前提）");
+	// ② 非活动视图「脱流」＝复核 B1 的修法：绝对定位＋四边归零（不参与 flex 分配、
+	//    不从容器分宽），且**不得**靠 display:none 卸掉（保活前提：节点与滚动位置保留）
+	assert.equal(hiddenView.position, "absolute", "非活动视图须 position:absolute（脱流，不占横向空间）");
+	assert.equal(hiddenView.inset, "0", "非活动视图须 inset:0（锚回容器，几何不跳）");
+	assert.equal(hiddenView.display, undefined, "非活动视图不得以作者源 display 覆盖 UA 的 [hidden]{display:none}");
+	assert.equal(hiddenView.visibility, "hidden", "非活动视图须 visibility:hidden（隐藏但保持挂载）");
+	// ③ 旧形制（仅 visibility、作者源 display:flex）在作者源层就被否证——这条是**反例**，
+	//    防「改回只 visibility」的回归：作者源 display:flex 会覆盖 UA [hidden]{display:none}
+	const legacyCss = legacyVisibilityOnlyCss();
+	const legacy = declaredProps(legacyCss, mod.POD_LAYER_CLASSES.view);
+	assert.match(legacy.display, /^flex/, "反例夹具自检：旧样式确实在作者源声明 display:flex（覆盖 UA hidden 规则）");
+	const legacyHidden = declaredProps(legacyCss, mod.POD_LAYER_CLASSES.view + "[hidden]");
+	assert.equal(legacyHidden.position, undefined, "反例夹具自检：旧样式无脱流声明");
+	// ④ 真实布局引擎复算（headless Chrome；载体缺失＝跳过协议，不作绿）：把**真实
+	//    podLayerCss** 与同形标记一起交给布局引擎，量活动／非活动视图的实际盒与流占位。
+	//    判据口径：活动视图左边界＝容器内容起点、右边界＝容器内容终点（占满容器宽）；
+	//    非活动视图**不在流内**（绝对定位 ⇒ 不参与 flex 分配，故活动视图宽度不被它挤压）。
+	const metrics = measureLayout("B1", mod.podOverlayMarkup(), css);
+	if (!metrics) {
+		console.log("⤼ SKIP: 本机无无头浏览器（/usr/bin/google-chrome 等）——真实布局复算未跑，纯声明级判据仍生效");
+		return;
+	}
+	assert.ok(metrics.container && metrics.container.width > 0, `夹具容器须有实测宽度（实测 ${metrics.container && metrics.container.width}）`);
+	assert.ok(metrics.container.width < metrics.viewportWidth, "夹具须留出侧栏列宽（否则「容器宽」无区分度）");
+	assert.ok(Math.abs(metrics.active.left - metrics.container.left) <= 1,
+		`活动视图左边界须贴容器内容起点（不占横向空间的证明）：容器 ${metrics.container.left}px／活动 ${metrics.active.left}px`);
+	assert.ok(Math.abs(metrics.active.right - metrics.container.right) <= 1,
+		`活动视图右边界须达容器内容终点（占满容器宽）：容器 ${metrics.container.right}px／活动 ${metrics.active.right}px`);
+	assert.ok(Math.abs(metrics.active.width - metrics.container.width) <= 1,
+		`活动视图宽度须等于容器内容宽：容器 ${metrics.container.width}px／活动 ${metrics.active.width}px`);
+	assert.equal(metrics.inactivePosition, "absolute", "非活动视图在真实引擎里须为 absolute（脱流但保持挂载）");
+	// ④b 「半修」形态（去掉脱流声明、保留 visibility＋flex）必须在真实引擎里**复现 B1**
+	//     （非活动视图仍在流内、与活动视图分宽）：否则本条判据无力（恒真）
+	const legacyMetrics = measureLayout("B1 反例", mod.podOverlayMarkup(), legacyVisibilityOnlyCss());
+	assert.ok(legacyMetrics, "反例夹具须同样跑通（缺失浏览器时上面已跳过）");
+	assert.notEqual(legacyMetrics.inactivePosition, "absolute", "反例夹具自检：仅 visibility 的形态不得脱流");
+	assert.ok(legacyMetrics.active.left > legacyMetrics.container.left + 1,
+		`仅 visibility 的形态应复现 B1（非活动视图仍在流内、把活动视图挤到右侧）：容器左 ${legacyMetrics.container.left}px／活动左 ${legacyMetrics.active.left}px`);
+	assert.ok(legacyMetrics.active.width < legacyMetrics.container.width - 1,
+		`仅 visibility 的形态下活动视图不得占满容器宽：容器 ${legacyMetrics.container.width}px／活动 ${legacyMetrics.active.width}px`);
+});
+
 // ================= V-P2.1：槽账本不受影响 =================
 test("V-P2.1 进出 Pod 不再注册／注销官方槽位，官方条目账本不变（shell.overlay 只在进出期增删我方层）", () => {
 	const { core, entry } = bootPod();
@@ -270,7 +424,7 @@ test("V-P2.1 进出 Pod 不再注册／注销官方槽位，官方条目账本�
 	assert.deepEqual(mainKinds(), []);
 });
 
-// ================= V-P2.2：官方页保活 =================
+// ================= V-P2.2：官方页保活（机制级：真 SlotCore 实跑＋节点身份＋属性快照） =================
 test("V-P2.2 进出各一次后官方页状态保留：节点身份不变、滚动/展开态/进行中进度未被触碰", () => {
 	withFakeDom((dom) => {
 		const officialSidebar = dom.attach("官方侧栏", undefined);
@@ -282,15 +436,33 @@ test("V-P2.2 进出各一次后官方页状态保留：节点身份不变、滚�
 		toolCard.ariaExpanded = "true";
 		progress.textContent = "进行中 · 3 步";
 		const identity = [officialSidebar, officialMain, scroller, toolCard, progress];
-		const snapshot = identity.map((node) => ({ node, scrollTop: node.scrollTop, ariaExpanded: node.ariaExpanded, textContent: node.textContent }));
+		const snapshot = identity.map((node) => ({
+			node,
+			scrollTop: node.scrollTop,
+			ariaExpanded: node.ariaExpanded,
+			textContent: node.textContent,
+			childCount: node.children.length,
+			attributes: { ...node.attributes }
+		}));
 
 		// 起装置（apply 须在假 DOM 域内：SSE／locale 副作用走桩）；
 		// 覆盖层席位视图会挂真实 BotMain（轮询 effect），按无头口径补计时器桩
 		const core = createSlotCore(DECLARED);
-		mod.apply(createCtx(core));
-		const intervalSpy = () => 0;
-		globalThis.window.setInterval = intervalSpy;
+		const ctx = createCtx(core);
+		mod.apply(ctx);
+		globalThis.window.setInterval = () => 0;
 		globalThis.window.clearInterval = () => {};
+		assert.ok(ctx.calls.layout.length === 0, "装置期不得触达宿主 layout 面");
+
+		// 官方条目账本（真 SlotCore 语义）：进出前后逐字不变——这是「官方页不被换下」的机制级判据
+		const slotLedger = () => ({
+			sidebar: [...core.idsOf("sidebar")],
+			main: [...core.idsOf("main")],
+			overlay: [...core.idsOf("shell.overlay")],
+			footer: [...core.idsOf("sidebar.footer.action")]
+		});
+		const ledgerBefore = slotLedger();
+		const bodyChildrenBefore = [...dom.body.children];
 
 		mod.__podControl.enter();
 		// 覆盖层宿主容器＝portal 锚点：由 `__podControl.mountHost`（`PodOverlayHost` 的 layout effect
@@ -298,35 +470,42 @@ test("V-P2.2 进出各一次后官方页状态保留：节点身份不变、滚�
 		const host = mod.__podControl.mountHost(dom.document);
 		assert.ok(host, "进入 Pod 须在 body 下建覆盖层宿主容器（portal 锚点）");
 		assert.equal(host.parentNode, dom.body, "宿主容器须是 document.body 直接子元素（根堆叠上下文）");
-		assert.equal(host.children.length >= 0, true);
-		const during = identity.map((node, index) => ({ node, same: snapshot[index].node === node, scrollTop: node.scrollTop, ariaExpanded: node.ariaExpanded, textContent: node.textContent, isConnected: node.isConnected }));
-		for (const item of during) {
-			assert.equal(item.same, true, "官方 DOM 子树节点身份不得变化（不得卸载重挂）");
-			assert.equal(item.isConnected, true, "官方页在 Pod 期间全程挂载");
-			assert.equal(item.scrollTop, snapshot[identity.indexOf(item.node)].scrollTop, "官方滚动位置不得被改写");
-			assert.equal(item.ariaExpanded, snapshot[identity.indexOf(item.node)].ariaExpanded, "官方工具卡展开态不得被改写");
-			assert.equal(item.textContent, snapshot[identity.indexOf(item.node)].textContent, "官方进行中回合的可见进度不得被改写");
+		// 真实挂载效应：把层的 ref 指向**宿主容器下的真节点**（现场里层就是 portal 到 host 的），
+		// 再直调 effect（与现场同一函数、同一路径——含 M7 的「已 portal 才置 inert」判定）
+		const layerNode = dom.document.createElement("div");
+		host.appendChild(layerNode);
+		layerNode.ownerDocument = dom.document;
+		harness.hooks.useEffect.length = 0;
+		harness.hooks.useEffectCleanups.length = 0;
+		harness.hooks.useRef.length = 0;
+		const layerView = harness.render(mod.PodOverlayLayer, { open: true, t: (key) => key });
+		assert.equal(layerView.error, undefined, "覆盖层须可渲染：" + (layerView.error && layerView.error.message));
+		const dialogRef = harness.hooks.useRef.at(-1);
+		assert.ok(dialogRef && typeof dialogRef === "object", "覆盖层根须挂 ref（inert 采集的 layer 载体）");
+		// 复算 React commit：把根 ref 指向真节点（无头渲染器不跑提交期）
+		dialogRef.current = layerNode;
+		const cleanups = [];
+		for (const effect of harness.hooks.useEffect.slice()) {
+			const out = typeof effect === "function" ? effect() : null;
+			if (typeof out === "function") cleanups.push(out);
 		}
-		assert.equal(officialSidebar.children.length, 0, "官方容器不得被插入隐藏件");
-		// 背景置 inert 是唯一被允许的宿主 DOM 写入（Q23a 授权偏离），且不触碰可见/几何属性：
-		// 经真实覆盖层挂载效应（effect 直调用法）施加，与现场同一函数
-		const runEffects = (component, useStateProps) => {
-			harness.hooks.useEffect.length = 0;
-			harness.hooks.useEffectCleanups.length = 0;
-			const view = harness.render(component, useStateProps);
-			assert.equal(view.error, undefined, "覆盖层须可渲染：" + (view.error && view.error.message));
-			const cleanups = [];
-			for (const effect of harness.hooks.useEffect.slice()) {
-				const out = typeof effect === "function" ? effect() : null;
-				if (typeof out === "function") cleanups.push(out);
-			}
-			return cleanups;
-		};
-		const cleanups = runEffects(mod.PodOverlayLayer, { open: true, t: (key) => key });
-		for (const node of identity) {
-			assert.equal(node.inert, true, "覆盖期间背景元素须被置 inert");
+		assert.ok(cleanups.length >= 1, "覆盖层挂载效应须可直调（inert＋焦点兜底）");
+
+		// 覆盖期：官方节点身份／连接态／几何与可见属性一律不动；唯一允许的写入＝背景 inert
+		for (const item of snapshot) {
+			const node = item.node;
+			assert.equal(node, item.node, "官方 DOM 子树节点身份不得变化（不得卸载重挂）");
+			assert.equal(node.isConnected, true, "官方页在 Pod 期间全程挂载");
+			assert.equal(node.scrollTop, item.scrollTop, "官方滚动位置不得被改写");
+			assert.equal(node.ariaExpanded, item.ariaExpanded, "官方工具卡展开态不得被改写");
+			assert.equal(node.textContent, item.textContent, "官方进行中回合的可见进度不得被改写");
+			assert.equal(node.children.length, item.childCount, "官方容器子节点数不得被改写（不得被插入隐藏件）");
+			assert.deepEqual(node.attributes, item.attributes, `官方节点属性不得被改写（${node.label}）`);
+			assert.equal(node.inert, true, "覆盖期间背景元素须被置 inert（唯一被允许的宿主 DOM 写入）");
 			assert.equal(Object.keys(node.style).length, 0, "不得以样式隐藏官方页");
 		}
+		assert.equal(host.inert, undefined, "我方宿主容器不得被置 inert（层内控件须可聚焦）");
+		assert.equal(ctx.calls.layout.length, 0, "覆盖期不得触达宿主 layout 面");
 
 		// 卸载序（React 口径：清理函数按**相反序**跑）→ 撤层
 		for (const cleanup of cleanups.slice().reverse()) cleanup();
@@ -336,35 +515,56 @@ test("V-P2.2 进出各一次后官方页状态保留：节点身份不变、滚�
 			assert.equal(item.node.scrollTop, item.scrollTop, "退出后滚动位置保留");
 			assert.equal(item.node.ariaExpanded, item.ariaExpanded, "退出后工具卡展开态保留");
 			assert.equal(item.node.textContent, item.textContent, "退出后进行中回合可见进度保留");
+			assert.deepEqual(item.node.attributes, item.attributes, "退出后官方节点属性逐字还原");
 			assert.equal(item.node.inert, undefined, "退出后 inert 原值还原");
 		}
+		// 进出各一次后：官方槽账本与 body 直接子元素表逐字还原（除我方常驻宿主容器外无增删）
+		assert.deepEqual(slotLedger().sidebar, ledgerBefore.sidebar, "官方 sidebar 账本不得变");
+		assert.deepEqual(slotLedger().main, ledgerBefore.main, "官方 main 账本不得变");
+		assert.deepEqual(slotLedger().footer, ledgerBefore.footer, "入口钮账本不得变");
+		assert.deepEqual(slotLedger().overlay, [IDS.notices], "退出后覆盖层只余通知条目（撤层）");
+		const bodyChildrenAfter = [...dom.body.children].filter((node) => node.getAttribute("data-dsh-bots-pod-host") === null);
+		assert.deepEqual(bodyChildrenAfter, bodyChildrenBefore, "官方页的 body 直接子元素表逐字还原");
+		assert.equal(ctx.calls.layout.length, 0, "退出不得触达宿主 layout 面");
 	});
 });
 
 // ================= V-P2.3：负例——不得以 hidden／display:none 隐藏官方页 =================
 test("V-P2.3 负例：Pod 路径不得对官方页用 hidden／display:none，覆盖层隐藏自身也不用 display:none", () => {
+	/** 剥掉块注释与行注释（扫描只针对**代码**，判据文里出现被禁字面不算命中——复核 M1）。 */
+	const stripComments = (text) => String(text)
+		.replace(/\/\*[\s\S]*?\*\//g, "")
+		.replace(/(^|[^:])\/\/[^\n]*/g, "$1");
 	// 源码级：Pod 层相关代码不得出现「官方页隐藏」写法（我方从不触碰宿主 DOM 的显示属性）
-	assert.ok(!/closeDetails\s*\(/.test(clientSource), "死调用 ctx.layout.closeDetails() 须已删除");
-	// 我方只对**自身**视图用 hidden 属性互斥（CSS 里落 visibility，节点不卸载）；
-	// 禁的是「对官方页（document.body 直接子元素）施加 hidden／display:none」的写法：
-	// 覆盖层段落内不得出现 body.children 的可见性写法，也不得出现内联 display:none
-	const podSection = clientSource.slice(clientSource.indexOf("Pod 覆盖式常驻"), clientSource.indexOf("// ---------- 插件声明"));
+	assert.ok(!/closeDetails\s*\(/.test(stripComments(clientSource)), "死调用 ctx.layout.closeDetails() 须已删除");
+	// 扫描口径（复核 M1，写实）：`podSection`＝从「Pod 覆盖式常驻」注释到 `// ---------- 插件声明`
+	// 的整段，实测覆盖本文件绝大部分（含 BotMain／ChatView 等非 Pod 件）——故它**不是**
+	// 只扫 Pod 代码，而是「Pod 段落所在的大段代码」；下列负例是全域禁区（我方任何代码都
+	// 不得对官方页施加 hidden／display:none），覆盖面更大不构成假绿。精确到 Pod 样式基座
+	// 的扫描见本条下半段（`podLayerCss` 起止之间）。
+	const podSection = stripComments(clientSource.slice(
+		clientSource.indexOf("Pod 覆盖式常驻"),
+		clientSource.indexOf("// ---------- 插件声明")
+	));
 	assert.ok(podSection.length > 0, "Pod 覆盖式常驻段落须存在");
-	// 扫描范围＝**覆盖层自己的样式基座**（`podLayerCss` 起止之间；注释先剥）——
-	// 既有 `.dsh-bots-header-back{display:none}` 等 Pod 外的历史规则不在本判据内
+	// 禁的写法逐拼写点名（复核 M1：原实现只查 `.hidden = true` 与 `style.display =`）：
+	// 属性赋值、属性字面量、style 属性与 setProperty 四条通路都不放过
+	assert.ok(!/\.hidden\s*=\s*(?!false)/.test(podSection), "不得以 `.hidden = <非 false>` 改写元素（含宿主页与自身视图之外的任何节点）");
+	assert.ok(!/setAttribute\(\s*["'`]hidden["'`]/.test(podSection), "不得以 setAttribute(\"hidden\", …) 隐藏元素");
+	assert.ok(!/\bstyle\.display\s*=/.test(podSection), "不得直接改写元素 display");
+	assert.ok(!/style\.setProperty\(\s*["'`]display["'`]/.test(podSection), "不得以 style.setProperty(\"display\", …) 隐藏元素");
+	assert.ok(!/aria-hidden["']?\s*:\s*["']?true[^}]*\bbb?ody\b/.test(podSection), "不得对 body 施加 aria-hidden");
+	// 覆盖层自己的样式基座（`podLayerCss` 起止之间，注释已剥）：容器与视图一律不得 display:none
 	const cssStart = clientSource.indexOf("const podLayerCss = `");
 	const cssEnd = clientSource.indexOf("`;", cssStart);
-	const podCode = clientSource.slice(cssStart, cssEnd + 2);
+	const podCode = stripComments(clientSource.slice(cssStart, cssEnd + 2));
 	assert.ok(podCode.includes("POD_LAYER_CLASSES.layer"), "覆盖层样式基座须存在");
 	assert.ok(!/display\s*:\s*["']?none/.test(podCode), "覆盖层样式基座内不得出现 display:none");
-	assert.ok(!/\.hidden\s*=\s*true/.test(podSection), "不得直接置宿主元素 hidden（官方页全程挂载）");
-	assert.ok(!/\bstyle\.display\s*=/.test(podSection), "不得直接改写宿主元素 display（官方页全程挂载）");
-	assert.ok(!/aria-hidden["']?\s*:\s*["']?true[^}]*\bbb?ody\b/.test(podSection), "不得对 body 施加 aria-hidden");
-	// 我方隐藏自身视图（列表／席位互斥）用 visibility，不得用 display:none 卸掉交互树
+	// 我方隐藏自身视图（列表／席位互斥）用 visibility＋脱流定位，不得用 display:none 卸掉交互树
 	const podCss = mod.POD_LAYER_CLASSES && mod.podLayerCss;
 	assert.equal(typeof podCss, "string", "导出面缺 podLayerCss（覆盖层样式基座）");
-	assert.ok(!/display\s*:\s*none/.test(podCss), "覆盖层样式不得用 display:none");
-	// 覆盖层视图互斥只走 hidden 属性（CSS 落 visibility），且不得内联 display
+	assert.ok(!/display\s*:\s*none/.test(stripComments(podCss)), "覆盖层样式不得用 display:none");
+	// 覆盖层视图互斥只走 hidden 属性（CSS 落 visibility＋脱流），且不得内联 display
 	const tree = harness.render(mod.PodOverlayLayer, { open: true, t: (key) => key });
 	assert.equal(tree.error, undefined, "覆盖层须可渲染：" + (tree.error && tree.error.message));
 	for (const node of findAll(tree, (item) => typeof item.props.className === "string" && item.props.className.includes("dsh-bots-pod"))) {
@@ -514,6 +714,35 @@ test("V-P2.8 背景 inert：覆盖期间背景不可聚焦、原值 LIFO 还原�
 	});
 });
 
+test("V-P2.8c 背景 inert：真实可达序（Pod 采集中官方浮层后开）——让位、LIFO 归还、各自还原自己的值", () => {
+	withFakeDom((dom) => {
+		const officialA = dom.attach("官方 A", undefined);
+		const officialB = dom.attach("官方 B", undefined);
+		const { acquireOverlayInert, releaseOverlayInert } = mod.__podInertForTest;
+		// 真实可达序：Pod 先开 ⇒ 采集全部背景（A／B 由 Pod 属主置 true 并保存原值）
+		const podHandle = acquireOverlayInert(dom.document);
+		assert.equal(officialA.inert, true, "Pod 采集后背景 A 为 inert");
+		assert.equal(officialB.inert, true, "Pod 采集后背景 B 为 inert");
+		// 官方浮层后开（§B6：官方 body 级浮层盖在 Pod 之上）：官方层**看不到可采集项**
+		const officialHandle = acquireOverlayInert(dom.document);
+		assert.equal(officialHandle, null, "Pod 在位时官方层的采集不得窃取我方属主已置的值（无新元素可采集）");
+		assert.equal(officialA.inert, true, "官方层采集后背景 A 仍为 inert");
+		// 后开先关（官方层先关）：官方层释放不得改动我方属主的值 ⇒ Pod 仍在其位、背景仍不可聚焦
+		releaseOverlayInert(officialHandle);
+		assert.equal(officialA.inert, true, "官方层释放后背景 A 仍为 inert（Pod 仍在位；LIFO 各自还原自己的值）");
+		assert.equal(officialB.inert, true, "官方层释放后背景 B 仍为 inert");
+		// Pod 后关：还原到**真原值**（从未设置过 ⇒ undefined）
+		releaseOverlayInert(podHandle);
+		assert.equal(officialA.inert, undefined, "Pod 释放后背景 A 还原为真原值（undefined）");
+		assert.equal(officialB.inert, undefined, "Pod 释放后背景 B 还原为真原值（undefined）");
+		// 补反向序的「不窃取」半边：官方层属主已置 true 的元素，我方释放不得还原成 false
+		const officialC = dom.attach("官方 C（已是 inert）", true);
+		const handle = acquireOverlayInert(dom.document);
+		releaseOverlayInert(handle);
+		assert.equal(officialC.inert, true, "他人的 inert 值不得被还原成 false（不窃取）");
+	});
+});
+
 test("V-P2.8b 背景 inert：Pod 期间只有我方层可聚焦，layer 根自身不被置 inert", () => {
 	withFakeDom((dom) => {
 		const official = dom.attach("官方页", undefined);
@@ -528,25 +757,127 @@ test("V-P2.8b 背景 inert：Pod 期间只有我方层可聚焦，layer 根自�
 });
 
 // ================= V-P2.9：宿主快捷键 modal 契约 =================
+/**
+ * 宿主命令注册表读取（复核 I2 的「对照真实注册表」载体，非硬编码常量）：
+ * 从真机装的官方 bundle 源里取 `id` 声明（字面量或模板形）与其后最近的 `modals:` 实参。
+ * 载体缺失／声明为模板形无法逐字对 id 时返回 null（调用方按跳过协议处置，不静默当绿）。
+ */
+function readHostCommandModals({ pkg, id, literalId = true }) {
+	for (const root of discoverPackageRoots()) {
+		const file = join(root, pkg, "lib", "client.js");
+		if (!existsSync(file)) continue;
+		const source = readFileSync(file, "utf8");
+		if (!literalId) {
+			// 模板形 id（如 `page.${kind}`）：以「谁调用 closeTopModal」定位声明块，再取该块的 modals
+			const anchor = source.indexOf("closeTopModal");
+			if (anchor < 0) continue;
+			const start = source.lastIndexOf("id:", anchor);
+			const between = source.slice(start, anchor);
+			const at = between.lastIndexOf("modals:");
+			const expression = at < 0 ? "" : between.slice(at + 7).trim().replace(/,\s*$/, "");
+			return { commandId: "(close command)", expression, file, anchor: source.slice(start, start + 40).split("\n")[0] };
+		}
+		const idMatches = [...source.matchAll(/\bid:\s*(?:`([^`]*)`|"([^"]*)"|'([^']*)')/g)]
+			.map((match) => ({ id: match[1] ?? match[2] ?? match[3], at: match.index }));
+		for (const resolveAt of [...source.matchAll(/\bresolve\s*[:(]/g)].map((match) => match.index)) {
+			// 与该 `resolve` 最近的前一个 `id:` 即本命令的注册 id（命令对象字面量序：id → … → resolve）
+			const owner = [...idMatches].reverse().find((entry) => entry.at < resolveAt);
+			if (!owner || owner.id !== id) continue;
+			const between = source.slice(owner.at, resolveAt);
+			const at = between.lastIndexOf("modals:");
+			if (at < 0) return { commandId: id, modals: [], file, note: "无 modals 声明（缺省＝任何 modal 下放行）" };
+			return { commandId: id, expression: between.slice(at + 7).trim().replace(/,\s*$/, ""), file };
+		}
+	}
+	return null;
+}
+
+/** 宿主命令声明的 modals 取值读出（字面数组或 `cond ? [...] : []` 三元；覆盖 Pod 期两种）。
+ *  三元分支**不含数组字面量**时返回 `[]`（如 else 分支的 `: []` 与无括号写法等价）。 */
+function resolveModalsExpression(expression, kind) {
+	// 三元条件里可能含方括号（如 `[...list, "x"]`），先剥掉条件段再取数组字面量
+	const text = String(expression).includes("?") ? String(expression).slice(String(expression).indexOf("?")) : String(expression);
+	const literal = (span) => {
+		if (span.indexOf("[") < 0) return [];
+		return span.slice(span.indexOf("[") + 1, span.indexOf("]")).split(",")
+			.map((part) => part.trim().replace(/^["'`]|["'`]$/g, "")).filter(Boolean);
+	};
+	if (!/kind\s*===/.test(String(expression))) return literal(text);
+	const after = text.slice(text.indexOf("[") < 0 ? text.length : text.indexOf("["));
+	if (kind === "close") return literal(after);
+	const rest = after.slice(after.indexOf(":") + 1).trim();
+	return literal(rest);
+}
+
 test("V-P2.9 键盘隔离：覆盖层读作 modal scope \"other\"，宿主侧栏切换等命令按契约被拦", () => {
-	// 宿主分发口径复算：document 序最后一个 [role=dialog][aria-modal=true] 即 modal scope
+	// 宿主分发口径复算（来源：dsh-client-shortcuts `keydown`／`dispatch`，见下方引用）：
+	// modal scope ＝ 文档序最后一个 `modalSelector` 元素的 `dataset.shortcutModal ?? "other"`；
+	// 命令命中但 `!command.modals.includes(context.modal)` ⇒ blocked＋preventDefault。
 	const tree = harness.render(mod.PodOverlayLayer, { open: true, t: (key) => key });
 	const root = findOne(tree, (node) => hasClass(node, IDS.podLayer));
 	assert.ok(root.props.role === "dialog" && root.props["aria-modal"] === "true");
+	assert.equal(root.props["data-shortcut-modal"], undefined, "覆盖层不设 data-shortcut-modal（dataset 缺省 ⇒ scope \"other\"）");
 	const scope = root.props["data-shortcut-modal"] ?? "other";
-	assert.equal(scope, "other", "未命名 modal 即 \"other\"，无官方命令声明该 scope ⇒ 一律 blocked＋preventDefault");
-	// 官方 layout 侧栏切换命令声明 modals: [] ⇒ 任何 modal 下被拦（含 \"other\"）
-	const layoutModals = [];
-	assert.ok(!layoutModals.includes(scope), "侧栏切换类命令在 Pod 期间须被拦");
-	// 官方 settings 命令声明 [\"settings\"] —— Pod 不占用该 scope（不得放行任何命令）
-	for (const declared of [["settings"], ["settings", "shortcuts"]]) {
-		assert.ok(!declared.includes(scope), "Pod 期不得放行官方命令 scope：" + declared.join("／"));
+	assert.equal(scope, "other", "Pod 期 modal scope 须落在 \"other\"（未命名）");
+	// 宿主分发器判定式（逐字复算 dsh-client-shortcuts/lib/client.js:646／689）：
+	const dispatchDecision = (command, modalScope) =>
+		modalScope !== null && !command.modals.includes(modalScope) ? "blocked" : "allowed";
+
+	// ① 真实宿主注册表：侧栏切换命令（`sidebar.left.toggle`，dsh-client-ui-layout）声明 modals: []
+	const toggle = readHostCommandModals({ pkg: "dsh-client-ui-layout", id: "sidebar.left.toggle" });
+	if (!toggle) {
+		console.log("⤼ SKIP: 本机未安装官方 dsh-client-ui-layout——宿主注册表对照未跑（命令契约判据仍生效）");
+		return;
+	}
+	const toggleModals = resolveModalsExpression(toggle.expression, "toggle");
+	assert.deepEqual(toggleModals, [], `side bar 切换命令 modals 须为 []（实测 ${JSON.stringify(toggleModals)}，源 ${toggle.file}）`);
+	assert.equal(dispatchDecision({ modals: toggleModals }, scope), "blocked",
+		"Pod 期侧栏切换命令须被拦（对照真实注册表：[] 不含 \"other\"）");
+	// ② 真实宿主注册表：关闭命令（`dsh-client-ui-sidebar-right` 里 `id: \`page.${kind}\`` 的
+	//    close 分支）声明 `kind === "close" ? ["settings","shortcuts","other"] : []` ⇒ **被放行**，
+	//    resolve 走 `primitives.closeTopModal(document)` 关掉栈顶（=Pod 层）。属可接受行为
+	//    （复核 I2 明确认定），但必须在注释/票面写明：**Cmd/Ctrl+W 在 Pod 期＝关闭 Pod**。
+	const pageClose = readHostCommandModals({ pkg: "dsh-client-ui-sidebar-right", literalId: false });
+	assert.ok(pageClose, "宿主关闭命令声明须可读（sidebar-right bundle 在位）");
+	const closeModals = resolveModalsExpression(pageClose.expression, "close");
+	assert.deepEqual(closeModals, ["settings", "shortcuts", "other"],
+		`关闭命令的 close 分支 modals 须含 "other"（实测 ${JSON.stringify(closeModals)}，源 ${pageClose.file}）`);
+	assert.deepEqual(resolveModalsExpression(pageClose.expression, "refresh"), [], "同一条件实参的 else 分支须为 []（refresh 不放行）");
+	assert.equal(dispatchDecision({ modals: closeModals }, scope), "allowed",
+		"关闭命令在 Pod 期被放行（\"other\" 在其声明的 modals 内）——随后 resolve 走 primitives.closeTopModal 关闭栈顶层");
+	// ②b 宿主 `closeTopModal` 语义复算（逐字对照 dsh-client-ui-primitives 实现：栈顶＝最后一个
+	//     注册且仍为文档序末位 modalSelector 元素的层）：Pod 层在栈顶 ⇒ 关闭命令真的关掉 Pod
+	{
+		const layers = new WeakMap();
+		const closeTopModal = (document) => {
+			const top = layers.get(document)?.at(-1);
+			if (top === undefined) return false;
+			if ([...document.querySelectorAll(mod.POD_MODAL_SELECTOR)].at(-1) === top.element) { top.close(); return true; }
+			return false;
+		};
+		const makeDoc = (topElement) => ({
+			querySelectorAll: () => (topElement ? [topElement] : [])
+		});
+		const podLayerElement = { id: "pod" };
+		const doc = makeDoc(podLayerElement);
+		let closed = 0;
+		layers.set(doc, [{ element: podLayerElement, close: () => { closed += 1; } }]);
+		assert.equal(closeTopModal(doc), true, "Pod 层在栈顶时关闭命令须命中栈顶");
+		assert.equal(closed, 1, "Pod 层须被真正关闭（cmd/ctrl+W 在 Pod 期＝关闭 Pod，可接受且写明）");
+		const otherTop = { id: "official" };
+		const doc2 = makeDoc(otherTop);
+		let podClosed = 0;
+		layers.set(doc2, [{ element: podLayerElement, close: () => { podClosed += 1; } }]);
+		assert.equal(closeTopModal(doc2), false, "文档序末位不是栈顶层时不得关闭");
+		assert.equal(podClosed, 0, "官方高层浮层在场时 Pod 不得被关闭命令误关");
 	}
 	// Esc／Tab 行为归 useModalLayer（本票不自写键盘监听）
 	const podImpl = clientSource.slice(clientSource.indexOf("function PodOverlayLayer"), clientSource.indexOf("function BotModeEntry"));
 	assert.ok(podImpl.length > 0, "覆盖层实现段须存在");
 	assert.ok(!/addEventListener\(\s*["']keydown["']/.test(podImpl), "覆盖层实现段不得自写 keydown 监听（Escape／Tab 归 useModalLayer 契约）");
 	assert.ok(!/querySelectorAll/.test(podImpl), "覆盖层实现段不得自写可聚焦项查询（Tab 囚笼归 useModalLayer）");
+	assert.equal(mod.POD_MODAL_SELECTOR, "[role=\"dialog\"][aria-modal=\"true\"], [role=\"menu\"]",
+		"我方复算用的 modal 契约选择器须与宿主 primitives.modalSelector 逐字一致");
 });
 
 // ================= V-P2.10：旁带清理 =================
@@ -563,7 +894,7 @@ test("V-P2.10 旁带清理：不再强展／强收官方侧栏，死调用 close
 	assert.equal(mod.botModeLayout && "expandedOnEntry" in mod.botModeLayout, false, "不得残留 expandedOnEntry 旁带状态");
 });
 
-// ================= V-P2.11：Pod 内席位切换保活 =================
+// ================= V-P2.11：Pod 内席位切换保活（草稿／选中／滚动） =================
 test("V-P2.11 Pod 内切席位再切回：草稿与选中保留（视图不卸载重挂）", () => {
 	const { rememberPodDraft, forgetPodDraft } = mod.__podDraftForTest;
 	const { resolvePodDraft } = mod;
@@ -578,17 +909,248 @@ test("V-P2.11 Pod 内切席位再切回：草稿与选中保留（视图不卸�
 	assert.equal(resolvePodDraft("bot-b"), "", "新席位草稿独立（不得串到上一个席位）");
 	// 切回 A
 	assert.equal(resolvePodDraft("bot-a"), "草稿 A", "切回原席位草稿仍在");
+
+	// 视图层：列表与席位视图在同一覆盖层内**互斥但不卸载**（滚动／草稿由节点身份持有）
+	const readViews = (rendered) => {
+		const body = findOne(rendered, (node) => hasClass(node, "dsh-bots-pod-body"));
+		assert.ok(body, "覆盖层须有 pod-body（列表／席位双视图容器）");
+		const views = findAll(body, (node) => typeof node.props.className === "string" && node.props.className.includes("dsh-bots-pod-view"));
+		assert.equal(views.length, 2, "列表视图与席位视图须同时在挂载树上（互斥呈现，不卸载重挂）");
+		const hint = views.find((node) => hasClass(node, "dsh-bots-pod-seat-view"));
+		const detail = views.find((node) => hasClass(node, "dsh-bots-pod-seat-detail"));
+		assert.ok(hint && detail, "两个视图须按席位列表／席位详情两个类名区分");
+		return { hint, detail };
+	};
+	// 无有效选中：列表视图呈现（不是「挂载但全隐藏」），席位详情隐藏且仍在树上
+	const noSelection = readViews(tree);
+	assert.equal(noSelection.hint.props.hidden, false, "无有效选中时列表视图须呈现");
+	assert.equal(noSelection.detail.props.hidden, true, "无有效选中时席位视图隐藏（但仍在挂载树上）");
+	// 已有有效选中：席位视图呈现、列表隐藏——**同一对节点**，只是 hidden 翻转（不卸载重挂）
+	mod.__podControl.reset();
+	mod.apply(createCtx(createSlotCore(DECLARED)));
+	const state = mod.getBotState();
+	assert.equal(state.selectedBotId, null, "净初态无选中");
+	// 选中一个 bot（经真实 store 通路：状态直写由 refreshBots 收敛，此处用最小夹具）
+	const selectedTree = (() => {
+		// 直接把 bots／选中塞进 store（与 SSE 刷新后的状态同形），再渲染同一组件
+		const setState = mod.__podStateForTest;
+		assert.ok(setState, "内视缝须可写 store（V-P2.11 的选中态夹具）");
+		setState({ bots: [{ id: "bot-a", name: "A" }, { id: "bot-b", name: "B" }], selectedBotId: "bot-b", selectionInit: true });
+		return harness.render(mod.PodOverlayLayer, { open: true, t: (key) => key });
+	})();
+	const withSelection = readViews(selectedTree);
+	assert.equal(withSelection.detail.props.hidden, false, "已有有效选中时席位视图须呈现");
+	assert.equal(withSelection.hint.props.hidden, true, "已有有效选中时列表视图隐藏（仍在挂载树上）");
+	// 切回列表（backToList 语义）→ 列表视图重新呈现、席位视图隐藏；两侧节点身份仍由同一子树持有
+	mod.__podStateForTest({ selectedBotId: null, selectionInit: true });
+	const backToList = readViews(harness.render(mod.PodOverlayLayer, { open: true, t: (key) => key }));
+	assert.equal(backToList.hint.props.hidden, false, "返回列表须重新呈现列表视图");
+	assert.equal(backToList.detail.props.hidden, true, "返回列表后席位视图隐藏（未卸载）");
 	// 成功发送后清空（与既有 send() 口径一致）
 	forgetPodDraft("bot-a");
 	assert.equal(resolvePodDraft("bot-a"), "", "发送成功即清空草稿");
-	// 视图层：列表与席位视图在同一覆盖层内**互斥但不卸载**（滚动／草稿由节点身份持有）
-	const body = findOne(tree, (node) => hasClass(node, "dsh-bots-pod-body"));
-	assert.ok(body, "覆盖层须有 pod-body（列表／席位双视图容器）");
-	const views = findAll(body, (node) => typeof node.props.className === "string" && node.props.className.includes("dsh-bots-pod-view"));
-	assert.equal(views.length, 2, "列表视图与席位视图须同时在挂载树上（互斥呈现，不卸载重挂）");
 	const css = mod.podLayerCss;
 	assert.match(css, /\.dsh-bots-pod-view\[hidden\][^{]*\{[^}]*visibility:hidden/, "非活动视图须用 visibility 隐藏（保节点身份与滚动位置）");
+	assert.match(css, /\.dsh-bots-pod-view\[hidden\][^{]*\{[^}]*position:absolute/, "非活动视图须脱流（复核 B1：不占横向空间）");
 	assert.ok(!/\.dsh-bots-pod-view[^{]*\{[^}]*display:none/.test(css), "非活动视图不得用 display:none");
+});
+
+// ================= 复核 I4：进入语义（改造前口径）· M7：就地降级不自锁 =================
+test("I4＋M7 进入语义＝改造前口径（有效选中续用／无选中由 refreshBots 收敛到 sortBots 首位），就地降级不置背景 inert", () => {
+	// ---- I4：进入只复位初始化标记，不清 selectedBotId ----
+	mod.__podControl.reset();
+	bootPod();
+	let state = mod.getBotState();
+	assert.equal(state.selectedBotId, null, "净初态无选中");
+	mod.__podControl.enter();
+	state = mod.getBotState();
+	assert.equal(state.selectionInit, false, "进入须复位初始化标记（触发 refreshBots 的既有收敛规则）");
+	assert.equal(state.selectedBotId, null, "进入不得凭空造选中（无选中时保持 null，等 refreshBots 收敛）");
+	assert.equal(state.podActive, true, "进入须点亮 Pod 活跃标志（通知抬档依据）");
+	mod.__podControl.exit();
+	assert.equal(mod.getBotState().podActive, false, "退出须熄灭 Pod 活跃标志");
+	// 已有有效选中 ⇒ 续用（通知点开某席位后进 Pod 的通路：openBotChat 先 selectBot 再 enter）
+	mod.__podStateForTest({ bots: [{ id: "bot-a" }, { id: "bot-b" }], selectedBotId: "bot-a", selectionInit: true });
+	mod.__podControl.enter();
+	assert.equal(mod.getBotState().selectedBotId, "bot-a", "已有有效选中须续用（不得被进入清掉）");
+	assert.equal(mod.getBotState().selectionInit, false, "进入后仍复位初始化标记（与改造前一致）");
+	mod.__podControl.exit();
+	// 收敛规则（纯函数，refreshBots 的唯一实现）：无选中 ⇒ sortBots 首位；有效选中 ⇒ 续用
+	const bots = [{ id: "plain" }, { id: "anchor", bootstrapAnchor: true }];
+	assert.equal(mod.resolveSelectionAfterRefresh({ selectedBotId: null, selectionInit: false }, bots), "anchor",
+		"无选中＋未初始化 ⇒ 自动选中 sortBots()[0]（锚点席位排首）");
+	assert.equal(mod.resolveSelectionAfterRefresh({ selectedBotId: "plain", selectionInit: false }, bots), "plain",
+		"已有有效选中 ⇒ 续用（不重选）");
+	assert.equal(mod.resolveSelectionAfterRefresh({ selectedBotId: "gone", selectionInit: false }, bots), "anchor",
+		"选中项已消失＋未初始化 ⇒ 收敛到 sortBots 首位");
+	assert.equal(mod.resolveSelectionAfterRefresh({ selectedBotId: "gone", selectionInit: true }, bots), null,
+		"选中项已消失＋已初始化 ⇒ 置空回列表（与改造前 refreshBots 逐字同义）");
+	assert.equal(mod.resolveSelectionAfterRefresh({ selectedBotId: null, selectionInit: true }, []), null, "空注册表 ⇒ 保持无选中");
+
+	// ---- M7：就地降级（无 portal）不得把祖先 AppFrame 置 inert（自锁） ----
+	withFakeDom((dom) => {
+		const appFrame = dom.attach("官方 AppFrame（层祖先）", undefined);
+		const layerInPlace = dom.document.createElement("div");
+		appFrame.appendChild(layerInPlace);
+		layerInPlace.ownerDocument = dom.document;
+		assert.equal(mod.isPortaledLayer(layerInPlace), false, "就地降级层不得被判为已 portal");
+		assert.equal(mod.isPortaledLayer(null), false, "空层引用不得被判为已 portal（防御）");
+		harness.hooks.useEffect.length = 0;
+		harness.hooks.useRef.length = 0;
+		const view = harness.render(mod.PodOverlayLayer, { open: true, t: (key) => key });
+		assert.equal(view.error, undefined, "就地降级仍须可渲染：" + (view.error && view.error.message));
+		const ref = harness.hooks.useRef.at(-1);
+		ref.current = layerInPlace;
+		for (const effect of harness.hooks.useEffect.slice()) if (typeof effect === "function") effect();
+		assert.equal(appFrame.inert, undefined, "就地降级不得把层祖先（AppFrame）置 inert（否则自锁不可交互）");
+		// 已 portal（层在宿主容器下）⇒ 照常采集背景 inert
+		mod.__podControl.reset();
+		const host = mod.__podControl.mountHost(dom.document);
+		const portaled = dom.document.createElement("div");
+		host.appendChild(portaled);
+		portaled.ownerDocument = dom.document;
+		assert.equal(mod.isPortaledLayer(portaled), true, "宿主容器下的层须被判为已 portal");
+		harness.hooks.useEffect.length = 0;
+		harness.hooks.useRef.length = 0;
+		harness.render(mod.PodOverlayLayer, { open: true, t: (key) => key });
+		harness.hooks.useRef.at(-1).current = portaled;
+		for (const effect of harness.hooks.useEffect.slice()) if (typeof effect === "function") effect();
+		assert.equal(appFrame.inert, true, "已 portal 的层须照常采集背景 inert");
+	});
+	mod.__podControl.reset();
+});
+
+// ================= I1：Pod 期全局通知抬档（不被自身覆盖层吃掉） =================
+test("I1 通知遮挡：Pod 期通知抬到整屏层之上、仍低于官方浮层地板 900，并由活跃标志驱动", () => {
+	const css = mod.podLayerCss;
+	const podNotices = declaredProps(css, "dsh-bots-notices[data-state=\"pod\"]");
+	assert.equal(podNotices["z-index"], String(mod.POD_LAYER.zIndexNoticesInPod), "Pod 期通知档须由 POD_LAYER 常量插值（禁散落数值）");
+	const layerBand = mod.POD_LAYER.zIndexBase;
+	const noticesBand = Number(podNotices["z-index"]);
+	assert.ok(Number.isInteger(noticesBand), `通知档须为整数（实测 ${podNotices["z-index"]}）`);
+	assert.ok(noticesBand > layerBand, `通知档须严格高于我方整屏层（层 ${layerBand}／通知 ${noticesBand}）——否则被自身层盖住`);
+	assert.ok(noticesBand < mod.POD_LAYER.officialFloatingFloor,
+		`通知档须严格低于官方 body 级浮层地板 ${mod.POD_LAYER.officialFloatingFloor}（实测 ${noticesBand}）——官方弹出件仍须盖在通知之上`);
+	// 常驻（非 Pod）档不变：仍是我方层内浮出件档
+	const base = declaredProps(css, "dsh-bots-notices");
+	assert.equal(base["z-index"], undefined, "常驻态通知档不得被 Pod 规则劫持（选择器须带 [data-state=\"pod\"] 限定）");
+	// 标志驱动：真实 store 的 podActive 只在进出 Pod 时翻转，通知条目据此落 data-state
+	mod.__podControl.reset();
+	bootPod();
+	assert.equal(mod.getBotState().podActive, false, "装置后不得处于 Pod 活跃态");
+	const noticesEntry = mod.__podStateForTest && null;
+	mod.__podControl.enter();
+	assert.equal(mod.getBotState().podActive, true, "进入 Pod 须点亮 podActive");
+	mod.__podControl.exit();
+	assert.equal(mod.getBotState().podActive, false, "退出 Pod 须熄灭 podActive");
+	// 通知组件的落点：podActive 为真时须落 data-state=\"pod\"（样式档唯一入口）
+	assert.equal(typeof mod.BotNotices, "function", "导出面缺 BotNotices（通知条目渲染件的可执行见证）");
+	mod.__podControl.reset();
+	bootPod();
+	mod.__podStateForTest({ notices: [{ id: "n1", kind: "ok", text: "t", botId: null }], podActive: false });
+	const idle = findOne(harness.render(mod.BotNotices, {}), (node) => hasClass(node, "dsh-bots-notices"));
+	assert.ok(idle, "有通知时须渲染通知容器");
+	assert.equal(idle.props["data-state"], undefined, "非 Pod 期通知容器不得落 data-state=pod");
+	mod.__podStateForTest({ podActive: true });
+	const inPod = findOne(harness.render(mod.BotNotices, {}), (node) => hasClass(node, "dsh-bots-notices"));
+	assert.equal(inPod.props["data-state"], "pod", "Pod 期通知容器须落 data-state=pod（触发抬档）");
+	mod.__podControl.reset();
+	assert.ok(noticesEntry === null);
+});
+
+// ================= M8：焦点兜底让位官方高层浮层 =================
+test("M8 焦点兜底：程序化抢焦拉回层内，但焦点落在官方高层浮层（文档序末位 modal）时让位", () => {
+	/** 事件可驱动的 DOM 桩：document 记账 focusin 监听，元素带 closest／querySelectorAll。 */
+	const makeDom = () => {
+		const listeners = { focusin: new Set() };
+		const nodes = [];
+		let modalTop = null;
+		const makeElement = (label) => {
+			const node = {
+				label, parentNode: null,
+				closest(selector) { for (let at = node; at; at = at.parentNode) { if (at.matches(selector)) return at; } return null; },
+				contains(candidate) { for (let at = candidate; at; at = at.parentNode) { if (at === node) return true; } return false; },
+				matches: () => false,
+				querySelectorAll: () => (modalTop ? [modalTop] : []),
+				focusCount: 0,
+				focus() { node.focusCount += 1; }
+			};
+			nodes.push(node);
+			return node;
+		};
+		const document = {
+			createElement: makeElement,
+			addEventListener: (type, fn) => { (listeners[type] ||= new Set()).add(fn); },
+			removeEventListener: (type, fn) => { listeners[type]?.delete(fn); },
+			querySelectorAll: () => (modalTop ? [modalTop] : [])
+		};
+		const dispatchFocusIn = (target) => { for (const fn of [...(listeners.focusin || [])]) fn({ target }); };
+		return {
+			nodes, document, dispatchFocusIn,
+			setTopModal: (node) => { modalTop = node; },
+			listenerCount: () => (listeners.focusin || new Set()).size,
+			makeElement
+		};
+	};
+	// ① 场上只有我方层：层外焦点须被拉回
+	const dom = makeDom();
+	const layer = dom.makeElement("Pod 层");
+	layer.ownerDocument = dom.document;
+	dom.setTopModal(layer);
+	const off = mod.enablePodFocusContainment(layer);
+	assert.equal(dom.listenerCount(), 1, "焦点兜底须挂上 focusin 监听");
+	const outer = dom.makeElement("官方 composer 焦点目标");
+	dom.dispatchFocusIn(outer);
+	assert.equal(layer.focusCount, 1, "层外程序化抢焦须被拉回层内");
+	// ② 官方高层浮层打开且被聚焦：让位（不抢回）
+	const officialModal = dom.makeElement("官方设置对话框");
+	const officialInner = dom.makeElement("官方对话框内控件");
+	officialInner.parentNode = officialModal;
+	officialModal.matches = (selector) => selector.includes("dialog");
+	dom.setTopModal(officialModal);
+	dom.dispatchFocusIn(officialInner);
+	assert.equal(layer.focusCount, 1, "焦点在官方高层浮层内 ⇒ 让位，不得抢回");
+	// ③ 文档序末位 modal 不是我方层（官方层在我方之上）：即便焦点目标不在 modal 内也让位
+	const strayTarget = dom.makeElement("官方浮层外的目标");
+	dom.dispatchFocusIn(strayTarget);
+	assert.equal(layer.focusCount, 1, "文档序末位 modal 非我方层 ⇒ 让位");
+	// ④ 官方层关闭后：恢复拉回
+	dom.setTopModal(layer);
+	const afterClose = dom.makeElement("层外目标");
+	dom.dispatchFocusIn(afterClose);
+	assert.equal(layer.focusCount, 2, "官方层关闭后须恢复拉回");
+	// ⑤ 层内目标：不重复聚焦（不产生焦点循环）
+	const inner = dom.makeElement("层内控件");
+	inner.parentNode = layer;
+	dom.dispatchFocusIn(inner);
+	assert.equal(layer.focusCount, 2, "层内焦点不得被再次拉回");
+	off();
+	assert.equal(dom.listenerCount(), 0, "卸载须摘掉 focusin 监听");
+});
+
+// ================= M9：过渡令牌只以 var() 形态消费（05 号票依赖） =================
+test("M9 过渡令牌：宿主令牌只以 var(<token>, <常量>) 形态读取，本地不重声明", () => {
+	const css = mod.podLayerCss;
+	const tokens = mod.POD_TRANSITION_TOKENS;
+	assert.ok(tokens && tokens.fallbacks, "导出面缺 POD_TRANSITION_TOKENS（05 号票的消费坐标）");
+	const names = HOST_TRANSITION_TOKENS.map((token) => String(token.name ?? token));
+	assert.ok(names.includes(tokens.duration), `宿主令牌名须取自票 02 面常量（${tokens.duration}）`);
+	// ① 本地不得重声明宿主同名令牌（遮蔽宿主值的唯一通路）
+	const redeclared = [...css.matchAll(/(--ds-transition-duration(?:-fast|-slow)?|--ds-ease-in-out)\s*:/g)].map((match) => match[1]);
+	assert.deepEqual(redeclared, [], `覆盖层样式不得重声明宿主过渡令牌（实测 ${redeclared.join("／")}）`);
+	// ② var() 形态的**唯一生成器**：真实产出须为 var(<宿主令牌>, <常量回退>)
+	for (const token of [tokens.duration, tokens.durationFast, tokens.durationSlow, tokens.easeInOut]) {
+		const produced = mod.podTokenVar(token);
+		assert.equal(produced, `var(${token}, ${tokens.fallbacks[token]})`, `令牌 ${token} 的 var() 形态须由 podTokenVar 生成`);
+		assert.match(produced, new RegExp("^var\\(\\s*" + token + "\\s*,"), "须以宿主令牌名为 var() 第一实参（禁本地常量顶替）");
+	}
+	// ③ 未登记令牌不得静默产出（防手写 `var(--ds-transition-x)` 漂移）
+	assert.throws(() => mod.podTokenVar("--ds-transition-unregistered"), /未登记/, "未登记令牌须响亮抛错");
+	// ④ podLayerCss 里若出现宿主令牌，必须已经在 var() 形态内（形状断言，不靠人眼）
+	for (const match of css.matchAll(/(--ds-transition-duration(?:-fast|-slow)?|--ds-ease-in-out)/g)) {
+		const before = css.slice(Math.max(0, match.index - 4), match.index);
+		assert.equal(before, "var(", `令牌 ${match[1]} 只能作为 var() 第一实参出现（实测前缀 ${JSON.stringify(before)}）`);
+	}
 });
 
 // ---------- 运行 ----------
