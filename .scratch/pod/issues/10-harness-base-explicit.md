@@ -81,11 +81,13 @@
   agent-default-model pin 语义未变）。
 - `TMPDIR=/tmp node tests/host-contract-gate.test.mjs` → `# pass 30 / # fail 0`。
 - `TMPDIR=/tmp node tests/spawn-env.test.mjs` → 6 ✓ / 0 ✗。
-- `TMPDIR=/tmp node tests/run.mjs` → 85/85 个测试文件通过（新增 `tests/pod-harness-base.test.mjs`
-  即 84→85；此前 84/84 口径下曾出现一次与并行命令同跑的 83/84 偶发，独占重跑 84/84、退出码 0）。
-- `TMPDIR=/tmp node scripts/preflight.mjs` → PASS：①回归 85/85（新增判据文件即增）；
+- `TMPDIR=/tmp node tests/run.mjs` → 交付态 85/85 个测试文件通过（新增
+  `tests/pod-harness-base.test.mjs` 即 84→85；此前 84/84 口径下曾出现一次与并行命令同跑的
+  83/84 偶发，独占重跑 84/84、退出码 0）；并入 03 号票（`0a5ed60`）后终态 **86/86**。
+- `TMPDIR=/tmp node scripts/preflight.mjs` → PASS（交付态）：①回归 85/85（新增判据文件即增）；
   ②冻结面（0010 包）10/10；③status-lint 0 违例（扫 114 md／命名 205 活文件／知识库 69 脚本／
-  地图覆盖 45 lib/org 件）；④宿主契约 12 PASS / 0 FAIL / 0 SKIP。
+  地图覆盖 45 lib/org 件）；④宿主契约 12 PASS / 0 FAIL / 0 SKIP。并入 03 后终态复跑同口径
+  PASS（①86/86；③命名扫描 206 活文件）。
 - 反向验证（真跑，隔离 `DSH_HOME` 临时树，真实运行面零写入）：`node scripts/create-bot.cjs`
   生成 profile 后 `DSH_HOME=$T dsh --profile worker --dump-config` 退出码 0，输出
   `agent-presets` 命中 **0**；我方 patch 层只出现 `agent-default-model`／`llm-pi-ai`／
