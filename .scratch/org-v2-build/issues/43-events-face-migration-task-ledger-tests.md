@@ -31,8 +31,27 @@
 
 **Blocked by:** 42
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **来源：** 2026-10-07 架构评审候选 1 ＋ grilling 定案 Q12／Q15。
 
 ## Comments
+
+- **2026-10-07 收口（`resolved`）。** 提交 `ae91a85`（并入 `0a8618a`）。**实测 32 处**，
+  非票面写的 36：42 号票改 `closePrecondition` 形状时已同批迁走 4 处
+  （原 `:2209`／`:2229`／`:2262`／`:2270` 一带，现为 `snapshot: { … }` 形状，本票零触碰）。
+- **验收凭据**：迁移前 `.events(` 32 → 迁移后 **0**；`node tests/task-ledger.test.mjs`
+  **65/65**（与迁移前基线同数）；全量回归 83/83；preflight 四门 PASS（`620b623` 实测）。
+  陷阱行 `:280 host.events({ taskId })`（`host` 同为 `createTaskLedger` 实例，
+  只 grep `ledger.events(` 会漏）已迁；两处简写 `ledger.events({ taskId })` 的绑定
+  `taskId = "TK-00000089"` 已核对非 `undefined`。
+- **等价证明（本票红线，双向逐字节）**：对最终文件**仅在本票改动的 32 行**做机械反向
+  替换后与基点 revision `cmp` → **逐字节相同**（`changedLines:32, reversedSites:32`）；
+  正向（基点全局替换后 `cmp` 最终文件）亦逐字节相同。另加独立活台账探针（仓库外
+  隔离子进程、tmp 数据根）：两个任务（1 事件／6 事件）＋未开档任务三例
+  `events({taskId})` ≡ `taskEvents(taskId)`（deepEqual、seq 逐位相等、任务域封闭）。
+- **已知边界（评审收口注记，本票面内未触发）**：`events({ taskId: undefined })` 旧码
+  返回**全部**事件（内部按 `taskId === undefined` 判定），`taskEvents(undefined)` 返回
+  `[]`。本票迁移面内无一处传 `undefined`；43／44／45 三票的迁移点同样无此形态，
+  但后续新增任务域读取时不得依赖该退化行为。
+- **落地**：`ae91a85` → 集成分支 `0a8618a`。

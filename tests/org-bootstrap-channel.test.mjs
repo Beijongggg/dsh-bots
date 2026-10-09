@@ -182,7 +182,7 @@ test("复核请求召集空闲统筹戴帽：每轮全新会话，只见复核�
     }
     assert.equal(handoffs.length, 2);
     assert.notEqual(sessions[0].sessionId, sessions[1].sessionId);
-    const reports = r.ledger.events({ taskId: r.taskId }).filter((event) => event.type === "review-reported");
+    const reports = r.ledger.taskEvents(r.taskId).filter((event) => event.type === "review-reported");
     assert.equal(reports.length, 4, "两次独立复核各入账一次 gaps-open 和一次 closed，重放不增轮次");
     assert.ok(reports.every((report) => report.modelIdentity === "test-provider/test-model"));
   } finally { r.close(); }

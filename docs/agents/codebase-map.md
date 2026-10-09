@@ -51,7 +51,8 @@
 
 | 模块 | 职责（一句话） |
 |---|---|
-| `task-ledger.js` | 任务台账：事件 fold 投影、命令门、关闭前置；`producerOf`(:187)、`reject`(:854) |
+| `task-ledger.js` | 任务台账：读面（常驻投影＋`at`／`since`／`taskEvents`）、命令门、关闭前置；`producerOf`(:187)、`reject`(:854) |
+| `task-projection.js` | 台账投影本体：状态词表＋折叠（`emptyTask`／`applyEvent`／`projectEvents`／`foldAll`）、快照与三种查询（`createTaskProjection`）；台账面按名再导出（40 号票） |
 | `ledger-events.js` | 事件契约叶件：类型词表、`TASK_ID_RE`(:66)、`isTaskId` |
 | `ledger-host.js` | 台账宿主接线：HTTP 命令面、值守轮询、异常汇入 |
 | `store-base.js` | store 底座原语（append-only、幂等门） |

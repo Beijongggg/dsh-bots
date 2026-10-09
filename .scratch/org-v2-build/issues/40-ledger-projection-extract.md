@@ -70,10 +70,36 @@
 
 **Blocked by:** 无（can start immediately）
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **来源：** 2026-10-07 架构评审候选 1（「把事件流折成 module」）＋当日 grilling 定案
 Q1–Q20。评审报告为会话临时件（未入库）。相关实测：单条命令 3 次全文读；
 10 张任务 0.88 ms／300 张 11.86 ms 的线性增长。
 
 ## Comments
+
+- **2026-10-07 收口（`resolved`）：本票分两笔落地，第二笔为批次编排补漏。**
+  第一笔 `e175f05`：`lib/org/task-projection.js` 落成（状态词表＋折叠本体＋
+  `createTaskProjection` 的 `at`／`since`／`taskEvents`／`snapshot`），
+  `task-ledger.js` 保留全部 re-export、既有导入点零改动；第二笔 `7f618c2`：把三条
+  新读法**纯委派**挂到 `createTaskLedger` 读面（注入既有的已校验 `readEvents()`，
+  不加缓存——缓存是 41 号票）。之所以要第二笔：票面只要求「在**新件**上提供快照与
+  三种查询」，而 42–45 四票的迁移目标是**读面**（`ledger.taskEvents(…)`），
+  43／44／45 三票同此依赖、已按纪律停下上报；补漏落在本票的理由＝本票是「形」票，
+  41 号票专门做缓存、不宜混入接线。
+- **验收凭据**：等价性（每个序号前缀、跨任务行在场）＋**断号 fail closed 新用例**
+  （seq 跳号且重算 hash ⇒ 六个既有读成员与四个新查询全抛，命令面转 `ledger-corrupt`）
+  ＋依赖闭包断言（直接依赖恰 `ledger-events.js`／`review-kit.js`；传递闭包 6 文件、
+  无环、不含命令面件）均在 `tests/org-task-projection.test.mjs`（46 号票收口后 13 例）；
+  `GLOSSARY.md` 词条「台账投影」在位；全量回归 83/83＋preflight 四门 PASS
+  （集成分支 `620b623` 实测）。
+- **「事件文件逐字不变」的实测口径**：`eventId` 是每条事件的一次性 nonce
+  （`Date.now()+randomBytes`，无注入缝）、`eventHash` 由其派生，跨运行原始字节必然不同；
+  故口径为「掩去这两个字段后逐字节相同」——固定时钟、同一 18 条命令序列、两树各跑两遍，
+  归一化 sha256 四跑全等 `ee3eff0e…`，链校验 18/18 通过。原始字节门见
+  `EV-20261007-ledger-review-fixup`。
+- **已知偏离（评审记录，勿当缺陷）**：`at(id, seq)` 在「该序号处尚未开档」返回 `null`，
+  旧 `projectEvents(前缀)` 给空骨架——票面「每个序号前缀结论相同」故为**映射等价而非
+  同值等价**。该 `null` 语义被 45 号票烟测的逐序号回放用例依赖，收口期不改形状。
+- **落地**：`e175f05`＋`7f618c2`（并入 `f510641`／`8b8c85f`）；批次事件
+  `EV-20261007-ledger-read-face-retire`＋评审处置 `EV-20261007-ledger-review-fixup`。

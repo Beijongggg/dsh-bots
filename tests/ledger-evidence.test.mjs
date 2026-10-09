@@ -104,8 +104,8 @@ test("复制进包：窗口事件逐条入件，digest 可复算；台账不在�
   });
   assert.equal(all.schemaVersion, LEDGER_EVIDENCE_SCHEMA_VERSION);
   assert.equal(all.source.present, true);
-  assert.equal(all.events.length, ledger.events().length, "窗口＝全量（fromSeq=0）");
-  assert.deepEqual(all.events.map((e) => e.seq), ledger.events().map((e) => e.seq));
+  assert.equal(all.events.length, ledger.since(0).length, "窗口＝全量（fromSeq=0）");
+  assert.deepEqual(all.events.map((e) => e.seq), ledger.since(0).map((e) => e.seq));
   assert.equal(all.sliceDigest, ledgerSliceDigest(all.events));
   assert.equal(all.counts.events, all.events.length);
   assert.equal(all.verification.ok, true);
@@ -123,7 +123,7 @@ test("复制进包：窗口事件逐条入件，digest 可复算；台账不在�
 test("窗口＝runId 窗口：fromSeq 之前的既有事实不进包，但整文件规模在 source 里不隐藏", async () => {
   const home = mkTmp();
   const { ledger } = await seedLedger(home);
-  const total = ledger.events().length;
+  const total = ledger.view().lastSeq;
   const cut = Math.floor(total / 2);
   const section = captureLedgerEvidence({
     eventsPath: eventsFile(home), runId: "run-3", kind: "host-ledger", fromSeq: cut, requireEvents: true
@@ -174,7 +174,7 @@ test("复验＝复用台账校验器：篡改体／换类型／断 seq／改自�
 test("台账在场时的交叉核验：同窗重切一致；append-only 台账在包后增长不算证据坏", async () => {
   const home = mkTmp();
   const { ledger } = await seedLedger(home);
-  const total = ledger.events().length;
+  const total = ledger.view().lastSeq;
   const section = captureLedgerEvidence({ eventsPath: eventsFile(home), runId: "run-5", kind: "host-ledger", fromSeq: 2, requireEvents: true });
   // 未增长：整文件绑定账实相符
   const same = verifyLedgerEvidence(section, { ledgerPath: eventsFile(home) });
@@ -187,7 +187,7 @@ test("台账在场时的交叉核验：同窗重切一致；append-only 台账�
     op: "task.triage", taskId: "TK-28a00001", actor: { kind: "host", id: "web" },
     expectedStatus: "intake", expectedSeq: 1, idempotencyKey: "late-triage", payload: { decision: "立项" }
   });
-  assert.ok(grown.events().length > total, "台账确已增长");
+  assert.ok(grown.view().lastSeq > total, "台账确已增长");
   grown.close();
   const after = verifyLedgerEvidence(section, { ledgerPath: eventsFile(home) });
   assert.equal(after.ok, true, after.problems.join("；"));
@@ -284,7 +284,7 @@ test("形状校验：present=false 必须记 absentReason；source/runId/digest 
 test("窗口复算的独立入口（verifyLedgerWindow）：不经 capture 也能核一段记录", async () => {
   const home = mkTmp();
   const { ledger } = await seedLedger(home);
-  const events = ledger.events();
+  const events = ledger.since(0);
   assert.equal(verifyLedgerWindow(events, 0).ok, true);
   assert.equal(verifyLedgerWindow(events, 0).checked, events.length);
   // 单条：链上位置错（previousSeq 不对）即拒——防止复验方各自传 0 放宽链
