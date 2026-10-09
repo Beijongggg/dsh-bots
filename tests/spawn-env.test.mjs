@@ -93,7 +93,9 @@ setInterval(() => {}, 1000);
   const prevExtra = process.env.DSH_BOTS_ENV_EXTRA;
   const prevCanary = process.env.B4_SECRET_CANARY;
   const prevNodeOpts = process.env.NODE_OPTIONS;
+  const prevHostUrl = process.env.DSH_BOTS_HOST_URL;
   process.env.DSH_BOTS_DSH_BIN = binPath;
+  process.env.DSH_BOTS_HOST_URL = "  https://bots.example/base///  ";
   // 逃生阀现场复用：让 dump 路径经逃生阀进入子进程
   process.env.DSH_BOTS_ENV_EXTRA = "DUMP_PATH";
   process.env.DUMP_PATH = dumpPath;
@@ -110,6 +112,7 @@ setInterval(() => {}, 1000);
     assert.ok(dump, "假 bin 已落环境 dump");
     assert.equal(dump.DSH_HOME, home, "DSH 显式集在位");
     assert.equal(dump.DSH_WEB_URL, `http://127.0.0.1:${bot.port}/`, "DSH_WEB_URL 在位（botUrl 契约）");
+    assert.equal(dump.DSH_BOTS_HOST_URL, "https://bots.example/base", "宿主 origin 经 trim 与去尾斜杠后下传");
     // 组织工具带点 op 名被供应商名称模式拒绝（2026-09-29 TK-20260929 HTTP 400）；
     // bot 进程经官方 DSH_TOOLS_MODE 环境缝整体切 PTC run_code 呈现，原名工具
     // 保留在生成的 SDK 内，岗位/任务权限面不变。
@@ -122,7 +125,8 @@ setInterval(() => {}, 1000);
   } finally {
     try { await api.stop(botId); } catch { /* 已退出 */ }
     for (const [k, v] of [["DSH_BOTS_DSH_BIN", prevBin], ["DSH_BOTS_ENV_EXTRA", prevExtra],
-      ["B4_SECRET_CANARY", prevCanary], ["NODE_OPTIONS", prevNodeOpts], ["DUMP_PATH", undefined]]) {
+      ["B4_SECRET_CANARY", prevCanary], ["NODE_OPTIONS", prevNodeOpts],
+      ["DSH_BOTS_HOST_URL", prevHostUrl], ["DUMP_PATH", undefined]]) {
       if (v === undefined) delete process.env[k]; else process.env[k] = v;
     }
   }

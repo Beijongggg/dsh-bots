@@ -6,10 +6,10 @@
  * host origin，组织命令通道与邮箱面整体休眠而台面无声：席位侧 warn 落在
  * 子进程日志里，宿主已丢弃子进程 stdout（仅留 stderr 尾部缓冲）。
  *
- * 本文件按公开口径断言，不读私有内部，共 15 用例：判定三态（缺缝／在位／
+ * 本文件按公开口径断言，不读私有内部，共 17 用例：判定三态（缺缝／在位／
  * 形状非法含 query·fragment）／归一化同源／回显脱敏（含口令未编码 `@` 的切点）／
- * 报警文案／启动接线／就绪面诊断位（含「不进门」）／**真 apply() 端到端**三例
- * （宿主缺缝、宿主在位、bot 实例不重复报）。就绪面夹具住
+ * 报警文案／启动接线／就绪面诊断位（含「不进门」）／**真 apply() 端到端**四例
+ * （宿主缺缝、宿主在位、bot 实例不重复报、bot 邮箱与组织工具可用）。就绪面夹具住
  * `tests/helpers/readiness-fixture.mjs`（与 org-cutover-check 共用一份）。
  */
 import { test } from "node:test";
@@ -58,6 +58,7 @@ test("缝在位＝ok：归一化与 spawn 段同一口径（trim ＋ 去尾斜�
     ["  http://127.0.0.1:3080  ", "http://127.0.0.1:3080"],
     ["http://127.0.0.1:3080///", "http://127.0.0.1:3080"],
     ["https://bots.example/base/", "https://bots.example/base"],
+    ["https://bots.example/base%3Fv%23tag/", "https://bots.example/base%3Fv%23tag"],
     ["http://[::1]:3080", "http://[::1]:3080"]
   ];
   for (const [input, expected] of cases) {
@@ -89,6 +90,19 @@ test("形状非法＝malformed：带 query／fragment 的 origin 判非法（席
   }
   // 反代路径前缀仍合法（只拒 query／fragment，不拒路径）
   assert.equal(checkHostEnvSeam({ [HOST_URL_SEAM_VAR]: "https://bots.example/base" }).state, "ok");
+});
+
+test("形状非法＝malformed：裸 ?／# 也会吞掉后续 API 路径，不能报缝在位", () => {
+  const verdicts = [
+    "http://127.0.0.1:3080?", "http://127.0.0.1:3080#",
+    "https://bots.example/base?", "https://bots.example/base#"
+  ].map((origin) => checkHostEnvSeam({ [HOST_URL_SEAM_VAR]: origin }));
+  assert.deepEqual(verdicts.map((verdict) => verdict.state),
+    ["malformed", "malformed", "malformed", "malformed"]);
+  for (const verdict of verdicts) {
+    assert.equal(verdict.ok, false);
+    assert.match(renderHostEnvSeamReport(verdict), /seam=malformed/, "空 query／fragment 同样须报警");
+  }
 });
 
 test("形状判定与归一化同源：尾部斜杠不会把合法 origin 判成非法", () => {
@@ -213,7 +227,7 @@ test("就绪面：诊断位不进门——hostEnv 由在位换成缺缝，ok 不
 // 合成 ctx ＋ DSH_BOTS_AUTOSTART=0 应急闸（不拉真实 bot 子进程）。
 
 /** 合成 ctx＋临时数据根；effect 立即执行并收 disposer（cordis 语义），webServer 捕获路由。 */
-function mkApplyHarness() {
+function mkApplyHarness(services = {}) {
   const home = mkdtempSync(join(tmpdir(), "dsh-seam-apply-"));
   const rows = [];
   const logger = {
@@ -227,8 +241,10 @@ function mkApplyHarness() {
   const mkCtx = (baseUrl) => ({
     baseUrl,
     logger,
-    get: (name) => (name === "webServer" ? { register: (r) => { route = r; return () => {}; } } : undefined),
-    inject: () => {},
+    get: (name) => (name === "webServer" ? { register: (r) => { route = r; return () => {}; } } : services[name]),
+    inject: (names, callback) => {
+      if (names.every((name) => services[name] !== undefined)) callback(mkCtx(baseUrl));
+    },
     effect: (fn) => { disposers.push(fn()); }
   });
   return { home, rows, mkCtx, disposers, routeRef: () => route };
@@ -306,6 +322,49 @@ test("真 apply bot 实例分支：不出宿主自检行（自检归宿主台面
     assert.equal(seamRows(h.rows).length, 0, "bot 实例不重复报宿主台面的缝");
   } finally {
     for (const dispose of h.disposers) if (typeof dispose === "function") dispose();
+    rmSync(h.home, { recursive: true, force: true });
+  }
+});
+
+test("真 apply bot 实例分支：合法 origin 接通邮箱 watcher 与岗位工具，并保留反代路径前缀", async () => {
+  const registered = new Map();
+  const h = mkApplyHarness({ tools: {
+    register(tool) { registered.set(tool.name, tool); return () => registered.delete(tool.name); }
+  } });
+  const requests = [];
+  const responses = new Map([
+    ["GET https://host.invalid/base/api/bots/_csrf", { token: "seam-fixture" }],
+    ["POST https://host.invalid/base/api/bots/_mail/cursor", { ok: true, lastSeq: 0, replay: false }],
+    ["GET https://host.invalid/base/api/bots/_ledger", { tasks: [{ taskId: "TK-hostseam" }] }],
+    ["POST https://host.invalid/base/api/bots/_mail/send", { ok: true, to: "user", seq: 1, messageId: "seam-1" }]
+  ]);
+  const savedFetch = globalThis.fetch;
+  // 网络边界只回夹具，不调用原 fetch；不存在触达真实宿主的路径。
+  globalThis.fetch = async (url, options = {}) => {
+    const method = options.method ?? "GET";
+    const key = `${method} ${url}`;
+    assert.ok(responses.has(key), `请求须使用归一化的宿主 origin：${key}`);
+    requests.push({ url, method, body: options.body === undefined ? null : JSON.parse(options.body) });
+    return new Response(JSON.stringify(responses.get(key)), { status: 200 });
+  };
+  try {
+    await runApply({ ...h, baseUrl: `file://${h.home}/profiles/${BOOTSTRAP_ANCHOR_POST}/`,
+      seam: "  https://host.invalid/base///  " });
+    assert.ok(registered.has("ledger.read"), "合法 origin 下岗位工具须注册");
+    assert.deepEqual(await registered.get("ledger.read").execute({}), { tasks: [{ taskId: "TK-hostseam" }] },
+      "岗位工具须通过归一化后的 origin 读取宿主台账");
+    assert.ok(registered.has("mail.send"), "合法 origin 下邮件工具须注册");
+    assert.deepEqual(await registered.get("mail.send").execute({ to: "user", text: "seam test" }),
+      { ok: true, to: "user", seq: 1, messageId: "seam-1" }, "邮件工具须接通宿主中继");
+    assert.deepEqual(requests.find((request) => request.url === "https://host.invalid/base/api/bots/_mail/cursor"), {
+      url: "https://host.invalid/base/api/bots/_mail/cursor", method: "POST",
+      body: { actor: { kind: "post", id: BOOTSTRAP_ANCHOR_POST } }
+    }, "watcher 须向同一宿主请求起始游标");
+    assert.equal(h.rows.some(([level, text]) => level === "warn" && text.includes("DSH_BOTS_HOST_URL 未设")), false,
+      "合法 origin 不得报缺缝休眠");
+  } finally {
+    for (const dispose of h.disposers) if (typeof dispose === "function") dispose();
+    globalThis.fetch = savedFetch;
     rmSync(h.home, { recursive: true, force: true });
   }
 });
