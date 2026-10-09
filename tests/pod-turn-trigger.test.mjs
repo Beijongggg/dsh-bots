@@ -3,7 +3,7 @@
  * [[09-turn-trigger-form]]；判据 V-P5.8／V-P5.9，规格 §D5 表为唯一形制源）。
  *
  * 被测面（三条公共缝）：
- *   1. `MessageStream`（会话流）——「外部触发」行只在 bot 因外部来源（relay／邮件类）
+ *   1. `MsgList`（会话流）——「外部触发」行只在 bot 因外部来源（relay／邮件类）
  *      开回合时出现，且使用官方形制披露行；用户触发与非外部前置消息**不得**出行
  *      （§E R5④：形制统一不改变拼装锚点，只加行不改序）。
  *   2. `DiscussionGroup`——讨论组／relay 折叠组走同一件 `DisclosureRow`（不自造第二套）。
@@ -258,13 +258,13 @@ test("V-P5.8 形制参数逐项落地：披露行样式表含 §D5 表全部条�
 
 // ---- 切片 2（V-P5.9）：覆盖范围＝外部触发行＋讨论组；通知面不动 ----
 test("V-P5.9 覆盖范围：流转 relay 消息后的 bot 回复前出外部触发行；用户触发回合不出行（§E R5④ 拼装锚点不变）", () => {
-	assert.equal(typeof mod.MessageStream, "function", "导出面缺 MessageStream");
+	assert.equal(typeof mod.MsgList, "function", "导出面缺 MsgList");
 	const messages = [
 		{ id: "m1", text: "给用户的第一条", from: "bot", timestamp: "2026-10-09T06:00:00.000Z" },
 		{ id: "m2", text: "把调研结论发我", from: "b1", timestamp: "2026-10-09T06:03:00.000Z" },
 		{ id: "m3", text: "结论如下：……", from: "bot", timestamp: "2026-10-09T06:04:00.000Z" }
 	];
-	const view = harness.mount(mod.MessageStream, { messages, botId: "b0", botName: "首席", bots: BOTS, t: (key) => key });
+	const view = harness.mount(mod.MsgList, { messages, botId: "b0", botName: "首席", bots: BOTS, t: (key) => key });
 	const rows = triggerRows(view.tree);
 	assert.equal(rows.length, 1, "只有外部触发的回合出行（用户触发不出现）");
 	assert.ok(hasClass(rows[0], "dsh-bots-disclosure"), "外部触发行走官方形制披露行");
@@ -277,7 +277,7 @@ test("V-P5.9 覆盖范围：流转 relay 消息后的 bot 回复前出外部触�
 		"触发行插在触发消息与回合回复之间（不改其它行的相对次序）");
 	assert.equal(hasClass(topNodes[3], "dsh-bots-msg"), true, "触发行后紧跟该回合的 bot 回复行");
 
-	const userOnly = harness.mount(mod.MessageStream, {
+	const userOnly = harness.mount(mod.MsgList, {
 		messages: [
 			{ id: "u1", text: "你好", from: "user", timestamp: "2026-10-09T06:00:00.000Z" },
 			{ id: "a1", text: "收到", from: "bot", timestamp: "2026-10-09T06:01:00.000Z" }
@@ -286,7 +286,7 @@ test("V-P5.9 覆盖范围：流转 relay 消息后的 bot 回复前出外部触�
 	});
 	assert.equal(triggerRows(userOnly.tree).length, 0, "用户触发的回合不得出现外部触发行（零回归）");
 
-	const firstSelf = harness.mount(mod.MessageStream, {
+	const firstSelf = harness.mount(mod.MsgList, {
 		messages: [{ id: "s1", text: "开场白", from: "bot", timestamp: "2026-10-09T06:00:00.000Z" }],
 		botId: "b0", botName: "首席", bots: BOTS, t: (key) => key
 	});

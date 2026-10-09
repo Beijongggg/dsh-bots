@@ -85,8 +85,15 @@
     - `TMPDIR=/tmp node tests/client-disclosure.test.mjs` → **7/7**（切片 7 按本票换皮后契约重写，
       其余六例原样；另把该文件迷你渲染器换成跨重渲染保持 hook 槽位的版本，见偏离第 4 条）。
     - `TMPDIR=/tmp node tests/locale.test.mjs` → **8/8**（新增 `trigger.*` 四键进「逐键核对」清单）。
-    - `TMPDIR=/tmp node tests/run.mjs` → **90/90**（基线 89/89＋本票新增 1 文件）。
-    - `TMPDIR=/tmp node scripts/preflight.mjs` → 见下「四门实测」行。
+    - `TMPDIR=/tmp node tests/run.mjs` → **90/90**（并入 `integration/pod` 前）。
+      并入 07 号票（`d3b0d86`）后：**91/91**（07 新增 `tests/pod-tool-rows.test.mjs`）。
+      **合并裁定**（两票同改 `lib/client.js` 的会话流循环与导出面）：①07 的 `pushGroups(-1)`／
+      `pushGroups(index)` 全留，触发行插在「该回合首个 bot 回复」**之前**、07 的工具行组**之后**
+      ——两者都是「挂在锚点消息之后」的增行，互不夺位；②导出面收敛为 `exports.MsgList` 一名
+      （不再保留 09 初版的 `MessageStream` 别名）；③`function MsgList(props)` 取并集
+      （`toolGroups` 解构＋`externalTurns` 判据＋索引循环）。
+    - `TMPDIR=/tmp node scripts/preflight.mjs` → 四门 **①91/91 ②10/10 ③0 违例 ④15 PASS／0 FAIL／0 SKIP**，
+      `preflight: PASS`（并入 07 后终态）。
   - **口径判定与偏离**：
     1. **外部触发判据的口径（属实现选择，非规格原文）**：规格只说「bot 因收到邮件／任务消息／
        协作消息而开回合的那一条」，未给可执行判据。本票取**可观测且不臆造**的判据：`from` 为
@@ -125,7 +132,8 @@
     - `DisclosureRow` props 新增 `headClassName`／`bodyClassName`（可选；基座类在前）；其余同 03 契约。
     - `ExternalTriggerRow` props＝`{ trigger: { kind, name, time, timeDateTime, text }, t? }`；
       `trigger.kind ∈ {"agent","mail"}`（未登记值回落 mail 图标/文案）。
-    - 会话流导出名＝`MessageStream`（＝内部 `MsgList`）；触发行标记＝根源 `data-turn-trigger`；
+    - 会话流导出名＝**`MsgList`**（与 07 号票同名共用，合并冲突按「只留一个名字」裁定；本票初版
+      曾另立 `MessageStream` 别名，合并后已删，避免同一件两个导出名）；触发行标记＝根源 `data-turn-trigger`；
       触发行行级类＝`dsh-bots-turn-trigger`；讨论组根＝`section.dsh-bots-disclosure.dsh-bots-disc`。
     - 判据纯函数 `externalTriggersOf(messages, botById) → boolean[]`（票 07 的拼装若要在同一锚点
       插入触发行，直接复用本函数，不得另写判据）。
