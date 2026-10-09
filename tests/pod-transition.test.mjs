@@ -359,8 +359,8 @@ test("V-P3.1 进出：淡入＋约 4px 上浮、约 200ms、无方向位移", ()
 	const css = transitionCss();
 	const enterBlock = css.match(/\.dsh-bots-pod-layer\[data-state="?entering"?\][^{]*\{[^}]*\}/);
 	assert.ok(enterBlock, "进出过渡须由 [data-state=entering] 钩子承载（层整体＝侧栏＋主区同一过渡）");
-	assert.match(enterBlock[0], /var\(--ds-transition-duration/, "动画时长须取宿主令牌 --ds-transition-duration（不硬编码孤立数值）");
-	assert.match(enterBlock[0], /var\(--ds-ease-in-out\)/, "缓动须取宿主令牌 --ds-ease-in-out");
+	assert.match(enterBlock[0], /var\(--ds-transition-duration\s*,/, "动画时长须取宿主令牌 --ds-transition-duration（宿主令牌＋常量回退，不硬编码孤立数值）");
+	assert.match(enterBlock[0], /var\(--ds-ease-in-out\s*,/, "缓动须取宿主令牌 --ds-ease-in-out（宿主令牌＋常量回退）");
 	for (const name of [TRANSITION_CSS.enterKeyframes, TRANSITION_CSS.viewKeyframes]) {
 		const at = css.indexOf("@keyframes " + name);
 		assert.ok(at >= 0, "缺关键帧 " + name);
@@ -378,45 +378,46 @@ test("V-P3.1 进出：淡入＋约 4px 上浮、约 200ms、无方向位移", ()
 	// 200ms 的落地：回退时长即令牌基准档（宿主实测 .2s ≈ 规格的「约 200ms」）
 	assert.equal(TRANSITION.durationToken, "--ds-transition-duration");
 	assert.equal(TRANSITION.easingToken, "--ds-ease-in-out");
-	assert.equal(mod.POD_TRANSITION_TOKENS[0].name, TRANSITION.durationToken);
-	assert.equal(mod.POD_TRANSITION_TOKENS[0].fallback, TRANSITION.fallbackDuration, "基准档回退＝坐标块时长（单一数值来源）");
+	assert.equal(mod.podTransitionTokenRows()[0].name, TRANSITION.durationToken);
+	assert.equal(mod.podTransitionTokenRows()[0].fallback, TRANSITION.fallbackDuration, "基准档回退＝坐标块时长（单一数值来源）");
 });
 
 // ================= V-P3.2：令牌与常量回退 =================
 test("V-P3.2 时长／缓动取 --ds-transition-duration(-fast/-slow)＋--ds-ease-in-out 并带常量回退（面 HF-HOST-TRANSITION-TOKENS）", () => {
 	const TRANSITION = mod.POD_TRANSITION;
 	assert.equal(Object.isFrozen(TRANSITION), true, "POD_TRANSITION 须冻结（禁就地改写）");
-	const tokenNames = mod.POD_TRANSITION_TOKENS;
-	assert.equal(Object.isFrozen(tokenNames), true, "令牌清单须冻结（禁就地改写）");
+	const tokenTrees = mod.POD_TRANSITION_TOKENS;
+	assert.equal(Object.isFrozen(tokenTrees), true, "令牌注册表须冻结（禁就地改写）");
+	const tokenRows = mod.podTransitionTokenRows();
 	assert.deepEqual(
-		tokenNames.map((token) => token.name),
+		tokenRows.map((token) => token.name),
 		HOST_TRANSITION_TOKENS.map((token) => token.name),
 		"令牌名须与票 02 探针 P-HOST-TRANSITION-TOKENS 的清单逐名一致（面 HF-HOST-TRANSITION-TOKENS）"
 	);
 	assert.deepEqual(
-		tokenNames.map((token) => token.kind),
+		tokenRows.map((token) => token.kind),
 		HOST_TRANSITION_TOKENS.map((token) => token.kind),
 		"令牌种类（时长／缓动）须与探针登记一致"
 	);
+	// 令牌消费形态（复核 M9 统一口径）：宿主同名令牌**只以 var(<宿主令牌>, <常量回退>) 读取**，
+	// 本层任何作用域都不得重声明它们（本地重声明会遮蔽宿主值、使宿主令牌替换失效）。
 	assert.deepEqual(
-		mod.POD_TRANSITION_TOKEN_DECLARATIONS,
-		["--ds-transition-duration:0.2s", "--ds-transition-duration-fast:0.1s", "--ds-transition-duration-slow:0.3s", "--ds-ease-in-out:cubic-bezier(.4,0,.2,1)"],
-		"常量回退须逐条由坐标块插值（宿主缺令牌时退化不炸；数值只此一处）"
+		[...mod.podLayerCss.matchAll(/(--ds-transition-duration(?:-fast|-slow)?|--ds-ease-in-out)\s*:/g)].map((match) => match[1]),
+		[],
+		"覆盖层样式不得重声明宿主过渡令牌（常量只作 var() 第二参数）"
 	);
-	for (const declaration of mod.POD_TRANSITION_TOKEN_DECLARATIONS) {
-		assert.match(declaration, /^--ds-(?:transition-duration(?:-(?:fast|slow))?|ease-in-out):/, "回退声明只允许过渡令牌族：" + declaration);
+	for (const row of tokenRows) {
+		assert.equal(
+			mod.podTokenVar(row.name),
+			`var(${row.name}, ${row.fallback})`,
+			"var() 形态须由 podTokenVar 唯一生成（宿主令牌＋常量回退）：" + row.name
+		);
 	}
-	// 回退声明整段由坐标块插值进样式基座（防「坐标块一份、样式里再抄一份」的第二事实源）
-	assert.equal(
-		mod.podLayerCss.includes(mod.POD_TRANSITION_TOKEN_DECLARATIONS.join(";")),
-		true,
-		"回退声明须整段由坐标块插值（数值只在坐标块出现一次）"
-	);
 	const css = transitionCss();
-	assert.match(css, /var\(--ds-transition-duration-fast/, "fast 档须被真实消费（可寻址）");
-	assert.match(css, /var\(--ds-transition-duration\)/, "基准档须被真实消费");
-	assert.match(css, /var\(--ds-transition-duration-slow/, "slow 档须被真实消费（进出结束→shown 的收口）");
-	assert.match(css, /var\(--ds-ease-in-out\)/, "缓动令牌须被真实消费");
+	assert.match(css, /var\(--ds-transition-duration-fast\s*,/, "fast 档须被真实消费（可寻址）");
+	assert.match(css, /var\(--ds-transition-duration\s*,/, "基准档须被真实消费");
+	assert.match(css, /var\(--ds-transition-duration-slow\s*,/, "slow 档须被真实消费（进出结束→shown 的收口）");
+	assert.match(css, /var\(--ds-ease-in-out\s*,/, "缓动令牌须被真实消费");
 	// 状态机三态（层根 data-state 的取值面）
 	assert.equal(mod.POD_TRANSITION_STATES.entering, "entering");
 	assert.equal(mod.POD_TRANSITION_STATES.shown, "shown");

@@ -539,8 +539,11 @@ export function checkPrimitivesReferences(sourceText, exportNames, { requiredPro
  * P-CLIENT-SLOTS 行为化 stage：真实 apply 官方 layout/sidebar bundle，断言其
  * 声明的槽树覆盖组织层依赖的槽坐标（sidebar single／main keyed／shell.overlay
  * list／sidebar.footer.action list）；**再以真实 SlotCore 复算我方 client 的槽注册
- * 落点**（`verifyClientSlotRegistrations`：入口点击 → `sidebar` 占位 + `main` 的
- * `conversation` 键），把「插件槽名 ⊆ 宿主声明树」纳入门内。渲染期 priority/abdicate
+ * 落点**（`verifyClientSlotRegistrations`：apply 期常驻 `sidebar.footer.action` 入口钮与
+ * `shell.overlay` 通知容器；enter 期**只在 `shell.overlay` 增一条 Pod 覆盖层条目**——
+ * 官方 `sidebar`／`main` 账本在 beforeEnter／afterEnter 两相都不得被我方占用，占即
+ * 「覆盖式常驻被破坏」响亮报错；注册未声明槽即 FAIL——2026-10-07 返修批收口的
+ * 「我方槽名 ⊆ 宿主声明树」口径继续成立）。渲染期 priority/abdicate
  * 语义与渲染结果无头不可调起——显式降级声明见探针 describe 与登记表 readAccess，
  * 归 V-A6.8 人工目视清单覆盖。
  */
@@ -585,9 +588,10 @@ export async function probeClientSlotsStage(roots) {
  * 收口「我方槽名 ⊆ 宿主声明树」这一门覆盖缺口）。
  *
  * 三查：① `primitives.<Name>` 引用名 ⊆ 官方包导出面；② `MarkdownText` 调用点带
- * `labels`（0.2.0-rc.1 起必填）；③ 真实 SlotCore 下实调我方 bundle：入口点击 →
- * `sidebar` 占位 + `main` 槽 `key=conversation`。三类漂移（槽名／图标变体名／
- * labels）在修复前的形态下均判 FAIL（红证据见 18 号票附件 gate-guard 件）。
+ * `labels`（0.2.0-rc.1 起必填）；③ 真实 SlotCore 下实调我方 bundle：apply 期常驻入口钮
+ * ＋通知容器，enter 期只在 `shell.overlay` 增一条 Pod 覆盖层条目（官方 `sidebar`／`main`
+ * 两相都不占——pod 04 覆盖式常驻口径）。三类漂移（槽名／图标变体名／labels）在修复前的
+ * 形态下均判 FAIL（红证据见 18 号票附件 gate-guard 件）。
  *
  * 与 `probeClientSlotsStage` 分开：前者只断言宿主**声明面**（合成 fixture 可测），
  * 本 stage 需要真实宿主包（官方 layout/sidebar/slots/primitives 实体包）。
@@ -643,9 +647,14 @@ export async function probeClientConformanceStage(roots, declared) {
       coordinate: "lib/client.js HOST_SLOTS ↔ 宿主声明槽树（真实 SlotCore 实跑）"
     };
   }
+  // 相位后缀读取（复核 M5）：`never` 相的观测键带 `.beforeEnter`／`.afterEnter` 后缀，
+  // 原来的无后缀读取恒为 undefined ⇒ 坐标行恒打印「无／无」（相位盲区）。两相分别取。
+  const occupancy = (slot, field) => ["beforeEnter", "afterEnter"]
+    .map((phase) => `${phase}=${(verdict.observations[`${slot}.${field}.${phase}`] ?? []).join("／") || "无"}`)
+    .join("、");
   return {
     state: "PASS",
-    coordinate: `我方引用面（${references.referencedNames} 个 primitives 引用名 ⊆ 官方导出 ${primitivesNames.size} 名）＋槽落点（apply 期 footer=${verdict.observations["sidebar.footer.action.id"]?.join("／")}、overlay=${verdict.observations["shell.overlay.id"]?.join("／")}；enter 期 overlay=${verdict.observations["shell.overlay.id"]?.join("／")}；官方 sidebar／main 占用＝${verdict.observations["sidebar.id"]?.filter((id) => id === "dsh-bots-sidebar").join("／") || "无"}／${verdict.observations["main.key"]?.filter((key) => key === "conversation").join("／") || "无"}）`
+    coordinate: `我方引用面（${references.referencedNames} 个 primitives 引用名 ⊆ 官方导出 ${primitivesNames.size} 名）＋槽落点（apply 期 footer=${verdict.observations["sidebar.footer.action.id"]?.join("／")}、overlay=${verdict.observations["shell.overlay.id"]?.join("／")}；enter 期 overlay=${verdict.observations["shell.overlay.id"]?.join("／")}；官方 sidebar／main 占用＝无／无——实测 sidebar.id 相位观测［${occupancy("sidebar", "id")}］／main.key 相位观测［${occupancy("main", "key")}］）`
   };
 }
 
@@ -2072,7 +2081,7 @@ export const HOST_CONTRACT_PROBES = [
   {
     id: "P-CLIENT-SLOTS",
     face: "HF-CLIENT-SLOTS",
-    describe: "前端槽位：行为探针——真实 apply 官方 layout/sidebar bundle，断言声明槽树（sidebar single／main keyed／shell.overlay list／sidebar.footer.action list），并以真实 SlotCore 实跑我方 client 的槽注册落点（入口点击 → sidebar 占位 + main 槽 conversation 键；注册未声明槽即 FAIL）；渲染期 priority/abdicate 语义与渲染结果无头不可调起——显式降级归 V-A6.8 人工目视清单",
+    describe: "前端槽位：行为探针——真实 apply 官方 layout/sidebar bundle，断言声明槽树（sidebar single／main keyed／shell.overlay list／sidebar.footer.action list），并以真实 SlotCore 实跑我方 client 的槽注册落点（apply 期常驻入口钮＋通知容器；enter 期只在 shell.overlay 增一条 Pod 覆盖层条目，官方 sidebar／main 两相皆不得被我方占用＝覆盖式常驻口径；注册未声明槽即 FAIL）；渲染期 priority/abdicate 语义与渲染结果无头不可调起——显式降级归 V-A6.8 人工目视清单",
     async run(ctx) {
       if (!ctx.hostInstalled) return noHostSkip();
       const declaration = await probeClientSlotsStage(ctx.roots);
