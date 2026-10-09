@@ -142,7 +142,15 @@ test("O-6.1 spawn：非法 --out-root → exit 2 结构化错误；registry 零�
   assert.equal(e.scenePolicy, "preserve-for-caller");
   const claimsAfter = fs.readdirSync(registryDir).filter((n) => n.endsWith(".claim")).length;
   assert.equal(claimsAfter, claimsBefore, "失败不得产生 claim（先于一切产物写入）");
-  assert.equal((res.stderr ?? "").includes("probe"), false, "无 probe 执行痕迹");
+  // 「无 probe 执行痕迹」改用**结构化失败记录**把守：原先对整段 stderr 做
+  // `includes("probe")` 子串判定，会被失败原因里回显的 out-root 路径带偏——只要
+  // 工作树/仓库路径名里含 `probe`（本工作树 slug 即 `pod-02-host-faces-and-probes`）
+  // 就误报。结构化记录是 phase 0 唯一的对外产物，probe 起跑必然先有它之外的痕迹。
+  const payloadLine = (res.stderr ?? "").split("\n").find((line) => line.trim().startsWith("{"));
+  assert.ok(payloadLine, `失败须留结构化记录（stderr=${JSON.stringify(res.stderr ?? "")}）`);
+  assert.deepEqual(Object.keys(JSON.parse(payloadLine)).sort(),
+    ["code", "details", "exitCode", "phase", "scenePolicy"],
+    "phase 0 失败只留结构化记录，无 probe 执行痕迹");
 });
 
 test("O-6.2 普通运行路径不自动建根：--out-root 指向不存在目录 → exit 2 且目录未创建", () => {
