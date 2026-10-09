@@ -1,7 +1,7 @@
 /** Bot profile generation is observable through the documents consumed by DSH. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -64,6 +64,19 @@ test("重生成 profile 保留已迁移后的当前模型配置，不用旧 sett
     await scaffold();
     assert.equal(readFileSync(join(profile, "cordis.patch.yml"), "utf8"), patch,
       `${mode}: 重生成不改变当前配置`);
+  });
+});
+
+test("生成器不写出死键：patch 无 settings 重定向行、settings.yaml 无 agent-presets 段", async () => {
+  for (const mode of ["script", "builtin"]) await withProfile(mode, async ({ profile, scaffold }) => {
+    await scaffold();
+    const patch = readFileSync(join(profile, "cordis.patch.yml"), "utf8");
+    assert.ok(!/^- id: settings$/m.test(patch), `${mode}: 不得再写 settings 死重定向行（dsh-settings 不声明 Config schema）`);
+    assert.ok(!/agent-preset/.test(patch), `${mode}: 不得覆写 agent-preset-registry（基底回落官方默认 preset standard）`);
+    const settingsPath = join(profile, "settings.yaml");
+    assert.ok(existsSync(settingsPath), `${mode}: settings.yaml 仍是 llm-pi-ai 迁移源`);
+    assert.ok(!/^agent-presets\s*:/m.test(readFileSync(settingsPath, "utf8")),
+      `${mode}: 新建 bot 的 settings.yaml 不得写出 agent-presets 死段（0.2.0-rc.1 无 per-profile settings.yaml 读者）`);
   });
 });
 
