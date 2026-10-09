@@ -231,3 +231,68 @@ PTC 内层真实名挂在信封 `subCalls[].name` 且不别名化；`turn` 是�
   ＋ 真实日志只读投影复算（与票面既有「未证声明」口径一致）。
 - `?since=` 对截断日志的边界语义仍为票面已登记未闭合项（本次未动）。
 
+### 附属修复（2026-10-09）：`scripts/bot-health.cjs` 会话日志文件名代际盲区
+
+#### 1. 缺陷与证据
+
+- **缺陷**：上节 §6 未闭合项点名的同一代际盲区落在本件两处：
+  ① `checkBot` 会话日志项硬编码旧名 `path.join(sdir, "session.jsonl.zstd")`（返修前 `:472`）——
+  v4-only 会话判「会话文件缺失」FAIL（action `a`），并连带 `repair` 的 `needReset` 误判
+  （会把完好会话当缺失 → 归档）；② `isInProgress`（返修前 `:727`）同拼旧名——v4-only 会话的
+  mtime 判据永不命中，「疑似进行中」保护对现役 bot 会话失效（`repair` 可归档进行中的会话）。
+  `:208` docblock 也写着旧名。
+- **真实面只读复验（修复前后同一命令，零写入 `~/.dsh`）**：对象 `duty-coordinator`
+  （`~/.dsh/bots/bots.json` 两个注册 bot 之一，其会话目录**仅**有 `session.v4.jsonl.zstd`，
+  1,710,074 B）；命令 `node scripts/bot-health.cjs check duty-coordinator --root ~/.dsh`
+  （修复前用 `git show eb19fcd:scripts/bot-health.cjs` 落 `/tmp` 的 HEAD 版脚本跑）：
+
+| 行项 | 修复前（HEAD 版脚本） | 修复后（本工作树） |
+|---|---|---|
+| 会话日志 | `FAIL  会话文件缺失: …/session-e21b956a-…/session.jsonl.zstd` | `OK    session.v4.jsonl.zstd：1728 条记录（614 帧），seq 单调递增` |
+| 会话状态／邮局／配置 | OK（不变） | OK（不变） |
+| 进程注册 | `FAIL  pid 1293 不存在（stale）` | `FAIL  pid 1293 不存在（stale）`（独立缺陷，未修） |
+| 汇总 | 有 FAIL（退出码 2） | 有 FAIL（退出码 2，仅剩 stale pid） |
+
+#### 2. 修法（脚本内同步 FS／零依赖风格，不动 `lib/stats.js`）
+
+1. 新增常量 `SESSION_LOG_LEGACY_NAME = "session.jsonl.zstd"` 与
+   `SESSION_LOG_VERSIONED_RE = /^session\.v(\d+)\.jsonl\.zstd$/`；
+2. 新增 `sessionLogCandidates(dir)`：readdir 一次，全部版本化名按 **N 降序**（同 N 按文件名升序
+   兜底确定性），旧名**垫底**（仅当目录内存在），目录缺失／不可读 → `[]`——**与
+   `lib/stats.js::sessionLogCandidates` 同口径**，注释写明「两处实现必须同步演进」；
+3. 新增 `findSessionLogInDir(dir)`：候选序**先命中者胜**，均不存在 → `null`（调用方报缺失）；
+4. 两处使用点改走该 helper：`checkBot` 会话日志项（命中后证据打印**实际文件名**，如
+   `session.v4.jsonl.zstd：N 条记录…`；未命中仍报「会话文件缺失」并注明候选口径）、
+   `isInProgress`（mtime 取命中件）；
+5. 入口改 `if (require.main === module) main();` 并
+   `module.exports = { sessionLogCandidates, findSessionLogInDir, isInProgress }`——仅供测试断言
+   （三符号全部只读，不触发任何 repair 动作），CLI 行为与退出码不变。
+
+#### 3. 测试改动与实际计数
+
+新增 `tests/bot-health-session-log.test.mjs`（临时夹具，不跑任何 repair 动作）：
+
+| 断言组 | 内容 |
+|---|---|
+| ① 候选序纯逻辑 | 多代并存（旧名／v3／v10）→ N 降序＋旧名垫底；目录不存在 → `[]`／`null`；仅旧名 → 旧名；**与 `lib/stats.js::sessionLogCandidates` 逐字对拍**（防两处实现漂移） |
+| ② 疑似进行中保护 | v4-only 且 mtime < 60s → `isInProgress` true；`utimesSync` 拨到 2 小时前 → false |
+| ③ CLI check（v4-only） | 临时 root 真跑 `check`：退出码 0、`OK 会话日志`、**不含**「会话文件缺失」、证据含 `session.v4.jsonl.zstd：2 条记录（1 帧）` |
+| ④ CLI check（多代并存） | 同目录旧名 1 帧／v3 2 帧／v10 3 帧 → 读 v10：`session.v10.jsonl.zstd：6 条记录（3 帧）` |
+| ⑤ check 零写入 | 前后目录快照（相对路径＋字节数）逐项一致 |
+
+| 命令（本工作树实跑；`git merge integration/pod` 为 fast-forward `eb19fcd`→`90adfa8`，树内容相同） | 结果 |
+|---|---|
+| `TMPDIR=/tmp node tests/bot-health-session-log.test.mjs` | 5 组断言全绿 |
+| `TMPDIR=/tmp node tests/run.mjs` | **88/88 个测试文件通过**（87 ＋ 本新增件） |
+| `TMPDIR=/tmp node scripts/preflight.mjs` | ①回归 88/88 ✅ ②冻结面（0010 包）10/10 ✅ ③status-lint 0 违例 ✅ ④宿主契约 15 PASS／0 FAIL／0 SKIP ✅（`preflight: PASS`，exit 0） |
+
+#### 4. 未闭合项
+
+- 真实面 `duty-coordinator` 的 **stale pid 1293** FAIL 是独立缺陷（与日志代际无关），本次未修：
+  `repair` 清除 pid 属写运行面动作，按工作边界须出仓授权；复验表中原样保留。
+- 候选枚举在仓内仍是**两份实现**（`lib/stats.js` 为 ESM，`bot-health.cjs` 为 CJS；后者动态 import
+  会破坏「零第三方依赖全同步 FS」风格）——已由断言组①的逐字对拍把守，同步演进仍靠纪律。
+- `repair` 未在真实面实跑（会写盘）：其两条判据所调用的 `checkBot` 与 `isInProgress` 均有覆盖，
+  但归档动作本身无新增测试。
+
+
