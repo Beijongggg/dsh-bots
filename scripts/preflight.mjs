@@ -8,11 +8,13 @@
  *   ② 冻结面 sha 复验（动态取 artifacts/packages/ 最新序号包的
  *      executionEvidence.provenance.sourceManifest，逐文件 sha256＋byteLength；
  *      包文件只读，零写入）
- *   ③ 三组 lint 共用违例出口：.scratch Status 词表（五排程词＋resolved；
+ *   ③ 三组 lint ＋代码地图覆盖共用违例出口：.scratch Status 词表（五排程词＋resolved；
  *      claimed 仅限有 Type: 行的 wayfinder 票；两个历史异词件显式豁免不回改）
  *      ＋知识库文件直写、登记／废弃调用者名单与日志分卷／归档完整性
  *      ＋旧名命名（领域文档旧名自 mattpocock/skills v1.3 起更名 `GLOSSARY.md`，
- *      活文件不得再引用旧名；历史面与 GLOSSARY 更名注记豁免），任一违例即拒绝
+ *      活文件不得再引用旧名；历史面与 GLOSSARY 更名注记豁免）
+ *      ＋代码地图覆盖（`lib/org/*.js` 须在 `docs/agents/codebase-map.md`
+ *      的 lib/org 表内有行，retro3），任一违例即拒绝
  *   ④ 宿主契约门（独立探针脚本，挂在冻结面门之后、不并入测试套件——探针
  *      三态 PASS/FAIL/SKIP，SKIP 分列计数可见；本门以 dev 面运行：SKIP 不
  *      阻断但可见，部署面由 scripts/host-contract-probe.mjs --face=deploy 把
@@ -171,19 +173,59 @@ export function namingLint(repoRoot) {
   return { scanned: files.length, violations };
 }
 
-/** 第③门：状态词表、知识库写者、日志与命名检查共用违例出口，独立于回归和宿主探针。 */
+/**
+ * 第③门代码地图覆盖 lint（retro3，EV-20261009-retro3-40-46）：`lib/org/*.js`
+ * 每个 basename 必须在 `docs/agents/codebase-map.md` 的 **lib/org 表**里有
+ * 反引号条目的表格行（该图自称「改 lib/ 前必读」的落点表）；同节散文、
+ * 他节提及与地图缺失（全违例）都不抵覆盖。先例：40–46 批评审靠人抓
+ * `task-projection.js` 缺行，`host-contract.js`／`host-env-seam.js` 同日
+ * 新增仍缺行——新件落地图从「评审运气」变「提交时点机械拦截」。
+ */
+export function codeMapLint(repoRoot) {
+  const violations = [];
+  const orgDir = join(repoRoot, "lib", "org");
+  if (!existsSync(orgDir)) return { scanned: 0, violations };
+  const files = readdirSync(orgDir).filter((n) => n.endsWith(".js")).sort();
+  let table = "";
+  const mapPath = join(repoRoot, "docs", "agents", "codebase-map.md");
+  if (existsSync(mapPath)) {
+    const text = readFileSync(mapPath, "utf8");
+    const start = text.search(/^## lib\/org\//m);
+    if (start >= 0) {
+      const rest = text.slice(start);
+      const next = rest.slice(1).search(/^## /m);
+      const section = next >= 0 ? rest.slice(0, next + 1) : rest;
+      table = section.split("\n").filter((l) => /^\s*\|/.test(l)).join("\n");
+    }
+  }
+  for (const f of files) {
+    if (!table.includes(`\`${f}\``)) {
+      violations.push(`docs/agents/codebase-map.md: lib/org/${f} 在 lib/org 表内无行`);
+    }
+  }
+  return { scanned: files.length, violations };
+}
+
+/** ③门成功行摘要：preflight 主块与 ci-gates 共用单源，防两处格式串漂移（retro3 评审处置）。 */
+export function lintSummary(lint) {
+  return `扫 ${lint.scanned} 个 md；命名扫描 ${lint.namingScanned} 个活文件；知识库扫描 ${lint.knowledgeScanned} 个脚本，登记／废弃调用者 ${lint.knowledgeCallers.length} 个；地图覆盖 ${lint.mapScanned} 个 lib/org 件`;
+}
+
+/** 第③门：状态词表、知识库写者、日志、命名与代码地图覆盖检查共用违例出口，独立于回归和宿主探针。 */
 export function repositoryLint(repoRoot) {
   const status = statusLint(join(repoRoot, ".scratch"));
   const knowledge = scanKnowledgeLayerFace(repoRoot);
   const writers = scanKnowledgeRegisterWriters(repoRoot);
   const changelog = checkChangelog(repoRoot);
   const naming = namingLint(repoRoot);
+  const codeMap = codeMapLint(repoRoot);
   return {
     scanned: status.scanned,
     namingScanned: naming.scanned,
     knowledgeScanned: knowledge.scanned,
     knowledgeCallers: writers.callers,
-    violations: [...status.violations, ...knowledge.violations, ...writers.violations, ...changelog.violations, ...naming.violations]
+    mapScanned: codeMap.scanned,
+    violations: [...status.violations, ...knowledge.violations, ...writers.violations, ...changelog.violations, ...naming.violations, ...codeMap.violations]
   };
 }
 
@@ -238,7 +280,7 @@ if (isMain) {
   // ③ Status 词表与知识库写者扫描，共用违例出口。
   const lint = repositoryLint(repoRoot);
   if (lint.violations.length === 0) {
-    lines.push(`preflight ③status-lint: 0 违例（扫 ${lint.scanned} 个 md；命名扫描 ${lint.namingScanned} 个活文件；知识库扫描 ${lint.knowledgeScanned} 个脚本，登记／废弃调用者 ${lint.knowledgeCallers.length} 个） ✅`);
+    lines.push(`preflight ③status-lint: 0 违例（${lintSummary(lint)}） ✅`);
   } else {
     lines.push(`preflight ③status-lint: ${lint.violations.length} 违例 ❌`);
     for (const v of lint.violations) lines.push(`  - ${v}`);

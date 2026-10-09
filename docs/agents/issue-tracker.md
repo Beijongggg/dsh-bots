@@ -14,8 +14,9 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 ## Parallel sessions（并行会话协调）
 
 - 领票或占用工作面前，先在 `.scratch/IN-FLIGHT.md` 登记一行；提交或放弃后
-  删除。预置 worktree＝已领座位，干净不代表无主——动手前先读该表，再看
-  `git worktree list` 与 `git status`。
+  删除，并拆除本批的隔离 worktree 与已并入分支——预置 worktree 是领座信号，
+  收口后滞留即幻影座位（retro3 先例：40–46 批合流后 10 个 worktree 与
+  9 条分支滞留）。动手前先读该表，再看 `git worktree list` 与 `git status`。
 - 做隔离快照或补丁基线时，一律 `git archive <显式 commit>`，不用裸 `HEAD`
   ——并行会话会推进 HEAD，裸指针在长会话里失效（补丁夹带反向噪声的先例）。
 - 提交只 `git add` 本批明确路径；CHANGELOG／票面在读写间隙可能被并行会话
@@ -30,6 +31,20 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 - 实施会话中断或收尾时，在票面 Comments 追加一节**「移交备注：当前假设＋
   下一步＋关键证据指针」**——接手方一次 Read 重建上下文，不必考古会话
   原文（23MB jsonl 九次解析的先例）。
+
+## 立票与留痕纪律（票链写法，retro3）
+
+- **票链接口契约**：依赖链存在生产者→消费者边时，生产者票的验收判据必须点名
+  消费者将调用的**确切符号与挂载面**。先例：40–46 批 40 号票只要求新读法挂
+  新件，42–45 消费的却是读面 `ledger.taskEvents`，三票同缝停手＋补漏笔
+  `7f618c2`。
+- **API 面删除的验收口径**：删除/收缩 API 面的票，验收判据必须含**形状测试**
+  （枚举幸存成员），grep 只作辅助证据——grep 抓不到 `typeof x.member` 等
+  无点号形态。先例：46 号票的 `.events(` 差点漏掉 `review-kit.js` 门面自检。
+- **判定落票面**：实施中的口径判定与票面偏离写票面 Comments；提交信息只承载
+  摘要。先例：44 号票 12 处 `view().lastSeq` 口径初只活在提交信息，评审后才补记。
+- **链上后位票的坐标写法**：引用将被前位票移动的代码时，用符号名＋grep 提示，
+  不用裸行号。先例：42 号票 `:1076` 锚点在 40/41 搬家后位移，多花一轮核对。
 
 ## 独立／附件版交付（横向对比约定）
 

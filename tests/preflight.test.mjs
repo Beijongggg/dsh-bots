@@ -14,6 +14,7 @@ import {
   verifyFrozenFace,
   statusLint,
   namingLint,
+  codeMapLint,
   repositoryLint,
 } from "../scripts/preflight.mjs";
 
@@ -208,6 +209,69 @@ test("preflight 第③门：Status 与知识写者违例汇入同一出口", () 
     assert.equal(both.violations.length, 2);
     assert.ok(both.violations.some((v) => v.includes("bogus-word")));
     assert.ok(both.violations.some((v) => v.includes("lib/rogue.CJS")));
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+/**
+ * retro3（EV-20261009-retro3-40-46）：代码地图覆盖 lint。lib/org/*.js 每个
+ * basename 必须在 docs/agents/codebase-map.md 的 lib/org 表内有反引号行；
+ * 他节提及不抵覆盖，地图缺失即全违例。先例：40–46 批评审靠人抓
+ * task-projection.js 缺行，host-contract.js／host-env-seam.js 同日新增仍缺行。
+ */
+test("codeMapLint：lib/org 件缺地图行即违例；他节提及不抵", () => {
+  const root = makeFixture();
+  try {
+    const org = join(root, "lib", "org");
+    mkdirSync(org, { recursive: true });
+    writeFileSync(join(org, "a.js"), "export const a = 1;\n");
+    writeFileSync(join(org, "b.js"), "export const b = 1;\n");
+    mkdirSync(join(root, "docs", "agents"), { recursive: true });
+    const mapPath = join(root, "docs", "agents", "codebase-map.md");
+    // b.js 在他节、lib/org 同节散文、尾节三处被提及——皆不抵表行覆盖；
+    // 尾节提及同时钉住「区段在下一 ## 截断」的边界
+    writeFileSync(mapPath, [
+      "# 代码地图", "",
+      "## lib/ 根", "",
+      "| 文件 | 职责 |",
+      "|---|---|",
+      "| `b.js` | 他节提及 |", "",
+      "## lib/org/（组织层）", "",
+      "引言散文提及 `b.js`，非表格行。", "",
+      "| 模块 | 职责 |",
+      "|---|---|",
+      "| `a.js` | 在表 |", "",
+      "## tests/", "",
+      "尾节提及 `b.js`，不在 lib/org 区段内。", "",
+    ].join("\n"));
+    const r = codeMapLint(root);
+    assert.equal(r.scanned, 2);
+    assert.equal(r.violations.length, 1);
+    assert.match(r.violations[0], /lib\/org\/b\.js/);
+    // 补行后零违例（同节反引号行即覆盖）
+    writeFileSync(mapPath, readFileSync(mapPath, "utf8").replace(
+      "| `a.js` | 在表 |",
+      "| `a.js` | 在表 |\n| `b.js` | 补行 |"
+    ));
+    assert.deepEqual(codeMapLint(root).violations, []);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("codeMapLint：地图缺失即全违例，且汇入 repositoryLint 出口", () => {
+  const root = makeFixture();
+  try {
+    const org = join(root, "lib", "org");
+    mkdirSync(org, { recursive: true });
+    writeFileSync(join(org, "x.js"), "export const x = 1;\n");
+    const r = codeMapLint(root);
+    assert.equal(r.scanned, 1);
+    assert.equal(r.violations.length, 1);
+    assert.match(r.violations[0], /lib\/org\/x\.js/);
+    const agg = repositoryLint(root);
+    assert.ok(agg.violations.some((v) => v.includes("lib/org/x.js")));
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

@@ -58,9 +58,11 @@
 | `store-base.js` | store 底座原语（append-only、幂等门） |
 | `op-set.js` | op-set 岗位表与工具面派生（OP_SET/EXECUTE_OPS） |
 | `permissions.js` | 命令鉴权三元组与签发联动（`HOST_CHANNEL_FORBIDDEN`） |
-| `capability-base/issue/delivery.js` | capability 原语、签发验签、岗位能力 HTTP 递送 |
+| `capability-base.js` / `capability-issue.js` / `capability-delivery.js` | capability 原语（HMAC 签名验签／nonce 单次消费／capability 账）／签发面（签发权在 host，台账转移上签发）／岗位能力递送（IPC 绑出生代际，HTTP 只递已签发 grant） |
 | `post-channel.js` | bot→host 组织命令通道（幂等键经 `dispatch` 传入） |
 | `host-channel.js` | bot→host 认证通道原语；`BOT_ID_HEADER`(:17) 单源 |
+| `host-contract.js` | 宿主契约巡检子进程适配（16 号票）：报告只落临时目录，台账写入归 ledger-host |
+| `host-env-seam.js` | 宿主环境缝判定与报警文案单源：`DSH_BOTS_HOST_URL` 缺失/形状非法即宿主台面响亮（39 号票） |
 | `mail-relay.js` / `mail-client.js` | host 邮件中继（投递面唯一写者）／bot 侧通道腿 |
 | `mail-shared-face.js` / `knowledge-shared-face.js` | 投递面／记忆共享面直写扫描 |
 | `brief.js` / `brief-gate.js` | 四要素简报契约／命令面前置门 |

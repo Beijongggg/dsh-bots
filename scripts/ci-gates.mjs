@@ -3,9 +3,10 @@
  *
  * ④门（宿主契约探针）依赖真实安装宿主，不在 CI 跑；①门全量回归由
  * `TMPDIR=/dev/shm node tests/run.mjs` 直接承担。本脚本只做不依赖真实
- * 运行面的机械校验：冻结面 sha 复验＋Status 词表/知识库写者/日志结构 lint。
+ * 运行面的机械校验：冻结面 sha 复验＋Status 词表/知识库写者/日志结构/
+ * 代码地图覆盖 lint。
  */
-import { repositoryLint, latestPackage, verifyFrozenFace } from "./preflight.mjs";
+import { repositoryLint, lintSummary, latestPackage, verifyFrozenFace } from "./preflight.mjs";
 import { join } from "node:path";
 
 const repoRoot = join(import.meta.dirname, "..");
@@ -28,7 +29,7 @@ if (!pkg) {
 
 const lint = repositoryLint(repoRoot);
 if (lint.violations.length === 0) {
-  console.log(`ci-gates ③status-lint: 0 违例（扫 ${lint.scanned} 个 md；命名扫描 ${lint.namingScanned} 个活文件） ✅`);
+  console.log(`ci-gates ③status-lint: 0 违例（${lintSummary(lint)}） ✅`);
 } else {
   console.error(`ci-gates ③status-lint: ${lint.violations.length} 违例 ❌`);
   for (const v of lint.violations) console.error(`  - ${v}`);
