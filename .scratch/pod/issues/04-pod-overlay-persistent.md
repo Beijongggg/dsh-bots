@@ -159,3 +159,60 @@
     过渡令牌 `var()` 生成器，**不得**再本地重声明宿主令牌）、`POD_LAYER.zIndexNoticesInPod`（通知 Pod 期档）、
     `data-state="pod"`（通知容器）、`podOverlayMarkup()`／`isPortaledLayer()`／`resolveSelectionAfterRefresh()`
     （回归与探索用内视缝，不进对外契约）。
+
+- 2026-10-10 真机走查返修（覆盖层布局缺陷；Lead 在真机 GUI 复现，headless Chrome＋CDP）：
+  - **缺陷与实测数字**（同一 GUI／视口 1440×900，进入 Pod 后）：`.dsh-bots-pod-seat-list` 实测
+    `width:11925.4px`／`flex:0 0 auto`／`min-width:auto`；`.dsh-bots-pod-body` 实测 `width:0`
+    （`flex:1 1 auto;min-width:0`）⇒ 主区完全不可见，整屏只剩一条被拉长的席位行。参考值：
+    同 GUI 官方侧栏 `.pI_x6G_sidebarCol` 实测 280px。证据：`.tmp/pod-ctx/evidence/05-pod-entered.png`／
+    `04-enter-pod.json`／`08-layout-defect.json`。其余真机项（`role=dialog`／`aria-modal` 形制、
+    官方页全程挂载与 `scrollTop` 3000 保持、`inert` 施加与还原、Tab 焦点囚笼、过渡
+    `entering→shown`／`animation`／`0.2s`／`cubic-bezier(0.4,0,0.2,1)`／`translateY(4px)→0`、Esc 撤层）
+    本次实测通过且实现零触碰，不回退。
+  - **根因**：旧抢槽形态下席位列宽度由宿主 `sidebar` 槽容器给（官方栅格默认 280）；改覆盖层后
+    没有槽容器，而 `.dsh-bots-pod-seat-list` 是 `flex:none` ⇒ flex-basis 落回内容固有宽
+    （席位行 nowrap），把 `flex:1 1 auto;min-width:0` 的主区压成 0——**覆盖层必须自持宽度**。
+    同类第二处（本次一并核出）：官方 `main` 槽容器 `centerCol` 是 column flex，槽内容宽度靠
+    交叉轴 stretch 给；覆盖层的 `view` 是 row flex ⇒ 面板宽度落进主轴，主区根（只有
+    `min-width:0`）同样退化为内容固有宽。
+  - **修法（符号级）**：
+    1. `POD_LAYER` 增 `seatListWidth:280`／`seatListCollapsedWidth:56`——宽度常量进坐标块
+       （禁散落数值）；280 对齐官方 `sidebar === 0 ? 280`，56 为既有折叠 rail 档（原硬编码字面量）。
+    2. `podLayerCss`：
+       `.{layer} .{seatList}{height:100%;flex:none;width:${seatListWidth}px;box-sizing:border-box}`；
+       折叠档 `.{layer} .{seatList}.dsh-bots-collapsed{width:${seatListCollapsedWidth}px}`；
+       新增 `.{layer} .{view}>*{flex:1 1 auto;min-width:0;width:100%}`（面板占满视图）；
+       两处注释写明「旧抢槽形态由宿主槽容器给宽，覆盖层必须自持宽度」这一根因。
+    3. `podOverlayMarkup()` 夹具：席位列去掉内联 `width:200px`（宽度改由被测 CSS 给）＋加 nowrap
+       长文本填充（复现固有宽度压力）、主区视图内加无内联样式的空面板；`measureLayout()` 回读
+       `seatList`／`shell`／`mainPane` 三个新盒。
+  - **新增断言**（`tests/pod-overlay.test.mjs::R1`；pod-overlay 用例数 19→20、断言数 231→256）：
+    ① 坐标块：`seatListWidth === 280`／`seatListCollapsedWidth === 56`；
+    ② 真实 `podLayerCss` 文本上的声明级复算：席位列 `width` 逐字＝坐标块常量、`flex:none`、
+    `box-sizing:border-box`、`height:100%`；折叠档 `width`＝常量；`body` `width:100%`＋`min-width:0`；
+    视图子节点 `width:100%`＋`flex-grow:1`＋`min-width:0`；
+    ③ **headless Chrome 真实布局复算（非恒真）**：本机回读（视口 780px）shell 780／席位列 280／
+    主区 500＝780−280／活动视图 500／面板 500；
+    ④ 双反例（从真实 CSS 文本里各摘一处声明后投进同一布局引擎）：摘掉席位列宽度 ⇒ 席位列
+    19796.02px、主区 0（复现真机 11925.4px／0 的同一缺陷）；摘掉面板占满 ⇒ 面板宽 0 而主区仍 500。
+  - **同类自查**（覆盖层里「旧槽位语境由宿主给盒模型、现在自持」的元素逐项判定）：
+    - **已补**：`.dsh-bots-pod-seat-list`（宽 280／56＋`box-sizing:border-box`）；`.dsh-bots-pod-view>*`
+      （主区根 `.dsh-bots-main-root` 与选席提示 `.dsh-bots-pick` 的宽度——旧靠官方 centerCol 的
+      column flex 交叉轴 stretch）。
+    - **已核不需要**：`.dsh-bots-sidebar-root`（`height:100%`／`box-sizing:border-box`／`overflow:hidden`
+      本就自持）；`.dsh-bots-pod-layer`／`.dsh-bots-pod-shell`（`position:fixed;inset:0`／
+      `width:100%;height:100%;overflow:hidden` 自持）；`.dsh-bots-main-root` 内部的 `.dsh-bots-main-area`／
+      `.dsh-bots-chat`／`.dsh-bots-chat-list`／`.dsh-bots-doccol`（宽度由 main-root 的 column flex 逐级
+      stretch／`flex:1` 给，根宽已由 `view>*` 保证）、`.dsh-bots-details`（`flex:none;width:340px`）、
+      `.dsh-bots-toast`／`.dsh-bots-notices`（`position:fixed` 自持）、弹窗类（`BotModal`／
+      `DeleteBotModal`／`RiskGate` 走官方 `primitives.Modal`，自带 portal 与盒模型）。
+  - **验证命令与计数**（返修后实测，工作树 `.worktrees/pod-04-pod-overlay-persistent`，
+    集成头 `357c152`，`git merge integration/pod` 快进无冲突）：
+    - `TMPDIR=/tmp node tests/run.mjs` → **93/93 个测试文件通过**（计数只增）。
+    - `TMPDIR=/tmp node scripts/preflight.mjs` → ①回归 **93/93** ✅／②冻结面（0010 包）**10/10** ✅／
+      ③status-lint **0 违例**（扫 114 个 md）✅／④宿主契约 **15 PASS / 0 FAIL / 0 SKIP** ✅。
+  - **未闭合项**：① 真机宽度复算留证（280px 实测截图）由 Lead 在部署面复跑——本次为仓内返修，
+    真机回归不在本子代理工作面；仓内证据＝坐标块常量＋声明级断言＋headless Chrome 真实布局复算
+    与双反例。② 席位列 280px 与官方侧栏的视觉细差（内边距／`.5px` 描边／滚动条宽度）归 11 号票
+    人工目视清单。③ 真机已通过的其余项（dialog 形制／保活／inert／Tab／过渡／Esc）本次无改动，
+    不重复留证。
