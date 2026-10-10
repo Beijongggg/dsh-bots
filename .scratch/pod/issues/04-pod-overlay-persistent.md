@@ -5,7 +5,7 @@
 
 **Blocked by:** 02, 03
 
-**Status:** ready-for-agent
+**Status:** resolved（2026-10-10 功能批收口，证据见 11 号票 Comments 与各票 Comments）
 
 **复核点:** 命中必审清单（对外可见：宿主界面行为改变）→ 交付前独立复核。
 
@@ -216,3 +216,4 @@
     与双反例。② 席位列 280px 与官方侧栏的视觉细差（内边距／`.5px` 描边／滚动条宽度）归 11 号票
     人工目视清单。③ 真机已通过的其余项（dialog 形制／保活／inert／Tab／过渡／Esc）本次无改动，
     不重复留证。
+- 2026-10-10 收口指针：功能批 01–11 已收口（Status: resolved）。四门实际计数、64 条判据逐条复核、坐标补记与真机走查结论见 `.scratch/pod/issues/11-feature-batch-closure.md` Comments「收口记录（2026-10-10）」；本票实施与偏离记录见上文本票 Comments。

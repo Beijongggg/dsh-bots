@@ -5,7 +5,7 @@
 
 **Blocked by:** 06, 03
 
-**Status:** ready-for-agent
+**Status:** resolved（2026-10-10 功能批收口，证据见 11 号票 Comments 与各票 Comments）
 
 - [x] 拼装规则按规格冻结的「回合级拼装」执行：工具行组挂在触发该回合的消息之后；未闭合回合
       按 `since` 增量实时追加；闭合后折叠为「N 次工具调用」头（可展开）；
@@ -118,3 +118,4 @@
    08 可直接复制该 loader 手法。
 5. **不要动**：`assemble`／`assembleDiagnostics` 的输出形状（`assemble` 的节点
    `{kind, turn, anchor, anchorIndex, closed, count, t0, records}` 已冻结于本票用例）。
+- 2026-10-10 收口指针：功能批 01–11 已收口（Status: resolved）。四门实际计数、64 条判据逐条复核、坐标补记与真机走查结论见 `.scratch/pod/issues/11-feature-batch-closure.md` Comments「收口记录（2026-10-10）」；本票实施与偏离记录见上文本票 Comments。

@@ -5,7 +5,7 @@
 
 **Blocked by:** 07
 
-**Status:** ready-for-agent
+**Status:** resolved（2026-10-10 功能批收口，证据见 11 号票 Comments 与各票 Comments）
 
 - [x] `bash` 行：命令摘要＋输出体（终端形制）；
 - [x] 文件改动行：diff 视图（新增／删除／上下文行着色走官方令牌）；
@@ -124,3 +124,4 @@
    `createMiniReact()`／`mountRowExpanded()`／`readOutputText()` 夹具可复制。
 4. **不要动**：`toolRowBody` 的返回形状（children 数组）、`toolRowCss` 的既有类名、
    `TOOL_VARIANTS`／`toolVariantOf`（变体口径与行类型口径是两个面）。
+- 2026-10-10 收口指针：功能批 01–11 已收口（Status: resolved）。四门实际计数、64 条判据逐条复核、坐标补记与真机走查结论见 `.scratch/pod/issues/11-feature-batch-closure.md` Comments「收口记录（2026-10-10）」；本票实施与偏离记录见上文本票 Comments。

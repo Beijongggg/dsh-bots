@@ -5,7 +5,7 @@
 
 **Blocked by:** 03, 04
 
-**Status:** ready-for-agent
+**Status:** resolved（2026-10-10 功能批收口，证据见 11 号票 Comments 与各票 Comments）
 
 - [ ] 形制逐项对齐：0.5px `--dsw-alias-border-l1` 边框、`--dsw-radius-xl` 圆角、
       `--dsw-alias-markdown-code-block` 底色；头部 `padding:12px 16px`／`gap:10px`；
@@ -137,3 +137,4 @@
       触发行行级类＝`dsh-bots-turn-trigger`；讨论组根＝`section.dsh-bots-disclosure.dsh-bots-disc`。
     - 判据纯函数 `externalTriggersOf(messages, botById) → boolean[]`（票 07 的拼装若要在同一锚点
       插入触发行，直接复用本函数，不得另写判据）。
+- 2026-10-10 收口指针：功能批 01–11 已收口（Status: resolved）。四门实际计数、64 条判据逐条复核、坐标补记与真机走查结论见 `.scratch/pod/issues/11-feature-batch-closure.md` Comments「收口记录（2026-10-10）」；本票实施与偏离记录见上文本票 Comments。

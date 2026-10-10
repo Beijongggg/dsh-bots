@@ -1,6 +1,6 @@
 # Pod（pod）规格：切换微交互与工具面／形制对齐
 
-Status: ready-for-agent
+Status: resolved（2026-10-10 功能批 01–11 实施完成，见 11 号票 Comments）
 
 - **来源**：本轮 grilling 会话（转写 `.tmp/pod-ctx/1257a68e.txt`，5551 行）的裁定；共识蒸馏
   见 `.tmp/pod-ctx/consensus.md`（只读入口）。15 票切分经用户批准（转写 L5284
@@ -492,7 +492,7 @@ Status: ready-for-agent
 | `V-P1.2` | 「席位／岗位」词不外借：词条显式声明 Pod 不指席位；活文档无「Pod 席位」式用法 | tests/pod-spec-face.test.mjs::V-P1.2 | 回归记录 | 常驻 |
 | `V-P1.3` | 旧别名收作 `_Avoid_`：`Bot 模式` 标注为历史别名；入口标签已是 `Pod` 不回改 | tests/pod-spec-face.test.mjs::V-P1.3 | GLOSSARY.md＋回归记录 | 常驻 |
 | `V-P1.4` | 冻结／历史件旧名残留不回改，且与「应改未改」两类不混淆 | tests/pod-spec-face.test.mjs::V-P1.4（冻结路径白名单扫描：旧名命中 ⊆ 白名单，「应改未改」为空集；待票 11 新建）＋票 12 剩余命中清单 | 回归记录＋票 12 Comments | 常驻 |
-| `V-P1.5` | 代码内部名（槽位名／组件名）不随命名批改名 | tests/pod-spec-face.test.mjs::V-P1.5（旧名命中 ⊆ 白名单（冻结路径＋代码内部名），「应改未改」为空集；待票 11 新建）＋票 12 剩余命中清单 | 回归记录＋票 12 Comments | 常驻 |
+| `V-P1.5` | 代码内部名（槽位名／组件名）不随命名批改名 | 用例:pod-spec-face.test.mjs#V-P1.5＋用例:pod-spec-face.test.mjs#V-P1.5b | 回归记录＋票 12 Comments | 常驻 |
 
 ### V-P2 覆盖式常驻与保活（11 条）
 
@@ -505,7 +505,7 @@ Status: ready-for-agent
 | `V-P2.5` | 层叠约束：portal 层高于 AppFrame、低于官方 body 级浮层最低档 `900`；不复用平台页 `1001`；取值登记进票 02 新建的覆盖层适配面 | 探针＝票 02 新覆盖层的面 id 与探针名（以票 02 Comments 登记为准，本规格不预设 id 名）＋tests/pod-overlay.test.mjs::V-P2.5 | 探针报告＋回归记录 | 常驻 |
 | `V-P2.6` | 不依赖同层 `order`（Pod 主层不复用通知条目的 `order:-10` 语义） | tests/pod-overlay.test.mjs::V-P2.6 | 回归记录 | 常驻 |
 | `V-P2.7` | 焦点契约：`primitives.useModalLayer`（Tab 囚笼／Escape／焦点归还）成立 | tests/pod-overlay.test.mjs::V-P2.7＋人工:human-visual-checklist | 回归记录＋票 04 Comments | 常驻＋验收期一次 |
-| `V-P2.8` | 背景 `inert`：覆盖期间背景不可聚焦；退出后原值 LIFO 还原；与官方浮层嵌套还原正确 | 待票 02 行为探针＋tests/pod-overlay.test.mjs::V-P2.8 | 回归记录＋探针报告 | 常驻 |
+| `V-P2.8` | 背景 `inert`：覆盖期间背景不可聚焦；退出后原值 LIFO 还原；与官方浮层嵌套还原正确 | 判据:pod-overlay.test.mjs#V-P2.8 | 回归记录＋探针报告 | 常驻 |
 | `V-P2.9` | 宿主快捷键按 modal 契约被拦（含侧栏切换类命令）；Esc／Tab 行为符合契约 | tests/pod-overlay.test.mjs::V-P2.9＋人工:human-visual-checklist | 回归记录＋票 04 Comments | 常驻＋验收期一次 |
 | `V-P2.10` | 旁带清理：不再强展／强收官方侧栏；`ctx.layout.closeDetails()` 死调用替换为现役 API 或删除 | tests/pod-overlay.test.mjs::V-P2.10（负例：无 `closeDetails` 调用） | 回归记录 | 常驻 |
 | `V-P2.11` | Pod 内切席位再切回：草稿／选中／滚动保留 | tests/pod-overlay.test.mjs::V-P2.11＋人工:human-visual-checklist | 回归记录＋人工件 | 常驻＋验收期一次 |
@@ -515,9 +515,9 @@ Status: ready-for-agent
 | # | 判据 | 执行坐标 | 证据落点 | 级别 |
 |---|---|---|---|---|
 | `V-P3.1` | 进出：淡入＋约 4px 上浮、约 200ms；无方向位移 | tests/pod-transition.test.mjs::V-P3.1（待票 05） | 回归记录 | 常驻 |
-| `V-P3.2` | 时长／缓动取 `--ds-transition-duration(-fast/-slow)`＋`--ds-ease-in-out` 并带常量回退 | 探针 P-HOST-TRANSITION-TOKENS（面 HF-HOST-TRANSITION-TOKENS，见票 02 Comments）＋tests/pod-transition.test.mjs::V-P3.2 | 探针报告＋回归记录 | 常驻 |
+| `V-P3.2` | 时长／缓动取 `--ds-transition-duration(-fast/-slow)`＋`--ds-ease-in-out` 并带常量回退 | 探针 P-HOST-TRANSITION-TOKENS＋用例:pod-transition.test.mjs#V-P3.2 | 探针报告＋回归记录 | 常驻 |
 | `V-P3.3` | 范围差分：进出时侧栏与主区同一过渡；Pod 内切席位只过渡主区 | tests/pod-transition.test.mjs::V-P3.3 | 回归记录 | 常驻 |
-| `V-P3.4` | `prefers-reduced-motion: reduce` 退化为瞬时切换 | tests/pod-transition.test.mjs::V-P3.4（媒体查询桩） | 回归记录 | 常驻 |
+| `V-P3.4` | `prefers-reduced-motion: reduce` 退化为瞬时切换 | 用例:pod-transition.test.mjs#V-P3.4 | 回归记录 | 常驻 |
 | `V-P3.5` | 过渡期间无白屏帧、无布局跳动 | tests/pod-transition.test.mjs::V-P3.5（首帧断言）＋人工:human-visual-checklist | 回归记录＋人工件 | 常驻＋验收期一次 |
 | `V-P3.6` | 动效不依赖 `hidden`／`display:none`，不引入宿主私有样式钩子 | tests/pod-transition.test.mjs::V-P3.6（负例扫描） | 回归记录 | 常驻 |
 
@@ -525,13 +525,13 @@ Status: ready-for-agent
 
 | # | 判据 | 执行坐标 | 证据落点 | 级别 |
 |---|---|---|---|---|
-| `V-P4.1` | 读面符号 `BotsApi.trace(id, since)` 挂 `GET /api/bots/:id/trace`；双路（在线 `session.history` 优先→离线 `readSessionEventsFromFile` 回落）＋ mtime／size 缓存与增量语义 | tests/pod-trace.test.mjs::V-P4.1（待票 06） | 回归记录 | 常驻 |
-| `V-P4.2` | 记录形状冻结（13 字段）与 `state∈preparing｜running｜ok｜error｜stopped` | tests/pod-trace.test.mjs::V-P4.2（形状测试） | 回归记录 | 常驻 |
+| `V-P4.1` | 读面符号 `BotsApi.trace(id, since)` 挂 `GET /api/bots/:id/trace`；双路（在线 `session.history` 优先→离线 `readSessionEventsFromFile` 回落）＋ mtime／size 缓存与增量语义 | 判据:pod-trace.test.mjs#V-P4.1 | 回归记录 | 常驻 |
+| `V-P4.2` | 记录形状冻结（13 字段）与 `state∈preparing｜running｜ok｜error｜stopped` | 判据:pod-trace.test.mjs#V-P4.2 | 回归记录 | 常驻 |
 | `V-P4.3` | PTC 信封：外层 `tool/call`（`run_code`）作信封；`tool/ptc-dispatch*` 内层名与结果归入 `subCalls`；内层名不别名化、不丢失 | tests/pod-trace.test.mjs::V-P4.3（合成事件流） | 回归记录 | 常驻 |
-| `V-P4.4` | 邮件面行键（inbox／outbox）不变 | tests/org-mail-shared-face.test.mjs::内容键封闭＋tests/mail-at-least-once.test.mjs＋tests/pod-trace.test.mjs::V-P4.4（负例） | 回归记录 | 常驻 |
-| `V-P4.5` | `session-driver` 回合返回形状 `{text, sessionId}` 不变 | tests/session-driver.test.mjs（既有回合返回形状断言）＋待票 06 补形状负例 | 回归记录 | 常驻 |
+| `V-P4.4` | 邮件面行键（inbox／outbox）不变 | 用例:org-mail-shared-face.test.mjs#内容键封闭＋tests:mail-at-least-once.test.mjs＋用例:pod-trace.test.mjs#V-P4.4 | 回归记录 | 常驻 |
+| `V-P4.5` | `session-driver` 回合返回形状 `{text, sessionId}` 不变 | 用例:pod-trace.test.mjs#V-P4.5＋tests:session-driver.test.mjs | 回归记录 | 常驻 |
 | `V-P4.6` | fail-closed：缺会话／损坏日志返回空或显式错误，不抛到 HTTP 面外 | tests/pod-trace.test.mjs::V-P4.6 | 回归记录 | 常驻 |
-| `V-P4.7` | 未闭合回合／中断／并发子调用／缺工具名的投影行为可判，缺口计数可见 | tests/pod-trace.test.mjs::V-P4.7 | 回归记录 | 常驻 |
+| `V-P4.7` | 未闭合回合／中断／并发子调用／缺工具名的投影行为可判，缺口计数可见 | 判据:pod-trace.test.mjs#V-P4.7 | 回归记录 | 常驻 |
 
 ### V-P5 L3 显示与形制统一（11 条）
 
@@ -540,45 +540,45 @@ Status: ready-for-agent
 | `V-P5.1` | 通用行字段齐备（图标／工具名／参数摘要／状态／时间／chevron；展开参数体与输出体 pre-wrap、限高、可滚） | tests/pod-tool-rows.test.mjs::V-P5.1（待票 07） | 回归记录 | 常驻 |
 | `V-P5.2` | 回合折叠头「N 次工具调用」可展开，计数口径＝顶层记录数 | tests/pod-tool-rows.test.mjs::V-P5.2＋人工:human-visual-checklist | 回归记录＋人工件 | 常驻＋验收期一次 |
 | `V-P5.3` | PTC 信封呈现＝外层 `run_code` 行下挂内层子调用行（官方同形） | tests/pod-tool-rows.test.mjs::V-P5.3（投影快照） | 回归记录 | 常驻 |
-| `V-P5.4` | 同流不打架：零重复、零丢序；刷新与事后回看呈现一致 | tests/pod-tool-rows.test.mjs::V-P5.4（增量 vs 全量幂等） | 回归记录 | 常驻 |
+| `V-P5.4` | 同流不打架：零重复、零丢序；刷新与事后回看呈现一致 | 判据:pod-tool-rows.test.mjs#V-P5.4 | 回归记录 | 常驻 |
 | `V-P5.5` | 零回归：无工具调用的回合呈现与今日一致 | tests/pod-tool-rows.test.mjs::V-P5.5 | 回归记录 | 常驻 |
-| `V-P5.6` | 四类专用行（`bash`／文件改动 diff／`read`／`search`）齐备；未识别工具回落通用行、无空白行或裸 JSON | tests/pod-tool-rows-specialized.test.mjs::V-P5.6（待票 08） | 回归记录 | 常驻 |
-| `V-P5.7` | 形状与官方同源：图标走官方 primitives 变体名、字号与令牌口径一致，无第二套视觉语言；四类专用行（票 08）各留一条真机目视记录 | tests/pod-tool-rows-specialized.test.mjs::V-P5.7（样式扫描）＋人工:human-visual-checklist | 回归记录＋人工件 | 常驻＋验收期一次 |
-| `V-P5.8` | `turn-trigger` 形制逐项参数对齐（12 项表） | tests/pod-turn-trigger.test.mjs::V-P5.8（待票 09）＋人工:human-visual-checklist | 回归记录＋人工件 | 常驻＋验收期一次 |
-| `V-P5.9` | 覆盖范围＝外部触发行＋讨论组／relay 折叠组；通知面保持轻量不动；文案 zh／en 齐备；键盘可达（Enter／Space 展开、Esc 不误关、aria 齐备） | tests/pod-turn-trigger.test.mjs::V-P5.9 | 回归记录 | 常驻 |
-| `V-P5.10` | 形制件抽取（票 03）：纯重构零行为变化——既有回归全绿＋抽取件被至少一处既有 UI 复用；官方骨架／展开折叠＋aria 连线／受控口径有断言 | tests/client-disclosure.test.mjs（已实施，7 例）＋`tests/run.mjs` 回归 | 回归记录＋票 03 Comments | 常驻 |
+| `V-P5.6` | 四类专用行（`bash`／文件改动 diff／`read`／`search`）齐备；未识别工具回落通用行、无空白行或裸 JSON | 判据:pod-tool-rows-specialized.test.mjs#V-P5.6 | 回归记录 | 常驻 |
+| `V-P5.7` | 形状与官方同源：图标走官方 primitives 变体名、字号与令牌口径一致，无第二套视觉语言；四类专用行（票 08）各留一条真机目视记录 | 判据:pod-tool-rows-specialized.test.mjs#V-P5.7＋人工:human-visual-checklist | 回归记录＋人工件 | 常驻＋验收期一次 |
+| `V-P5.8` | `turn-trigger` 形制逐项参数对齐（12 项表） | 判据:pod-turn-trigger.test.mjs#V-P5.8＋人工:human-visual-checklist | 回归记录＋人工件 | 常驻＋验收期一次 |
+| `V-P5.9` | 覆盖范围＝外部触发行＋讨论组／relay 折叠组；通知面保持轻量不动；文案 zh／en 齐备；键盘可达（Enter／Space 展开、Esc 不误关、aria 齐备） | 判据:pod-turn-trigger.test.mjs#V-P5.9 | 回归记录 | 常驻 |
+| `V-P5.10` | 形制件抽取（票 03）：纯重构零行为变化——既有回归全绿＋抽取件被至少一处既有 UI 复用；官方骨架／展开折叠＋aria 连线／受控口径有断言 | 用例:client-disclosure.test.mjs#披露行骨架＋tests:run.mjs | 回归记录＋票 03 Comments | 常驻 |
 | `V-P5.11` | 形制件抽取视觉零差异（票 03）：抽取前后既有 UI 视觉一致 | 人工:human-visual-checklist（并入票 11 收口真机清单） | 票 11 Comments＋人工件 | 验收期一次 |
 
 ### V-P6 回合级拼装（6 条）
 
 | # | 判据 | 执行坐标 | 证据落点 | 级别 |
 |---|---|---|---|---|
-| `V-P6.1` | 锚定规则 R1：工具行组挂在 `A(t)`（当前已知 `M` 中 `timestamp <= t0` 的合并序下标最大者）之后；同拍取合并序下标最大者；多回合同锚按 `turn` 升序 | tests/pod-assembly.test.mjs::V-P6.1（fixture，待票 07） | 回归记录 | 常驻 |
-| `V-P6.2` | 无锚点／时间戳不可解析时按确定性回落渲染（流首／跳过）并计缺口（`assembleDiagnostics(M,R).anchorless` 可断言） | tests/pod-assembly.test.mjs::V-P6.2（负例＋诊断计数） | 回归记录 | 常驻 |
-| `V-P6.3` | 未闭合回合：按 `since` 增量实时追加、不显示计数头；闭合判定（`turn/end` 或回合回复消息落盘）可判；晚到消息进入时按 R2 重锚（重锚优先）；`since` 两侧语义按 §E1（左开、不可互代） | tests/pod-assembly.test.mjs::V-P6.3（含晚到消息重锚负例） | 回归记录 | 常驻 |
-| `V-P6.4` | 闭合后收为计数头；N＝顶层记录数、子调用不重复计入 | tests/pod-assembly.test.mjs::V-P6.4 | 回归记录 | 常驻 |
-| `V-P6.5` | 幂等／可重放：同一数据全集内增量拼接与全量重放产出同一序列（跨全集按 R2 重锚后比较）；零重复、零丢序 | tests/pod-assembly.test.mjs::V-P6.5 | 回归记录 | 常驻 |
+| `V-P6.1` | 锚定规则 R1：工具行组挂在 `A(t)`（当前已知 `M` 中 `timestamp <= t0` 的合并序下标最大者）之后；同拍取合并序下标最大者；多回合同锚按 `turn` 升序 | 用例:pod-tool-rows.test.mjs#V-P6.1 | 回归记录 | 常驻 |
+| `V-P6.2` | 无锚点／时间戳不可解析时按确定性回落渲染（流首／跳过）并计缺口（`assembleDiagnostics(M,R).anchorless` 可断言） | 用例:pod-tool-rows.test.mjs#V-P6.2 | 回归记录 | 常驻 |
+| `V-P6.3` | 未闭合回合：按 `since` 增量实时追加、不显示计数头；闭合判定（`turn/end` 或回合回复消息落盘）可判；晚到消息进入时按 R2 重锚（重锚优先）；`since` 两侧语义按 §E1（左开、不可互代） | 用例:pod-tool-rows.test.mjs#V-P6.3 | 回归记录 | 常驻 |
+| `V-P6.4` | 闭合后收为计数头；N＝顶层记录数、子调用不重复计入 | 用例:pod-tool-rows.test.mjs#V-P6.4 | 回归记录 | 常驻 |
+| `V-P6.5` | 幂等／可重放：同一数据全集内增量拼接与全量重放产出同一序列（跨全集按 R2 重锚后比较）；零重复、零丢序 | 用例:pod-tool-rows.test.mjs#V-P6.5 | 回归记录 | 常驻 |
 | `V-P6.6` | 不可执行时上浮口径成立：分解为可观测项→标 `needs-user` 上浮→两轮未闭合用户终裁 | `lib/org/acceptance-coordinates.js::HUMAN_CRITERION_CATEGORIES` fail-closed 口径＋票 11 复核记录 | 票 11 Comments | 常驻 |
 
 ### V-P7 L1 基底与呈现面（7 条）
 
 | # | 判据 | 执行坐标 | 证据落点 | 级别 |
 |---|---|---|---|---|
-| `V-P7.1` | 规格显式写明「基底＝官方默认 preset `standard`（27 工具）＋呈现面 ptc」，人物设定不裁；附实测证据 | tests/pod-harness-base.test.mjs::V-P7.1（待票 10；文档＋配置扫描） | 回归记录＋票 10 Comments | 常驻 |
+| `V-P7.1` | 规格显式写明「基底＝官方默认 preset `standard`（27 工具）＋呈现面 ptc」，人物设定不裁；附实测证据 | 用例:pod-harness-base.test.mjs#V-P7.1 | 回归记录＋票 10 Comments | 常驻 |
 | `V-P7.2` | 27 工具清单与官方默认 preset 逐项一致（防静默漂移） | tests/pod-harness-base.test.mjs::V-P7.2（preset／`--dump-config` 对照） | 回归记录 | 常驻 |
 | `V-P7.3` | `DSH_TOOLS_MODE` 无条件注入不动，不得改为按 provider 分叉 | tests/pod-harness-base.test.mjs::V-P7.3＋tests/bot-faces-ready.test.mjs | 回归记录 | 常驻 |
-| `V-P7.4` | 死配置清理：per-bot `settings.yaml` 的 `agent-presets` 段＋profile patch 的 `settings` 死重定向行清除，生成器同步 | tests/pod-harness-base.test.mjs::V-P7.4 死配置清理：生成器同步（patch 无 settings 重定向、settings 模板无 agent-presets）＋tests/bot-profile.test.mjs::生成器不写出死键：patch 无 settings 重定向行、settings.yaml 无 agent-presets 段（票 10 落点） | 回归记录 | 常驻 |
+| `V-P7.4` | 死配置清理：per-bot `settings.yaml` 的 `agent-presets` 段＋profile patch 的 `settings` 死重定向行清除，生成器同步 | 用例:pod-harness-base.test.mjs#V-P7.4＋用例:bot-profile.test.mjs#生成器不写出死键 | 回归记录 | 常驻 |
 | `V-P7.5` | 反向验证：`dsh --dump-config` 不再出现该段 | tests/pod-harness-base.test.mjs::V-P7.5（`--dump-config` 输出） | 回归记录＋票 10 Comments | 常驻 |
-| `V-P7.6` | 不碰岗位 op 集与 op 命名合同 | tests/org-op-set.test.mjs 全绿＋tests/pod-harness-base.test.mjs::V-P7.6（负例） | 回归记录 | 常驻 |
+| `V-P7.6` | 不碰岗位 op 集与 op 命名合同 | 用例:pod-harness-base.test.mjs#V-P7.6＋tests:org-op-set.test.mjs | 回归记录 | 常驻 |
 | `V-P7.7` | 观察项登记：`.agent-presets/` 死目录＋13 断链软链入 `docs/PROJECT_UNDERSTANDING.md`「仍可选题」＋ CHANGELOG 留界 | tests/pod-harness-base.test.mjs::V-P7.7（文档面） | 文档＋回归记录 | 常驻 |
 
 ### V-P8 改名范围与批次边界（7 条）
 
 | # | 判据 | 执行坐标 | 证据落点 | 级别 |
 |---|---|---|---|---|
-| `V-P8.1` | 功能先行：12–15 票 `Blocked by` 串在 11 之后，改名批不夹带功能改动 | `node scripts/project-context.mjs pod` 依赖列＋票 12–15 票面 | 终端输出＋票面 | 常驻 |
+| `V-P8.1` | 功能先行：12–15 票 `Blocked by` 串在 11 之后，改名批不夹带功能改动 | 用例:project-context.test.mjs#--spec-index＋tests:project-context.test.mjs | 终端输出＋票面 | 常驻 |
 | `V-P8.2` | A 组范围齐备（模块 id／包名／CSS 前缀／locale ns／host 插件名／wire 头／路由前缀／日志前缀／测试与脚本字面量） | tests/pod-spec-face.test.mjs::V-P8.2（A 组九类清单扫全：旧名命中 ⊆ 白名单，「应改未改」为空集；待票 11 新建）＋票 12／13「剩余命中清单」 | 回归记录＋票 12／13 Comments | 常驻 |
-| `V-P8.3` | B 组 env 双读：`POD_*` 优先、兼容 `DSH_BOTS_*` 一个窗口；仓库外两脚本同步更新 | tests/pod-rename-env.test.mjs::V-P8.3（待票 13）＋仓库外脚本更新记录 | 回归记录＋票 13 Comments | 常驻＋运行面点名 |
+| `V-P8.3` | B 组 env 双读：`POD_*` 优先、兼容 `DSH_BOTS_*` 一个窗口；仓库外两脚本同步更新 | scripts/org-cutover-check.mjs（仓库外两脚本更新记录见票 13 授权窗口） | 回归记录＋票 13 Comments | 常驻＋运行面点名 |
 | `V-P8.4` | 四同名一致：patch 行 `name`＝插件目录名＝`package.json.name`＝前端模块 id | 票 13 核验（测试／`scripts/org-cutover-check.mjs`） | 回归记录＋票 13 Comments | 常驻 |
 | `V-P8.5` | C 组数据面：范围（注册表／信箱／知识库／台账／能力／workspace／session 分片／备份）先方案后执行；两风险各有处置 | 票 14 方案件＋迁移前后逐件校验 | 票 14 Comments＋增量包 | 常驻＋运行面点名 |
 | `V-P8.6` | 冻结件不回改；改名触发**新 `runId`** 增量证据包；冻结面门在新清单下 PASS | 票 15 包链核验＋`TMPDIR=/tmp node scripts/preflight.mjs` ②门 | 增量包＋票 15 Comments | 常驻＋运行面点名 |
@@ -590,8 +590,8 @@ Status: ready-for-agent
 |---|---|---|---|---|
 | `V-P9.1` | 判据冻结：正文＋附录 A 同批冻结；此后只补执行坐标、不改语义 | CHANGELOG 事件＋本文件 SHA-256（Lead 落档） | CHANGELOG | 常驻 |
 | `V-P9.2` | 人工判据仅限白名单两类，须列明核验人；白名单外按判据缺口上浮 | `lib/org/acceptance-coordinates.js::HUMAN_CRITERION_CATEGORIES`＋票 11 复核 | 回归记录＋票 11 Comments | 常驻 |
-| `V-P9.3` | 每条判据四字段齐备；票 11 机械检查坐标无空缺（四字段可解析（**含人工坐标必须带白名单类别** `人工:human-visual-checklist`／`人工:human-knowledge-reuse`）、id 连续、级别词在**封闭三档词表**内（逐个 `＋` 分词都在词表内）、票面引用坐标存在） | tests/pod-spec-face.test.mjs::V-P9.3（待票 11 新建） | 回归记录 | 常驻 |
-| `V-P9.4` | 四门收口：preflight 四门 PASS 且计数 ≥ 基线（84/84、10/10、lint 0 违例、宿主契约 12 PASS／0 FAIL／0 SKIP）；真机目视一次并署名 | `TMPDIR=/tmp node scripts/preflight.mjs`＋人工:human-visual-checklist | 终端输出＋票 11 Comments＋增量包 | 验收期一次 |
+| `V-P9.3` | 每条判据四字段齐备；票 11 机械检查坐标无空缺（四字段可解析（**含人工坐标必须带白名单类别** `人工:human-visual-checklist`／`人工:human-knowledge-reuse`）、id 连续、级别词在**封闭三档词表**内（逐个 `＋` 分词都在词表内）、票面引用坐标存在） | 判据:pod-spec-face.test.mjs#V-P9.3 | 回归记录 | 常驻 |
+| `V-P9.4` | 四门收口：preflight 四门 PASS 且计数 ≥ 基线（84/84、10/10、lint 0 违例、宿主契约 12 PASS／0 FAIL／0 SKIP）；真机目视一次并署名 | 门①＋门②＋门③＋门④＋人工:human-visual-checklist | 终端输出＋票 11 Comments＋增量包 | 验收期一次 |
 
 ### 不在判据内（out of scope）
 

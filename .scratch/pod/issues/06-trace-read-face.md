@@ -5,7 +5,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** resolved（2026-10-10 功能批收口，证据见 11 号票 Comments 与各票 Comments）
 
 **接口契约:** 07 将逐字依赖本票的记录形状与读面符号；形状变更须走票面 amend，不得静默漂移。
 
@@ -294,5 +294,4 @@ PTC 内层真实名挂在信封 `subCalls[].name` 且不别名化；`turn` 是�
   会破坏「零第三方依赖全同步 FS」风格）——已由断言组①的逐字对拍把守，同步演进仍靠纪律。
 - `repair` 未在真实面实跑（会写盘）：其两条判据所调用的 `checkBot` 与 `isInProgress` 均有覆盖，
   但归档动作本身无新增测试。
-
-
+- 2026-10-10 收口指针：功能批 01–11 已收口（Status: resolved）。四门实际计数、64 条判据逐条复核、坐标补记与真机走查结论见 `.scratch/pod/issues/11-feature-batch-closure.md` Comments「收口记录（2026-10-10）」；本票实施与偏离记录见上文本票 Comments。
