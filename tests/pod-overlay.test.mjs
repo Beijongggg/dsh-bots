@@ -299,6 +299,9 @@ out.textContent = JSON.stringify({
   container: box("[data-dsh-bots-pod-body-fixture]"),
   active: box("[data-dsh-bots-pod-view-fixture=\\"active\\"]"),
   inactive: box("[data-dsh-bots-pod-view-fixture=\\"inactive\\"]"),
+  seatList: box("[data-dsh-bots-pod-seat-fixture]"),
+  shell: box("[data-dsh-bots-pod-shell-fixture]"),
+  mainPane: box("[data-dsh-bots-pod-main-fixture]"),
   inactivePosition: pos("[data-dsh-bots-pod-view-fixture=\\"inactive\\"]"),
   viewportWidth: window.innerWidth
 });
@@ -328,6 +331,22 @@ const legacyVisibilityOnlyCss = () => {
 		`.${c.view}[hidden]{position:absolute;inset:0;`,
 		`.${c.view}[hidden]{`
 	);
+};
+
+/**
+ * 真机走查返修 R1 的两处**反例**生成器：从真实样式里各摘掉一处声明。
+ * 返回 null＝锚点漂移（用例按维护触点报红）——反例必须真的不同于被测样式，否则判据恒真。
+ */
+const withoutSeatListWidthCss = () => {
+	const declaration = `;width:${mod.POD_LAYER.seatListWidth}px`;
+	if (!mod.podLayerCss.includes(declaration)) return null;
+	return mod.podLayerCss.replace(declaration, "");
+};
+const withoutViewFillCss = () => {
+	const rule = new RegExp("\\." + mod.POD_LAYER_CLASSES.layer + " \\."
+		+ mod.POD_LAYER_CLASSES.view + ">\\*\\{[^}]*\\}");
+	if (!rule.test(mod.podLayerCss)) return null;
+	return mod.podLayerCss.replace(rule, "");
 };
 
 // ================= B1（复核）：整屏几何——活动视图占满容器宽 =================
@@ -381,6 +400,64 @@ test("B1 整屏几何：非活动视图脱流但仍挂载（真实 CSS＋真实�
 		`仅 visibility 的形态应复现 B1（非活动视图仍在流内、把活动视图挤到右侧）：容器左 ${legacyMetrics.container.left}px／活动左 ${legacyMetrics.active.left}px`);
 	assert.ok(legacyMetrics.active.width < legacyMetrics.container.width - 1,
 		`仅 visibility 的形态下活动视图不得占满容器宽：容器 ${legacyMetrics.container.width}px／活动 ${legacyMetrics.active.width}px`);
+});
+
+// ================= R1（真机走查返修 2026-10-10）：覆盖层席位列自持宽度 =================
+test("R1 席位列自持宽度：主区不被内容挤成 0（坐标块常量＋真实 CSS 声明＋布局引擎复算＋双反例）", () => {
+	const c = mod.POD_LAYER_CLASSES;
+	const layer = mod.POD_LAYER;
+	const width = layer.seatListWidth;
+	const collapsedWidth = layer.seatListCollapsedWidth;
+	// ① 坐标块：宽度常量单源（禁散落数值）；280 对齐官方侧栏默认档，56 为既有折叠 rail 档
+	assert.equal(width, 280, "席位列宽须对齐官方侧栏默认档（dsh-client-ui-layout `sidebar === 0 ? 280`）");
+	assert.equal(collapsedWidth, 56, "折叠 rail 档 56 须收进 POD_LAYER（原硬编码在样式规则里）");
+	// ② 真实 podLayerCss 文本上的声明级复算：规则存在且取值＝坐标块常量（改字面量／丢规则即红）
+	const seatList = declaredProps(mod.podLayerCss, `${c.layer} .${c.seatList}`);
+	assert.equal(seatList.width, `${width}px`, "席位列须有显式宽度＝坐标块常量（旧抢槽形态由宿主槽容器给宽，覆盖层必须自持）");
+	assert.equal(seatList.flex, "none", "席位列须 flex:none（有宽度后不参与收缩）");
+	assert.equal(seatList["box-sizing"], "border-box", "显式宽度须配 border-box（根带 6px 12px 内边距不外扩）");
+	assert.equal(seatList.height, "100%", "height:100% 既有语义不得回退");
+	const collapsed = declaredProps(mod.podLayerCss, `${c.layer} .${c.seatList}.dsh-bots-collapsed`);
+	assert.equal(collapsed.width, `${collapsedWidth}px`, "折叠档宽度须＝坐标块常量（原 `.dsh-bots-collapsed{width:56px}` 语义保留）");
+	// ③ 主区不被挤成 0（声明级）：body 宽度约束＋视图子节点占满（旧槽位由宿主 column flex 的 stretch 给宽）
+	const body = declaredProps(mod.podLayerCss, c.body);
+	assert.equal(body.width, "100%", "pod-body 须有 width:100%（不被席位列挤成 0 的声明级保证）");
+	assert.match(body["min-width"] ?? "", /^0/, "pod-body 须 min-width:0（可收缩到剩余宽）");
+	const pane = declaredProps(mod.podLayerCss, `${c.layer} .${c.view}>*`);
+	assert.equal(pane.width, "100%", "视图子节点须 width:100%（覆盖层没有宿主槽容器给宽）");
+	assert.match(pane.flex ?? "", /^1\b/, "视图子节点须 flex-grow:1（占满视图主轴）");
+	assert.match(pane["min-width"] ?? "", /^0/, "视图子节点须 min-width:0（不得把视图撑破）");
+	// ④ 真实布局引擎复算（无头 Chrome；载体缺失＝跳过协议，不作绿）：席位列＝常量宽、
+	//    主区＝剩余宽、活动视图与面板都不被挤塌
+	const metrics = measureLayout("R1", mod.podOverlayMarkup(), mod.podLayerCss);
+	if (!metrics) {
+		console.log("⤼ SKIP: 本机无无头浏览器——真实布局复算未跑，坐标块＋声明级判据仍生效（真机宽度由 04 票面 Comments 复算留证）");
+		return;
+	}
+	assert.ok(metrics.seatList && metrics.shell, "夹具须回读席位列与 shell 几何");
+	assert.ok(Math.abs(metrics.seatList.width - width) <= 1,
+		`席位列实测宽须＝坐标块常量：期望 ${width}px／实测 ${metrics.seatList.width}px`);
+	assert.ok(metrics.container.width > 0, `主区不得被挤成 0 宽（实测 ${metrics.container.width}px）`);
+	assert.ok(Math.abs(metrics.container.left - metrics.seatList.right) <= 1,
+		`主区左边界须贴席位列右边界：席位列右 ${metrics.seatList.right}px／主区左 ${metrics.container.left}px`);
+	assert.ok(Math.abs(metrics.container.width - (metrics.shell.width - metrics.seatList.width)) <= 1,
+		`主区须占满剩余宽度：shell ${metrics.shell.width}px－席位列 ${metrics.seatList.width}px／主区 ${metrics.container.width}px`);
+	assert.ok(Math.abs(metrics.active.width - metrics.container.width) <= 1, "活动视图仍须占满主区（B1 判据不回退）");
+	assert.ok(Math.abs(metrics.mainPane.width - metrics.container.width) <= 1,
+		`视图子节点须占满主区：主区 ${metrics.container.width}px／面板 ${metrics.mainPane.width}px`);
+	// ⑤ 反例 a（真实引擎复现真机缺陷）：摘掉席位列宽度声明 ⇒ `flex:none` 按内容固有宽撑开、主区塌成 0
+	const defectiveCss = withoutSeatListWidthCss();
+	assert.ok(defectiveCss && defectiveCss !== mod.podLayerCss, "反例夹具自检：须真的摘掉席位列宽度声明（锚点漂移＝本用例维护触点）");
+	const defective = measureLayout("R1 反例 a", mod.podOverlayMarkup(), defectiveCss);
+	assert.ok(defective.seatList.width > defective.viewportWidth,
+		`无显式宽度时席位列按内容固有宽度撑开：实测 ${defective.seatList.width}px（真机 11925.4px）`);
+	assert.equal(defective.container.width, 0, `主区被挤成 0 宽（复现真机缺陷）：实测 ${defective.container.width}px`);
+	// ⑤b 反例 b：摘掉「视图子节点占满」⇒ 面板宽度退化为内容宽（0），证明该声明非装饰
+	const noFillCss = withoutViewFillCss();
+	assert.ok(noFillCss && noFillCss !== mod.podLayerCss, "反例夹具自检：须真的摘掉视图子节点占满规则");
+	const noFill = measureLayout("R1 反例 b", mod.podOverlayMarkup(), noFillCss);
+	assert.ok(noFill.container.width > 0, "反例 b 只在面板层生效：主区本身仍有宽（席位列自持宽度未摘）");
+	assert.equal(noFill.mainPane.width, 0, `无占满声明时面板宽度退化为内容宽：实测 ${noFill.mainPane.width}px`);
 });
 
 // ================= V-P2.1：槽账本不受影响 =================
