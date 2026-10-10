@@ -577,7 +577,7 @@ Status: resolved（2026-10-10 core 批实施完成；07／08／09 由用户裁�
 | # | 判据 | 执行坐标 | 证据落点 | 级别 |
 |---|---|---|---|---|
 | `V-P8.1` | 功能先行：12–15 票 `Blocked by` 串在 11 之后，改名批不夹带功能改动 | `node scripts/project-context.mjs pod` 依赖列＋票 12–15 票面 | 终端输出＋票面 | 常驻 |
-| `V-P8.2` | A 组范围齐备（模块 id／包名／CSS 前缀／locale ns／host 插件名／wire 头／路由前缀／日志前缀／测试与脚本字面量） | tests/pod-spec-face.test.mjs::V-P8.2（A 组九类清单扫全：旧名命中 ⊆ 白名单，「应改未改」为空集；待票 11 新建）＋票 12／13「剩余命中清单」 | 回归记录＋票 12／13 Comments | 常驻 |
+| `V-P8.2` | A 组范围齐备（模块 id／包名／CSS 前缀／locale ns／host 插件名／wire 头／路由前缀／日志前缀／测试与脚本字面量） | tests/pod-spec-face.test.mjs::V-P8.2（A 组九类清单扫全：身份类留旧名／非身份类已换新名，旧名命中 ⊆ 白名单，「应改未改」为空集；票 12 落）＋票 12／13「剩余命中清单」 | 回归记录＋票 12／13 Comments | 常驻 |
 | `V-P8.3` | B 组 env 双读：`POD_*` 优先、兼容 `DSH_BOTS_*` 一个窗口；仓库外两脚本同步更新 | tests/pod-rename-env.test.mjs::V-P8.3（待票 13）＋仓库外脚本更新记录 | 回归记录＋票 13 Comments | 常驻＋运行面点名 |
 | `V-P8.4` | 四同名一致：patch 行 `name`＝插件目录名＝`package.json.name`＝前端模块 id | 票 13 核验（测试／`scripts/org-cutover-check.mjs`） | 回归记录＋票 13 Comments | 常驻 |
 | `V-P8.5` | C 组数据面：范围（注册表／信箱／知识库／台账／能力／workspace／session 分片／备份）先方案后执行；两风险各有处置 | 票 14 方案件＋迁移前后逐件校验 | 票 14 Comments＋增量包 | 常驻＋运行面点名 |

@@ -1,4 +1,4 @@
-# dsh-bots 项目理解文档
+# Pod（pod）项目理解文档
 
 > 本文档＝**领域总览**（产品方向／协作协议／前端架构备忘）＋「方法论」单一权威。
 > 状态与进度按 [README §1](../README.md#1-事实源与适用范围) 读取对应票面和阶段记录；
@@ -6,7 +6,7 @@
 
 ## 项目目标
 
-`dsh-bots` 是 DeepSeek Harness（DSH）的「机器人模式」插件，用于把多个独立 DSH profile 组织成可管理、可通信的 Bot 团队。
+`Pod`（标识符 `pod`）是 DeepSeek Harness（DSH）的「机器人模式」插件，用于把多个独立 DSH profile 组织成可管理、可通信的 Bot 团队。
 
 当前插件已经具备：
 
@@ -151,7 +151,7 @@
   session（见「DSH 前端架构要点」），Bot 模式无 session，详情列宽恒 0、slot
   不入驻。当前详情面板为 conversation 槽内右侧自绘 `<aside>`。伪造会话或改
   布局源码均违背「整页独立、不 hack」方向，否决。
-- ✅ **composer 模型 pill**（`dsh-bots-pill`，点击进编辑）。
+- ✅ **composer 模型 pill**（`pod-pill`，点击进编辑）。
 - ✅ **bot 状态 SSE 实时推送**：注册表/状态变更全部经 `BotsApi.writeRegistry`
   单一 choke point 广播 `bots` 事件；端点 `GET /api/bots/_events`（下划线
   前缀彻底避开与 bot id 冲突）＋心跳；client EventSource 事件驱动刷新、
@@ -182,7 +182,7 @@
   产物随就绪面 `_ledger/readiness.hostEnv` 暴露（诊断位，不作门），根因不必再从 `channels` 空／
   `gen:null` 反推。**仍留界**：自检**只报不修**——不自动补齐 origin、不动 `dsh web` 启动路径
   （后者属宿主侧、非本仓面），故手工启动宿主后组织面照旧休眠，须人工走重启链。触发＝再次出现
-  「席位在线但组织面全静默」而宿主台面无 `[dsh-bots][seam]` 行时（自检自身失效）立票。
+  「席位在线但组织面全静默」而宿主台面无 `[pod][seam]` 行时（自检自身失效）立票。
 - **评审扩大工程（F-R9-1）已闭环**：全门关闭、门态 READY（2026-09-04）；
   后续工程路线＝PLAN §十一（B1~B5＋结构债），进度以 CHANGELOG 为准。
 - DSH_BOTS_API_TOKEN 环境变量鉴权（约 10 行；威胁模型＝本机其他进程，

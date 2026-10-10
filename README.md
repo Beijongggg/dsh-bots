@@ -1,4 +1,4 @@
-# dsh-bots 文档导航
+# Pod（pod）文档导航
 
 本文件维护文档职责、阅读路径和落档规则。任务状态、包序号与验证结果从各自
 来源读取；导航中只保留指针。
@@ -44,7 +44,7 @@
 | [CLOSURE-p6-5-qualified-scope.md](docs/CLOSURE-p6-5-qualified-scope.md) | P6-5 冻结限定关闭范围 |
 | [GROK-DSH-BOTS-COMPARISON.md](docs/GROK-DSH-BOTS-COMPARISON.md) | 2026-08-30 架构对比参考快照 |
 | [CODE-QUALITY-ARCHITECTURE-REVIEW-2026-09-05.md](docs/CODE-QUALITY-ARCHITECTURE-REVIEW-2026-09-05.md) | 2026-09-05 评估与发现索引 |
-| `docs/dsh-bots-architecture.*` | 2026-09-08 架构图快照；JSON 为规格源，HTML、trace、导出与目视校验材料为派生件；按新版本重出 |
+| `docs/dsh-bots-architecture.*` | 2026-09-08 架构图快照（**文件名保留旧名＝身份串，票 13 处理**）；JSON 为规格源（文本标签已随 12 号票改为 `Pod`），HTML、trace、导出与目视校验材料为派生件；**待按新版本重出** |
 | [docs/adr/](docs/adr/) | 架构决策记录；决策需要落档时才创建，一条一文件（`ADR-NNNN-<slug>.md`） |
 | `docs/changelog/YYYY-MM-NN.md` | 月度事件分卷；同月按卷号递增，卷内新事件置顶 |
 | [changelog/archive.json](docs/changelog/archive.json) | 旧日志的路径、SHA-256、字节数与行数绑定；迁移记录只读 |

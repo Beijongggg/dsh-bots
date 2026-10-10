@@ -2,7 +2,7 @@
   "schema_version": 1,
   "diagram_type": "architecture",
   "meta": {
-    "title": "dsh-bots 总体架构",
+    "title": "Pod（pod）总体架构",
     "locale": "zh-CN",
     "output": "dsh-bots-architecture.html",
     "quality_profile": "showcase",
@@ -195,7 +195,7 @@
   "boundaries": [
     {
       "kind": "region",
-      "label": "dsh-bots 插件（lib/）",
+      "label": "Pod 插件（lib/）",
       "wraps": [
         "guard",
         "integration",
