@@ -23,8 +23,13 @@
 
 **结论**：12 号票范围内的仓库内标识符已扫净；`lib/`／`tests/`／`scripts/` 全代码面上
 旧名残留**只剩票 13 身份／wire／env 面**（机械把守见下），四门全绿
-（①91/91、②10/10、③0 违例、④15 PASS／0 FAIL／0 SKIP）。**`Status:` 未动**（Lead 收口时翻）；
-CHANGELOG 未写（Lead 落）。
+（①91/91、②10/10、③0 违例、④15 PASS／0 FAIL／0 SKIP）。
+
+> **收口状态（补记）**：本实施记录的三条提交为 `f557f51`（lib）／`6fa9841`（tests/scripts）／
+> `dae3b90`（docs＋本记录）；其后 Lead 以 `4422b75` 收口——`Status:` 翻 `resolved`、
+> 预览图与架构派生件重出**移交票 15**、清单项勾选。故上段写下的「Status 未动／CHANGELOG 未写」
+> 是本实施时点的状态描述（实施者按票面纪律不翻 Status、不写 CHANGELOG），**以 Lead 收口的
+> `4422b75` 为准**。
 
 **机械把守（本票新建）**：`tests/pod-spec-face.test.mjs` 的
 `codeFaceOldNameScan()`（导出）+ 用例「V-P1.4/V-P1.5 12 号票标识符扫」：
