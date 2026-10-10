@@ -64,7 +64,7 @@
 4. 3080 运行面是 web 还是 desktop（desktop 走原生桥）**未证**（票 04 同款未闭合项）。
 - 2026-10-10 收口指针（core 批）：功能批已按 **core 范围**收口（01–06／10／11 并入 `integration/pod-core`；07／08／09 由用户裁定搁置、不并入主树，见各票 Comments「搁置（2026-10-10 用户裁定）」节）。四门实际计数、判据复核（搁置票判据标「搁置」）、坐标口径与真机走查结论见 `.scratch/pod/issues/11-feature-batch-closure.md` Comments「收口记录（2026-10-10）」；本票实施与偏离记录见上文本票 Comments。**core 口径补记**：上文「验证命令与实际计数」里的 `93/93` 等计数为并入侧栏 07／08／09 的集成分支口径；core 批实测为 **91/91**（基线 90＋本票新增 1，搁置件测试不入本批），四门计数见 11 号票。
 - 2026-10-10 评审返修（EV-20261010-pod-core-review-rework）：未闭合项 2「退出侧动效」按本票
-  预留的「只动计时落点」口径收口——`exit()` 先经 `applyPodExitTransition(podLayout.layer)` 置
+  预留的「只动计时落点」口径收口——`exit()` 先经 `beginPodExitTransition(podLayout.layer)` 置
   层根 `data-state=exiting`＋`data-pod-transition=layer-exit`（CSS 关键帧 `pod-pod-exit`＝进场
   镜像：from 原位不透明 → to `translateY(4px)`＋`opacity:0`；位移仍只允许 0 与 +4px，受 V-P3.1
   冻结口径「符号不得反」约束），计时落点（`resolvePodTransitionDuration()`＝reduce 0／常态
@@ -75,3 +75,13 @@
   `tests/pod-transition.test.mjs::V-P3.1`（出场侧 CSS＋状态机＋渲染派生三组断言）＋
   `tests/pod-overlay.test.mjs`（出场侧全流程：exiting 落位→条目保留→重复 exit 幂等→重进取消→
   计时落点 dispose）。未闭合项 1（真机目视）仍在 11 号票人工清单。
+- 2026-10-10 复审修订补记（同批补二）：① 出场函数更名 `beginPodExitTransition`（与
+  `applyPodTransition` 同族异约——前者返回推进时长、后者返回 dispose，冠 begin 显义）；②
+  出场计时器改模块级 `podExitTimer` 并入 `resetPodTransitions` 清理账（原为 apply() 闭包
+  局部量，reset 清不到，成其注释自警的悬挂定时器）；③ 元素双写面分支收敛为
+  `podElementWriter` 单一助手（四处合一）；④ **已知微边缘口（接受，不修）**：进场 200ms 窗内
+  `exit()` 再重进取消后，进场过渡的 hook 态滞留 `entering`（进场计时已被出场分支清掉、
+  onState 不再触发），其后一次重渲会把 `data-state` 写回 entering、进场动画重放一次——
+  窗口 ≤200ms、仅视觉重放、层保持可交互，且渲染派生守卫已盖 exiting 期；如需根治须把
+  hook 态与模块旁带合一（结构性改动，超出本返修批「只动计时落点」口径），留待真机走查
+  后定夺。

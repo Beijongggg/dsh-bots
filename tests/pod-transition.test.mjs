@@ -555,19 +555,19 @@ test("V-P3.4 prefers-reduced-motion: reduce 退化为瞬时切换", () => {
 });
 
 // ================= V-P3.1 出场侧（pod 05 返修 2026-10-10）：状态机与渲染派生 =================
-test("V-P3.1 出场侧：applyPodExitTransition 落 exiting 态并返回推进时长（reduce／无层元素→0）；渲染派生 podLayout.exiting", () => {
-	assert.equal(typeof mod.applyPodExitTransition, "function", "导出面缺 applyPodExitTransition（出场状态机）");
+test("V-P3.1 出场侧：beginPodExitTransition 落 exiting 态并返回推进时长（reduce／无层元素→0）；渲染派生 podLayout.exiting", () => {
+	assert.equal(typeof mod.beginPodExitTransition, "function", "导出面缺 beginPodExitTransition（出场状态机）");
 	withMatchMedia(false, () => {
 		const element = createTransitionElement();
-		assert.equal(mod.applyPodExitTransition(element), mod.POD_TRANSITION.fallbackDurationMs, "非 reduce 下出场时长＝坐标块时长");
+		assert.equal(mod.beginPodExitTransition(element), mod.POD_TRANSITION.fallbackDurationMs, "非 reduce 下出场时长＝坐标块时长");
 		assert.equal(element.dataset.state, mod.POD_TRANSITION_STATES.exiting, "出场须把层根落 exiting 态");
 		assert.equal(element.dataset["pod-transition"], "layer-exit", "出场过渡标记须可寻址（data-pod-transition=layer-exit）");
 	});
 	withMatchMedia(true, () => {
 		const reduceElement = createTransitionElement();
-		assert.equal(mod.applyPodExitTransition(reduceElement), 0, "reduce 下出场时长须为 0（调用方同步撤层）");
+		assert.equal(mod.beginPodExitTransition(reduceElement), 0, "reduce 下出场时长须为 0（调用方同步撤层）");
 	});
-	assert.equal(mod.applyPodExitTransition(null), 0, "无层元素（无头／就地降级）须返回 0（同步撤层＝旧语义）");
+	assert.equal(mod.beginPodExitTransition(null), 0, "无层元素（无头／就地降级）须返回 0（同步撤层＝旧语义）");
 	mod.resetPodTransitions();
 
 	// 渲染派生：模块旁带 exiting 置位时，层根渲染态须派生为 exiting——出场期重渲不把态写回 shown

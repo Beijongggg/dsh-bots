@@ -545,6 +545,13 @@ test("V-P3.1 出场侧：exit() 先落 exiting 再计时撤层；重进取消退
 			flush();
 			assert.deepEqual(core.idsOf("shell.overlay"), [IDS.notices], "计时落点执行撤层（dispose 移除条目）");
 			assert.equal(mod.getBotState().podActive, false, "撤层后熄灭 podActive");
+			// 复审修订（补二）：出场计时器须入 resetPodTransitions 清理账（模块级 podExitTimer，
+			// 防夹具不 flush 就成悬挂定时器）
+			mod.__podControl.enter();
+			mod.__podControl.exit();
+			assert.equal(pending.size, 1, "第三次进出排一个出场计时器");
+			mod.resetPodTransitions();
+			assert.equal(pending.size, 0, "resetPodTransitions 须清掉出场计时器（入清理账）");
 		} finally {
 			globalThis.window.setTimeout = previousSet;
 			globalThis.window.clearTimeout = previousClear;
