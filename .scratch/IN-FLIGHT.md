@@ -13,4 +13,4 @@
 
 | 任务 | 会话／工具 | 工作面 | 领取时间 | 备注 |
 |---|---|---|---|---|
-| pod 01–12（功能批＋改名·标识符扫） | DSH implement-spec（session-dc33ac81） | `integration/pod`；工作树 `.worktrees/pod-*` | 2026-10-09 14:20 | 01–10 已并入且四门全绿；部署同步已按授权执行（2026-10-10，记录 `artifacts/cutover-execution/pod-feature-batch-20261010T1816Z-sync-16d4fa06.json`）；待宿主重启后真机走查＋11 收口；12 待做；13／14／15 待逐项点名 |
+| pod core 批（01–06/10/11）＋12 号票改名扫 | DSH implement-spec（session-dc33ac81） | `integration/pod-core`（待并）；搁置件留 `integration/pod`；工作树 `.worktrees/pod-*` | 2026-10-09 14:20 | 2026-10-10 用户裁定 07／08／09（工具行/专用行/turn-trigger）搁置、不并入主树；core 四门全绿（91/91・10/10・0 违例・15-0-0）待并；部署面已回 core 形态（`pod-core-20261010T2016Z`，all-same 215/215）；12 号票实施中；13／14／15 待逐项点名 |
