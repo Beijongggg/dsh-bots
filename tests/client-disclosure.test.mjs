@@ -142,7 +142,7 @@ test("披露行骨架：section 根＋原生 button 头＋图标／标题／右�
 	const view = harness.mount(mod.DisclosureRow, ROW());
 	const root = view.tree;
 	assert.equal(root.type, "section", "根节点须为 section（官方 TurnTriggerNodeView 同形）");
-	assert.ok(hasClass(root, "dsh-bots-disclosure"), "根类名 dsh-bots-disclosure");
+	assert.ok(hasClass(root, "pod-disclosure"), "根类名 pod-disclosure");
 	const head = buttonOf(root);
 	assert.ok(head, "折叠头须是原生 button");
 	assert.equal(head.props.type, "button", "button 须显式 type=button");
@@ -150,22 +150,22 @@ test("披露行骨架：section 根＋原生 button 头＋图标／标题／右�
 	assert.equal(typeof head.props.onClick, "function", "折叠头可点击展开");
 	assert.equal(typeof head.props.tabIndex, "undefined", "不得用 tabindex 把原生按钮移出 Tab 序");
 	assert.equal(head.props.disabled, undefined, "折叠头不得禁用");
-	assert.ok(byClass(head, "dsh-bots-disclosure-icon"), "图标槽在头部");
-	assert.equal(byClass(head, "dsh-bots-disclosure-icon").props["aria-hidden"], true, "图标装饰性（aria-hidden）");
-	assert.equal(textOf(byClass(head, "dsh-bots-disclosure-title")), "外部触发 · agent", "标题走文本槽");
+	assert.ok(byClass(head, "pod-disclosure-icon"), "图标槽在头部");
+	assert.equal(byClass(head, "pod-disclosure-icon").props["aria-hidden"], true, "图标装饰性（aria-hidden）");
+	assert.equal(textOf(byClass(head, "pod-disclosure-title")), "外部触发 · agent", "标题走文本槽");
 	const time = findOne(head, (node) => node.type === "time");
 	assert.ok(time, "时间须是右对齐 <time> 元素");
-	assert.ok(hasClass(time, "dsh-bots-disclosure-time"));
+	assert.ok(hasClass(time, "pod-disclosure-time"));
 	assert.equal(time.props.dateTime, "2026-10-09T06:03:00.000Z", "time 带机器可读 dateTime");
 	assert.equal(textOf(time), "14:03");
-	const chevron = byClass(head, "dsh-bots-disclosure-chevron");
+	const chevron = byClass(head, "pod-disclosure-chevron");
 	assert.ok(chevron, "chevron 槽在头部");
 	assert.equal(chevron.props["aria-hidden"], true);
 	const chevronIcon = findOne(chevron, (node) => node.type === "IconChevronDownOutlineRegular");
 	assert.ok(chevronIcon, "chevron 须走官方 primitives 变体名 IconChevronDownOutlineRegular");
 	assert.equal(chevronIcon.props.size, 12, "chevron 尺寸 12px");
-	assert.equal(byClass(root, "dsh-bots-disclosure-body"), null, "折叠态不渲染展开体");
-	assert.equal(byClass(root, "dsh-bots-disclosure-content"), null);
+	assert.equal(byClass(root, "pod-disclosure-body"), null, "折叠态不渲染展开体");
+	assert.equal(byClass(root, "pod-disclosure-content"), null);
 });
 
 // ---- 切片 2：展开／折叠＋aria 连线 ----
@@ -178,17 +178,17 @@ test("展开／折叠：aria-expanded 翻转、aria-controls 指向展开体 id�
 	buttonOf(view.tree).props.onClick();
 	const openedHead = buttonOf(view.tree);
 	assert.equal(openedHead.props["aria-expanded"], true, "点击后 aria-expanded 翻真");
-	const body = byClass(view.tree, "dsh-bots-disclosure-body");
+	const body = byClass(view.tree, "pod-disclosure-body");
 	assert.ok(body, "展开后渲染展开体");
 	assert.equal(body.props.id, bodyId, "aria-controls 指向展开体 id");
 	assert.equal(body.props["aria-controls"], undefined, "展开体不重复声明 aria-controls");
-	assert.ok(byClass(view.tree, "dsh-bots-disclosure-chevron-open"), "展开态 chevron 追加 -open 类");
-	assert.equal(byClass(view.tree, "dsh-bots-disclosure-content") !== null, true, "展开体含正文槽");
+	assert.ok(byClass(view.tree, "pod-disclosure-chevron-open"), "展开态 chevron 追加 -open 类");
+	assert.equal(byClass(view.tree, "pod-disclosure-content") !== null, true, "展开体含正文槽");
 
 	openedHead.props.onClick();
 	assert.equal(buttonOf(view.tree).props["aria-expanded"], false, "再点折叠");
-	assert.equal(byClass(view.tree, "dsh-bots-disclosure-body"), null, "折叠后展开体移出树");
-	assert.equal(byClass(view.tree, "dsh-bots-disclosure-chevron-open"), null, "折叠态去掉 -open 类");
+	assert.equal(byClass(view.tree, "pod-disclosure-body"), null, "折叠后展开体移出树");
+	assert.equal(byClass(view.tree, "pod-disclosure-chevron-open"), null, "折叠态去掉 -open 类");
 });
 
 // ---- 切片 3：受控模式 ----
@@ -199,10 +199,10 @@ test("受控模式：open 由调用方持有，点击只回调 onOpenChange，�
 	buttonOf(view.tree).props.onClick();
 	assert.deepEqual(seen, [true], "点击须回调期望的新态");
 	assert.equal(buttonOf(view.tree).props["aria-expanded"], false, "受控态不得被组件自行改写");
-	assert.equal(byClass(view.tree, "dsh-bots-disclosure-body"), null, "受控未翻真时不得自行展开");
+	assert.equal(byClass(view.tree, "pod-disclosure-body"), null, "受控未翻真时不得自行展开");
 	const opened = harness.mount(mod.DisclosureRow, { title: "标题", open: true, onOpenChange: () => {} });
 	assert.equal(buttonOf(opened.tree).props["aria-expanded"], true);
-	assert.ok(byClass(opened.tree, "dsh-bots-disclosure-body"), "受控翻真后渲染展开体");
+	assert.ok(byClass(opened.tree, "pod-disclosure-body"), "受控翻真后渲染展开体");
 	buttonOf(opened.tree).props.onClick();
 	assert.equal(buttonOf(opened.tree).props["aria-expanded"], true, "受控态点击后仍由调用方持有");
 });
@@ -211,8 +211,8 @@ test("受控模式：open 由调用方持有，点击只回调 onOpenChange，�
 test("槽位：meta／note／data-turn-trigger／附加类名按需落位，缺省不留空节点", () => {
 	const bare = harness.mount(mod.DisclosureRow, { title: "只有标题" });
 	const bareHead = buttonOf(bare.tree);
-	assert.equal(byClass(bareHead, "dsh-bots-disclosure-icon"), null, "无 icon 不渲染图标槽");
-	assert.equal(byClass(bareHead, "dsh-bots-disclosure-meta"), null, "无 meta 不渲染次要位");
+	assert.equal(byClass(bareHead, "pod-disclosure-icon"), null, "无 icon 不渲染图标槽");
+	assert.equal(byClass(bareHead, "pod-disclosure-meta"), null, "无 meta 不渲染次要位");
 	assert.equal(findOne(bareHead, (node) => node.type === "time"), null, "无 time 不渲染时间元素");
 	assert.equal(Object.prototype.hasOwnProperty.call(bare.tree.props, "data-turn-trigger"), false);
 
@@ -226,16 +226,16 @@ test("槽位：meta／note／data-turn-trigger／附加类名按需落位，缺�
 		children: "正文",
 		defaultOpen: true,
 		dataTurnTrigger: true,
-		className: "dsh-bots-row-extra"
+		className: "pod-row-extra"
 	});
 	assert.equal(full.tree.props["data-turn-trigger"], true, "09 外部触发行须能打 data-turn-trigger");
-	assert.ok(hasClass(full.tree, "dsh-bots-row-extra"), "调用方附加类名落在根节点");
+	assert.ok(hasClass(full.tree, "pod-row-extra"), "调用方附加类名落在根节点");
 	const fullHead = buttonOf(full.tree);
-	assert.equal(textOf(byClass(fullHead, "dsh-bots-disclosure-meta")), "参数摘要");
-	const body = byClass(full.tree, "dsh-bots-disclosure-body");
+	assert.equal(textOf(byClass(fullHead, "pod-disclosure-meta")), "参数摘要");
+	const body = byClass(full.tree, "pod-disclosure-body");
 	assert.ok(body, "defaultOpen 须初始展开");
-	assert.equal(textOf(byClass(body, "dsh-bots-disclosure-note")), "说明句");
-	assert.equal(textOf(byClass(body, "dsh-bots-disclosure-content")), "正文");
+	assert.equal(textOf(byClass(body, "pod-disclosure-note")), "说明句");
+	assert.equal(textOf(byClass(body, "pod-disclosure-content")), "正文");
 });
 
 // ---- 切片 5：键盘可达（无 DOM 的可执行口径） ----
@@ -281,12 +281,12 @@ test("样式基座：只引用官方令牌（--dsw-*／--ds-*），turn-trigger 
 		"background:var(--dsw-alias-interactive-bg-hover)",
 		"transition:background-color .1s",
 		"white-space:pre-wrap",
-		"@media (prefers-reduced-motion:reduce){.dsh-bots-disclosure{transition:none}}"
+		"@media (prefers-reduced-motion:reduce){.pod-disclosure{transition:none}}"
 	];
 	for (const fragment of fragments) {
 		assert.ok(source.includes(fragment), "样式基座缺形制片段：" + fragment);
 	}
-	assert.match(source, /\.dsh-bots-disclosure-note\{[^}]*color:var\(--dsw-alias-label-secondary\)/, "说明句须走 label-secondary 令牌");
+	assert.match(source, /\.pod-disclosure-note\{[^}]*color:var\(--dsw-alias-label-secondary\)/, "说明句须走 label-secondary 令牌");
 	// 类名映射与样式文本不漂移
 	assert.deepEqual(Object.keys(mod.DISCLOSURE_CLASSES).sort(), [
 		"body", "chevron", "content", "head", "icon", "meta", "note", "root", "time", "title"
@@ -310,40 +310,40 @@ test("既有 UI 复用：DiscussionGroup 折叠组行为、类名与子节点形
 	const view = harness.mount(mod.DiscussionGroup, { group, botId: "b0", t: (key) => key });
 	const root = view.tree;
 	assert.equal(root.type, "div");
-	assert.equal(root.props.className, "dsh-bots-disc", "折叠根类名不得变");
+	assert.equal(root.props.className, "pod-disc", "折叠根类名不得变");
 	const head = buttonOf(root);
-	assert.equal(head.props.className, "dsh-bots-disc-head");
+	assert.equal(head.props.className, "pod-disc-head");
 	assert.equal(head.props.type, "button");
 	assert.equal(head.props["aria-expanded"], false);
 	assert.equal(head.props.title, "discussion.expand");
 	assert.equal(typeof head.props.onClick, "function");
 	const directChildren = head.children.filter((node) => node && typeof node === "object");
 	assert.deepEqual(directChildren.map((node) => (node.props.className || "").split(/\s+/)[0]), [
-		"dsh-bots-avatar", "dsh-bots-disc-label", "dsh-bots-disc-count", "dsh-bots-disc-time", "dsh-bots-disc-chevron"
+		"pod-avatar", "pod-disc-label", "pod-disc-count", "pod-disc-time", "pod-disc-chevron"
 	], "折叠头子节点顺序／类名零变化");
 	assert.equal(directChildren[0].props.style.height, 14, "头像尺寸 14 不变");
 	assert.equal(textOf(directChildren[1]), "discussion.title");
 	assert.equal(textOf(directChildren[2]), "discussion.exchanges");
 	assert.ok(textOf(directChildren[3]).length > 0, "末条时间须保留");
 	assert.equal(findOne(directChildren[4], (node) => node.type === "IconChevronDownOutlineRegular").props.size, 12);
-	assert.equal(byClass(root, "dsh-bots-disc-body"), null, "默认折叠不渲染展开体");
+	assert.equal(byClass(root, "pod-disc-body"), null, "默认折叠不渲染展开体");
 
 	head.props.onClick();
 	const openedRoot = view.tree;
-	assert.equal(openedRoot.props.className, "dsh-bots-disc dsh-bots-disc-open", "展开态根类名不得变");
+	assert.equal(openedRoot.props.className, "pod-disc pod-disc-open", "展开态根类名不得变");
 	const openedHead = buttonOf(openedRoot);
 	assert.equal(openedHead.props["aria-expanded"], true);
 	assert.equal(openedHead.props.title, "discussion.collapse");
-	const body = byClass(openedRoot, "dsh-bots-disc-body");
+	const body = byClass(openedRoot, "pod-disc-body");
 	assert.ok(body, "展开后渲染既有展开体");
 	assert.equal(body.props.id, openedHead.props["aria-controls"], "既有折叠组补齐 aria-controls 连线（非视觉增量）");
-	assert.equal(findAll(body, (node) => hasClass(node, "dsh-bots-disc-item")).length, 2, "组内每条往来一个条目");
+	assert.equal(findAll(body, (node) => hasClass(node, "pod-disc-item")).length, 2, "组内每条往来一个条目");
 	assert.equal(findAll(body, (node) => node.type === "MarkdownText").length, 2, "正文仍走官方 MarkdownText");
-	assert.ok(hasClass(byClass(openedHead, "dsh-bots-disc-chevron"), "dsh-bots-disc-chevron-open"), "展开态 chevron 类名不得变");
+	assert.ok(hasClass(byClass(openedHead, "pod-disc-chevron"), "pod-disc-chevron-open"), "展开态 chevron 类名不得变");
 
 	openedHead.props.onClick();
-	assert.equal(view.tree.props.className, "dsh-bots-disc");
-	assert.equal(byClass(view.tree, "dsh-bots-disc-body"), null);
+	assert.equal(view.tree.props.className, "pod-disc");
+	assert.equal(byClass(view.tree, "pod-disc-body"), null);
 });
 
 // ---------- 运行 ----------

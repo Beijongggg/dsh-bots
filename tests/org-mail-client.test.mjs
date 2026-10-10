@@ -160,7 +160,7 @@ test("工具面升表：mail.send 归四常设岗、入执行面与变异集、�
 });
 
 test("mail.send 工具腿：dispatch 经邮件中继（不经组织命令面），通道未接线 fail closed", async () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-mail-tool-"));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-mail-tool-"));
   process.on("exit", () => fs.rmSync(home, { recursive: true, force: true }));
   fs.mkdirSync(path.join(home, "bots"), { recursive: true });
   fs.writeFileSync(path.join(home, "bots", "bots.json"), JSON.stringify({

@@ -27,7 +27,7 @@ import { sessionLogCandidates as statsCandidates } from "../lib/stats.js";
 const require = createRequire(import.meta.url);
 const { sessionLogCandidates, findSessionLogInDir, isInProgress } = require("../scripts/bot-health.cjs");
 
-const home = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-bot-health-"));
+const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-bot-health-"));
 // exit 钩子清理临时目录：正常退出、显式 exit 与断言失败后都会运行
 process.on("exit", () => fs.rmSync(home, { recursive: true, force: true }));
 

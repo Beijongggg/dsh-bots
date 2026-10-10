@@ -424,14 +424,14 @@ test("接线：宿主实例注册台账值守，bot 实例不构造台账（无�
     // bot 分支三面（提示段/知识库/岗位工具）经 inject 等待服务就绪（16 号票
     // ptc-r2）；本测试的合成 ctx 无宿主服务——挂起等待＝永不触发，与无该服务
     // 宿主的跳过语义一致。
-    inject: (names, cb) => { applied.push(`dsh-bots: 等待服务 ${names.join("+")}`); },
+    inject: (names, cb) => { applied.push(`pod: 等待服务 ${names.join("+")}`); },
     get: () => undefined
   });
   try {
     // 宿主（主 web，profile=web）→ 注册台账值守；台账域此时无写入（写锁惰性获取）
     const { apply } = await import("../lib/index.js");
     await apply(mkCtx("file:///tmp/profiles/web/"));
-    assert.ok(applied.includes("dsh-bots: 台账值守（租约回收＋异常汇入＋写锁释放）"), "宿主须注册台账值守");
+    assert.ok(applied.includes("pod: 台账值守（租约回收＋异常汇入＋写锁释放）"), "宿主须注册台账值守");
     assert.equal(ledgerDirExists(home), false, "启动不写台账（写锁与事件按需惰性创建）");
 
     // bot 实例（profile == 注册 botId）→ 不构造台账、不注册值守

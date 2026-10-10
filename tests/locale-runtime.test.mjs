@@ -1,5 +1,5 @@
 /**
- * 端到端：真实 dsh-client-locale 运行时 × 真实 dsh-bots apply（补桩测试测不到
+ * 端到端：真实 dsh-client-locale 运行时 × 真实 Pod 插件 apply（补桩测试测不到
  * 的路径——冲突检测/查询链/common 回退/语言翻转/卸载注销/重挂无残留）。
  *
  * 装置：捕获型 loader 分别加载官方 client-locale bundle 与本插件 bundle 的
@@ -115,7 +115,7 @@ test("真实注册：apply 后 bind 查询 zh 命中 / 参数模板 / common 回
   locale.setLocale("zh"); // 确定性前置：无论浏览器探测结果如何，active=zh
   const dispose = applyBotPlugin();
   try {
-    const t = locale.bind("bots"); // 与 apply 持有的绑定是同一缓存闭包（bind 按 ns 缓存）
+    const t = locale.bind("pod"); // 与 apply 持有的绑定是同一缓存闭包（bind 按 ns 缓存）
     assert.equal(t("state.online"), "在线");
     assert.equal(t("notice.online", { name: "研究员" }), "「研究员」已上线");
     assert.equal(t("close"), "关闭"); // 真 common 回退（官方 apply 注册的 common 字典）
@@ -128,7 +128,7 @@ test("真实冲突检测：活跃期重复注册同名 ns 必抛（响亮失败�
   locale.setLocale("zh");
   const dispose = applyBotPlugin();
   try {
-    assert.throws(() => locale.register("bots", mod.localeDicts), /already has locale/);
+    assert.throws(() => locale.register("pod", mod.localeDicts), /already has locale/);
   } finally {
     dispose();
   }
@@ -138,7 +138,7 @@ test("真实语言切换：setLocale('en') 后同一闭包即时翻转 + revisio
   locale.setLocale("zh");
   const dispose = applyBotPlugin();
   try {
-    const t = locale.bind("bots");
+    const t = locale.bind("pod");
     const rev0 = locale.getLocale().revision;
     locale.setLocale("en");
     assert.equal(locale.getLocale().active, "en");
@@ -155,9 +155,9 @@ test("真实语言切换：setLocale('en') 后同一闭包即时翻转 + revisio
 test("真实卸载注销：dispose 后 ns 消失，查询回退键自身；重挂无残留", () => {
   locale.setLocale("zh");
   const dispose1 = applyBotPlugin();
-  const t = locale.bind("bots");
+  const t = locale.bind("pod");
   assert.equal(t("state.online"), "在线");
-  dispose1(); // 走真实 register disposer 注销 "bots" ns
+  dispose1(); // 走真实 register disposer 注销 "pod" ns
   assert.equal(t("state.online"), "state.online", "卸载后回退键自身（ns 已注销）");
   const dispose2 = applyBotPlugin(); // 重挂（热重载场景）：再注册不冲突
   assert.equal(t("state.online"), "在线", "重挂后恢复命中");

@@ -43,13 +43,13 @@ globalThis.EventSource = class { constructor() {} addEventListener() {} removeEv
 await import("../lib/client.js");
 
 const IDS = {
-	entry: "dsh-bots-entry",
-	notices: "dsh-bots-notices",
-	pod: "dsh-bots-pod",
-	podHost: "dsh-bots-pod-host",
-	podLayer: "dsh-bots-pod-layer",
-	sidebar: "dsh-bots-sidebar",
-	main: "dsh-bots-main"
+	entry: "pod-entry",
+	notices: "pod-notices",
+	pod: "pod-pod",
+	podHost: "pod-pod-host",
+	podLayer: "pod-pod-layer",
+	sidebar: "pod-sidebar",
+	main: "pod-main"
 };
 
 /** 仓库真实 client 源文本（V-P2.3 负例扫描的载体，与装载无关：拒绝「隐藏官方页」的写法）。 */
@@ -278,13 +278,13 @@ function findHeadlessBrowser() {
 
 /**
  * 用真实布局引擎复算一段 HTML＋CSS 的几何与计算样式：
- * 页面内注入测量脚本 → `--dump-dom` 回读 `<pre id="dsh-bots-pod-metrics">` 的 JSON。
+ * 页面内注入测量脚本 → `--dump-dom` 回读 `<pre id="pod-pod-metrics">` 的 JSON。
  * 返回 null＝本机无无头浏览器（调用方按跳过协议处置，不得当绿）。
  */
 function measureLayout(title, bodyHtml, css) {
 	const binary = findHeadlessBrowser();
 	if (!binary) return null;
-	const dir = mkdtempSync(join(tmpdir(), "dsh-bots-pod-b1-"));
+	const dir = mkdtempSync(join(tmpdir(), "pod-pod-b1-"));
 	try {
 		const html = `<!doctype html><html><head><style>
 body{margin:0}
@@ -294,15 +294,15 @@ ${css}
 const box = (selector) => { const el = document.querySelector(selector); if (!el) return null; const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width }; };
 const pos = (selector) => { const el = document.querySelector(selector); return el ? getComputedStyle(el).position : null; };
 const out = document.createElement("pre");
-out.id = "dsh-bots-pod-metrics";
+out.id = "pod-pod-metrics";
 out.textContent = JSON.stringify({
-  container: box("[data-dsh-bots-pod-body-fixture]"),
-  active: box("[data-dsh-bots-pod-view-fixture=\\"active\\"]"),
-  inactive: box("[data-dsh-bots-pod-view-fixture=\\"inactive\\"]"),
-  seatList: box("[data-dsh-bots-pod-seat-fixture]"),
-  shell: box("[data-dsh-bots-pod-shell-fixture]"),
-  mainPane: box("[data-dsh-bots-pod-main-fixture]"),
-  inactivePosition: pos("[data-dsh-bots-pod-view-fixture=\\"inactive\\"]"),
+  container: box("[data-pod-pod-body-fixture]"),
+  active: box("[data-pod-pod-view-fixture=\\"active\\"]"),
+  inactive: box("[data-pod-pod-view-fixture=\\"inactive\\"]"),
+  seatList: box("[data-pod-pod-seat-fixture]"),
+  shell: box("[data-pod-pod-shell-fixture]"),
+  mainPane: box("[data-pod-pod-main-fixture]"),
+  inactivePosition: pos("[data-pod-pod-view-fixture=\\"inactive\\"]"),
   viewportWidth: window.innerWidth
 });
 document.body.appendChild(out);
@@ -315,7 +315,7 @@ document.body.appendChild(out);
 			"--virtual-time-budget=2000", "--dump-dom", "file://" + file
 		], { encoding: "utf8", timeout: 60_000, env: { ...process.env, HOME: dir } });
 		const dom = run.stdout ?? "";
-		const match = dom.match(/<pre id="dsh-bots-pod-metrics">([\s\S]*?)<\/pre>/);
+		const match = dom.match(/<pre id="pod-pod-metrics">([\s\S]*?)<\/pre>/);
 		assert.ok(match, `${title}：无头浏览器未回读几何（stderr：${(run.stderr ?? "").split("\n").slice(-2).join(" / ")}）`);
 		return JSON.parse(match[1].replace(/&quot;/g, "\"").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">"));
 	} finally {
@@ -417,8 +417,8 @@ test("R1 席位列自持宽度：主区不被内容挤成 0（坐标块常量＋
 	assert.equal(seatList.flex, "none", "席位列须 flex:none（有宽度后不参与收缩）");
 	assert.equal(seatList["box-sizing"], "border-box", "显式宽度须配 border-box（根带 6px 12px 内边距不外扩）");
 	assert.equal(seatList.height, "100%", "height:100% 既有语义不得回退");
-	const collapsed = declaredProps(mod.podLayerCss, `${c.layer} .${c.seatList}.dsh-bots-collapsed`);
-	assert.equal(collapsed.width, `${collapsedWidth}px`, "折叠档宽度须＝坐标块常量（原 `.dsh-bots-collapsed{width:56px}` 语义保留）");
+	const collapsed = declaredProps(mod.podLayerCss, `${c.layer} .${c.seatList}.pod-collapsed`);
+	assert.equal(collapsed.width, `${collapsedWidth}px`, "折叠档宽度须＝坐标块常量（原 `.pod-collapsed{width:56px}` 语义保留）");
 	// ③ 主区不被挤成 0（声明级）：body 宽度约束＋视图子节点占满（旧槽位由宿主 column flex 的 stretch 给宽）
 	const body = declaredProps(mod.podLayerCss, c.body);
 	assert.equal(body.width, "100%", "pod-body 须有 width:100%（不被席位列挤成 0 的声明级保证）");
@@ -600,7 +600,7 @@ test("V-P2.2 进出各一次后官方页状态保留：节点身份不变、滚�
 		assert.deepEqual(slotLedger().main, ledgerBefore.main, "官方 main 账本不得变");
 		assert.deepEqual(slotLedger().footer, ledgerBefore.footer, "入口钮账本不得变");
 		assert.deepEqual(slotLedger().overlay, [IDS.notices], "退出后覆盖层只余通知条目（撤层）");
-		const bodyChildrenAfter = [...dom.body.children].filter((node) => node.getAttribute("data-dsh-bots-pod-host") === null);
+		const bodyChildrenAfter = [...dom.body.children].filter((node) => node.getAttribute("data-pod-pod-host") === null);
 		assert.deepEqual(bodyChildrenAfter, bodyChildrenBefore, "官方页的 body 直接子元素表逐字还原");
 		assert.equal(ctx.calls.layout.length, 0, "退出不得触达宿主 layout 面");
 	});
@@ -644,10 +644,10 @@ test("V-P2.3 负例：Pod 路径不得对官方页用 hidden／display:none，�
 	// 覆盖层视图互斥只走 hidden 属性（CSS 落 visibility＋脱流），且不得内联 display
 	const tree = harness.render(mod.PodOverlayLayer, { open: true, t: (key) => key });
 	assert.equal(tree.error, undefined, "覆盖层须可渲染：" + (tree.error && tree.error.message));
-	for (const node of findAll(tree, (item) => typeof item.props.className === "string" && item.props.className.includes("dsh-bots-pod"))) {
+	for (const node of findAll(tree, (item) => typeof item.props.className === "string" && item.props.className.includes("pod-pod"))) {
 		assert.equal(node.props.style === undefined, true, "覆盖层节点不得以内联样式隐藏");
 	}
-	for (const node of findAll(tree, (item) => typeof item.props.className === "string" && item.props.className.includes("dsh-bots-pod-view"))) {
+	for (const node of findAll(tree, (item) => typeof item.props.className === "string" && item.props.className.includes("pod-pod-view"))) {
 		assert.equal(typeof node.props.hidden, "boolean", "覆盖层视图互斥须走 hidden 布尔属性（visibility 隐藏）");
 	}
 });
@@ -671,7 +671,7 @@ test("V-P2.4 覆盖层形制：shell.overlay 注册宿主组件＋整屏层 port
 			const host = mod.__podControl.mountHost(dom.document);
 			const portalTree = harness.render(podEntry.component, { t: (key) => key });
 			const root = findOne(portalTree, (node) => hasClass(node, IDS.podLayer));
-			assert.ok(root, "覆盖层根节点须带 dsh-bots-pod-layer 类（渲染树可走查）");
+			assert.ok(root, "覆盖层根节点须带 pod-pod-layer 类（渲染树可走查）");
 			assert.equal(root.props.role, "dialog", "覆盖层须 role=dialog");
 			assert.equal(root.props["aria-modal"], "true", "覆盖层须 aria-modal=true");
 			assert.equal(root.props["data-shortcut-modal"], undefined, "data-shortcut-modal 保持可选且不设（未声明即 modal id \"other\"，全命令被拦）");
@@ -680,7 +680,7 @@ test("V-P2.4 覆盖层形制：shell.overlay 注册宿主组件＋整屏层 port
 			assert.equal(portals.every((item) => item.container.className === mod.POD_LAYER_CLASSES.host), true, "每次挂载的 portal 容器都须是覆盖层宿主容器");
 			assert.equal(host.parentNode, globalThis.document.body, "宿主容器须是 body 直接子元素（根堆叠上下文，position:fixed 不被重锚）");
 			assert.equal(host.className, mod.POD_LAYER_CLASSES.host, "宿主容器类名走常量");
-			assert.equal(host.getAttribute("data-dsh-bots-pod-host") === "" || "data-dsh-bots-pod-host" in host.dataset, true, "宿主容器带锚点标记");
+			assert.equal(host.getAttribute("data-pod-pod-host") === "" || "data-pod-pod-host" in host.dataset, true, "宿主容器带锚点标记");
 		} finally {
 			harness.hooks.createPortal = null;
 		}
@@ -989,12 +989,12 @@ test("V-P2.11 Pod 内切席位再切回：草稿与选中保留（视图不卸�
 
 	// 视图层：列表与席位视图在同一覆盖层内**互斥但不卸载**（滚动／草稿由节点身份持有）
 	const readViews = (rendered) => {
-		const body = findOne(rendered, (node) => hasClass(node, "dsh-bots-pod-body"));
+		const body = findOne(rendered, (node) => hasClass(node, "pod-pod-body"));
 		assert.ok(body, "覆盖层须有 pod-body（列表／席位双视图容器）");
-		const views = findAll(body, (node) => typeof node.props.className === "string" && node.props.className.includes("dsh-bots-pod-view"));
+		const views = findAll(body, (node) => typeof node.props.className === "string" && node.props.className.includes("pod-pod-view"));
 		assert.equal(views.length, 2, "列表视图与席位视图须同时在挂载树上（互斥呈现，不卸载重挂）");
-		const hint = views.find((node) => hasClass(node, "dsh-bots-pod-seat-view"));
-		const detail = views.find((node) => hasClass(node, "dsh-bots-pod-seat-detail"));
+		const hint = views.find((node) => hasClass(node, "pod-pod-seat-view"));
+		const detail = views.find((node) => hasClass(node, "pod-pod-seat-detail"));
 		assert.ok(hint && detail, "两个视图须按席位列表／席位详情两个类名区分");
 		return { hint, detail };
 	};
@@ -1027,9 +1027,9 @@ test("V-P2.11 Pod 内切席位再切回：草稿与选中保留（视图不卸�
 	forgetPodDraft("bot-a");
 	assert.equal(resolvePodDraft("bot-a"), "", "发送成功即清空草稿");
 	const css = mod.podLayerCss;
-	assert.match(css, /\.dsh-bots-pod-view\[hidden\][^{]*\{[^}]*visibility:hidden/, "非活动视图须用 visibility 隐藏（保节点身份与滚动位置）");
-	assert.match(css, /\.dsh-bots-pod-view\[hidden\][^{]*\{[^}]*position:absolute/, "非活动视图须脱流（复核 B1：不占横向空间）");
-	assert.ok(!/\.dsh-bots-pod-view[^{]*\{[^}]*display:none/.test(css), "非活动视图不得用 display:none");
+	assert.match(css, /\.pod-pod-view\[hidden\][^{]*\{[^}]*visibility:hidden/, "非活动视图须用 visibility 隐藏（保节点身份与滚动位置）");
+	assert.match(css, /\.pod-pod-view\[hidden\][^{]*\{[^}]*position:absolute/, "非活动视图须脱流（复核 B1：不占横向空间）");
+	assert.ok(!/\.pod-pod-view[^{]*\{[^}]*display:none/.test(css), "非活动视图不得用 display:none");
 });
 
 // ================= 复核 I4：进入语义（改造前口径）· M7：就地降级不自锁 =================
@@ -1100,7 +1100,7 @@ test("I4＋M7 进入语义＝改造前口径（有效选中续用／无选中由
 // ================= I1：Pod 期全局通知抬档（不被自身覆盖层吃掉） =================
 test("I1 通知遮挡：Pod 期通知抬到整屏层之上、仍低于官方浮层地板 900，并由活跃标志驱动", () => {
 	const css = mod.podLayerCss;
-	const podNotices = declaredProps(css, "dsh-bots-notices[data-state=\"pod\"]");
+	const podNotices = declaredProps(css, "pod-notices[data-state=\"pod\"]");
 	assert.equal(podNotices["z-index"], String(mod.POD_LAYER.zIndexNoticesInPod), "Pod 期通知档须由 POD_LAYER 常量插值（禁散落数值）");
 	const layerBand = mod.POD_LAYER.zIndexBase;
 	const noticesBand = Number(podNotices["z-index"]);
@@ -1109,7 +1109,7 @@ test("I1 通知遮挡：Pod 期通知抬到整屏层之上、仍低于官方浮�
 	assert.ok(noticesBand < mod.POD_LAYER.officialFloatingFloor,
 		`通知档须严格低于官方 body 级浮层地板 ${mod.POD_LAYER.officialFloatingFloor}（实测 ${noticesBand}）——官方弹出件仍须盖在通知之上`);
 	// 常驻（非 Pod）档不变：仍是我方层内浮出件档
-	const base = declaredProps(css, "dsh-bots-notices");
+	const base = declaredProps(css, "pod-notices");
 	assert.equal(base["z-index"], undefined, "常驻态通知档不得被 Pod 规则劫持（选择器须带 [data-state=\"pod\"] 限定）");
 	// 标志驱动：真实 store 的 podActive 只在进出 Pod 时翻转，通知条目据此落 data-state
 	mod.__podControl.reset();
@@ -1125,11 +1125,11 @@ test("I1 通知遮挡：Pod 期通知抬到整屏层之上、仍低于官方浮�
 	mod.__podControl.reset();
 	bootPod();
 	mod.__podStateForTest({ notices: [{ id: "n1", kind: "ok", text: "t", botId: null }], podActive: false });
-	const idle = findOne(harness.render(mod.BotNotices, {}), (node) => hasClass(node, "dsh-bots-notices"));
+	const idle = findOne(harness.render(mod.BotNotices, {}), (node) => hasClass(node, "pod-notices"));
 	assert.ok(idle, "有通知时须渲染通知容器");
 	assert.equal(idle.props["data-state"], undefined, "非 Pod 期通知容器不得落 data-state=pod");
 	mod.__podStateForTest({ podActive: true });
-	const inPod = findOne(harness.render(mod.BotNotices, {}), (node) => hasClass(node, "dsh-bots-notices"));
+	const inPod = findOne(harness.render(mod.BotNotices, {}), (node) => hasClass(node, "pod-notices"));
 	assert.equal(inPod.props["data-state"], "pod", "Pod 期通知容器须落 data-state=pod（触发抬档）");
 	mod.__podControl.reset();
 	assert.ok(noticesEntry === null);

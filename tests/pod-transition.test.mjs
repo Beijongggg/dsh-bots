@@ -42,10 +42,10 @@ assert.ok(captured && typeof captured.factory === "function", "lib/client.js 须
 const clientSource = await (await import("node:fs/promises"))
 	.readFile(new URL("../lib/client.js", import.meta.url), "utf8");
 
-const LAYER = "dsh-bots-pod-layer";
-const SHELL = "dsh-bots-pod-shell";
-const SEAT_LIST = "dsh-bots-pod-seat-list";
-const SEAT_DETAIL = "dsh-bots-pod-seat-detail";
+const LAYER = "pod-pod-layer";
+const SHELL = "pod-pod-shell";
+const SEAT_LIST = "pod-pod-seat-list";
+const SEAT_DETAIL = "pod-pod-seat-detail";
 
 // ---------- 迷你 React：hooks 桩（可注入 spy）＋组件树展开 ----------
 function createHarness() {
@@ -278,7 +278,7 @@ const hasClassPrefix = (node, prefix) =>
 	&& node.props.className.split(/\s+/).some((name) => name.startsWith(prefix + "-"));
 const byClass = (tree, cls) => findOne(tree, (node) => hasClass(node, cls));
 
-/** 覆盖层根（`dsh-bots-pod-layer`）上的 `data-state`。 */
+/** 覆盖层根（`pod-pod-layer`）上的 `data-state`。 */
 const layerStateOf = (tree) => {
 	const root = byClass(tree, LAYER);
 	return root && root.props["data-state"];
@@ -290,7 +290,7 @@ const layerStateOf = (tree) => {
  * 其余结构件（`BotSidebar` 等）走真件。
  */
 function createLayerFixture() {
-	const overrides = { BotMain: () => harness.h("div", { className: "dsh-bots-main-root" }, null) };
+	const overrides = { BotMain: () => harness.h("div", { className: "pod-main-root" }, null) };
 	const isolated = harness.loadModule(overrides);
 	const state = {
 		bots: [], messages: {}, selectedBotId: null, selectionInit: true,
@@ -357,7 +357,7 @@ test("V-P3.1 进出：淡入＋约 4px 上浮、约 200ms、无方向位移", ()
 	assert.equal(typeof TRANSITION_CSS.enterKeyframes, "string", "缺进出关键帧名（坐标块）");
 	assert.equal(typeof TRANSITION_CSS.viewKeyframes, "string", "缺切席位关键帧名（坐标块）");
 	const css = transitionCss();
-	const enterBlock = css.match(/\.dsh-bots-pod-layer\[data-state="?entering"?\][^{]*\{[^}]*\}/);
+	const enterBlock = css.match(/\.pod-pod-layer\[data-state="?entering"?\][^{]*\{[^}]*\}/);
 	assert.ok(enterBlock, "进出过渡须由 [data-state=entering] 钩子承载（层整体＝侧栏＋主区同一过渡）");
 	assert.match(enterBlock[0], /var\(--ds-transition-duration\s*,/, "动画时长须取宿主令牌 --ds-transition-duration（宿主令牌＋常量回退，不硬编码孤立数值）");
 	assert.match(enterBlock[0], /var\(--ds-ease-in-out\s*,/, "缓动须取宿主令牌 --ds-ease-in-out（宿主令牌＋常量回退）");
@@ -427,9 +427,9 @@ test("V-P3.2 时长／缓动取 --ds-transition-duration(-fast/-slow)＋--ds-eas
 // ================= V-P3.3：范围差分 =================
 test("V-P3.3 范围差分：进出时侧栏与主区同一过渡；Pod 内切席位只过渡主区", () => {
 	const css = transitionCss();
-	const layerRule = css.match(/\.dsh-bots-pod-layer\[data-state="?entering"?\][^{]*\{[^}]*\}/);
+	const layerRule = css.match(/\.pod-pod-layer\[data-state="?entering"?\][^{]*\{[^}]*\}/);
 	assert.ok(layerRule, "进出过渡须声明在**层根**上（侧栏＋主区同一过渡：一次声明、同一时长）");
-	assert.match(layerRule[0], /animation:[^;]*dsh-bots-pod-enter/, "层根走进出关键帧");
+	assert.match(layerRule[0], /animation:[^;]*pod-pod-enter/, "层根走进出关键帧");
 	for (const cls of [SHELL, SEAT_LIST]) {
 		assert.ok(
 			!new RegExp("\\." + cls + "[ \\t]*\\{[^}]*animation").test(css),
@@ -468,7 +468,7 @@ test("V-P3.3 范围差分：进出时侧栏与主区同一过渡；Pod 内切席
 			const detail = byClass(second, SEAT_DETAIL);
 			const list = byClass(second, SEAT_LIST);
 			assert.equal(hasClassPrefix(detail, mod.POD_TRANSITION_MARKERS.view), true, "切席位须给主区（席位视图）打过渡标记");
-			assert.match(String(detail.props.className), new RegExp("dsh-bots-pod-view-in-[0-9]+"), "切席位标记须带换代序号（同一动画可重放）");
+			assert.match(String(detail.props.className), new RegExp("pod-pod-view-in-[0-9]+"), "切席位标记须带换代序号（同一动画可重放）");
 			assert.equal(hasClassPrefix(list, mod.POD_TRANSITION_MARKERS.view), false, "切席位不得给侧栏列打标记（范围差分）");
 			assert.equal(hasClass(byClass(second, LAYER), mod.POD_TRANSITION_MARKERS.enter), true, "层根标记是进出期常驻钩子，不随切席位移除");
 			const third = fixture.select("bot-b");
@@ -542,7 +542,7 @@ test("V-P3.5 首帧断言：过渡开始到结束期间覆盖层始终挂载且�
 	// 关键帧「向前填充」＝首帧即处 from 态（不闪全亮），结束停在 to 态（不回跳）
 	assert.match(css, /animation-fill-mode:\s*both/, "关键帧须 both 填充：首帧即 from 态、结束不回跳");
 	assert.match(css, /from\{[^}]*opacity:0/, "首帧由关键帧 from 定义（淡入自透明起）");
-	assert.match(mod.podLayerCss, /\.dsh-bots-pod-layer\{[^}]*background:var\(--dsw-alias-bg-base\)/, "整屏层须自带底色（过渡期不透视官方页＝无白屏帧）");
+	assert.match(mod.podLayerCss, /\.pod-pod-layer\{[^}]*background:var\(--dsw-alias-bg-base\)/, "整屏层须自带底色（过渡期不透视官方页＝无白屏帧）");
 	assert.ok(!/\bvisibility\b/.test(css), "过渡不得以 visibility 门控（首帧／保活前提）");
 
 	withTimers((timers) => {
@@ -644,7 +644,7 @@ test("V-P3.6 负例：动效不依赖 hidden／display:none，不引入宿主私
 	// 负例反证：过渡段**只**含自有前缀的标记类，不带任何宿主私有钩子
 	assert.ok(!/--dsw-/.test(css), "过渡样式段内不得出现任何 --dsw-* 令牌");
 	assert.ok(
-		Object.values(mod.POD_TRANSITION_MARKERS).every((marker) => marker.startsWith("dsh-bots-")),
+		Object.values(mod.POD_TRANSITION_MARKERS).every((marker) => marker.startsWith("pod-")),
 		"过渡标记类须走本仓自有前缀（不冒用宿主钩子／票 04 结构类名）"
 	);
 	assert.notEqual(mod.POD_TRANSITION_MARKERS.instant, mod.POD_TRANSITION_MARKERS.view, "瞬时档与动画档须是两个不同标记");

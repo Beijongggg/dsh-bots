@@ -827,9 +827,9 @@ test("18号票 P-CLIENT-SLOTS 增补：未声明槽即 FAIL（合成 SlotCore fa
   const core = await declaredFixtureCore();
   const h = makeClientReactStub().createElement;
   const apply = (ctx) => {
-    ctx.slots.register({ name: "sidebar.footer.action", id: "dsh-bots-entry", order: 10 }, () => h("button", {
+    ctx.slots.register({ name: "sidebar.footer.action", id: "pod-entry", order: 10 }, () => h("button", {
       type: "button",
-      onClick: () => { ctx.slots.register({ name: "conversation", id: "dsh-bots-main" }, () => null); }
+      onClick: () => { ctx.slots.register({ name: "conversation", id: "pod-main" }, () => null); }
     }, null));
   };
   const verdict = await verifyClientSlotRegistrations({ core, apply });
@@ -843,23 +843,23 @@ test("18号票 P-CLIENT-SLOTS 增补：覆盖式常驻落点（pod 04 口径）�
   const h = makeClientReactStub().createElement;
   const apply = (ctx) => {
     // 与 lib/client.js 同形：apply 期常驻入口钮与通知容器；enter 期只增覆盖层条目一条
-    ctx.slots.register({ name: "sidebar.footer.action", id: "dsh-bots-entry", order: -10 }, () => h("button", {
+    ctx.slots.register({ name: "sidebar.footer.action", id: "pod-entry", order: -10 }, () => h("button", {
       type: "button",
       onClick: () => {
-        ctx.slots.register({ name: "shell.overlay", id: "dsh-bots-pod" }, () => null);
+        ctx.slots.register({ name: "shell.overlay", id: "pod-pod" }, () => null);
       }
     }, null));
-    ctx.slots.register({ name: "shell.overlay", id: "dsh-bots-notices", order: -10 }, () => null);
+    ctx.slots.register({ name: "shell.overlay", id: "pod-notices", order: -10 }, () => null);
   };
   const verdict = await verifyClientSlotRegistrations({ core, apply });
   assert.equal(verdict.ok, true, verdict.violations.join("；"));
-  assert.deepEqual(verdict.observations["sidebar.footer.action.id"], ["dsh-bots-entry"]);
-  assert.deepEqual(verdict.observations["shell.overlay.id"], ["dsh-bots-notices", "dsh-bots-pod"]);
+  assert.deepEqual(verdict.observations["sidebar.footer.action.id"], ["pod-entry"]);
+  assert.deepEqual(verdict.observations["shell.overlay.id"], ["pod-notices", "pod-pod"]);
   // 相位证据：覆盖层条目在点击前**不得**在位（进出期增删），点击后须在位
-  assert.ok(!verdict.observations["shell.overlay.id.beforeEnter"].includes("dsh-bots-pod"));
+  assert.ok(!verdict.observations["shell.overlay.id.beforeEnter"].includes("pod-pod"));
   // 官方槽账本：apply 与 enter 两相我方条目都不得出现在 sidebar／main（覆盖式常驻的机制判据）
   for (const phase of ["beforeEnter", "afterEnter"]) {
-    assert.ok(!verdict.observations[`sidebar.id.${phase}`].includes("dsh-bots-sidebar"), `sidebar 在 ${phase} 被占用`);
+    assert.ok(!verdict.observations[`sidebar.id.${phase}`].includes("pod-sidebar"), `sidebar 在 ${phase} 被占用`);
     assert.ok(!verdict.observations[`main.key.${phase}`].includes("conversation"), `main 在 ${phase} 被占用`);
   }
 });
@@ -870,21 +870,21 @@ test("18号票 P-CLIENT-SLOTS 增补：Pod 去占宿主槽即 FAIL（覆盖式�
   // 坏形态：enter 期把宿主 sidebar／main 占掉（＝旧的「抢槽」实现）——覆盖式常驻改造后
   // 这种形态必须报「覆盖式常驻被破坏」，因为它会让官方页随槽位切换卸载重挂。
   const apply = (ctx) => {
-    ctx.slots.register({ name: "sidebar.footer.action", id: "dsh-bots-entry", order: -10 }, () => h("button", {
+    ctx.slots.register({ name: "sidebar.footer.action", id: "pod-entry", order: -10 }, () => h("button", {
       type: "button",
       onClick: () => {
-        ctx.slots.register({ name: "sidebar", id: "dsh-bots-sidebar", priority: -100000 }, () => null);
-        ctx.slots.register({ name: "main", key: "conversation", id: "dsh-bots-main", priority: -100000 }, () => null);
-        ctx.slots.register({ name: "shell.overlay", id: "dsh-bots-pod" }, () => null);
+        ctx.slots.register({ name: "sidebar", id: "pod-sidebar", priority: -100000 }, () => null);
+        ctx.slots.register({ name: "main", key: "conversation", id: "pod-main", priority: -100000 }, () => null);
+        ctx.slots.register({ name: "shell.overlay", id: "pod-pod" }, () => null);
       }
     }, null));
-    ctx.slots.register({ name: "shell.overlay", id: "dsh-bots-notices", order: -10 }, () => null);
+    ctx.slots.register({ name: "shell.overlay", id: "pod-notices", order: -10 }, () => null);
   };
   const verdict = await verifyClientSlotRegistrations({ core, apply });
   assert.equal(verdict.ok, false, "enter 期占槽必须报错");
   assert.match(verdict.violations.join("；"), /覆盖式常驻被破坏：afterEnter 时占用了宿主声明槽「sidebar」/);
   assert.match(verdict.violations.join("；"), /覆盖式常驻被破坏：afterEnter 时占用了宿主声明槽「main」/);
-  assert.deepEqual(verdict.observations["sidebar.id.afterEnter"], ["dsh-bots-sidebar"]);
+  assert.deepEqual(verdict.observations["sidebar.id.afterEnter"], ["pod-sidebar"]);
 });
 
 test("18号票 P-CLIENT-SLOTS 增补：apply 期抢占宿主槽即 FAIL（相位断言，pod 04 口径）", async () => {
@@ -892,19 +892,19 @@ test("18号票 P-CLIENT-SLOTS 增补：apply 期抢占宿主槽即 FAIL（相位
   const h = makeClientReactStub().createElement;
   // 坏形态：apply 期就把宿主 sidebar／main 占掉（不进入 Pod 也接管界面）
   const apply = (ctx) => {
-    ctx.slots.register({ name: "sidebar.footer.action", id: "dsh-bots-entry", order: -10 }, () => h("button", {
+    ctx.slots.register({ name: "sidebar.footer.action", id: "pod-entry", order: -10 }, () => h("button", {
       type: "button",
-      onClick: () => { ctx.slots.register({ name: "shell.overlay", id: "dsh-bots-pod" }, () => null); }
+      onClick: () => { ctx.slots.register({ name: "shell.overlay", id: "pod-pod" }, () => null); }
     }, null));
-    ctx.slots.register({ name: "shell.overlay", id: "dsh-bots-notices", order: -10 }, () => null);
-    ctx.slots.register({ name: "sidebar", id: "dsh-bots-sidebar", priority: -100000 }, () => null);
-    ctx.slots.register({ name: "main", key: "conversation", id: "dsh-bots-main", priority: -100000 }, () => null);
+    ctx.slots.register({ name: "shell.overlay", id: "pod-notices", order: -10 }, () => null);
+    ctx.slots.register({ name: "sidebar", id: "pod-sidebar", priority: -100000 }, () => null);
+    ctx.slots.register({ name: "main", key: "conversation", id: "pod-main", priority: -100000 }, () => null);
   };
   const verdict = await verifyClientSlotRegistrations({ core, apply });
   assert.equal(verdict.ok, false, "apply 期抢占必须报错");
   assert.match(verdict.violations.join("；"), /覆盖式常驻被破坏：beforeEnter 时占用了宿主声明槽「sidebar」/);
   assert.match(verdict.violations.join("；"), /覆盖式常驻被破坏：beforeEnter 时占用了宿主声明槽「main」/);
-  assert.deepEqual(verdict.observations["sidebar.id.beforeEnter"], ["dsh-bots-sidebar"]);
+  assert.deepEqual(verdict.observations["sidebar.id.beforeEnter"], ["pod-sidebar"]);
 });
 
 test("18号票：仓库真实 client bundle 在合成声明树下命中落点（套件内绿基线）", async () => {
@@ -923,10 +923,10 @@ test("18号票：仓库真实 client bundle 在合成声明树下命中落点（
   const verdict = await verifyClientSlotRegistrations({ core, apply: client.apply });
   assert.equal(verdict.ok, true, `仓库 client 落点漂移：${verdict.violations.join("；")}`);
   // pod 04：进入后只在 shell.overlay 增一条覆盖层条目，官方 sidebar／main 账本不受影响
-  assert.deepEqual(verdict.observations["shell.overlay.id"], ["dsh-bots-notices", "dsh-bots-pod"]);
+  assert.deepEqual(verdict.observations["shell.overlay.id"], ["pod-notices", "pod-pod"]);
   for (const phase of ["beforeEnter", "afterEnter"]) {
     assert.ok(!verdict.observations[`main.key.${phase}`].includes("conversation"), `Pod 不得占用 main 槽 conversation 键（${phase}）`);
-    assert.ok(!verdict.observations[`sidebar.id.${phase}`].includes("dsh-bots-sidebar"), `Pod 不得占用 sidebar 单槽（${phase}）`);
+    assert.ok(!verdict.observations[`sidebar.id.${phase}`].includes("pod-sidebar"), `Pod 不得占用 sidebar 单槽（${phase}）`);
   }
 });
 
@@ -970,7 +970,7 @@ test("18号票 P-CLIENT-SLOTS 增补 stage：声明树/宿主包缺失与导出�
     writeHostPackagesFixture(full, { primitiveNames: repoClientPrimitiveReferences() });
     const ok = await probeClientConformanceStage([full], FIXTURE_DECLARED);
     assert.equal(ok.state, "PASS", `${ok.reason ?? ""}`);
-    assert.match(ok.coordinate, /overlay=dsh-bots-notices／dsh-bots-pod/);
+    assert.match(ok.coordinate, /overlay=pod-notices／pod-pod/);
     assert.match(ok.coordinate, /官方 sidebar／main 占用＝无／无/);
     // pod 04 复核 M5：相位观测须**带相位后缀读取**且两相都取到值——否则坐标行恒打印「无／无」
     // （相位盲区：`never` 相只写 *.beforeEnter／*.afterEnter 键）。夹具的自声明记录（合成
@@ -978,7 +978,7 @@ test("18号票 P-CLIENT-SLOTS 增补 stage：声明树/宿主包缺失与导出�
     // 「取到了数组」（不再是空 `无`）＋我方 id 不在其中。
     assert.match(ok.coordinate, /sidebar\.id 相位观测［beforeEnter=[^、]+、afterEnter=[^］]+］/);
     assert.match(ok.coordinate, /main\.key 相位观测［beforeEnter=无、afterEnter=无］/);
-    assert.match(ok.coordinate, /sidebar\.id 相位观测［(?!.*dsh-bots-sidebar).*］/);
+    assert.match(ok.coordinate, /sidebar\.id 相位观测［(?!.*pod-sidebar).*］/);
     // 判据有区分度（非恒真）：无后缀读取在 `never` 相上恒为「无」——旧实现的相位盲区
     const phaseBlind = (observations, slot, field) => (observations[`${slot}.${field}`] ?? []).join("／") || "无";
     assert.equal(phaseBlind({ "sidebar.id.beforeEnter": ["x"], "sidebar.id.afterEnter": ["x"] }, "sidebar", "id"), "无",

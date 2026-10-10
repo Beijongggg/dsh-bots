@@ -29,7 +29,7 @@ const { acquireMailSeqLock } = await import("../lib/mail-seq-lock.js");
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const homes = [];
-function mkRoot(prefix = "dsh-bots-lock-") {
+function mkRoot(prefix = "pod-lock-") {
   const dir = mkdtempSync(join(tmpdir(), prefix));
   homes.push(dir);
   return dir;
@@ -229,7 +229,7 @@ test("留痕口径：单行含 lock/waitMs/outcome/takeover/holderPid/dir 六个
     lockId: "knowledge-index", dir: "/tmp/home/bots/knowledge/.lock",
     waitMs: 1240, outcome: "acquired", tookOver: true, holderPid: 4321
   });
-  assert.ok(line.startsWith("[dsh-bots] 锁等待"), `单行留痕前缀固定：${line}`);
+  assert.ok(line.startsWith("[pod] 锁等待"), `单行留痕前缀固定：${line}`);
   for (const field of [
     "lockId=knowledge-index", "waitMs=1240", "outcome=acquired", "takeover=1",
     "holderPid=4321", "dir=/tmp/home/bots/knowledge/.lock"

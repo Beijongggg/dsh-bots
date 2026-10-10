@@ -248,7 +248,7 @@ test("判级不变量：常驻判据坐标须含测试模块（tests/…），�
 
 test("门号实读验证：preflight 源内无对应门结论行模板即红（不靠本地常量自觉）", () => {
   assert.equal(resolveCoordinateToken("门①", { repoRoot }).ok, true, "真实源四门齐全即绿");
-  const missing = resolveCoordinateToken("门①", { repoRoot: "/tmp/dsh-bots-no-such-repo" });
+  const missing = resolveCoordinateToken("门①", { repoRoot: "/tmp/pod-no-such-repo" });
   assert.equal(missing.ok, false, "preflight 源缺失或无门标记即红");
   assert.ok(missing.reason.includes("preflight.mjs"));
 });

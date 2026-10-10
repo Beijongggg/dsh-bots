@@ -57,7 +57,7 @@ assert.ok(Math.abs(bt.systemTokens + bt.toolsTokens + bt.messageTokens - 115) <=
 console.log("✓ deriveStats 合成事件精确断言（usage 去重/耗时/压力/构成缩放）");
 
 // ---- ② 离线多帧 zstd ----
-const home = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-stats-"));
+const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-stats-"));
 // exit 钩子清理临时目录：正常退出、显式 exit 与断言失败后都会运行
 process.on("exit", () => fs.rmSync(home, { recursive: true, force: true }));
 const workspace = path.join(home, "bot-workspaces", "w");

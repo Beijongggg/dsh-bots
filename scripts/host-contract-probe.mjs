@@ -299,9 +299,9 @@ export async function runClientBundle(roots, pkg) {
 /**
  * Bot 模式必须命中的槽落点（`HF-CLIENT-SLOTS` 的消费面）。**pod 04 起 Pod 改为覆盖式常驻**
  * （规格 §B3-1；附录 A `V-P2.1`），故本表按三类坐标断言：
- *   - `phase:"apply"`：装置期常驻条目——入口钮 `dsh-bots-entry`、全局通知容器 `dsh-bots-notices`（V-A6.8
+ *   - `phase:"apply"`：装置期常驻条目——入口钮 `pod-entry`、全局通知容器 `pod-notices`（V-A6.8
  *     第 4 项的结构前置）；
- *   - `phase:"enter"`：进出 Pod 期增删的条目——覆盖层 `dsh-bots-pod`（唯一新增条目）；
+ *   - `phase:"enter"`：进出 Pod 期增删的条目——覆盖层 `pod-pod`（唯一新增条目）；
  *   - `phase:"never"`：**任何相位都不得**占用的宿主槽——官方 `sidebar` 单槽与主区 `main` 的
  *     `conversation` 键必须是「无我方条目」。这条是保活的机制判据：一旦 Pod 去占槽，
  *     官方会话页与侧栏就会随槽位切换（key 自增）卸载重挂，滚动位置与展开态即丢。
@@ -309,10 +309,10 @@ export async function runClientBundle(roots, pkg) {
  * 须同步改 `lib/client.js` 的 `HOST_SLOTS`，由本门把守，不许静默退回原生界面。
  */
 export const BOT_MODE_SLOT_TARGETS = Object.freeze([
-  { slot: "sidebar.footer.action", match: { field: "id", value: "dsh-bots-entry" }, phase: "apply" },
-  { slot: "shell.overlay", match: { field: "id", value: "dsh-bots-notices" }, phase: "apply" },
-  { slot: "shell.overlay", match: { field: "id", value: "dsh-bots-pod" }, phase: "enter" },
-  { slot: "sidebar", match: { field: "id", value: "dsh-bots-sidebar" }, phase: "never" },
+  { slot: "sidebar.footer.action", match: { field: "id", value: "pod-entry" }, phase: "apply" },
+  { slot: "shell.overlay", match: { field: "id", value: "pod-notices" }, phase: "apply" },
+  { slot: "shell.overlay", match: { field: "id", value: "pod-pod" }, phase: "enter" },
+  { slot: "sidebar", match: { field: "id", value: "pod-sidebar" }, phase: "never" },
   { slot: "main", match: { field: "key", value: "conversation" }, phase: "never" }
 ]);
 
@@ -343,7 +343,7 @@ function findClickable(node) {
  * 查，相位盲——apply 期就把宿主 `sidebar`/`main` 占掉的坏形态也能通过）：
  *   - `phase:"apply"`（`sidebar.footer.action` 入口钮、`shell.overlay` 通知容器）：`apply` 后
  *     即须在位，且点击后仍在位；
- *   - `phase:"enter"`（`shell.overlay` 的 Pod 覆盖层条目 `dsh-bots-pod`）：点击**之前**
+ *   - `phase:"enter"`（`shell.overlay` 的 Pod 覆盖层条目 `pod-pod`）：点击**之前**
  *     不得注册（覆盖层是进出期增删的条目），点击之后须在位；
  *   - `phase:"never"`（宿主 `sidebar` 单槽、`main` keyed 槽的 `conversation` 键）：apply 前与
  *     点击后都**不得**有我方条目——pod 04 起 Pod 为覆盖式常驻，占槽即卸载官方页（`V-P2.1`）。

@@ -12,7 +12,7 @@ import { deadPid } from "./helpers/dead-pid-fixture.mjs";
 
 const { internals } = await import("../lib/index.js");
 
-const home = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-jsonl-"));
+const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-jsonl-"));
 // exit 钩子清理临时目录：正常退出、显式 exit 与断言失败后都会运行
 process.on("exit", () => fs.rmSync(home, { recursive: true, force: true }));
 const inboxFile = path.join(home, "bots", "inbox", "w", "messages.jsonl");
@@ -71,7 +71,7 @@ console.log("✓ JSONL 容错解析 + 邮局语义（maxSeq/readAll/readOutbox/�
 // ---------- F-S15 修复：inbox seq 写锁（跨进程互斥） ----------
 
 const { acquireMailSeqLock } = await import("../lib/mail-seq-lock.js");
-const lockHome = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-fs15-"));
+const lockHome = fs.mkdtempSync(path.join(os.tmpdir(), "pod-fs15-"));
 process.on("exit", () => fs.rmSync(lockHome, { recursive: true, force: true }));
 const lockInbox = path.join(lockHome, "bots", "inbox", "race");
 fs.mkdirSync(lockInbox, { recursive: true });

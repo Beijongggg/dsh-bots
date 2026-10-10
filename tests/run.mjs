@@ -34,7 +34,7 @@ export function declaresSkip(output) {
  * docs/PROJECT_UNDERSTANDING.md）。
  */
 export function tmpdirHint(target = tmpdir()) {
-  const probe = join(target, `.dsh-bots-tmpdir-probe-${process.pid}`);
+  const probe = join(target, `.pod-tmpdir-probe-${process.pid}`);
   try {
     writeFileSync(probe, "");
     rmSync(probe);

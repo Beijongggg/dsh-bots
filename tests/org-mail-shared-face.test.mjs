@@ -29,7 +29,7 @@ const repoRoot = join(import.meta.dirname, "..");
 // ---------- 夹具（隔离临时仓库；bot 侧面函数名单齐备，例外注入逐案加） ----------
 const roots = [];
 function mkFixture({ indexExtra = "" } = {}) {
-  const root = mkdtempSync(join(tmpdir(), "dsh-bots-mail-face-"));
+  const root = mkdtempSync(join(tmpdir(), "pod-mail-face-"));
   roots.push(root);
   const lib = join(root, "lib");
   const org = join(lib, "org");

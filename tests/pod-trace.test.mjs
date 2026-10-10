@@ -70,7 +70,7 @@ function bot(overrides = {}) {
 }
 
 function mkHome(registry) {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-pod-trace-"));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-pod-trace-"));
   writeRegistryAtomic(home, registry);
   homes.push(home);
   return home;

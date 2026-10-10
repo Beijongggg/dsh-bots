@@ -23,7 +23,7 @@ const { createMailClient } = await import("../lib/org/mail-client.js");
 const { createApiSecurity } = await import("../lib/api-security.js");
 const { messageIdFor, readMaxReceiptSeq, responseState } = await import("../lib/mail-plane.js");
 
-const home = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-route-"));
+const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-route-"));
 
 let prompts = 0;
 const promptPayloads = [];

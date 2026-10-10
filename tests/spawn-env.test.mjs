@@ -17,7 +17,7 @@ const results = [];
 const test = (name, fn) => results.push([name, fn]);
 const homes = [];
 function mkHome() {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-spawnenv-"));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-spawnenv-"));
   homes.push(home);
   return home;
 }

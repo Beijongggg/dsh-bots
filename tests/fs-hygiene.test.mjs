@@ -19,7 +19,7 @@ const results = [];
 const test = (name, fn) => results.push([name, fn]);
 const homes = [];
 function mkHome() {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-fshyg-"));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-fshyg-"));
   homes.push(home);
   return home;
 }

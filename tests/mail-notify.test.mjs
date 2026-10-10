@@ -24,7 +24,7 @@ const test = (name, fn) => results.push([name, fn]);
 // ---------- 夹具 ----------
 const homes = [];
 function mkHome(registry = {}) {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-mailnotify-"));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-mailnotify-"));
   fs.mkdirSync(path.join(home, "bots"), { recursive: true });
   if (Object.keys(registry).length > 0) {
     fs.writeFileSync(path.join(home, "bots", "bots.json"), JSON.stringify(registry));
