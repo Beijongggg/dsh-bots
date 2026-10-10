@@ -5,7 +5,7 @@ chevron＋展开体）与令牌化样式基座，供 07／08／09 复用，避�
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** resolved（2026-10-10 core 批收口，证据见 11 号票 Comments 与各票 Comments）
 
 **接口契约:** 本票产出的行组件与样式基座，是 07／08／09 的唯一形状来源；
 组件 props 形状须在票面 Comments 记明（消费者逐字依赖）。
@@ -90,3 +90,4 @@ chevron＋展开体）与令牌化样式基座，供 07／08／09 复用，避�
     （本票第一版就因此把 P-CLIENT-SLOTS 打成 FAIL，改为「官方变体名 `IconXxxOutlineRegular`」后复绿）。
   - **未新增** `lib/org/*` 件（`docs/agents/codebase-map.md` 无需改）；未动 `lib/index.js`、宿主读面、
     配置生成与邮件面。
+- 2026-10-10 收口指针（core 批）：功能批已按 **core 范围**收口（01–06／10／11 并入 `integration/pod-core`；07／08／09 由用户裁定搁置、不并入主树，见各票 Comments「搁置（2026-10-10 用户裁定）」节）。四门实际计数、判据复核（搁置票判据标「搁置」）、坐标口径与真机走查结论见 `.scratch/pod/issues/11-feature-batch-closure.md` Comments「收口记录（2026-10-10）」；本票实施与偏离记录见上文本票 Comments。

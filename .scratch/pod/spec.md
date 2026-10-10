@@ -1,6 +1,6 @@
 # Pod（pod）规格：切换微交互与工具面／形制对齐
 
-Status: ready-for-agent
+Status: resolved（2026-10-10 core 批实施完成；07／08／09 由用户裁定搁置，见各票 Comments）
 
 - **来源**：本轮 grilling 会话（转写 `.tmp/pod-ctx/1257a68e.txt`，5551 行）的裁定；共识蒸馏
   见 `.tmp/pod-ctx/consensus.md`（只读入口）。15 票切分经用户批准（转写 L5284

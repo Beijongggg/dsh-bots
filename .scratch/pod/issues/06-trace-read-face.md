@@ -5,7 +5,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** resolved（2026-10-10 core 批收口，证据见 11 号票 Comments 与各票 Comments）
 
 **接口契约:** 07 将逐字依赖本票的记录形状与读面符号；形状变更须走票面 amend，不得静默漂移。
 
@@ -294,5 +294,6 @@ PTC 内层真实名挂在信封 `subCalls[].name` 且不别名化；`turn` 是�
   会破坏「零第三方依赖全同步 FS」风格）——已由断言组①的逐字对拍把守，同步演进仍靠纪律。
 - `repair` 未在真实面实跑（会写盘）：其两条判据所调用的 `checkBot` 与 `isInProgress` 均有覆盖，
   但归档动作本身无新增测试。
+- 2026-10-10 收口指针（core 批）：功能批已按 **core 范围**收口（01–06／10／11 并入 `integration/pod-core`；07／08／09 由用户裁定搁置、不并入主树，见各票 Comments「搁置（2026-10-10 用户裁定）」节）。四门实际计数、判据复核（搁置票判据标「搁置」）、坐标口径与真机走查结论见 `.scratch/pod/issues/11-feature-batch-closure.md` Comments「收口记录（2026-10-10）」；本票实施与偏离记录见上文本票 Comments。**core 口径补记**：本票的读面与投影仍全量在 core（`BotsApi.trace`／`lib/trace-projection.js`），只是消费它的工具行（票 07／08）搁置。
 
 

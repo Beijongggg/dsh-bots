@@ -5,7 +5,7 @@
 
 **Blocked by:** 03, 04
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 - [ ] 形制逐项对齐：0.5px `--dsw-alias-border-l1` 边框、`--dsw-radius-xl` 圆角、
       `--dsw-alias-markdown-code-block` 底色；头部 `padding:12px 16px`／`gap:10px`；
@@ -21,3 +21,25 @@
 - [ ] 右下角堆叠通知**保持轻量形制不动**（通知面是另一套官方形态）；
 - [ ] 文案走官方 locale 词典（zh／en 齐备，无 fallback 缺口）；
 - [ ] 键盘可达：头部按钮可 Enter／Space 展开，Esc 不误关。
+
+## Comments
+
+### 搁置（2026-10-10 用户裁定）
+
+- **用户原话**：「工具调用那块的前端形态有问题不是我满意的显示样式，把这部分先搁置了，不并入主树，」
+  并在追问中选定搁置范围：**07（通用工具行＋回合折叠头）＋08（bash／diff／read／search 专用行）＋09（turn-trigger 形制统一）**。
+- **搁置范围**：本票（09）的形制统一实现、票面实施记录与测试不入 **core 批**；`integration/pod-core`
+  不含 `ExternalTriggerRow`／`externalTriggersOf`／`TRIGGER_KIND_KEYS`／`dsh-bots-turn-trigger` 等
+  搁置符号（core 自查零命中），也不含 `tests/pod-turn-trigger.test.mjs`；core 的讨论组折叠组仍是
+  03 基座件（`useDisclosure`＋`DisclosureRow`）的既有形制，09 那轮「整组改走官方 turn-trigger 形制」
+  与 `MsgList` 导出名收敛**不并入**。
+- **实现保留地**：`integration/pod`（保留分支，**不要动**）：实现＝`985ff0c`（feat(pod): 09 Pod 自有信息改官方 turn-trigger 形制）、
+  并入集成分支＝`26bd2bb`（07 并入 09 分支；会话流导出名收敛 `MsgList`）与 `eee1e0c`；
+  随该件一并搁置的还有 `tests/locale.test.mjs`／`tests/client-disclosure.test.mjs` 中为嵌套组件
+  服务的测试基建改动；测试件＝`tests/pod-turn-trigger.test.mjs`（含 `V-P5.8`／`V-P5.9`）。
+- **core 分支的处置**：core 只把本票判据坐标登记进 `tests/pod-spec-face.test.mjs` 的**搁置清单**
+  （`PARKED_LANDINGS` 条目 `tests/pod-turn-trigger.test.mjs`，白名单双向锁定）；
+  附录 A 里本票判据（`V-P5.8`／`V-P5.9`）在 11 号票复核表中标「搁置」。
+- **状态**：本票 `Status` 置 `ready-for-human`（搁置待定形，非 `resolved`）。
+- **恢复条件**：用户定形「Pod 自有信息」的呈现形态后另批立项（从 `integration/pod` 取回，并同批清空
+  core 的搁置清单条目）。

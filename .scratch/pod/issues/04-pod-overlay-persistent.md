@@ -5,7 +5,7 @@
 
 **Blocked by:** 02, 03
 
-**Status:** ready-for-agent
+**Status:** resolved（2026-10-10 core 批收口，证据见 11 号票 Comments 与各票 Comments）
 
 **复核点:** 命中必审清单（对外可见：宿主界面行为改变）→ 交付前独立复核。
 
@@ -216,3 +216,4 @@
     与双反例。② 席位列 280px 与官方侧栏的视觉细差（内边距／`.5px` 描边／滚动条宽度）归 11 号票
     人工目视清单。③ 真机已通过的其余项（dialog 形制／保活／inert／Tab／过渡／Esc）本次无改动，
     不重复留证。
+- 2026-10-10 收口指针（core 批）：功能批已按 **core 范围**收口（01–06／10／11 并入 `integration/pod-core`；07／08／09 由用户裁定搁置、不并入主树，见各票 Comments「搁置（2026-10-10 用户裁定）」节）。四门实际计数、判据复核（搁置票判据标「搁置」）、坐标口径与真机走查结论见 `.scratch/pod/issues/11-feature-batch-closure.md` Comments「收口记录（2026-10-10）」；本票实施与偏离记录见上文本票 Comments。

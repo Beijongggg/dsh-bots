@@ -5,7 +5,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** resolved（2026-10-10 core 批收口，证据见 11 号票 Comments 与各票 Comments）
 
 - [ ] 保留 PTC（`DSH_TOOLS_MODE` 无条件注入不动）＋规格写明「基底＝官方默认 preset
       `standard`（27 工具）＋呈现面 ptc」，附本轮实测证据（一个 provider 接受带点名、
@@ -140,3 +140,4 @@
 - 授权：用户 Q27「4保留ptc，其他我没有建议」＋Q25a「其余无异议」接受本清理范围（共识 §3.2）；
   既有 bot 的 profile 清理属运行面写入、按 Q5 口径待逐项点名（本事件不含）；部署同步、
   bot/host 重启、新 runId 证据包按运行面三件逐项点名。
+- 2026-10-10 收口指针（core 批）：功能批已按 **core 范围**收口（01–06／10／11 并入 `integration/pod-core`；07／08／09 由用户裁定搁置、不并入主树，见各票 Comments「搁置（2026-10-10 用户裁定）」节）。四门实际计数、判据复核（搁置票判据标「搁置」）、坐标口径与真机走查结论见 `.scratch/pod/issues/11-feature-batch-closure.md` Comments「收口记录（2026-10-10）」；本票实施与偏离记录见上文本票 Comments。

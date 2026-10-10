@@ -5,7 +5,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** resolved（2026-10-10 core 批收口，证据见 11 号票 Comments 与各票 Comments）
 
 **复核点:** 命中必审清单（对外可见：规格是后续全部票的验收依据）→ 定稿前独立复核。
 
@@ -71,3 +71,4 @@
   - **本次修订触达面**：`.scratch/pod/spec.md`（正文＋附录 A＋修订记录节）、票面 11／09／15／08／01、
     `GLOSSARY.md` 词条格式；`docs/adr/0001-*` 实质内容**未动**（复核已判四要件齐备）。
   - **未动**：本票 `Status:` 保持 `ready-for-agent`；CHANGELOG 事件由 Lead 落档（修订后）。
+- 2026-10-10 收口指针（core 批）：功能批已按 **core 范围**收口（01–06／10／11 并入 `integration/pod-core`；07／08／09 由用户裁定搁置、不并入主树，见各票 Comments「搁置（2026-10-10 用户裁定）」节）。四门实际计数、判据复核（搁置票判据标「搁置」）、坐标口径与真机走查结论见 `.scratch/pod/issues/11-feature-batch-closure.md` Comments「收口记录（2026-10-10）」；本票实施与偏离记录见上文本票 Comments。
