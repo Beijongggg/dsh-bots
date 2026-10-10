@@ -6,7 +6,7 @@
 
 ## 项目目标
 
-`Pod`（标识符 `pod`）是 DeepSeek Harness（DSH）的「机器人模式」插件，用于把多个独立 DSH profile 组织成可管理、可通信的 Bot 团队。
+`Pod`（标识符 `pod`）是 DeepSeek Harness（DSH）的插件，用于把多个独立 DSH profile 组织成可管理、可通信的 Bot 团队；整页覆盖形态与命名口径见 `GLOSSARY.md`「Pod」词条（历史别名 `Bot 模式` 已收 `_Avoid_`，不再使用）。
 
 当前插件已经具备：
 

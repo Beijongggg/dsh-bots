@@ -338,3 +338,10 @@ $ grep -rnE 'ToolRow|ToolCallGroup|assembleDiagnostics|ExternalTriggerRow|extern
    （`EV-20261009-pod-spec-freeze`）。
 10. **12–15 改名批**：当前假设＝功能先行已完成（core 批不做改名）；下一步＝按用户点名先做票 12；
     证据指针＝`.scratch/pod/issues/12-…15-rename-*.md`＋§4 的 `V-P8.3`–`V-P8.7` 四条不可执行行。
+- 2026-10-10 评审返修补记（EV-20261010-pod-core-review-rework）：① **规格 SHA 更正**——本票
+  Comments「收口记录」与 `EV-20261010-pod-core-batch-close` 落档的收口哈希 `295fd530…` 在
+  12 号票 `dae3b90`（V-P8.2 执行坐标补句）改冻件后已过时，返修事件已补记账实：现行
+  `.scratch/pod/spec.md` SHA-256＝
+  `ad127a1b3a1d01c1f0b587c3af41e80de657fb8705e0ed5bb77d771a1e04a00a`（判据语义未改，仅
+  Status 行与坐标补记）。② core 收口后的评审返修批（V-P3.1 出场侧／09 痕迹摘除／令牌单源
+  收敛／措辞更正）追加于 `integration/pod-core` 待并；四门复跑计数见返修事件正文。

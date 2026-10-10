@@ -63,3 +63,15 @@
 3. **`--ds-transition-duration` 的绝对值**依赖宿主主题令牌（现装宿主实测 `.2s`）；宿主若改档位，我方**跟随**（回退常量只在令牌缺失时生效）——「约 200ms」是规格口径而非硬门。
 4. 3080 运行面是 web 还是 desktop（desktop 走原生桥）**未证**（票 04 同款未闭合项）。
 - 2026-10-10 收口指针（core 批）：功能批已按 **core 范围**收口（01–06／10／11 并入 `integration/pod-core`；07／08／09 由用户裁定搁置、不并入主树，见各票 Comments「搁置（2026-10-10 用户裁定）」节）。四门实际计数、判据复核（搁置票判据标「搁置」）、坐标口径与真机走查结论见 `.scratch/pod/issues/11-feature-batch-closure.md` Comments「收口记录（2026-10-10）」；本票实施与偏离记录见上文本票 Comments。**core 口径补记**：上文「验证命令与实际计数」里的 `93/93` 等计数为并入侧栏 07／08／09 的集成分支口径；core 批实测为 **91/91**（基线 90＋本票新增 1，搁置件测试不入本批），四门计数见 11 号票。
+- 2026-10-10 评审返修（EV-20261010-pod-core-review-rework）：未闭合项 2「退出侧动效」按本票
+  预留的「只动计时落点」口径收口——`exit()` 先经 `applyPodExitTransition(podLayout.layer)` 置
+  层根 `data-state=exiting`＋`data-pod-transition=layer-exit`（CSS 关键帧 `pod-pod-exit`＝进场
+  镜像：from 原位不透明 → to `translateY(4px)`＋`opacity:0`；位移仍只允许 0 与 +4px，受 V-P3.1
+  冻结口径「符号不得反」约束），计时落点（`resolvePodTransitionDuration()`＝reduce 0／常态
+  200ms）再 dispose 撤层；无层元素（无头回归／就地降级）或 reduce＝同步撤（票 04 旧语义，
+  V-P2.1／V-P2.2 断言零改动）。退出途中重进 `enter()`＝取消退出（清计时器、层根写回
+  `shown`、不卸载）；淡出期 `podActive` 不提前熄灭（通知抬档随撤层一并回落）；渲染派生
+  `podLayout.exiting` 防出场期重渲（SSE／轮询驱动）把态写回 shown。回归＝
+  `tests/pod-transition.test.mjs::V-P3.1`（出场侧 CSS＋状态机＋渲染派生三组断言）＋
+  `tests/pod-overlay.test.mjs`（出场侧全流程：exiting 落位→条目保留→重复 exit 幂等→重进取消→
+  计时落点 dispose）。未闭合项 1（真机目视）仍在 11 号票人工清单。

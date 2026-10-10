@@ -501,6 +501,59 @@ test("V-P2.1 进出 Pod 不再注册／注销官方槽位，官方条目账本�
 	assert.deepEqual(mainKinds(), []);
 });
 
+// ================= V-P3.1 出场侧（pod 05 返修 2026-10-10）：exit() 计时落点撤层 =================
+test("V-P3.1 出场侧：exit() 先落 exiting 再计时撤层；重进取消退出；重复 exit 幂等", () => {
+	const { core } = bootPod();
+	withFakeDom(() => {
+		mod.__podControl.enter();
+		assert.deepEqual(core.idsOf("shell.overlay"), [IDS.notices, IDS.pod], "进场注册覆盖层条目");
+		// 层根引用（生产面由 PodOverlayLayer 挂载效应置位；无头不跑效应，经内视缝复算）
+		const layerElement = {
+			dataset: {},
+			setAttribute(name, value) { this.dataset[name.replace(/^data-/, "")] = value; },
+			getAttribute(name) {
+				const key = name.replace(/^data-/, "");
+				return Object.prototype.hasOwnProperty.call(this.dataset, key) ? this.dataset[key] : null;
+			},
+			removeAttribute(name) { delete this.dataset[name.replace(/^data-/, "")]; }
+		};
+		mod.__podLayoutForTest.layer = layerElement;
+		// 可驱动钟（同 pod-transition 回归的接管法：替换 window.setTimeout/clearTimeout）
+		const pending = new Map();
+		let seq = 0;
+		const previousSet = globalThis.window.setTimeout;
+		const previousClear = globalThis.window.clearTimeout;
+		globalThis.window.setTimeout = (callback) => { seq += 1; pending.set(seq, callback); return seq; };
+		globalThis.window.clearTimeout = (id) => { pending.delete(id); };
+		const flush = () => { const batch = [...pending.values()]; pending.clear(); for (const cb of batch) cb(); };
+		try {
+			mod.__podControl.exit();
+			assert.deepEqual(core.idsOf("shell.overlay"), [IDS.notices, IDS.pod], "出场淡出期条目仍在（撤层发生在计时落点）");
+			assert.equal(layerElement.getAttribute("data-state"), "exiting", "exit() 须先落 exiting 态（播淡出）");
+			assert.equal(mod.getBotState().podActive, true, "淡出期 podActive 不提前熄灭（通知抬档随撤层一并回落）");
+			mod.__podControl.exit();
+			assert.equal(pending.size, 1, "退出途中重复 exit() 须幂等（不排第二个计时器）");
+			// 重进取消退出：层未撤、写回 shown、清掉已排计时器
+			mod.__podControl.enter();
+			assert.equal(pending.size, 0, "重进须清掉出场计时器（取消退出）");
+			assert.equal(layerElement.getAttribute("data-state"), "shown", "重进须把层根写回 shown 稳态");
+			assert.equal(layerElement.getAttribute("data-pod-transition"), null, "取消退出须摘掉出场过渡标记");
+			assert.deepEqual(core.idsOf("shell.overlay"), [IDS.notices, IDS.pod], "取消退出的覆盖层条目仍注册（层未卸载）");
+			// 再退：计时落点执行撤层
+			mod.__podControl.exit();
+			assert.equal(pending.size, 1, "再次退出须排一个出场计时器");
+			flush();
+			assert.deepEqual(core.idsOf("shell.overlay"), [IDS.notices], "计时落点执行撤层（dispose 移除条目）");
+			assert.equal(mod.getBotState().podActive, false, "撤层后熄灭 podActive");
+		} finally {
+			globalThis.window.setTimeout = previousSet;
+			globalThis.window.clearTimeout = previousClear;
+			mod.__podLayoutForTest.layer = null;
+			mod.__podControl.reset();
+		}
+	});
+});
+
 // ================= V-P2.2：官方页保活（机制级：真 SlotCore 实跑＋节点身份＋属性快照） =================
 test("V-P2.2 进出各一次后官方页状态保留：节点身份不变、滚动/展开态/进行中进度未被触碰", () => {
 	withFakeDom((dom) => {

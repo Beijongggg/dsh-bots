@@ -314,6 +314,8 @@ function createLayerFixture() {
 	return {
 		state,
 		layerElement,
+		/** 隔离模块的 Pod 旁带（渲染派生 `podLayout.exiting` 的驱动面；pod 05 返修）。 */
+		podLayout: isolated.__podLayoutForTest,
 		/** 挂载（新实例：状态与依赖账清空）。 */
 		render: () => renderTree(true),
 		/** 同一实例内重渲一帧（计时器推进后观察 React 下一帧；不重渲则读到上一帧渲染结果）。 */
@@ -356,6 +358,7 @@ test("V-P3.1 进出：淡入＋约 4px 上浮、约 200ms、无方向位移", ()
 	const TRANSITION_CSS = mod.POD_TRANSITION_CSS;
 	assert.equal(typeof TRANSITION_CSS.enterKeyframes, "string", "缺进出关键帧名（坐标块）");
 	assert.equal(typeof TRANSITION_CSS.viewKeyframes, "string", "缺切席位关键帧名（坐标块）");
+	assert.equal(typeof TRANSITION_CSS.exitKeyframes, "string", "缺出场关键帧名（坐标块；pod 05 返修 2026-10-10 补「进出」的出半边）");
 	const css = transitionCss();
 	const enterBlock = css.match(/\.pod-pod-layer\[data-state="?entering"?\][^{]*\{[^}]*\}/);
 	assert.ok(enterBlock, "进出过渡须由 [data-state=entering] 钩子承载（层整体＝侧栏＋主区同一过渡）");
@@ -370,6 +373,21 @@ test("V-P3.1 进出：淡入＋约 4px 上浮、约 200ms、无方向位移", ()
 		assert.match(block, /to\s*\{[^}]*opacity:1/, name + " 须收到 opacity:1");
 		assert.match(block, /to\s*\{[^}]*translateY\(0\)/, name + " 须收到原位（translateY(0)）");
 	}
+	// 出场侧（pod 05 返修 2026-10-10）：exiting 态＝进场同参数的镜像淡出（0 → +4px 回落）
+	const exitBlock = css.match(/\.pod-pod-layer\[data-state="?exiting"?\][^{]*\{[^}]*\}/);
+	assert.ok(exitBlock, "出场过渡须由 [data-state=exiting] 钩子承载（层整体＝侧栏＋主区同一过渡）");
+	assert.match(exitBlock[0], new RegExp("animation:[^;]*" + TRANSITION_CSS.exitKeyframes), "出场动画须走出场关键帧");
+	assert.match(exitBlock[0], /var\(--ds-transition-duration\s*,/, "出场时长同取宿主令牌（进出同参数）");
+	assert.match(exitBlock[0], /var\(--ds-ease-in-out\s*,/, "出场缓动同取宿主令牌");
+	const exitAt = css.indexOf("@keyframes " + TRANSITION_CSS.exitKeyframes);
+	assert.ok(exitAt >= 0, "缺出场关键帧 " + TRANSITION_CSS.exitKeyframes);
+	const exitFrames = css.slice(exitAt + ("@keyframes " + TRANSITION_CSS.exitKeyframes).length);
+	assert.match(exitFrames, /^\{from\s*\{[^}]*opacity:1/, "出场须自不透明起（衔接 shown 稳态，不闪）");
+	assert.match(exitFrames, /^\{from\s*\{[^}]*translateY\(0\)/, "出场须自原位起");
+	assert.match(exitFrames, /to\s*\{[^}]*opacity:0/, "出场须收到 opacity:0（淡出）");
+	assert.match(exitFrames, /to\s*\{[^}]*translateY\(4px\)/, "出场须落 +4px（进场镜像回落；位移仍只允许 0 与 +4px）");
+	const reduceMedia = css.match(/@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{([\s\S]*?)\n\}/);
+	assert.match(reduceMedia[1], /\[data-state="?exiting"?\][^{]*\{[^}]*animation:\s*none/, "reduce 下出场动画须关掉（瞬时撤层）");
 	// 无方向位移：水平位移／缩放一律不得出现，且上浮只走正 Y 位移
 	assert.ok(!/translateX|scale\(|scale3d|rotate\(/.test(css), "不得出现方向位移或缩放（规格 §C1「不做方向位移」）");
 	const translateYs = [...css.matchAll(/translateY\((-?[\d.]+)(?:px)?\)/g)].map((match) => Number(match[1]));
@@ -446,11 +464,11 @@ test("V-P3.3 范围差分：进出时侧栏与主区同一过渡；Pod 内切席
 			const fixture = createLayerFixture();
 			const first = fixture.render();
 			assert.equal(layerStateOf(first), mod.POD_TRANSITION_STATES.entering, "进出过渡＝层整体（层根带 entering 态）");
-			assert.equal(hasClass(byClass(first, LAYER), mod.POD_TRANSITION_MARKERS.enter), true, "进出态须带层过渡标记（侧栏与主区共用）");
+			assert.equal(hasClass(byClass(first, LAYER), mod.POD_TRANSITION.enterMarker), true, "进出态须带层过渡标记（侧栏与主区共用）");
 			const listAtEnter = byClass(first, SEAT_LIST);
 			assert.ok(listAtEnter, "覆盖层须有席位列表列（进出过渡的作用域＝层整体）");
-			assert.equal(hasClass(listAtEnter, mod.POD_TRANSITION_MARKERS.enter), false, "侧栏列不得各自打标记（同一过渡，不差分）");
-			assert.equal(hasClassPrefix(listAtEnter, mod.POD_TRANSITION_MARKERS.view), false, "切席位过渡不得落到侧栏列上");
+			assert.equal(hasClass(listAtEnter, mod.POD_TRANSITION.enterMarker), false, "侧栏列不得各自打标记（同一过渡，不差分）");
+			assert.equal(hasClassPrefix(listAtEnter, mod.POD_TRANSITION.viewMarker), false, "切席位过渡不得落到侧栏列上");
 			const detailAtEnter = byClass(first, SEAT_DETAIL).props.className;
 			assert.equal(
 				byClass(fixture.render(), SEAT_DETAIL).props.className,
@@ -458,7 +476,7 @@ test("V-P3.3 范围差分：进出时侧栏与主区同一过渡；Pod 内切席
 				"同一状态重渲不得换代（标记只在席位换代时换代，进出过渡不重放切席位动画）"
 			);
 			assert.equal(
-				hasClassPrefix(byClass(fixture.render(), SEAT_LIST), mod.POD_TRANSITION_MARKERS.view),
+				hasClassPrefix(byClass(fixture.render(), SEAT_LIST), mod.POD_TRANSITION.viewMarker),
 				false,
 				"任何一帧都不得给侧栏列打切席位标记（范围差分的另一半）"
 			);
@@ -467,24 +485,24 @@ test("V-P3.3 范围差分：进出时侧栏与主区同一过渡；Pod 内切席
 			const second = fixture.select("bot-a");
 			const detail = byClass(second, SEAT_DETAIL);
 			const list = byClass(second, SEAT_LIST);
-			assert.equal(hasClassPrefix(detail, mod.POD_TRANSITION_MARKERS.view), true, "切席位须给主区（席位视图）打过渡标记");
+			assert.equal(hasClassPrefix(detail, mod.POD_TRANSITION.viewMarker), true, "切席位须给主区（席位视图）打过渡标记");
 			assert.match(String(detail.props.className), new RegExp("pod-pod-view-in-[0-9]+"), "切席位标记须带换代序号（同一动画可重放）");
-			assert.equal(hasClassPrefix(list, mod.POD_TRANSITION_MARKERS.view), false, "切席位不得给侧栏列打标记（范围差分）");
-			assert.equal(hasClass(byClass(second, LAYER), mod.POD_TRANSITION_MARKERS.enter), true, "层根标记是进出期常驻钩子，不随切席位移除");
+			assert.equal(hasClassPrefix(list, mod.POD_TRANSITION.viewMarker), false, "切席位不得给侧栏列打标记（范围差分）");
+			assert.equal(hasClass(byClass(second, LAYER), mod.POD_TRANSITION.enterMarker), true, "层根标记是进出期常驻钩子，不随切席位移除");
 			const third = fixture.select("bot-b");
 			assert.notEqual(
 				byClass(third, SEAT_DETAIL).props.className,
 				detail.props.className,
 				"再次切席位须换代（标记变化才会重放动画）"
 			);
-			assert.equal(hasClassPrefix(byClass(third, SEAT_LIST), mod.POD_TRANSITION_MARKERS.view), false, "多次切席位仍不得触碰侧栏列");
+			assert.equal(hasClassPrefix(byClass(third, SEAT_LIST), mod.POD_TRANSITION.viewMarker), false, "多次切席位仍不得触碰侧栏列");
 			// 切席位过渡的动效声明只挂主区标记类（侧栏列不是该类的成员）
 			assert.ok(
 				!new RegExp("\\." + SEAT_LIST + "[ \\t]*\\{[^}]*animation").test(css),
 				"切席位动画不得声明在侧栏列上"
 			);
 			assert.ok(
-				css.includes("." + mod.POD_TRANSITION_MARKERS.view + "-"),
+				css.includes("." + mod.POD_TRANSITION.viewMarker + "-"),
 				"切席位动画须由换代标记类前缀承载（实例名可寻址）"
 			);
 		});
@@ -501,7 +519,7 @@ test("V-P3.4 prefers-reduced-motion: reduce 退化为瞬时切换", () => {
 
 	withMatchMedia(true, () => {
 		assert.equal(mod.resolvePodTransitionDuration(), 0, "reduce 下过渡时长须为 0（瞬时切换）");
-		assert.equal(mod.podViewTransitionClass(3, true), mod.POD_TRANSITION_MARKERS.instant, "reduce 下切席位改走瞬时档（无动画标记）");
+		assert.equal(mod.podViewTransitionClass(3, true), mod.POD_TRANSITION.instantMarker, "reduce 下切席位改走瞬时档（无动画标记）");
 		const element = createTransitionElement();
 		const seen = [];
 		withTimers((timers) => {
@@ -514,7 +532,7 @@ test("V-P3.4 prefers-reduced-motion: reduce 退化为瞬时切换", () => {
 	withMatchMedia(false, () => {
 		assert.equal(mod.resolvePodTransitionDuration(), mod.POD_TRANSITION.fallbackDurationMs, "非 reduce 下时长＝坐标块时长（回退合成，不炸）");
 		assert.equal(mod.podReducedMotionQuery(), false, "非 reduce 判定为 false");
-		assert.equal(mod.podViewTransitionClass(3, true), mod.POD_TRANSITION_MARKERS.view + "-3", "非 reduce 下切席位标记须带换代序号");
+		assert.equal(mod.podViewTransitionClass(3, true), mod.POD_TRANSITION.viewMarker + "-3", "非 reduce 下切席位标记须带换代序号");
 		const element = createTransitionElement();
 		withTimers((timers) => {
 			mod.applyPodTransition(element, { kind: "layer" });
@@ -534,6 +552,38 @@ test("V-P3.4 prefers-reduced-motion: reduce 退化为瞬时切换", () => {
 			globalThis.window.matchMedia = saved;
 		}
 	}
+});
+
+// ================= V-P3.1 出场侧（pod 05 返修 2026-10-10）：状态机与渲染派生 =================
+test("V-P3.1 出场侧：applyPodExitTransition 落 exiting 态并返回推进时长（reduce／无层元素→0）；渲染派生 podLayout.exiting", () => {
+	assert.equal(typeof mod.applyPodExitTransition, "function", "导出面缺 applyPodExitTransition（出场状态机）");
+	withMatchMedia(false, () => {
+		const element = createTransitionElement();
+		assert.equal(mod.applyPodExitTransition(element), mod.POD_TRANSITION.fallbackDurationMs, "非 reduce 下出场时长＝坐标块时长");
+		assert.equal(element.dataset.state, mod.POD_TRANSITION_STATES.exiting, "出场须把层根落 exiting 态");
+		assert.equal(element.dataset["pod-transition"], "layer-exit", "出场过渡标记须可寻址（data-pod-transition=layer-exit）");
+	});
+	withMatchMedia(true, () => {
+		const reduceElement = createTransitionElement();
+		assert.equal(mod.applyPodExitTransition(reduceElement), 0, "reduce 下出场时长须为 0（调用方同步撤层）");
+	});
+	assert.equal(mod.applyPodExitTransition(null), 0, "无层元素（无头／就地降级）须返回 0（同步撤层＝旧语义）");
+	mod.resetPodTransitions();
+
+	// 渲染派生：模块旁带 exiting 置位时，层根渲染态须派生为 exiting——出场期重渲不把态写回 shown
+	withTimers(() => {
+		withFakeDom(() => {
+			const fixture = createLayerFixture();
+			assert.ok(fixture.podLayout, "夹具须暴露隔离模块的 podLayout（渲染派生的驱动面）");
+			fixture.podLayout.exiting = true;
+			const tree = fixture.render();
+			assert.equal(layerStateOf(tree), mod.POD_TRANSITION_STATES.exiting, "出场期渲染派生须为 exiting（防重渲盖回 shown）");
+			const again = fixture.rerender();
+			assert.equal(layerStateOf(again), mod.POD_TRANSITION_STATES.exiting, "出场期多帧重渲仍保持 exiting");
+			fixture.podLayout.exiting = false;
+			mod.resetPodTransitions();
+		});
+	});
 });
 
 // ================= V-P3.5：首帧不空、过渡期始终挂载 =================
@@ -644,10 +694,11 @@ test("V-P3.6 负例：动效不依赖 hidden／display:none，不引入宿主私
 	// 负例反证：过渡段**只**含自有前缀的标记类，不带任何宿主私有钩子
 	assert.ok(!/--dsw-/.test(css), "过渡样式段内不得出现任何 --dsw-* 令牌");
 	assert.ok(
-		Object.values(mod.POD_TRANSITION_MARKERS).every((marker) => marker.startsWith("pod-")),
+		[mod.POD_TRANSITION.enterMarker, mod.POD_TRANSITION.viewMarker, mod.POD_TRANSITION.instantMarker]
+			.every((marker) => marker.startsWith("pod-")),
 		"过渡标记类须走本仓自有前缀（不冒用宿主钩子／票 04 结构类名）"
 	);
-	assert.notEqual(mod.POD_TRANSITION_MARKERS.instant, mod.POD_TRANSITION_MARKERS.view, "瞬时档与动画档须是两个不同标记");
+	assert.notEqual(mod.POD_TRANSITION.instantMarker, mod.POD_TRANSITION.viewMarker, "瞬时档与动画档须是两个不同标记");
 });
 
 // ---------- 运行（与 tests/pod-overlay.test.mjs 同口径的轻量 runner） ----------

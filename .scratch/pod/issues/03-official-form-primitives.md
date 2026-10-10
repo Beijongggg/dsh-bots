@@ -91,3 +91,8 @@ chevron＋展开体）与令牌化样式基座，供 07／08／09 复用，避�
   - **未新增** `lib/org/*` 件（`docs/agents/codebase-map.md` 无需改）；未动 `lib/index.js`、宿主读面、
     配置生成与邮件面。
 - 2026-10-10 收口指针（core 批）：功能批已按 **core 范围**收口（01–06／10／11 并入 `integration/pod-core`；07／08／09 由用户裁定搁置、不并入主树，见各票 Comments「搁置（2026-10-10 用户裁定）」节）。四门实际计数、判据复核（搁置票判据标「搁置」）、坐标口径与真机走查结论见 `.scratch/pod/issues/11-feature-batch-closure.md` Comments「收口记录（2026-10-10）」；本票实施与偏离记录见上文本票 Comments。
+- 2026-10-10 评审返修（EV-20261010-pod-core-review-rework）：`DisclosureRow` props 契约**收窄**——
+  `dataTurnTrigger`（根节点 `data-turn-trigger`，09 外部触发行钩子）按 2026-10-10 用户裁定
+  「07–09 不并入主树」自基座摘除；`tests/client-disclosure.test.mjs` 切片 4 改为负例守卫
+  （基座与满槽位渲染都不得落 `data-turn-trigger`；09 复活时由该票重新加回并同步断言）。
+  07／08 消费的其余槽位（`icon`／`meta`／`note`／受控三件套等）不变。

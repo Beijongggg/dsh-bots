@@ -208,13 +208,15 @@ test("受控模式：open 由调用方持有，点击只回调 onOpenChange，�
 });
 
 // ---- 切片 4：槽位落位与缺省 ----
-test("槽位：meta／note／data-turn-trigger／附加类名按需落位，缺省不留空节点", () => {
+test("槽位：meta／note／附加类名按需落位，缺省不留空节点（无 09 turn-trigger 痕迹）", () => {
 	const bare = harness.mount(mod.DisclosureRow, { title: "只有标题" });
 	const bareHead = buttonOf(bare.tree);
 	assert.equal(byClass(bareHead, "pod-disclosure-icon"), null, "无 icon 不渲染图标槽");
 	assert.equal(byClass(bareHead, "pod-disclosure-meta"), null, "无 meta 不渲染次要位");
 	assert.equal(findOne(bareHead, (node) => node.type === "time"), null, "无 time 不渲染时间元素");
-	assert.equal(Object.prototype.hasOwnProperty.call(bare.tree.props, "data-turn-trigger"), false);
+	// 2026-10-10 用户裁定 09（turn-trigger 形制）搁置不并入主树：基座不得携带其形制钩子
+	//（09 复活时由该票重新加回并同步本断言——见票 03 Comments）
+	assert.equal(Object.prototype.hasOwnProperty.call(bare.tree.props, "data-turn-trigger"), false, "基座不得落 data-turn-trigger（09 搁置痕迹守卫）");
 
 	const full = harness.mount(mod.DisclosureRow, {
 		icon: h("svg", { className: "stub-icon" }),
@@ -225,10 +227,9 @@ test("槽位：meta／note／data-turn-trigger／附加类名按需落位，缺�
 		note: "说明句",
 		children: "正文",
 		defaultOpen: true,
-		dataTurnTrigger: true,
 		className: "pod-row-extra"
 	});
-	assert.equal(full.tree.props["data-turn-trigger"], true, "09 外部触发行须能打 data-turn-trigger");
+	assert.equal(Object.prototype.hasOwnProperty.call(full.tree.props, "data-turn-trigger"), false, "满槽位渲染同样不得落 data-turn-trigger");
 	assert.ok(hasClass(full.tree, "pod-row-extra"), "调用方附加类名落在根节点");
 	const fullHead = buttonOf(full.tree);
 	assert.equal(textOf(byClass(fullHead, "pod-disclosure-meta")), "参数摘要");

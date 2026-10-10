@@ -297,3 +297,10 @@ PTC 内层真实名挂在信封 `subCalls[].name` 且不别名化；`turn` 是�
 - 2026-10-10 收口指针（core 批）：功能批已按 **core 范围**收口（01–06／10／11 并入 `integration/pod-core`；07／08／09 由用户裁定搁置、不并入主树，见各票 Comments「搁置（2026-10-10 用户裁定）」节）。四门实际计数、判据复核（搁置票判据标「搁置」）、坐标口径与真机走查结论见 `.scratch/pod/issues/11-feature-batch-closure.md` Comments「收口记录（2026-10-10）」；本票实施与偏离记录见上文本票 Comments。**core 口径补记**：本票的读面与投影仍全量在 core（`BotsApi.trace`／`lib/trace-projection.js`），只是消费它的工具行（票 07／08）搁置。
 
 
+- 2026-10-10 评审返修处置（EV-20261010-pod-core-review-rework）：评审曾提「`counters.gap` 与
+  规格 §E R5-③『诊断只在拼装层产出，不新增轨迹字段』有张力」。裁定＝**不改**：本票验收判据已把
+  含 `counters` 的响应形状冻为本票读面自定面（Comments 亦声明「新增响应字段（counters）属本票
+  读面自定面，不属消费者冻结的记录形状」），且规格 R5-③／I-1(d) 明文「不得改票 06 已冻结的
+  trace 记录形状与响应形状」——摘除反而违约；`counters.gap` 即 R5-②「投影缺口次数」的数据
+  供给面，消费者（票 07）搁置中、实害为零。07 复活时若要收敛诊断落点，走票面 amend 而非
+  静默改口径。
