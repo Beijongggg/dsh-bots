@@ -1,0 +1,32 @@
+{
+ "packageType": "deploy-sync-executor",
+ "specSha256": "7332da0ec7abb05cf66196fdb460bce0c7924fea369ef08db576069659a9ab70",
+ "runId": "pod-feature-batch-fix1-20261010T1832Z",
+ "batch": "pod-feature-batch-fix1",
+ "commit": "92678b5a9fce9830f9f0409ea936e66299454ae0",
+ "reason": "真机走查返修：覆盖层席位列自持宽度 280／折叠 56＋视图子节点占满（修主区被挤成 0 宽）",
+ "authorization": "用户 2026-10-10 授权本批部署同步窗口（真机验收）；本件为同窗口内的走查返修同步",
+ "restart": "client 面按请求重打包（页面刷新即生效），无需重启",
+ "dshHome": "/home/beijong/.dsh",
+ "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+ "snapshot": "源字节取自 git archive <commit> -- <paths>（不读工作树）",
+ "inventoryRequire": "all-same",
+ "entries": [
+  {
+   "path": "lib/client.js",
+   "action": "write",
+   "sourceSha256": "e13fd31d6a2fbb6371810bb7527f135e4363a5b1ccc6c9cfa0503625991e1e8e",
+   "sourceByteLength": 277670,
+   "deployedSha256Before": "99f908375cf960cd5512881277a01add8628ca7fc9e1c876ffceb36d31758a96",
+   "changed": true
+  },
+  {
+   "path": "tests/pod-overlay.test.mjs",
+   "action": "write",
+   "sourceSha256": "34c64a2a5c343270d79dd39576c7d41c8d0c606bc6b89dc1f088e1bc32756ce7",
+   "sourceByteLength": 80281,
+   "deployedSha256Before": "ee3d757ff7772bcf51ef0cabc37f2eadd8fd72c4469d08b8e81346c126d59686",
+   "changed": true
+  }
+ ]
+}
