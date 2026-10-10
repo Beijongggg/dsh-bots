@@ -1,0 +1,472 @@
+{
+ "packageType": "deploy-sync-executor",
+ "specSha256": "4bd68a70b5e9157adc8abec3e6cf0c3a6e0ee6d1110b16d0a3282ff4edc145d3",
+ "runId": "pod-feature-batch-20261010T1816Z",
+ "batch": "pod-feature-batch",
+ "commit": "083be0966d303e24f779d14384599f2f23190315",
+ "reason": "pod 功能批（01–10 号票）真机验收窗口：整屏覆盖式常驻＋保活、过渡动效、工具轨迹读面（/api/bots/:id/trace）与工具行显示、turn-trigger 形制统一、L1 基底显式化与死配置清理；同时把集成分支已在案的其它 lib/scripts/tests 漂移一并对齐到本 commit",
+ "authorization": "用户 2026-10-10 在本会话选定「授权：先 dry-run 看计划，再执行同步＋重启」（对齐 Q5(a)「仓库内实现＋测试＋本地验证，部署同步与重启逐项点名」）",
+ "restart": "client 面按请求从部署目录重打包（页面刷新即生效）；server 面（lib/index.js 新增 /api/bots/:id/trace 等）需宿主重启，由用户执行",
+ "dshHome": "/home/beijong/.dsh",
+ "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+ "snapshot": "源字节取自 git archive <commit> -- <paths>（不读工作树）",
+ "inventoryRequire": "all-same",
+ "entries": [
+  {
+   "path": "lib/client.js",
+   "action": "write",
+   "sourceSha256": "99f908375cf960cd5512881277a01add8628ca7fc9e1c876ffceb36d31758a96",
+   "sourceByteLength": 275368,
+   "deployedSha256Before": "371146b61d09cf66562f836aa0c4c334220eb1bfa55d4905feb31231924904f5",
+   "changed": true
+  },
+  {
+   "path": "lib/host-faces.js",
+   "action": "write",
+   "sourceSha256": "c65e4c274899931d6fa16f681087c81f3a688571116b1de344397be24f63308f",
+   "sourceByteLength": 26323,
+   "deployedSha256Before": "eadb096e3596b93a1eb99a0308dafefb22862d73164e718f45388d4fe1d7b22d",
+   "changed": true
+  },
+  {
+   "path": "lib/host-services.js",
+   "action": "write",
+   "sourceSha256": "f87895e26048c9e9a1fe0c87a709ac2b0fbe2f011e4dc83e25d4ca387392a7a2",
+   "sourceByteLength": 1441,
+   "deployedSha256Before": "d36a660c128092973eb6c8e2777daa60051e4ad63256381dd3f78351cad713e4",
+   "changed": true
+  },
+  {
+   "path": "lib/index.js",
+   "action": "write",
+   "sourceSha256": "ffdffd182e275591f111ff4b6f4e0a903b3f522fd0234ef75759c809e8c69e6d",
+   "sourceByteLength": 158062,
+   "deployedSha256Before": "a6b270d0642f8963461a28112102954daea73fdaff0adadb840fc9ff17dda710",
+   "changed": true
+  },
+  {
+   "path": "lib/org/acceptance-coordinates.js",
+   "action": "write",
+   "sourceSha256": "8fb311ae655060020a76d7f5e6dded5fc20716c7fa8dd479f4b01cf8c2db9e10",
+   "sourceByteLength": 47531,
+   "deployedSha256Before": "3d1aceb416fba206665f0009ba332159e5e970b58f9cd552443ba14e22100571",
+   "changed": true
+  },
+  {
+   "path": "lib/org/capability-delivery.js",
+   "action": "write",
+   "sourceSha256": "e88538d4f909b0c5a79a8699c942832234ab6fac3c18d46eb9ca0dc1cda598a6",
+   "sourceByteLength": 10769,
+   "deployedSha256Before": "733342dd6da8efdb71a24378540b5cc8055496e0e2b3de90ffadb860d3670826",
+   "changed": true
+  },
+  {
+   "path": "lib/org/criterion-runner.js",
+   "action": "write",
+   "sourceSha256": "7e193ec486ebb1ef3e020da70364b45cfec0774447a3e1a46a471053208e78a6",
+   "sourceByteLength": 2055,
+   "deployedSha256Before": "64f8e9ea9f5eca62d02276d3fbeec4d14af4aeec0e4f610965c529dbd3cbfec3",
+   "changed": true
+  },
+  {
+   "path": "lib/org/cutover-readiness.js",
+   "action": "write",
+   "sourceSha256": "54e4ea21d9fa736b54e7dd04e7fc1e8d631e55656b566dce0d060114564941e7",
+   "sourceByteLength": 3191,
+   "deployedSha256Before": "73058f5214c7540eacef2b2b86c1e82835d102b94c746527d9c17c2d33c34a4e",
+   "changed": true
+  },
+  {
+   "path": "lib/org/cutover.js",
+   "action": "write",
+   "sourceSha256": "1ad7b791d6f4cfc475f9c04d9ef5994e90232d31dd7d2bce9e0571cb8096d070",
+   "sourceByteLength": 2210,
+   "deployedSha256Before": "cef9e4530cfcd4ccdf67b19f9d91b253232fdfb0495113749c18fbb219101e95",
+   "changed": true
+  },
+  {
+   "path": "lib/org/host-env-seam.js",
+   "action": "create",
+   "sourceSha256": "9e4e331c8e2bd619656cf870e3f84685873007ba1c7abcd410026847400cb15b",
+   "sourceByteLength": 8248,
+   "deployedSha256Before": null,
+   "changed": true
+  },
+  {
+   "path": "lib/org/human-inbox.js",
+   "action": "write",
+   "sourceSha256": "f1f6209f7172e4e2c56b0c03ca50f310cb77e261dd8b6366f2ae1b64668b0ddf",
+   "sourceByteLength": 27421,
+   "deployedSha256Before": "7ed18dcde698cc6349d5b3988fd4afd3a7bd86a44f41db984e11b178e72979e3",
+   "changed": true
+  },
+  {
+   "path": "lib/org/ledger-host.js",
+   "action": "write",
+   "sourceSha256": "4368a73ccbae77e90edd585a450f3d622acf30c32e8a06dfa0382627fec89f56",
+   "sourceByteLength": 34240,
+   "deployedSha256Before": "092e30c42fbebccfed7f6fa176b5ec3c3507a11aa0244ac014aa36b9505727a1",
+   "changed": true
+  },
+  {
+   "path": "lib/org/review-kit.js",
+   "action": "write",
+   "sourceSha256": "10e9572ce7115d95b399362b8fa92d2a372d97832c6fe5db8064cf74e2c6d1dc",
+   "sourceByteLength": 18117,
+   "deployedSha256Before": "c5b2572f92b322b2632194cfd99f4d7a4b9f7c43adee662e479d520708bbff38",
+   "changed": true
+  },
+  {
+   "path": "lib/org/task-ledger.js",
+   "action": "write",
+   "sourceSha256": "97a75b0c147e91ef65c44054513897d5bc3de4abbf594f18d0ca840d0096d990",
+   "sourceByteLength": 97945,
+   "deployedSha256Before": "6d6ff8a896b2921dd2718095faab567ba67df055aa63c7b4c14a5933b5ac2fbb",
+   "changed": true
+  },
+  {
+   "path": "lib/org/task-projection.js",
+   "action": "create",
+   "sourceSha256": "db2e0fb7a8bc0f514851ddd806714f3efe5c994e3202db6ad654770760132cd9",
+   "sourceByteLength": 17500,
+   "deployedSha256Before": null,
+   "changed": true
+  },
+  {
+   "path": "lib/shared.cjs",
+   "action": "write",
+   "sourceSha256": "aa8e853eccfa1d58c7e404f951de6e7ab087885b4ba2b6f7506f90c9c81c4383",
+   "sourceByteLength": 18534,
+   "deployedSha256Before": "1dea87a812c30894c053ce5e0b4382b8e20e932612b30cb42004a5a636b22cb4",
+   "changed": true
+  },
+  {
+   "path": "lib/stats.js",
+   "action": "write",
+   "sourceSha256": "5835644e30787576e3779a9bd4bb7ff958089a0b84ea97d91b32193b41fa9d12",
+   "sourceByteLength": 16180,
+   "deployedSha256Before": "285a81c5bcdb003cc467b144ce6553e533ffff6a538b5c1958a33a54615e42fa",
+   "changed": true
+  },
+  {
+   "path": "lib/trace-projection.js",
+   "action": "create",
+   "sourceSha256": "c998cd8b3d827b8b351728c68dae464be273a362dcd3694119db52fd7ece6c96",
+   "sourceByteLength": 17461,
+   "deployedSha256Before": null,
+   "changed": true
+  },
+  {
+   "path": "scripts/bot-health.cjs",
+   "action": "write",
+   "sourceSha256": "eb4e8c94e67de4b209abdbb30d3fe893490df2f869e8f6f92952ed4b1f258388",
+   "sourceByteLength": 37938,
+   "deployedSha256Before": "e50506dd93d85d6e8dfb4814a44560d413ad757eb9ebd12bddfd7e9faabe26c9",
+   "changed": true
+  },
+  {
+   "path": "scripts/ci-gates.mjs",
+   "action": "write",
+   "sourceSha256": "be2f7f342fcc2a1c939b3cbfead5ad66a971b758687fd0218e492546ca5553f6",
+   "sourceByteLength": 1615,
+   "deployedSha256Before": "4b60f647bb483a6dcfd62be2a0e96f686bedbe16f11d3141850f2495912a314a",
+   "changed": true
+  },
+  {
+   "path": "scripts/create-bot.cjs",
+   "action": "write",
+   "sourceSha256": "cefc51860c27109873a34276c7422896fdec8a4794653cbb3926954b80e55905",
+   "sourceByteLength": 8706,
+   "deployedSha256Before": "22635fae0234632078f369e7803b663e76a0c6fb230b7cdd578a4d2ad49e4d1d",
+   "changed": true
+  },
+  {
+   "path": "scripts/deploy-sync.mjs",
+   "action": "write",
+   "sourceSha256": "c429e00ef4c27c7f379de2e321c621c9a82c572902daf3e9980e510e052d0480",
+   "sourceByteLength": 14925,
+   "deployedSha256Before": "9adbdbdf0e4771f6a048d2e71e733d38bb4bdcf98881684245c6005810089e2d",
+   "changed": true
+  },
+  {
+   "path": "scripts/host-contract-probe.mjs",
+   "action": "write",
+   "sourceSha256": "0aed4ab433659922b5f36fe88a945361dde5aaf6dbddee195669eadca72f204d",
+   "sourceByteLength": 134958,
+   "deployedSha256Before": "850ff48045fcc4f0c17b78b9dff80df3b37939b74d47fe6fdec979a2c8ec8b3b",
+   "changed": true
+  },
+  {
+   "path": "scripts/ledger-drill.mjs",
+   "action": "write",
+   "sourceSha256": "41d1b14fe7d2c5c66f1bb27b8b83fea2185b322ce707a9d0f475bb094f98a4b6",
+   "sourceByteLength": 15995,
+   "deployedSha256Before": "3b95b422eb77a1ae3ee1929fbd75c246c9a5c93388ed15e373b5f3d7cf47294f",
+   "changed": true
+  },
+  {
+   "path": "scripts/preflight.mjs",
+   "action": "write",
+   "sourceSha256": "68961f96fae1cb313e05528da472d23c94facf3dbc10cfa224e5501fab77bd1f",
+   "sourceByteLength": 13886,
+   "deployedSha256Before": "81c83165390ec37e0aede491dd52a69a50433be6d445e1558075ac34d39c7c9d",
+   "changed": true
+  },
+  {
+   "path": "tests/acceptance-records.test.mjs",
+   "action": "write",
+   "sourceSha256": "4cfd05f97b44652f0ced5b758aef029246cf68447f436c5d4e6027ea48203359",
+   "sourceByteLength": 35689,
+   "deployedSha256Before": "98791a34187a71b849db4afb5308839bdd08f8eba7016718ac989066ac4afb2d",
+   "changed": true
+  },
+  {
+   "path": "tests/bot-health-session-log.test.mjs",
+   "action": "create",
+   "sourceSha256": "b341708a42036634ac1d3609a604ceb75c3c21001300119024730064cdf44633",
+   "sourceByteLength": 8406,
+   "deployedSha256Before": null,
+   "changed": true
+  },
+  {
+   "path": "tests/bot-profile.test.mjs",
+   "action": "write",
+   "sourceSha256": "3f34f741ebb174cbadf1727b6903910850b7de37f3901f672d706a2838f4a021",
+   "sourceByteLength": 5939,
+   "deployedSha256Before": "a61ab74f9ba3a015bb06e2295f84d528e4c3ae4aa0b0f7e3f3a0763b5eed8782",
+   "changed": true
+  },
+  {
+   "path": "tests/client-disclosure.test.mjs",
+   "action": "create",
+   "sourceSha256": "a76b58e7b006e39c8e021ab4ed947974436e084b27f8fa1d3968c540082711de",
+   "sourceByteLength": 18468,
+   "deployedSha256Before": null,
+   "changed": true
+  },
+  {
+   "path": "tests/deploy-sync.test.mjs",
+   "action": "write",
+   "sourceSha256": "83c0bd6b7864be5b204cb30d5eb4444f58a68386ad482f12cad9daf211811d27",
+   "sourceByteLength": 10864,
+   "deployedSha256Before": "3d74537aeb1979c13b47a9e3293ce81c5831220463739c3b1fa00fddc9f88ebf",
+   "changed": true
+  },
+  {
+   "path": "tests/export-face.test.mjs",
+   "action": "create",
+   "sourceSha256": "fec14612cb2af96a11500eb276ac0db090c9b55ed4ae3b86241bc45751b5da6c",
+   "sourceByteLength": 10308,
+   "deployedSha256Before": null,
+   "changed": true
+  },
+  {
+   "path": "tests/helpers/readiness-fixture.mjs",
+   "action": "create",
+   "sourceSha256": "10642f2964376ff4b807f98d3861e6b107e13018f51a666b49c20b4f46c4be41",
+   "sourceByteLength": 2315,
+   "deployedSha256Before": null,
+   "changed": true
+  },
+  {
+   "path": "tests/host-contract-gate.test.mjs",
+   "action": "write",
+   "sourceSha256": "16591949adff5a3895aa189af252a63f17549e4fc57761a2c6752283db2eaa41",
+   "sourceByteLength": 74202,
+   "deployedSha256Before": "56bae2481b73850284a3ceb09377ba43e3a0f72132cd0d6946bc7fd4d71ac430",
+   "changed": true
+  },
+  {
+   "path": "tests/host-env-seam.test.mjs",
+   "action": "create",
+   "sourceSha256": "9c842834781de8a13be19f05759674b247e423f1f48fa214c32ebe3bb13f3597",
+   "sourceByteLength": 20343,
+   "deployedSha256Before": null,
+   "changed": true
+  },
+  {
+   "path": "tests/ledger-evidence.test.mjs",
+   "action": "write",
+   "sourceSha256": "eff0989e6790eddfdee4a3ec7cbd4ee01ff973d51e5630e5bc4d2c6364d8daa1",
+   "sourceByteLength": 17378,
+   "deployedSha256Before": "7ea12e36ef4e94ed38fed8025a4e1ecc80c76ab1b2360dcb37a4f071f842a2bf",
+   "changed": true
+  },
+  {
+   "path": "tests/ledger-host.test.mjs",
+   "action": "write",
+   "sourceSha256": "b0cab7e2c83b89d42f2abedb806594de1c22457d2fca90627fec30a5476db31e",
+   "sourceByteLength": 65907,
+   "deployedSha256Before": "3a7dc8e62c0d4e184a4100fcae76c1f82be9ce0bd8ac04b1071329375f2abc43",
+   "changed": true
+  },
+  {
+   "path": "tests/locale.test.mjs",
+   "action": "write",
+   "sourceSha256": "941171320358a99e86e173272b304bba9151fd8efcf2f0c2535f9d88cd71e319",
+   "sourceByteLength": 8480,
+   "deployedSha256Before": "0a19f9123df7dc730fa27f963df9540c5efe7bd672b343b30051284ae45e2125",
+   "changed": true
+  },
+  {
+   "path": "tests/org-bootstrap-channel.test.mjs",
+   "action": "write",
+   "sourceSha256": "520fc96cc1c34fe2a5cb1918e946ef0c6a1adc32268e08b29ce14bebde9f4818",
+   "sourceByteLength": 18688,
+   "deployedSha256Before": "6abf3a88cb57d0a5cb3108068b187a042cb169ead431d58c6c758c45b8ee8cc5",
+   "changed": true
+  },
+  {
+   "path": "tests/org-closed-loop-smoke.test.mjs",
+   "action": "write",
+   "sourceSha256": "d92810f1378ff574490dc084d916cde38526278ea2468747147d7a44ffd97c11",
+   "sourceByteLength": 22796,
+   "deployedSha256Before": "c72c241fbef05365d531e77e4eb1b47801fb03b77f632a5b0a6d15057dca52c1",
+   "changed": true
+  },
+  {
+   "path": "tests/org-cutover-check.test.mjs",
+   "action": "write",
+   "sourceSha256": "1226813df6d379d5b67e186a4be25e4312db8d5b1eec0e73d16c0080c0bbd8db",
+   "sourceByteLength": 7274,
+   "deployedSha256Before": "1c31ccf3c463b9ca15fc206091d6ddb51ba7c32b4b19bf278a7bbb78c059dfb0",
+   "changed": true
+  },
+  {
+   "path": "tests/org-durability.test.mjs",
+   "action": "write",
+   "sourceSha256": "e14bd04b08447794ec30d10c3d74ccfb9a1b900318d219fb0747555271c0b43d",
+   "sourceByteLength": 39955,
+   "deployedSha256Before": "acf9e32f9872843dda60ab9f48e7b4ed83eaae6eb411f966a451420cfe51161d",
+   "changed": true
+  },
+  {
+   "path": "tests/org-human-inbox.test.mjs",
+   "action": "write",
+   "sourceSha256": "574326975655d0c4120b7bb9929d73928cb4617e2441719dd7858a36e61f6886",
+   "sourceByteLength": 30271,
+   "deployedSha256Before": "ff6dc1f280ee4dd2b4b1db8897f343ce22862f4b4faa94b3ded07b9fcc880ec5",
+   "changed": true
+  },
+  {
+   "path": "tests/org-ledger-authz.test.mjs",
+   "action": "write",
+   "sourceSha256": "52328a6c3c6eceac4a6020e87651027e2aad01684dc1fe5d24a28a94e17d7ab7",
+   "sourceByteLength": 34776,
+   "deployedSha256Before": "0c2dffd4e55e4f3057b35e508e6d2e70620569c07bc7a7a865dc16767dede3e1",
+   "changed": true
+  },
+  {
+   "path": "tests/org-review-kit.test.mjs",
+   "action": "write",
+   "sourceSha256": "3e36584285f843f42d9bdfbc4d2f60ce7e37eeaf5417527b3db1251872ee01ad",
+   "sourceByteLength": 16528,
+   "deployedSha256Before": "5c79543c682b325838855b3f68b3e8a2de7ca9e2ac06a8ba1d2fdee121c82401",
+   "changed": true
+  },
+  {
+   "path": "tests/org-task-projection.test.mjs",
+   "action": "create",
+   "sourceSha256": "0600a6276d03f44d02ce13ec8647a5ad58dad523f199dd4c7459667cd6d38f87",
+   "sourceByteLength": 30966,
+   "deployedSha256Before": null,
+   "changed": true
+  },
+  {
+   "path": "tests/org-unauthorized-count.test.mjs",
+   "action": "write",
+   "sourceSha256": "3ba5ef3761eecf31750e827afa390a1d9a131169b58830524f3fe550dbeb2061",
+   "sourceByteLength": 26338,
+   "deployedSha256Before": "8a8bd35e765f95ba6658a0e585af6eea67966e8b9e7dd0e1f30c5cfb4060bc87",
+   "changed": true
+  },
+  {
+   "path": "tests/pod-harness-base.test.mjs",
+   "action": "create",
+   "sourceSha256": "9331ff566ce68eecb668e4680ffe86bb5528cca5dda3e94ca06ce616afe0d41f",
+   "sourceByteLength": 17143,
+   "deployedSha256Before": null,
+   "changed": true
+  },
+  {
+   "path": "tests/pod-overlay.test.mjs",
+   "action": "create",
+   "sourceSha256": "ee3d757ff7772bcf51ef0cabc37f2eadd8fd72c4469d08b8e81346c126d59686",
+   "sourceByteLength": 73927,
+   "deployedSha256Before": null,
+   "changed": true
+  },
+  {
+   "path": "tests/pod-tool-rows-specialized.test.mjs",
+   "action": "create",
+   "sourceSha256": "da242e3ed059cba3f4c74a766d429abbd35b3b8ac188032cf3cf6b894a35ffa1",
+   "sourceByteLength": 45219,
+   "deployedSha256Before": null,
+   "changed": true
+  },
+  {
+   "path": "tests/pod-tool-rows.test.mjs",
+   "action": "create",
+   "sourceSha256": "2a197718087713805f67a7916568c13242a4fb23e2ebacb433b52df90221a619",
+   "sourceByteLength": 46121,
+   "deployedSha256Before": null,
+   "changed": true
+  },
+  {
+   "path": "tests/pod-trace.test.mjs",
+   "action": "create",
+   "sourceSha256": "99d628e97e4191a8808a0bea90a76251b5386f9367a445a08224b58524e2ccc1",
+   "sourceByteLength": 36513,
+   "deployedSha256Before": null,
+   "changed": true
+  },
+  {
+   "path": "tests/pod-transition.test.mjs",
+   "action": "create",
+   "sourceSha256": "3f2314cc9080e6fa5ff147048640728d971b78c01d40e550011d9cbeb8447480",
+   "sourceByteLength": 36395,
+   "deployedSha256Before": null,
+   "changed": true
+  },
+  {
+   "path": "tests/pod-turn-trigger.test.mjs",
+   "action": "create",
+   "sourceSha256": "f19e260b266f469e507a36ddc538ccde2e7e2dbdb54b22fd76428c4756bf5d71",
+   "sourceByteLength": 21546,
+   "deployedSha256Before": null,
+   "changed": true
+  },
+  {
+   "path": "tests/preflight.test.mjs",
+   "action": "write",
+   "sourceSha256": "c2d6b68f6b151bb661c5f9e76d4f69ee1c5bbd838d525e34e7fc14d38984fe72",
+   "sourceByteLength": 13562,
+   "deployedSha256Before": "bc4c677b3d7b4d3b37f8420b56797680c5766dd5b4da1eed1028283e3c652504",
+   "changed": true
+  },
+  {
+   "path": "tests/spawn-env.test.mjs",
+   "action": "write",
+   "sourceSha256": "db74682cf69b5764dc46fb8aeb9e15e2b6b09445944208675b132b4808458fd1",
+   "sourceByteLength": 7313,
+   "deployedSha256Before": "61d70aa50a124dfb5a8d6e16ab0995548081efcac95bde0ba50b0f88347f8444",
+   "changed": true
+  },
+  {
+   "path": "tests/stats.test.mjs",
+   "action": "write",
+   "sourceSha256": "012c3eee0caec59527c9b5cae3c8d7758ffcc66459e88103732937fad6ccc113",
+   "sourceByteLength": 8758,
+   "deployedSha256Before": "bca443b33628361ed52c486d99831c8eee495d28c5ac17c6398c9eaa8362b15b",
+   "changed": true
+  },
+  {
+   "path": "tests/task-ledger.test.mjs",
+   "action": "write",
+   "sourceSha256": "bef91daf890ceb73fc375040005606e96304f7f5a6b5866ce73347fa228b0001",
+   "sourceByteLength": 137041,
+   "deployedSha256Before": "5b9c472a39d384742d34ac542bd9421b355c5684ea1304521c858a920ec90641",
+   "changed": true
+  }
+ ]
+}
