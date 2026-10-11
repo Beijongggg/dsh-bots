@@ -284,7 +284,7 @@ test("递送不经 mail（结构面）：签发只触 capability 目录，投递
   issuer.issueTaskCapability({ taskId, botId: "bot-a", post: "researcher" });
   const created = diffPaths(treeBefore, dirTree(home));
   for (const path of created) {
-    assert.ok(path.includes("bots/capabilities"), `签发不得在 capability 目录外落任何文件：${path}`);
+    assert.ok(path.includes("pod/capabilities"), `签发不得在 capability 目录外落任何文件：${path}`);
   }
   assert.ok(!created.some((p) => p.includes("inbox") || p.includes("outbox")), "capability 递送不得经 mail 面");
 });

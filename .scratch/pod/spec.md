@@ -1,6 +1,9 @@
 # Pod（pod）规格：切换微交互与工具面／形制对齐
 
-Status: resolved（2026-10-10 core 批实施完成；07／08／09 由用户裁定搁置，见各票 Comments）
+Status: resolved（2026-10-10 core 批实施完成；07／08／09 由用户裁定搁置，见各票 Comments。
+改名批 12–15：12 resolved；13–15 仓库内面完成并经评审返修（2026-10-11），运行面件
+（部署同步／重启链／数据迁移／新 runId 包）待授权窗口，见各票 Comments 与
+`.scratch/pod/rename-migration-plan.md`）
 
 - **来源**：本轮 grilling 会话（转写 `.tmp/pod-ctx/1257a68e.txt`，5551 行）的裁定；共识蒸馏
   见 `.tmp/pod-ctx/consensus.md`（只读入口）。15 票切分经用户批准（转写 L5284
@@ -185,7 +188,7 @@ Status: resolved（2026-10-10 core 批实施完成；07／08／09 由用户裁�
 
 #### D3. L2：数据面契约（票 06）
 
-- **路线与读面**（Q15 `q15.a就可以`）：服务端读 bot 会话日志投影（复用 `lib/stats.js` 现成的多帧 zstd 解码／分片定位／mtime+size 缓存）→ 只读接口给 Pod；**不新增落盘面、不动冻结的邮件键封闭**；「事后可回看」天然成立，代价＝「当场看」有秒级延迟（跟文件写入节奏）（转写 L2998、L4453）。读面符号（消费者逐字依赖）＝`BotsApi.trace(id, since)`，挂 `GET /api/bots/:id/trace`；与 `api.stats` **同款双路**：在线 RPC（`session.history`）优先 → 离线读盘（`readSessionEventsFromFile`）回落；复用其 mtime／size 结果缓存与增量语义（转写 L5137-5140、L5378）。
+- **路线与读面**（Q15 `q15.a就可以`）：服务端读 bot 会话日志投影（复用 `lib/stats.js` 现成的多帧 zstd 解码／分片定位／mtime+size 缓存）→ 只读接口给 Pod；**不新增落盘面、不动冻结的邮件键封闭**；「事后可回看」天然成立，代价＝「当场看」有秒级延迟（跟文件写入节奏）（转写 L2998、L4453）。读面符号（消费者逐字依赖）＝`BotsApi.trace(id, since)`，挂 `GET /api/pod/:id/trace`；与 `api.stats` **同款双路**：在线 RPC（`session.history`）优先 → 离线读盘（`readSessionEventsFromFile`）回落；复用其 mtime／size 结果缓存与增量语义（转写 L5137-5140、L5378）。
 - **记录形状（冻结，消费者票 07 逐字依赖）**：
 
   | 字段 | 类型 | 语义 |
@@ -262,9 +265,9 @@ Status: resolved（2026-10-10 core 批实施完成；07／08／09 由用户裁�
 
 #### E1 两侧数据与定义（可执行形式）
 
-- **邮件面**：`GET /api/bots/:id/messages?since=`，扁平文本消息 `{id, text, from, timestamp}`，前端 2s 增量轮询（页面隐藏暂停）；现渲染没有工具调用、没有推理（转写 L754、L946）。
+- **邮件面**：`GET /api/pod/:id/messages?since=`，扁平文本消息 `{id, text, from, timestamp}`，前端 2s 增量轮询（页面隐藏暂停）；现渲染没有工具调用、没有推理（转写 L754、L946）。
 - **会话事件面**：`session.history` 全事件（含 `tool/call`、`tool/ptc-dispatch*`）只落盘在 session 日志；turn 驱动（`session-driver`）只提取 assistant 文本（转写 L764、L768-770）。推论：L2 与 L3 之间的**拼装层是新逻辑**，不是既有渲染的改造（转写 L5233）。
-- **两侧游标 `since`（不可互相代入）**：① **邮件面**：`GET /api/bots/:id/messages?since=` 的
+- **两侧游标 `since`（不可互相代入）**：① **邮件面**：`GET /api/pod/:id/messages?since=` 的
   `since` ＝ **ISO 时间字符串或 epoch 毫秒**，过滤口径＝**严格晚于**（`timestamp > since`，
   **左开**区间），缺省／非法值＝不过滤，时间戳不可解析的消息在带 `since` 时不入流——冻结口径见
   `lib/mail-plane.js::readConversation` 与 `tests/jsonl.test.mjs`；② **轨迹面**：
@@ -525,7 +528,7 @@ Status: resolved（2026-10-10 core 批实施完成；07／08／09 由用户裁�
 
 | # | 判据 | 执行坐标 | 证据落点 | 级别 |
 |---|---|---|---|---|
-| `V-P4.1` | 读面符号 `BotsApi.trace(id, since)` 挂 `GET /api/bots/:id/trace`；双路（在线 `session.history` 优先→离线 `readSessionEventsFromFile` 回落）＋ mtime／size 缓存与增量语义 | tests/pod-trace.test.mjs::V-P4.1（待票 06） | 回归记录 | 常驻 |
+| `V-P4.1` | 读面符号 `BotsApi.trace(id, since)` 挂 `GET /api/pod/:id/trace`；双路（在线 `session.history` 优先→离线 `readSessionEventsFromFile` 回落）＋ mtime／size 缓存与增量语义 | tests/pod-trace.test.mjs::V-P4.1（待票 06） | 回归记录 | 常驻 |
 | `V-P4.2` | 记录形状冻结（13 字段）与 `state∈preparing｜running｜ok｜error｜stopped` | tests/pod-trace.test.mjs::V-P4.2（形状测试） | 回归记录 | 常驻 |
 | `V-P4.3` | PTC 信封：外层 `tool/call`（`run_code`）作信封；`tool/ptc-dispatch*` 内层名与结果归入 `subCalls`；内层名不别名化、不丢失 | tests/pod-trace.test.mjs::V-P4.3（合成事件流） | 回归记录 | 常驻 |
 | `V-P4.4` | 邮件面行键（inbox／outbox）不变 | tests/org-mail-shared-face.test.mjs::内容键封闭＋tests/mail-at-least-once.test.mjs＋tests/pod-trace.test.mjs::V-P4.4（负例） | 回归记录 | 常驻 |
@@ -631,3 +634,10 @@ Status: resolved（2026-10-10 core 批实施完成；07／08／09 由用户裁�
 **补执行坐标（实施期，2026-10-09 票 05 施工）**：V-P3.2 的执行坐标原写「扩 `HF-CLIENT-VISUAL` 登记」——票 02 因「面↔探针一一对应」不变量（`HF-CLIENT-VISUAL` 的 `probeId` 已被占用，扩面会迫使两面共用探针 id）**新建**了 `HF-HOST-TRANSITION-TOKENS`。本表该条坐标据此改为**票 02 登记的面与探针**（`HF-HOST-TRANSITION-TOKENS`／`P-HOST-TRANSITION-TOKENS`，登记见票 02 Comments）；**判据语义（令牌取值＋常量回退）不变**。同批 §C2 的「扩 `HF-CLIENT-VISUAL` 登记一条」按同一口径读作该面（不另改判据文本）。
 
 **判据计数**：附录 A 由 62 条增至 **64 条**（V-P5 由 9 增至 11；其余组不变）。
+
+**坐标修订（2026-10-11 改名批，Lead）**：票 13 身份切换（Q19 批准 A 组含 `/api/bots` 前缀）把 HTTP
+路由前缀切至 `/api/pod`——目标名规格未钉死，Lead 按身份段单数收敛规律（模块 id／包名／头名／
+env 全为单数 `pod`）裁定，**用户可否决**；响应体领域词 `bots`（席位）与代码内部名（`BotsApi` 等，
+V-P1.5）不随批改。§D3／§E1／V-P4.1 四处路由串随之 `/api/bots/:id/…` → `/api/pod/:id/…`，
+**判据语义（读面挂点、左开游标、形状冻结）不变**；§F2 的 A 组清单为裁定历史记录，不改。
+Status 行补记改名批现状（票 12 resolved；13–15 仓库内面完成，运行面件待授权窗口）。

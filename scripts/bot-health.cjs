@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * bot-health.cjs — dsh-bots 稳定框架第 1 层：bot 健康检测 / 安全修复 / 验证闭环。
+ * bot-health.cjs — Pod 稳定框架第 1 层：bot 健康检测 / 安全修复 / 验证闭环。
  *
- * 本工具对 dsh-bots 的每个 bot 做六项健康检查（会话日志、会话状态、进程注册、
+ * 本工具对 Pod 的每个 bot 做六项健康检查（会话日志、会话状态、进程注册、
  * 邮局、配置、部署一致性），对 FAIL 项按清单执行安全修复，并在修复后自动复检，
  * 形成「检测 → 修复 → 验证」闭环。
  *
@@ -43,7 +43,13 @@ const MAGIC = Buffer.from([0x28, 0xb5, 0x2f, 0xfd]);
 // EV-20261011-retro-pod-impl；lib/stats.js 同源消费，两处不再手抄同步）。
 // LEGACY_NAME 供「会话文件缺失」报文拼路径（单源件导出，正为此消费者）。
 const { sessionLogCandidates, SESSION_LOG_LEGACY_NAME } = require("../lib/session-log-names.cjs");
-// 本脚本所在目录（scripts/）与 dsh-bots 项目根
+// 数据面路径单源（14 号票收敛）：registry/inbox/outbox/workspace/profile/session-backups
+// 坐标只活在 lib/data-roots.cjs（工作区分片前缀标记亦同源）。
+const {
+  registryPath, workspaceDirFor, profileDirFor,
+  inboxDirFor, outboxDirFor, sessionBackupsDir, WORKSPACE_SHARD_MARKERS
+} = require("../lib/data-roots.cjs");
+// 本脚本所在目录（scripts/）与 Pod 项目根
 const SCRIPT_DIR = __dirname;
 const PROJECT_DIR = path.join(SCRIPT_DIR, "..");
 
@@ -146,7 +152,7 @@ function codeOf(rep) {
 // ---------------------------------------------------------------------------
 
 function readBots(root) {
-  const p = path.join(root, "bots", "bots.json");
+  const p = registryPath(root);
   if (!fs.existsSync(p)) return null;
   try {
     return JSON.parse(fs.readFileSync(p, "utf8"));
@@ -155,7 +161,7 @@ function readBots(root) {
   }
 }
 
-/** 定位 <root>/sessions/ 下该 bot 的作用域目录（含 bot-workspaces-<botId>-- 或含 <botId>）。 */
+/** 定位 <root>/sessions/ 下该 bot 的作用域目录（含 <工作区前缀><botId>--（新旧都认）或含 <botId>）。 */
 function findScopeDirs(root, botId) {
   const sessionsRoot = path.join(root, "sessions");
   if (!fs.existsSync(sessionsRoot)) return [];
@@ -170,7 +176,8 @@ function findScopeDirs(root, botId) {
       continue;
     }
     if (!st.isDirectory()) continue;
-    if (name.includes(`bot-workspaces-${botId}--`)) exact.push(p);
+    // 14 号票切名：新旧工作区前缀都认（新前缀现役、旧前缀 retired 分片兼容一个窗口）。
+    if (WORKSPACE_SHARD_MARKERS.some((marker) => name.includes(`${marker}${botId}--`))) exact.push(p);
     else if (name.includes(botId)) loose.push(p);
   }
   return exact.length > 0 ? exact : loose;
@@ -188,7 +195,7 @@ function findSessionDir(root, botId, sessionId) {
 
 /** 读 workspace/.dsh-bot-session.json。返回 {metaPath, metaExists, metaOk, sessionId}。 */
 function readSessionMeta(root, botId, entry) {
-  const workspace = (entry && entry.workspace) || path.join(root, "bot-workspaces", botId);
+  const workspace = (entry && entry.workspace) || workspaceDirFor(root, botId);
   const metaPath = path.join(workspace, ".dsh-bot-session.json");
   let metaExists = false;
   let metaOk = true;
@@ -411,7 +418,7 @@ function parseTs(s) {
 
 /** outbox 最新一条回复的时间戳（遍历所有 *.jsonl 的 timestamp）。 */
 function newestOutboxTimestamp(root, botId) {
-  const dir = path.join(root, "bots", "outbox", botId);
+  const dir = outboxDirFor(root, botId);
   if (!fs.existsSync(dir)) return null;
   let newest = null;
   for (const name of fs.readdirSync(dir)) {
@@ -540,7 +547,7 @@ function checkBot(root, botId, entry) {
 
   // —— 4 邮局一致性 ——
   {
-    const inboxPath = path.join(root, "bots", "inbox", botId, "messages.jsonl");
+    const inboxPath = path.join(inboxDirFor(root, botId), "messages.jsonl");
     if (!fs.existsSync(inboxPath)) {
       repAdd(rep, "OK", "邮局一致", "无入站");
     } else {
@@ -596,7 +603,7 @@ function checkBot(root, botId, entry) {
 
   // —— 5 配置一致性 ——
   {
-    const settingsPath = path.join(root, "profiles", botId, "settings.yaml");
+    const settingsPath = path.join(profileDirFor(root, botId), "settings.yaml");
     let settingsText = null;
     if (fs.existsSync(settingsPath)) {
       try {
@@ -625,7 +632,7 @@ function checkBot(root, botId, entry) {
           rep,
           "WARN",
           "配置一致",
-          `agent-default-model (${adm.provider}/${adm.model}) 与 bots.json (${entry.modelProvider}/${entry.model}) 不一致；用 dsh-bots UI 编辑保存或 stop/start 重脚手架（不自动改）`,
+          `agent-default-model (${adm.provider}/${adm.model}) 与 bots.json (${entry.modelProvider}/${entry.model}) 不一致；用 Pod UI 编辑保存或 stop/start 重脚手架（不自动改）`,
           "d"
         );
       }
@@ -638,9 +645,9 @@ function checkBot(root, botId, entry) {
 /** 部署一致性：插件 lib/{client.js,index.js}、scripts/create-bot.cjs 与项目侧 sha256 比对。 */
 function checkDeployment(root, rep) {
   const pairs = [
-    { name: "lib/client.js", plugin: path.join(root, "plugins", "dsh-bots", "lib", "client.js"), src: path.join(PROJECT_DIR, "lib", "client.js") },
-    { name: "lib/index.js", plugin: path.join(root, "plugins", "dsh-bots", "lib", "index.js"), src: path.join(PROJECT_DIR, "lib", "index.js") },
-    { name: "scripts/create-bot.cjs", plugin: path.join(root, "plugins", "dsh-bots", "scripts", "create-bot.cjs"), src: path.join(SCRIPT_DIR, "create-bot.cjs") },
+    { name: "lib/client.js", plugin: path.join(root, "plugins", "pod", "lib", "client.js"), src: path.join(PROJECT_DIR, "lib", "client.js") },
+    { name: "lib/index.js", plugin: path.join(root, "plugins", "pod", "lib", "index.js"), src: path.join(PROJECT_DIR, "lib", "index.js") },
+    { name: "scripts/create-bot.cjs", plugin: path.join(root, "plugins", "pod", "scripts", "create-bot.cjs"), src: path.join(SCRIPT_DIR, "create-bot.cjs") },
   ];
   for (const pr of pairs) {
     const pe = fs.existsSync(pr.plugin);
@@ -665,7 +672,7 @@ function checkDeployment(root, rep) {
 function archiveSession(root, botId, entry) {
   const session = readSessionMeta(root, botId, entry);
   const sessionId = session.metaOk ? session.sessionId : "session-unknown";
-  const backupRoot = path.join(root, "session-backups");
+  const backupRoot = sessionBackupsDir(root);
   const dest = path.join(backupRoot, `${sessionId}-corrupt-${timestamp()}`);
   const sources = [];
   if (sessionId) {
@@ -682,7 +689,7 @@ function archiveSession(root, botId, entry) {
 
 /** 清除 stale pid/startedAt（原子写 bots.json）。 */
 function clearStalePid(root, botId) {
-  const botsPath = path.join(root, "bots", "bots.json");
+  const botsPath = registryPath(root);
   const data = JSON.parse(fs.readFileSync(botsPath, "utf8"));
   if (!data[botId]) return { ok: true, msg: "未知 botId，跳过" };
   const hadPid = "pid" in data[botId] || "startedAt" in data[botId];
@@ -717,7 +724,7 @@ function syncLlmPiAi(root, botId) {
     /* 全局 settings.yaml 缺失/不可读 → 跳过 */
   }
   if (section === null) return { ok: true, msg: "全局 settings.yaml 无 llm-pi-ai 段，跳过" };
-  const botSettingsPath = path.join(root, "profiles", botId, "settings.yaml");
+  const botSettingsPath = path.join(profileDirFor(root, botId), "settings.yaml");
   let botRaw;
   try {
     botRaw = fs.readFileSync(botSettingsPath, "utf8");
@@ -753,7 +760,7 @@ function isInProgress(root, botId, entry) {
       }
     }
   }
-  const inboxPath = path.join(root, "bots", "inbox", botId, "messages.jsonl");
+  const inboxPath = path.join(inboxDirFor(root, botId), "messages.jsonl");
   if (fs.existsSync(inboxPath)) {
     const lines = fs.readFileSync(inboxPath, "utf8").split(/\r?\n/).filter((l) => l.trim());
     for (let i = lines.length - 1; i >= 0; i--) {
@@ -829,7 +836,7 @@ function repairBot(root, botId, args) {
     console.log(`${r.ok ? "OK  " : "FAIL"}  同步 llm-pi-ai  ${r.msg}`);
   }
   if (needDrift) {
-    console.log(`WARN  配置漂移  用 dsh-bots UI 编辑保存或 stop/start 重脚手架（不自动改）`);
+    console.log(`WARN  配置漂移  用 Pod UI 编辑保存或 stop/start 重脚手架（不自动改）`);
   }
 
   // 验证闭环：修复后自动复检

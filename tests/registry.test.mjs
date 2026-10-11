@@ -21,7 +21,7 @@ test("原子写 + 读回 roundtrip", () => {
   internals.writeRegistryAtomic(home, registry);
   assert.deepEqual(internals.readRegistry(home), registry);
   // 无临时文件残留
-  const leftovers = fs.readdirSync(path.join(home, "bots")).filter((n) => n.endsWith(".tmp"));
+  const leftovers = fs.readdirSync(path.join(home, "pod")).filter((n) => n.endsWith(".tmp"));
   assert.equal(leftovers.length, 0, "不应残留 .tmp 文件");
 });
 
@@ -29,10 +29,10 @@ test("缺失/空文件 → {}；损坏 JSON → 抛错（apply 侧负责移开�
   const empty = fs.mkdtempSync(path.join(os.tmpdir(), "pod-reg-"));
   tmpDirs.push(empty);
   assert.deepEqual(internals.readRegistry(empty), {});
-  fs.mkdirSync(path.join(empty, "bots"), { recursive: true });
-  fs.writeFileSync(path.join(empty, "bots", "bots.json"), "");
+  fs.mkdirSync(path.join(empty, "pod"), { recursive: true });
+  fs.writeFileSync(path.join(empty, "pod", "bots.json"), "");
   assert.deepEqual(internals.readRegistry(empty), {});
-  fs.writeFileSync(path.join(empty, "bots", "bots.json"), "{broken");
+  fs.writeFileSync(path.join(empty, "pod", "bots.json"), "{broken");
   assert.throws(() => internals.readRegistry(empty));
 });
 
@@ -97,8 +97,8 @@ test("管理面守卫：原型链名 id 一律 404，不再伪成功/伪放行",
 });
 
 test("detectBotInstance：原型链名不误判在册（env 路径）；真在册仍识别", () => {
-  const prev = process.env.DSH_BOTS_BOT_ID;
-  process.env.DSH_BOTS_BOT_ID = "constructor";
+  const prev = process.env.POD_BOT_ID;
+  process.env.POD_BOT_ID = "constructor";
   try {
     const ctx = { logger: { warn() {} } };
     assert.equal(internals.detectBotInstance(ctx, { readRegistry: () => ({}) }), null,
@@ -109,8 +109,8 @@ test("detectBotInstance：原型链名不误判在册（env 路径）；真在�
       "自身字段命中（真在册）仍识别"
     );
   } finally {
-    if (prev === undefined) delete process.env.DSH_BOTS_BOT_ID;
-    else process.env.DSH_BOTS_BOT_ID = prev;
+    if (prev === undefined) delete process.env.POD_BOT_ID;
+    else process.env.POD_BOT_ID = prev;
   }
 });
 

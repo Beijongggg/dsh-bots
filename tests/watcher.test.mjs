@@ -25,7 +25,7 @@ const { createMailClient } = await import("../lib/org/mail-client.js");
 const { readMaxReceiptSeq } = await import("../lib/mail-plane.js");
 
 const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-watcher-"));
-const inboxDir = path.join(home, "bots", "inbox", "w");
+const inboxDir = path.join(home, "pod", "inbox", "w");
 const inboxFile = path.join(inboxDir, "messages.jsonl");
 fs.mkdirSync(inboxDir, { recursive: true });
 
@@ -39,7 +39,7 @@ await new Promise((r) => probe.close(() => r()));
 const registry = {
   w: { id: "w", name: "观察对象", role: "干活", modelProvider: "", model: "", port: deadPort, createdAt: new Date().toISOString() }
 };
-fs.writeFileSync(path.join(home, "bots", "bots.json"), JSON.stringify(registry));
+fs.writeFileSync(path.join(home, "pod", "bots.json"), JSON.stringify(registry));
 
 // —— host 侧中继（真实件）：CSRF 引导 + `_mail` 面 ——
 const json = (res, status, value) => {
@@ -62,7 +62,7 @@ let gateUp = true;
 const mailServer = http.createServer((req, res) => {
   const { pathname } = new URL(req.url, "http://dsh.local");
   if (!gateUp) return json(res, 503, { ok: false, code: "gate-down", reason: "测试闸门：通道不可用" });
-  if (pathname === "/api/bots/_csrf") return json(res, 200, { token: "t-watcher" });
+  if (pathname === "/api/pod/_csrf") return json(res, 200, { token: "t-watcher" });
   return handleMailApi(req, res, { mailRelay: relay });
 });
 await new Promise((r) => mailServer.listen(0, "127.0.0.1", r));

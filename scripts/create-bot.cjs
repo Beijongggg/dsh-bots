@@ -44,6 +44,8 @@ const {
   buildPatchYaml,
   syncPiAiSection
 } = require("../lib/shared.cjs");
+// 数据面路径单源（14 号票收敛）：profile 目录与缺省 workspace 坐标只活在 lib/data-roots.cjs。
+const { profileDirFor, workspaceDirFor } = require("../lib/data-roots.cjs");
 
 const BOT_ID_RE = /^[a-z0-9-]+$/;
 
@@ -163,18 +165,18 @@ if (errors.length > 0) {
 // Resolve target paths.
 // ---------------------------------------------------------------------------
 const botId = args.id;
-const profilesDir = path.join(root, "profiles", botId);
+const profilesDir = profileDirFor(root, botId);
 const pkgPath = path.join(profilesDir, "package.json");
 const patchPath = path.join(profilesDir, "cordis.patch.yml");
 
 // Workspace: an explicit --workspace wins (absolute as-is, relative resolved
-// against cwd); otherwise <root>/bot-workspaces/<botId>.
+// against cwd); otherwise the data-roots workspaceDirFor default.
 let workspace;
 if (args.workspace !== null) {
   const given = expandTilde(args.workspace);
   workspace = path.isAbsolute(given) ? path.resolve(given) : path.resolve(process.cwd(), given);
 } else {
-  workspace = path.join(root, "bot-workspaces", botId);
+  workspace = workspaceDirFor(root, botId);
 }
 
 // ---------------------------------------------------------------------------

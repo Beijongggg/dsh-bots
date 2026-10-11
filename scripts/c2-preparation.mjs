@@ -13,7 +13,7 @@ const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const sha = (p) => createHash("sha256").update(readFileSync(p)).digest("hex");
 // 与 evidence-runner/探针同口径：DSH_HOME 显式覆盖优先，缺省回落真实 HOME/.dsh
 const dshHome = resolve(process.env.DSH_HOME ?? join(homedir(), ".dsh"));
-const deployDir = join(dshHome, "plugins", "dsh-bots");
+const deployDir = join(dshHome, "plugins", "pod");
 
 // O-6.10：runtime 同步面 = parity 单源清单（lib＋scripts 工具面，8 文件）
 // ＋ host 静态面（lib/index.js——host 内存态载体，需重启裁定项单独标注）；

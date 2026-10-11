@@ -14,7 +14,7 @@
  *   - SKIP：本机探测不到该面的载体（如未安装宿主、无会话日志）——**分列计数
  *     且可见**（打印原因与探测坐标），汇总行形如 `N PASS / M FAIL / K SKIP`。
  *   仅「本机未安装该宿主」的开发机/CI 场景允许 SKIP 且不阻断；**bot 运行面与
- *     部署面上 SKIP 视同 FAIL**（--face=deploy 或 DSH_BOTS_PROBE_FACE=deploy）。
+ *     部署面上 SKIP 视同 FAIL**（--face=deploy 或 POD_PROBE_FACE=deploy；env 名读侧经 lib/env-aliases.js 双读，旧名回落兼容一个窗口）。
  *
  * 版本探测仅作诊断字段（V-A6.4）：报告头部打印宿主版本号以便归因，**不参与
  * 任何 PASS/FAIL 判定**——门只由行为/形状断言把守。
@@ -33,6 +33,7 @@ import { join, basename, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { HOST_FACES } from "../lib/host-faces.js";
+import { readEnvValue } from "../lib/env-aliases.js";
 import { profileIdFromBaseUrl } from "../lib/host-services.js";
 import { createNativeSessionRpc } from "../lib/native-session-rpc.js";
 import { createRequire } from "node:module";
@@ -2300,7 +2301,7 @@ export const HOST_CONTRACT_PROBES = [
       try { index = readFileSync(indexPath, "utf8"); }
       catch { return { state: "FAIL", reason: "lib/index.js 不可读（宿主接线面缺失）", coordinate: String(indexPath) }; }
       if (!index.includes('"_ledger"')) {
-        return { state: "FAIL", reason: "宿主未注册 /api/bots/_ledger 命令面路由", coordinate: String(indexPath) };
+        return { state: "FAIL", reason: "宿主未注册 /api/pod/_ledger 命令面路由", coordinate: String(indexPath) };
       }
       // bot 无台账文件直写通道：写路径只许在台账模块内出现
       const libDir = fileURLToPath(new URL("lib/", repoRoot));
@@ -2343,7 +2344,7 @@ export const HOST_CONTRACT_PROBES = [
         if (ledger.task("TK-probe0002").status !== "intake") {
           return { state: "FAIL", reason: "拒绝未 fail closed：状态被改写", coordinate: "lib/org/task-ledger.js" };
         }
-        return { state: "PASS", coordinate: "POST /api/bots/_ledger/commands" };
+        return { state: "PASS", coordinate: "POST /api/pod/_ledger/commands" };
       } finally {
         rmSync(home, { recursive: true, force: true });
       }
@@ -2395,7 +2396,7 @@ export function parseFaceMode(argv = process.argv, env = process.env) {
     const mode = flag.slice("--face=".length);
     if (mode === "dev" || mode === "deploy") return mode;
   }
-  if (env.DSH_BOTS_PROBE_FACE === "deploy") return "deploy";
+  if (readEnvValue(env, "POD_PROBE_FACE") === "deploy") return "deploy";
   return "dev";
 }
 

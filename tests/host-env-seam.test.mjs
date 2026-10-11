@@ -1,5 +1,5 @@
 /**
- * 39 号票：宿主环境缝启动自检（`DSH_BOTS_HOST_URL` 缺失即响亮）。
+ * 39 号票：宿主环境缝启动自检（`POD_HOST_URL` 缺失即响亮）。
  *
  * 观察项 2026-10-07「手工启动宿主 ⇒ 组织通道静默休眠」的机械化出口——
  * 宿主不经 `~/.dsh/restart-split.sh`（或缺该缝）启动时，席位子进程拿不到
@@ -79,7 +79,7 @@ test("形状非法＝malformed：相对值／非 http(s)／无主机名一律判
 });
 
 test("形状非法＝malformed：带 query／fragment 的 origin 判非法（席位按 `${origin}＋路径` 拼接，带了必错）", () => {
-  // 席位侧以 `${origin}/api/bots/…` 拼路径（post-channel／mail-client 同形），
+  // 席位侧以 `${origin}/api/pod/…` 拼路径（post-channel／mail-client 同形），
   // 带 ? 或 # 会把后续路径吞进 query／fragment——请求期才炸，正是本票要前移到
   // 启动期的失败；不得判 ok 并打出「已接线」的正相确认（假绿）。
   for (const bad of ["http://127.0.0.1:3080/?token=x", "http://127.0.0.1:3080#frag", "http://h:1/p?q=1#f"]) {
@@ -224,7 +224,7 @@ test("就绪面：诊断位不进门——hostEnv 由在位换成缺缝，ok 不
 // 自检」与「就绪面确实携带判定产物」按端到端口径锁住——否则删掉 apply 内那一行，
 // 单测仍会全绿（本票的核心声明「宿主启动自检」就只剩声明）。
 // 夹具口径沿用 tests/ledger-host.test.mjs 的宿主实例接线测试：临时 DSH_HOME ＋
-// 合成 ctx ＋ DSH_BOTS_AUTOSTART=0 应急闸（不拉真实 bot 子进程）。
+// 合成 ctx ＋ POD_AUTOSTART=0 应急闸（不拉真实 bot 子进程）。
 
 /** 合成 ctx＋临时数据根；effect 立即执行并收 disposer（cordis 语义），webServer 捕获路由。 */
 function mkApplyHarness(services = {}) {
@@ -252,10 +252,10 @@ function mkApplyHarness(services = {}) {
 
 /** 在隔离 env 下真调 apply；返回本次出栈行与就绪面 HTTP 响应。 */
 async function runApply({ home, mkCtx, baseUrl, seam }) {
-  const saved = { DSH_HOME: process.env.DSH_HOME, DSH_BOTS_AUTOSTART: process.env.DSH_BOTS_AUTOSTART,
+  const saved = { DSH_HOME: process.env.DSH_HOME, POD_AUTOSTART: process.env.POD_AUTOSTART,
     [HOST_URL_SEAM_VAR]: process.env[HOST_URL_SEAM_VAR] };
   process.env.DSH_HOME = home;
-  process.env.DSH_BOTS_AUTOSTART = "0";
+  process.env.POD_AUTOSTART = "0";
   if (seam === null) delete process.env[HOST_URL_SEAM_VAR];
   else process.env[HOST_URL_SEAM_VAR] = seam;
   try {
@@ -267,13 +267,13 @@ async function runApply({ home, mkCtx, baseUrl, seam }) {
   }
 }
 
-/** 经真注册的 /api/bots 前缀路由取就绪面响应（不绕过路由层）。 */
+/** 经真注册的 /api/pod 前缀路由取就绪面响应（不绕过路由层）。 */
 async function fetchReadiness(route) {
-  assert.ok(route !== null, "宿主分支须注册 /api/bots 路由");
+  assert.ok(route !== null, "宿主分支须注册 /api/pod 路由");
   const res = { status: 0, headersSent: false, body: "",
     writeHead(status) { this.status = status; this.headersSent = true; },
     end(text) { this.body = text ?? ""; } };
-  await route.handler({ method: "GET", url: "/api/bots/_ledger/readiness", headers: {} }, res);
+  await route.handler({ method: "GET", url: "/api/pod/_ledger/readiness", headers: {} }, res);
   return { status: res.status, body: JSON.parse(res.body) };
 }
 
@@ -333,10 +333,10 @@ test("真 apply bot 实例分支：合法 origin 接通邮箱 watcher 与岗位�
   } });
   const requests = [];
   const responses = new Map([
-    ["GET https://host.invalid/base/api/bots/_csrf", { token: "seam-fixture" }],
-    ["POST https://host.invalid/base/api/bots/_mail/cursor", { ok: true, lastSeq: 0, replay: false }],
-    ["GET https://host.invalid/base/api/bots/_ledger", { tasks: [{ taskId: "TK-hostseam" }] }],
-    ["POST https://host.invalid/base/api/bots/_mail/send", { ok: true, to: "user", seq: 1, messageId: "seam-1" }]
+    ["GET https://host.invalid/base/api/pod/_csrf", { token: "seam-fixture" }],
+    ["POST https://host.invalid/base/api/pod/_mail/cursor", { ok: true, lastSeq: 0, replay: false }],
+    ["GET https://host.invalid/base/api/pod/_ledger", { tasks: [{ taskId: "TK-hostseam" }] }],
+    ["POST https://host.invalid/base/api/pod/_mail/send", { ok: true, to: "user", seq: 1, messageId: "seam-1" }]
   ]);
   const savedFetch = globalThis.fetch;
   // 网络边界只回夹具，不调用原 fetch；不存在触达真实宿主的路径。
@@ -356,11 +356,11 @@ test("真 apply bot 实例分支：合法 origin 接通邮箱 watcher 与岗位�
     assert.ok(registered.has("mail.send"), "合法 origin 下邮件工具须注册");
     assert.deepEqual(await registered.get("mail.send").execute({ to: "user", text: "seam test" }),
       { ok: true, to: "user", seq: 1, messageId: "seam-1" }, "邮件工具须接通宿主中继");
-    assert.deepEqual(requests.find((request) => request.url === "https://host.invalid/base/api/bots/_mail/cursor"), {
-      url: "https://host.invalid/base/api/bots/_mail/cursor", method: "POST",
+    assert.deepEqual(requests.find((request) => request.url === "https://host.invalid/base/api/pod/_mail/cursor"), {
+      url: "https://host.invalid/base/api/pod/_mail/cursor", method: "POST",
       body: { actor: { kind: "post", id: BOOTSTRAP_ANCHOR_POST } }
     }, "watcher 须向同一宿主请求起始游标");
-    assert.equal(h.rows.some(([level, text]) => level === "warn" && text.includes("DSH_BOTS_HOST_URL 未设")), false,
+    assert.equal(h.rows.some(([level, text]) => level === "warn" && text.includes("POD_HOST_URL 未设")), false,
       "合法 origin 不得报缺缝休眠");
   } finally {
     for (const dispose of h.disposers) if (typeof dispose === "function") dispose();

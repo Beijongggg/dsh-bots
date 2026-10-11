@@ -12,18 +12,18 @@
 - 事件负载键白名单：`lib/org/ledger-events.js` 的 `EVENT_EXTRA_KEYS`。
 - HTTP 面：`lib/org/ledger-host.js` 的 `createLedgerHttpApi`。
 - CSRF 令牌头（单源）：`lib/api-security.js` 的 `TOKEN_HEADER`
-  （`x-dsh-bots-token`）。
+  （`x-pod-token`）。
 
 ## HTTP 面（宿主 `dsh web`，默认 `http://127.0.0.1:3080`）
 
 | 端点 | 方法 | 用途 |
 |---|---|---|
-| `/api/bots/_csrf` | GET | 取 CSRF 令牌 `{token}` |
-| `/api/bots/_ledger` | GET | 投影总览 `{lastSeq, open, tasks[]}` |
-| `/api/bots/_ledger/tasks` | GET | `{tasks}` 全量任务投影 |
-| `/api/bots/_ledger/notifications?cursor=N` | GET | seq>N 的可通知事件 |
-| `/api/bots/_ledger/inbox?cursor=N` | GET | 人间收件箱（待裁/告知项；只读） |
-| `/api/bots/_ledger/commands` | POST | 命令面（CSRF 门内，下节） |
+| `/api/pod/_csrf` | GET | 取 CSRF 令牌 `{token}` |
+| `/api/pod/_ledger` | GET | 投影总览 `{lastSeq, open, tasks[]}` |
+| `/api/pod/_ledger/tasks` | GET | `{tasks}` 全量任务投影 |
+| `/api/pod/_ledger/notifications?cursor=N` | GET | seq>N 的可通知事件 |
+| `/api/pod/_ledger/inbox?cursor=N` | GET | 人间收件箱（待裁/告知项；只读） |
+| `/api/pod/_ledger/commands` | POST | 命令面（CSRF 门内，下节） |
 
 ## 命令体（POST body，顶层字段）
 
@@ -85,15 +85,15 @@ running → produced → delivered → settled → closed`。
 
 ```bash
 BASE=http://127.0.0.1:3080
-TOKEN=$(curl -s $BASE/api/bots/_csrf | python3 -c 'import json,sys;print(json.load(sys.stdin)["token"])')
+TOKEN=$(curl -s $BASE/api/pod/_csrf | python3 -c 'import json,sys;print(json.load(sys.stdin)["token"])')
 # CAS 输入源：读该任务当前 status 与 lastSeq
-curl -s $BASE/api/bots/_ledger | python3 -c '
+curl -s $BASE/api/pod/_ledger | python3 -c '
 import json,sys
 d=json.load(sys.stdin)
 for t in d["tasks"]: print(t["taskId"], t["status"], t["lastSeq"])'
 # plan（triaged → planned）
-curl -s -X POST $BASE/api/bots/_ledger/commands \
-  -H "x-dsh-bots-token: $TOKEN" -H 'content-type: application/json' -d '{
+curl -s -X POST $BASE/api/pod/_ledger/commands \
+  -H "x-pod-token: $TOKEN" -H 'content-type: application/json' -d '{
   "op":"task.plan","taskId":"TK-xxxx0001",
   "actor":{"kind":"user","id":"operator"},
   "idempotencyKey":"<批次>-plan-TK-xxxx0001",

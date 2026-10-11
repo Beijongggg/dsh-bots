@@ -44,7 +44,7 @@
 | [CLOSURE-p6-5-qualified-scope.md](docs/CLOSURE-p6-5-qualified-scope.md) | P6-5 冻结限定关闭范围 |
 | [GROK-DSH-BOTS-COMPARISON.md](docs/GROK-DSH-BOTS-COMPARISON.md) | 2026-08-30 架构对比参考快照 |
 | [CODE-QUALITY-ARCHITECTURE-REVIEW-2026-09-05.md](docs/CODE-QUALITY-ARCHITECTURE-REVIEW-2026-09-05.md) | 2026-09-05 评估与发现索引 |
-| `docs/dsh-bots-architecture.*` | 2026-09-08 架构图快照（**文件名保留旧名＝身份串，票 13 处理**）；JSON 为规格源（文本标签已随 12 号票改为 `Pod`），HTML、trace、导出与目视校验材料为派生件；**待按新版本重出** |
+| `docs/pod-architecture.json` | 2026-09-08 架构图快照（规格源；13 号票随插件改名由 `docs/dsh-bots-architecture.json` 更名，文本标签已随 12 号票改为 `Pod`）。HTML、trace、导出与目视校验材料为**派生件**（17 件），仍挂旧文件名——仓内无生成器，改名批未重出：重出需部署面截图（部署同步授权窗口）或外部生成器，留待运行面切换窗口处置（票 15 移交备注） |
 | [docs/adr/](docs/adr/) | 架构决策记录；决策需要落档时才创建，一条一文件（`ADR-NNNN-<slug>.md`） |
 | `docs/changelog/YYYY-MM-NN.md` | 月度事件分卷；同月按卷号递增，卷内新事件置顶 |
 | [changelog/archive.json](docs/changelog/archive.json) | 旧日志的路径、SHA-256、字节数与行数绑定；迁移记录只读 |

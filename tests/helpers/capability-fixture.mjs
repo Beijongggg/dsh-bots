@@ -25,7 +25,7 @@ export function clockAt(startMs = Date.parse("2026-09-18T10:00:00.000Z")) {
 
 /** 实例注册表行（五字段代际绑定，新格式）：默认活 pid＝本测试进程。 */
 export function writeInstanceRow(home, botId, { alive = true, hostInstanceId = `gen-${botId}`, pid = process.pid } = {}) {
-  mkdirSync(join(home, "bots", "started"), { recursive: true });
+  mkdirSync(join(home, "pod", "started"), { recursive: true });
   let deadPid = pid;
   if (!alive) {
     const dead = spawnSync(process.execPath, ["-e", ""]);

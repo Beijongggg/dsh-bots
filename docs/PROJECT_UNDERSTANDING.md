@@ -127,9 +127,13 @@
   `dsh.client = { platform: "web", inject: [...], external: [...] }` 声明。
 - 官方 UI 包源码位置：`/usr/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-client-ui-*/lib/client.js`
   （未压缩、带注释；`dsh-client-ui-primitives` 打在 dsh-web-frontend dist 内）。
-- 部署链：`project/dsh-bots` →（拷贝）→ `~/.dsh/plugins/dsh-bots` →（软链）→
-  `~/.dsh/profiles/web/node_modules/dsh-bots`。改完必须拷贝到 plugins 目录才生效；
+- 部署链（改名批后目标态）：`project/dsh-bots` →（拷贝）→ `~/.dsh/plugins/pod` →
+  （软链）→ `~/.dsh/profiles/<profile>/node_modules/pod`；数据根 `$DSH_HOME/pod`
+  （注册表／信箱／知识库／台账／能力，单源 `lib/data-roots.cjs`），工作区根
+  `pod-workspaces`（`pod-workspaces-<id>--` 分片）。改完必须拷贝到 plugins 目录才生效；
   客户端 bundle 有 500ms 轮询 HMR（改 client.js 后刷新页面即可拿到新 rev）。
+  **运行面切换待授权窗口**（`~/.dsh` 实际目录仍为旧名布局，部署同步／数据迁移
+  execute／重启链各属逐项点名件，见 `.scratch/pod/rename-migration-plan.md`）。
 - **生效条件不对称（实证）**：宿主对插件 client.js 是**按请求从磁盘 serve**
   （`cache-control: no-cache`，浏览器每次重新验证）——客户端改动的生效条件＝
   **页面刷新**，与宿主启动时间无关；服务端（lib/index.js）改动的生效条件才是
@@ -153,9 +157,9 @@
   布局源码均违背「整页独立、不 hack」方向，否决。
 - ✅ **composer 模型 pill**（`pod-pill`，点击进编辑）。
 - ✅ **bot 状态 SSE 实时推送**：注册表/状态变更全部经 `BotsApi.writeRegistry`
-  单一 choke point 广播 `bots` 事件；端点 `GET /api/bots/_events`（下划线
-  前缀彻底避开与 bot id 冲突）＋心跳；client EventSource 事件驱动刷新、
-  连接出错回退 5s 轮询。
+  单一 choke point 广播 `bots` 事件；端点 `GET /api/pod/_events`（13 号票随路由
+  前缀 `/api/pod` 切换；下划线前缀彻底避开与 bot id 冲突）＋心跳；client
+  EventSource 事件驱动刷新、连接出错回退 5s 轮询。
 - ✅ **shell.overlay 全局 bot 通知**：根级单连接订阅；仅「既有 bot 的
   online↔offline 翻转」报幕（`deriveBotNotices` 纯函数，首快照静默基线）；
   本页自发 start/stop 走期望态＋10s 窗吞报；Bot 模式外也可见。
@@ -190,15 +194,17 @@
   先谈**按批**受限授权，或把 deploy-sync／探针包成可白名单的单一入口脚本（dsh settings
   侧能力）。触发＝下一个部署同步窗口开工时先与用户对齐授权形态再执行。
 - **手工启动宿主 ⇒ 组织通道静默休眠（2026-10-07 观察）**：**已实施（39 号票，同日转立项）**
-  ——宿主启动自检 `DSH_BOTS_HOST_URL`：缺失或形状非法即 `ctx.logger.warn` 在宿主台面响亮，同一判定
+  ——宿主启动自检 `POD_HOST_URL`（13 号票改名批由 `DSH_BOTS_HOST_URL` 更名；
+  env 双读过渡窗口内旧名仍兼容回落）：缺失或形状非法即 `ctx.logger.warn` 在宿主台面响亮，同一判定
   产物随就绪面 `_ledger/readiness.hostEnv` 暴露（诊断位，不作门），根因不必再从 `channels` 空／
   `gen:null` 反推。**仍留界**：自检**只报不修**——不自动补齐 origin、不动 `dsh web` 启动路径
   （后者属宿主侧、非本仓面），故手工启动宿主后组织面照旧休眠，须人工走重启链。触发＝再次出现
   「席位在线但组织面全静默」而宿主台面无 `[pod][seam]` 行时（自检自身失效）立票。
 - **评审扩大工程（F-R9-1）已闭环**：全门关闭、门态 READY（2026-09-04）；
   后续工程路线＝PLAN §十一（B1~B5＋结构债），进度以 CHANGELOG 为准。
-- DSH_BOTS_API_TOKEN 环境变量鉴权（约 10 行；威胁模型＝本机其他进程，
-  想清是否值得再加）。
+- `POD_API_TOKEN`（仍可选题原记 `DSH_BOTS_API_TOKEN`；13 号票改名批后若立项按新
+  env 家族命名——该旧名仅此处历史提及，无活性读者，未入双读）环境变量鉴权
+  （约 10 行；威胁模型＝本机其他进程，想清是否值得再加）。
 - 代码类委派的确定性证据条款：代码类任务回信必须附测试/lint/编译证据——
   确定性验证优先于 LLM 文本辩论；提示层实现（协作条款或领队角色文本），
   触发＝首个代码类任务立项时。

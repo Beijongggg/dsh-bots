@@ -63,9 +63,9 @@ test("drill-ledger-rebuild：隔离根上端到端跑通，报告结论与事件
   assert.ok(parsed.verdict.checks.length >= 5);
   assert.ok(parsed.verdict.checks.every((check) => check.ok === true));
   // 事件日志与盘面账实相符，且逐条过台账校验器
-  const file = readLedgerEventsFile(join(home, "bots", "ledger", "events.jsonl"));
+  const file = readLedgerEventsFile(join(home, "pod", "ledger", "events.jsonl"));
   assert.equal(parsed.ledger.present, true);
-  assert.equal(parsed.ledger.sha256, sha256(readFileSync(join(home, "bots", "ledger", "events.jsonl"))));
+  assert.equal(parsed.ledger.sha256, sha256(readFileSync(join(home, "pod", "ledger", "events.jsonl"))));
   assert.equal(parsed.ledger.byteLength, file.byteLength);
   assert.equal(parsed.ledger.lineCount, file.lineCount);
   assert.ok(file.events.length >= 8, `演练至少落下 8 条事件（实得 ${String(file.events.length)}）`);

@@ -60,7 +60,7 @@ test("空注册表自举：写入 v2 锚点席位（值班统筹／duty-coordina
   assert.equal(anchor.bootstrapAnchor, true, "席位身份＝bootstrap 锚点标记（不可删保护按标记判定）");
   assert.equal(anchor.port, 3101, "锚点席位固定占分配起点端口");
   assert.equal(anchor.permission, "read-only", "统筹岗不实施工件；实例基底档保持 v1 默认（用户裁定）");
-  assert.equal(anchor.workspace, path.join(home, "bot-workspaces", "duty-coordinator"));
+  assert.equal(anchor.workspace, path.join(home, "pod-workspaces", "duty-coordinator"));
   assert.equal(Object.keys(registry).length, 1, "空表自举只建锚点席位（实施者等其余席位按需拉起）");
 
   assert.deepEqual(readRegistry(home), registry, "自举结果必须落盘（读回一致）");
@@ -68,8 +68,8 @@ test("空注册表自举：写入 v2 锚点席位（值班统筹／duty-coordina
 
 test("空文件视同空表：同样写锚点席位", () => {
   const home = mkHome();
-  fs.mkdirSync(path.join(home, "bots"), { recursive: true });
-  fs.writeFileSync(path.join(home, "bots", "bots.json"), "");
+  fs.mkdirSync(path.join(home, "pod"), { recursive: true });
+  fs.writeFileSync(path.join(home, "pod", "bots.json"), "");
   const registry = bootstrapRegistry(home, makeCtx().logger);
   assert.equal(registry[BOOTSTRAP_ANCHOR_POST]?.bootstrapAnchor, true);
   assert.equal(readRegistry(home)[BOOTSTRAP_ANCHOR_POST]?.bootstrapAnchor, true);
@@ -77,26 +77,26 @@ test("空文件视同空表：同样写锚点席位", () => {
 
 test("损坏表：重命名备份分支保留原样，重建目标是 v2 锚点", () => {
   const home = mkHome();
-  fs.mkdirSync(path.join(home, "bots"), { recursive: true });
-  fs.writeFileSync(path.join(home, "bots", "bots.json"), "{broken");
+  fs.mkdirSync(path.join(home, "pod"), { recursive: true });
+  fs.writeFileSync(path.join(home, "pod", "bots.json"), "{broken");
   const registry = bootstrapRegistry(home, makeCtx().logger);
 
   assert.equal(registry[BOOTSTRAP_ANCHOR_POST]?.bootstrapAnchor, true, "损坏表重建目标＝v2 锚点");
-  const aside = fs.readdirSync(path.join(home, "bots")).find((n) => n.startsWith("bots.json.corrupt-"));
+  const aside = fs.readdirSync(path.join(home, "pod")).find((n) => n.startsWith("bots.json.corrupt-"));
   assert.ok(aside !== undefined, "损坏表必须移开为 .corrupt-<ts> 备份（分支保留原样）");
-  assert.equal(fs.readFileSync(path.join(home, "bots", aside), "utf8"), "{broken", "备份内容原样");
-  assert.equal(JSON.parse(fs.readFileSync(path.join(home, "bots", "bots.json"), "utf8"))[BOOTSTRAP_ANCHOR_POST].id, "duty-coordinator");
+  assert.equal(fs.readFileSync(path.join(home, "pod", aside), "utf8"), "{broken", "备份内容原样");
+  assert.equal(JSON.parse(fs.readFileSync(path.join(home, "pod", "bots.json"), "utf8"))[BOOTSTRAP_ANCHOR_POST].id, "duty-coordinator");
 });
 
 test("非空注册表：零触碰（不注入锚点、不重写文件）", () => {
   const home = mkHome();
   const existing = { worker: bot() };
   writeRegistryAtomic(home, existing);
-  const before = fs.readFileSync(path.join(home, "bots", "bots.json"), "utf8");
+  const before = fs.readFileSync(path.join(home, "pod", "bots.json"), "utf8");
   const registry = bootstrapRegistry(home, makeCtx().logger);
 
   assert.equal(registry[BOOTSTRAP_ANCHOR_POST], undefined, "非空表不新建席位（锚点只在整表空时自动出现）");
-  assert.equal(fs.readFileSync(path.join(home, "bots", "bots.json"), "utf8"), before, "非空表自举不得改写注册表");
+  assert.equal(fs.readFileSync(path.join(home, "pod", "bots.json"), "utf8"), before, "非空表自举不得改写注册表");
 });
 
 test("锚点席位记录：实例 id／显示名／home 岗位三者同源，权限档 read-only", () => {

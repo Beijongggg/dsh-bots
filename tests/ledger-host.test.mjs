@@ -123,7 +123,7 @@ const { handleApi, createLedgerHost: createHostViaInternals, createTaskLedger: c
 
 function mkHome() {
   const home = mkdtempSync(join(tmpdir(), "dsh-ledger-host-"));
-  mkdirSync(join(home, "bots", "inbox"), { recursive: true });
+  mkdirSync(join(home, "pod", "inbox"), { recursive: true });
   return home;
 }
 
@@ -136,7 +136,7 @@ function writeStaleReceipt(home, botId, { messageId, seq, at }) {
 
 /** 写一条回合失败回复（v1 回合失败不重试的现场证据）。 */
 function writeErrorReply(home, botId, { id, at, text = "[bot error] rpc timeout" }) {
-  const dir = join(home, "bots", "outbox", botId);
+  const dir = join(home, "pod", "outbox", botId);
   mkdirSync(dir, { recursive: true });
   const name = `${at.replace(/[:.]/g, "-")}.jsonl`;
   writeFileSync(join(dir, name), JSON.stringify({ id, text, from: "bot", timestamp: at }) + "\n");
@@ -294,12 +294,12 @@ test("HTTP 面：读投影／通知投影／命令面；未接线 404、非 GET 
     const { ledger, host } = mkHost(home, { broadcast: (type, data) => frames.push({ type, data }) });
     const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
 
-    const empty = await call(api, "GET", "/api/bots/_ledger");
+    const empty = await call(api, "GET", "/api/pod/_ledger");
     assert.equal(empty.status, 200);
     assert.equal(empty.body.lastSeq, 0);
     assert.deepEqual(empty.body.tasks, []);
 
-    const create = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const create = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "task.intake", taskId: "TK-00000060", actor: { kind: "user", id: "user" },
       idempotencyKey: "h1", payload: { class: "project", brief: { ...VALID_BRIEF } }
     });
@@ -310,7 +310,7 @@ test("HTTP 面：读投影／通知投影／命令面；未接线 404、非 GET 
 
     // 非法转移：fail closed（409）但拒绝也进台账（可核）；user 通道可达命令面
     // （06 号票起 host kind 在 HTTP 被 403，见上一条回归）
-    const rejected = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const rejected = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "task.close", taskId: "TK-00000060", actor: { kind: "user", id: "user" },
       expectedStatus: "intake", expectedSeq: 1, idempotencyKey: "h2", payload: {}
     });
@@ -318,18 +318,18 @@ test("HTTP 面：读投影／通知投影／命令面；未接线 404、非 GET 
     assert.equal(rejected.body.ok, false);
     assert.equal(rejected.body.code, "illegal-transition");
 
-    const tasks = await call(api, "GET", "/api/bots/_ledger/tasks");
+    const tasks = await call(api, "GET", "/api/pod/_ledger/tasks");
     assert.equal(tasks.body.tasks.length, 1);
     assert.equal(tasks.body.tasks[0].status, "intake");
 
-    const notes = await call(api, "GET", "/api/bots/_ledger/notifications?cursor=0");
+    const notes = await call(api, "GET", "/api/pod/_ledger/notifications?cursor=0");
     assert.equal(notes.status, 200);
     assert.deepEqual(notes.body.notifications, [], "intake 不产生通知（无事件不通知）");
 
-    const wrongMethod = await call(api, "POST", "/api/bots/_ledger/tasks");
+    const wrongMethod = await call(api, "POST", "/api/pod/_ledger/tasks");
     assert.equal(wrongMethod.status, 405);
 
-    const unwired = await call({ dshHome: home, ctx: { logger: { warn() {} } } }, "GET", "/api/bots/_ledger");
+    const unwired = await call({ dshHome: home, ctx: { logger: { warn() {} } } }, "GET", "/api/pod/_ledger");
     assert.equal(unwired.status, 404, "台账未接线（bot 实例／库直测）→ 404");
   } finally {
     rmSync(home, { recursive: true, force: true });
@@ -368,7 +368,7 @@ test("人间收件箱投递面：待裁项带裁定包与终裁动作、告知�
     assert.equal((await step("TK-00000096", "task.deliver", { kind: "post", id: "researcher" }, {})).ok, true);
 
     const before = ledger.view().lastSeq;
-    const inbox = await call(api, "GET", "/api/bots/_ledger/inbox?cursor=0");
+    const inbox = await call(api, "GET", "/api/pod/_ledger/inbox?cursor=0");
     assert.equal(inbox.status, 200);
     assert.equal(inbox.body.pending.length, 1, "只有挂起任务进待裁列表");
     const item = inbox.body.pending[0];
@@ -384,7 +384,7 @@ test("人间收件箱投递面：待裁项带裁定包与终裁动作、告知�
     assert.ok(inbox.body.cursor > 0);
     assert.equal(ledger.view().lastSeq, before, "投递面是只读投影：读不改台账");
     assert.equal(ledger.task("TK-00000095").status, "waiting-user");
-    const wrongMethod = await call(api, "POST", "/api/bots/_ledger/inbox");
+    const wrongMethod = await call(api, "POST", "/api/pod/_ledger/inbox");
     assert.equal(wrongMethod.status, 405);
   } finally {
     rmSync(home, { recursive: true, force: true });
@@ -397,14 +397,14 @@ test("HTTP 命令面是唯一写入口：台账事件只由命令面产生（V-A
     const { ledger, host } = mkHost(home);
     const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
     // 读面不产生事件
-    await call(api, "GET", "/api/bots/_ledger");
-    await call(api, "GET", "/api/bots/_ledger/tasks");
-    await call(api, "GET", "/api/bots/_ledger/notifications?cursor=0");
+    await call(api, "GET", "/api/pod/_ledger");
+    await call(api, "GET", "/api/pod/_ledger/tasks");
+    await call(api, "GET", "/api/pod/_ledger/notifications?cursor=0");
     assert.equal(ledger.view().lastSeq, 0, "只读请求不得写入事实源");
     // 台账模块导出面不含裸 append（写通道只有命令面）
     assert.equal(typeof createLedgerViaInternals({ dshHome: home }).append, "undefined");
     assert.equal(typeof createHostViaInternals, "function");
-    assert.equal(eventsFile(home), join(home, "bots", "ledger", "events.jsonl"));
+    assert.equal(eventsFile(home), join(home, "pod", "ledger", "events.jsonl"));
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
@@ -413,9 +413,9 @@ test("HTTP 命令面是唯一写入口：台账事件只由命令面产生（V-A
 test("接线：宿主实例注册台账值守，bot 实例不构造台账（无直写通道，V-A2.1）", async () => {
   const home = mkHome();
   const previousHome = process.env.DSH_HOME;
-  const previousAutostart = process.env.DSH_BOTS_AUTOSTART;
+  const previousAutostart = process.env.POD_AUTOSTART;
   process.env.DSH_HOME = home;
-  process.env.DSH_BOTS_AUTOSTART = "0"; // 应急闸：接线测试不拉起真实 bot 进程
+  process.env.POD_AUTOSTART = "0"; // 应急闸：接线测试不拉起真实 bot 进程
   const applied = [];
   const mkCtx = (baseUrl) => ({
     baseUrl,
@@ -447,7 +447,7 @@ test("接线：宿主实例注册台账值守，bot 实例不构造台账（无�
     assert.equal(ledgerDirExists(home), false, "bot 实例不创建台账域");
   } finally {
     if (previousHome === undefined) delete process.env.DSH_HOME; else process.env.DSH_HOME = previousHome;
-    if (previousAutostart === undefined) delete process.env.DSH_BOTS_AUTOSTART; else process.env.DSH_BOTS_AUTOSTART = previousAutostart;
+    if (previousAutostart === undefined) delete process.env.POD_AUTOSTART; else process.env.POD_AUTOSTART = previousAutostart;
     rmSync(home, { recursive: true, force: true });
   }
 });
@@ -457,27 +457,27 @@ test("HTTP 命令面拒绝缺 actor 的命令且台账保持可读（写入前�
   try {
     const { ledger, host } = mkHost(home);
     const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
-    await call(api, "POST", "/api/bots/_ledger/commands", {
+    await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "task.intake", taskId: "TK-00000080", actor: { kind: "user", id: "user" },
       idempotencyKey: "k1", payload: { class: "project", brief: { ...VALID_BRIEF } }
     });
     // 通道策略（06 号票）：HTTP 上不得声明 kind=host（进程内身份）
-    const hostImpersonation = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const hostImpersonation = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "task.triage", taskId: "TK-00000080", actor: { kind: "host", id: "web" },
       idempotencyKey: "k0", expectedStatus: "intake", expectedSeq: 1, payload: { decision: "立项" }
     });
     assert.equal(hostImpersonation.status, 403);
     assert.equal(hostImpersonation.body.code, "host-channel-forbidden");
-    const noActor = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const noActor = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "task.judge", taskId: "TK-00000080", idempotencyKey: "k2", payload: { intent: "x" }
     });
     assert.equal(noActor.status, 409);
     assert.equal(noActor.body.code, "invalid-actor");
     // 事实源未被写坏：投影仍可读、可继续推进
-    const after = await call(api, "GET", "/api/bots/_ledger");
+    const after = await call(api, "GET", "/api/pod/_ledger");
     assert.equal(after.status, 200);
     assert.equal(after.body.tasks[0].status, "intake");
-    const badBody = await call(api, "POST", "/api/bots/_ledger/commands", "not-an-object");
+    const badBody = await call(api, "POST", "/api/pod/_ledger/commands", "not-an-object");
     assert.equal(badBody.status, 400);
     assert.equal(badBody.body.code, "invalid-command-body");
   } finally {
@@ -496,7 +496,7 @@ test("HTTP 命令面经 dispatchCommand 出手并透传 capability 信封（06 �
     };
     const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
     const envelope = { payload: { v: 1, botId: "bot-a" }, sig: "ab".repeat(32) };
-    const result = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const result = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "task.intake", taskId: "TK-00000083", actor: { kind: "user", id: "user" },
       capability: envelope, idempotencyKey: "k1", payload: { class: "project" }
     });
@@ -537,7 +537,7 @@ test("复核面 HTTP：移交件读与报告提交经帽信封门；未携帽 40
       botId: "bot-reviewer", pid: process.pid, startedAt: `proc:${process.pid}`,
       hostInstanceId: "gen-reviewer", at: Date.now()
     };
-    mkdirSync(join(home, "bots", "started"), { recursive: true });
+    mkdirSync(join(home, "pod", "started"), { recursive: true });
     writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
     const { issuer, ledger } = wireReviewHat({
       home, now: () => NOW, ledgerOptions: { ...CRITERION_INJECTION }
@@ -550,14 +550,14 @@ test("复核面 HTTP：移交件读与报告提交经帽信封门；未携帽 40
     const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
 
     // 任务（简报带复核点）＋复核请求
-    const created = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const created = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "task.intake", taskId: "TK-00000070", actor: { kind: "user", id: "user" },
       idempotencyKey: "rvh-intake", payload: {
         class: "project", brief: { ...VALID_BRIEF, reviewPoints: ["before-external-visibility"] }
       }
     });
     assert.equal(created.body.ok, true);
-    const requested = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const requested = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "review.request", taskId: "TK-00000070", actor: { kind: "user", id: "user" },
       idempotencyKey: "rvh-request", payload: { point: "before-external-visibility", reviewer: "bot-reviewer" }
     });
@@ -568,14 +568,14 @@ test("复核面 HTTP：移交件读与报告提交经帽信封门；未携帽 40
     const hatHeader = JSON.stringify(hat.envelope);
 
     // 未携帽读移交件 → 403（fail closed）
-    const naked = await call(api, "GET", "/api/bots/_ledger/review-handoff?taskId=TK-00000070");
+    const naked = await call(api, "GET", "/api/pod/_ledger/review-handoff?taskId=TK-00000070");
     assert.equal(naked.status, 403);
     assert.equal(naked.body.code, "capability-malformed", "未携帽＝信封缺格，验签腿 fail closed");
 
     // 携帽读 → 200，移交件含冻结简报与指定关系、不含判断输入
-    const handoff = await call(api, "GET", "/api/bots/_ledger/review-handoff?taskId=TK-00000070", null, {
-      "x-dsh-bots-bot-id": "bot-reviewer",
-      "x-dsh-bots-capability": hatHeader
+    const handoff = await call(api, "GET", "/api/pod/_ledger/review-handoff?taskId=TK-00000070", null, {
+      "x-pod-bot-id": "bot-reviewer",
+      "x-pod-capability": hatHeader
     });
     assert.equal(handoff.status, 200);
     assert.equal(handoff.body.taskId, "TK-00000070");
@@ -588,7 +588,7 @@ test("复核面 HTTP：移交件读与报告提交经帽信封门；未携帽 40
       capability: hat.envelope,
       report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "review-model" }
     };
-    const reported = await call(api, "POST", "/api/bots/_ledger/reviews", reportBody);
+    const reported = await call(api, "POST", "/api/pod/_ledger/reviews", reportBody);
     assert.equal(reported.status, 200);
     assert.equal(reported.body.ok, true);
     assert.equal(reported.body.escalated, false);
@@ -597,20 +597,20 @@ test("复核面 HTTP：移交件读与报告提交经帽信封门；未携帽 40
     // 同键缓存成功不代表本次消费。旧帽反复重放、新帽重放都不能增发帽或追加事件。
     const afterReport = ledger.view().lastSeq;
     for (const capability of [hat.envelope, hat.envelope, reported.body.capability]) {
-      const replay = await call(api, "POST", "/api/bots/_ledger/reviews", { ...reportBody, capability });
+      const replay = await call(api, "POST", "/api/pod/_ledger/reviews", { ...reportBody, capability });
       assert.equal(replay.status, 200);
       assert.equal(replay.body.replayed, true);
       assert.equal(replay.body.capability === undefined, true, "缓存成功的重放不重签帽");
     }
     assert.equal(ledger.view().lastSeq, afterReport, "同键重放零追加事件");
-    const nextReport = await call(api, "POST", "/api/bots/_ledger/reviews", {
+    const nextReport = await call(api, "POST", "/api/pod/_ledger/reviews", {
       ...reportBody, idempotencyKey: "rvh-report-next", capability: reported.body.capability
     });
     assert.equal(nextReport.status, 200, "重放没有烧掉新帽，新键提交仍可正常消费并续签");
     assert.equal(nextReport.body.capability?.payload?.post, "verifier");
 
     // 他人冒用帽 → 403（信封属 bot-reviewer）
-    const impostor = await call(api, "POST", "/api/bots/_ledger/reviews", {
+    const impostor = await call(api, "POST", "/api/pod/_ledger/reviews", {
       taskId: "TK-00000070", actor: { kind: "post", id: "bot-other" }, idempotencyKey: "rvh-bad",
       capability: hat.envelope,
       report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "m" }
@@ -619,7 +619,7 @@ test("复核面 HTTP：移交件读与报告提交经帽信封门；未携帽 40
     assert.equal(impostor.body.code, "capability-bot-mismatch");
 
     // 通知投影：复核请求送达指定复核者
-    const notes = await call(api, "GET", "/api/bots/_ledger/notifications?cursor=0");
+    const notes = await call(api, "GET", "/api/pod/_ledger/notifications?cursor=0");
     assert.ok(notes.body.notifications.some((n) => n.type === "review-requested" && n.to === "bot-reviewer"));
   } finally {
     rmSync(home, { recursive: true, force: true });
@@ -633,7 +633,7 @@ test("复核移交件读（16 号票 rv1 blocker）：归属让渡（owner=null�
       botId: "bot-reviewer", pid: process.pid, startedAt: `proc:${process.pid}`,
       hostInstanceId: "gen-reviewer", at: Date.now()
     };
-    mkdirSync(join(home, "bots", "started"), { recursive: true });
+    mkdirSync(join(home, "pod", "started"), { recursive: true });
     writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
     writeFileSync(instanceRegistryFile(home), `${JSON.stringify({
       botId: "bot-producer", pid: process.pid, startedAt: `proc:${process.pid}`,
@@ -653,7 +653,7 @@ test("复核移交件读（16 号票 rv1 blocker）：归属让渡（owner=null�
     // （真实面 TK-20260929 seq 22→31 场景：产出已登记，复核发生在 owner=null 窗口）
     const USER = { kind: "user", id: "user" };
     const PRODUCER = { kind: "post", id: "bot-producer" };
-    await call(api, "POST", "/api/bots/_ledger/commands", {
+    await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "task.intake", taskId: "TK-00000071", actor: USER, idempotencyKey: "hnd-intake",
       payload: { class: "project", brief: { ...VALID_BRIEF, reviewPoints: ["before-external-visibility"] } }
     });
@@ -666,7 +666,7 @@ test("复核移交件读（16 号票 rv1 blocker）：归属让渡（owner=null�
       ["task.report", PRODUCER, {}, "hnd-report"]
     ]) {
       const task = ledger.task("TK-00000071");
-      const step = await call(api, "POST", "/api/bots/_ledger/commands", {
+      const step = await call(api, "POST", "/api/pod/_ledger/commands", {
         op, taskId: "TK-00000071", actor, expectedStatus: task.status, expectedSeq: task.lastSeq,
         idempotencyKey: key, payload
       });
@@ -686,18 +686,18 @@ test("复核移交件读（16 号票 rv1 blocker）：归属让渡（owner=null�
       dshHome: home, botId: "someone-else",
       input: { title: "他人产出", summary: "s", body: "b", task: "TK-00000071" }
     });
-    assert.equal((await call(api, "POST", "/api/bots/_ledger/commands", {
+    assert.equal((await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "review.request", taskId: "TK-00000071", actor: USER, idempotencyKey: "hnd-request",
       payload: { point: "before-external-visibility", reviewer: "bot-reviewer" }
     })).body.ok, true);
 
     const hat = issuer.issueRoleCapability({ botId: "bot-reviewer", post: "verifier" });
     assert.equal(hat.ok, true, hat.reason);
-    const hatHeaders = { "x-dsh-bots-bot-id": "bot-reviewer", "x-dsh-bots-capability": JSON.stringify(hat.envelope) };
+    const hatHeaders = { "x-pod-bot-id": "bot-reviewer", "x-pod-capability": JSON.stringify(hat.envelope) };
 
     // 产出方不得自任（spec §C 独立性；第三道门同口径）：归属已让渡，产出方本人仍不得
     // 被指定为复核者、也不得以 verifier 帽给自己的产出入账报告
-    const selfReview = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const selfReview = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "review.request", taskId: "TK-00000071", actor: USER, idempotencyKey: "hnd-self-request",
       payload: { point: "before-external-visibility", reviewer: "bot-producer" }
     });
@@ -712,19 +712,19 @@ test("复核移交件读（16 号票 rv1 blocker）：归属让渡（owner=null�
     });
     assert.equal(selfReport.code, "reviewer-is-producer", "报告腿同判：产出方自任在 reviewer-is-producer 拒");
 
-    const handoff = await call(api, "GET", "/api/bots/_ledger/review-handoff?taskId=TK-00000071", null, hatHeaders);
+    const handoff = await call(api, "GET", "/api/pod/_ledger/review-handoff?taskId=TK-00000071", null, hatHeaders);
     assert.equal(handoff.status, 200);
     assert.ok(handoff.body.artifacts.some((entry) => entry.id === mine.id),
       "归属让渡后产出方登记的工件仍出现在移交件列表（rv1 blocker 修复）");
     assert.equal(handoff.body.artifacts.some((entry) => entry.id === theirs.id), false, "他人登记不出现");
 
     const body = await call(api, "GET",
-      `/api/bots/_ledger/review-handoff?taskId=TK-00000071&artifactId=${encodeURIComponent(mine.id)}`, null, hatHeaders);
+      `/api/pod/_ledger/review-handoff?taskId=TK-00000071&artifactId=${encodeURIComponent(mine.id)}`, null, hatHeaders);
     assert.equal(body.status, 200, "产出方工件正文可读");
     assert.equal(body.body.artifact.id, mine.id);
     assert.equal(typeof body.body.artifact.sha256, "string");
     const theirsBody = await call(api, "GET",
-      `/api/bots/_ledger/review-handoff?taskId=TK-00000071&artifactId=${encodeURIComponent(theirs.id)}`, null, hatHeaders);
+      `/api/pod/_ledger/review-handoff?taskId=TK-00000071&artifactId=${encodeURIComponent(theirs.id)}`, null, hatHeaders);
     assert.equal(theirsBody.status, 403, "他人工件仍拒（review-artifact-forbidden）");
     assert.equal(theirsBody.body.code, "review-artifact-forbidden");
   } finally {
@@ -739,7 +739,7 @@ test("复核面续签（21 号票 ①）：报告被台账拒绝（review-not-re
       botId: "bot-reviewer", pid: process.pid, startedAt: `proc:${process.pid}`,
       hostInstanceId: "gen-reviewer", at: Date.now()
     };
-    mkdirSync(join(home, "bots", "started"), { recursive: true });
+    mkdirSync(join(home, "pod", "started"), { recursive: true });
     writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
     const { issuer, ledger } = wireReviewHat({
       home, now: () => NOW, ledgerOptions: { ...CRITERION_INJECTION }
@@ -751,13 +751,13 @@ test("复核面续签（21 号票 ①）：报告被台账拒绝（review-not-re
     });
     const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
 
-    await call(api, "POST", "/api/bots/_ledger/commands", {
+    await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "task.intake", taskId: "TK-00000071", actor: { kind: "user", id: "user" },
       idempotencyKey: "rvr-intake", payload: {
         class: "project", brief: { ...VALID_BRIEF, reviewPoints: ["before-external-visibility"] }
       }
     });
-    const requested = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const requested = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "review.request", taskId: "TK-00000071", actor: { kind: "user", id: "user" },
       idempotencyKey: "rvr-request", payload: { point: "before-external-visibility", reviewer: "bot-reviewer" }
     });
@@ -772,7 +772,7 @@ test("复核面续签（21 号票 ①）：报告被台账拒绝（review-not-re
       capability: hat.envelope,
       report: { subject: "before-irreversible-write", verdict: "closed", gaps: [], modelIdentity: "review-model" }
     };
-    const rejected = await call(api, "POST", "/api/bots/_ledger/reviews", rejectedBody);
+    const rejected = await call(api, "POST", "/api/pod/_ledger/reviews", rejectedBody);
     assert.equal(rejected.status, 409);
     assert.equal(rejected.body.code, "review-not-requested");
     assert.equal(rejected.body.capability?.payload?.post, "verifier",
@@ -780,7 +780,7 @@ test("复核面续签（21 号票 ①）：报告被台账拒绝（review-not-re
 
     const afterRejection = ledger.view().lastSeq;
     for (const capability of [hat.envelope, hat.envelope, rejected.body.capability]) {
-      const replay = await call(api, "POST", "/api/bots/_ledger/reviews", { ...rejectedBody, capability });
+      const replay = await call(api, "POST", "/api/pod/_ledger/reviews", { ...rejectedBody, capability });
       assert.equal(replay.status, 409);
       assert.equal(replay.body.replayed, true);
       assert.equal(replay.body.code, "review-not-requested");
@@ -789,7 +789,7 @@ test("复核面续签（21 号票 ①）：报告被台账拒绝（review-not-re
     assert.equal(ledger.view().lastSeq, afterRejection, "拒绝结果的重放也不再落事件");
 
     // 续签帽可连报：换合法 subject 提交即 200（链式接力）
-    const reported = await call(api, "POST", "/api/bots/_ledger/reviews", {
+    const reported = await call(api, "POST", "/api/pod/_ledger/reviews", {
       taskId: "TK-00000071", actor: { kind: "post", id: "bot-reviewer" }, idempotencyKey: "rvr-ok",
       capability: rejected.body.capability,
       report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "review-model" }
@@ -798,7 +798,7 @@ test("复核面续签（21 号票 ①）：报告被台账拒绝（review-not-re
     assert.equal(reported.body.ok, true);
 
     // 边界：入口预筛自身拒绝（无帽）不给新帽——鉴权失败不续签
-    const naked = await call(api, "POST", "/api/bots/_ledger/reviews", {
+    const naked = await call(api, "POST", "/api/pod/_ledger/reviews", {
       taskId: "TK-00000071", actor: { kind: "post", id: "bot-reviewer" }, idempotencyKey: "rvr-naked",
       report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "review-model" }
     });
@@ -816,7 +816,7 @@ test("复核面消费点在台账腿（27 号票）：同一信封二次提交�
       botId: "bot-reviewer", pid: process.pid, startedAt: `proc:${process.pid}`,
       hostInstanceId: "gen-reviewer", at: Date.now()
     };
-    mkdirSync(join(home, "bots", "started"), { recursive: true });
+    mkdirSync(join(home, "pod", "started"), { recursive: true });
     writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
     const { issuer, ledger } = wireReviewHat({
       home, now: () => NOW, ledgerOptions: { ...CRITERION_INJECTION }
@@ -828,13 +828,13 @@ test("复核面消费点在台账腿（27 号票）：同一信封二次提交�
     });
     const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
 
-    await call(api, "POST", "/api/bots/_ledger/commands", {
+    await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "task.intake", taskId: "TK-00000072", actor: { kind: "user", id: "user" },
       idempotencyKey: "rvp-intake", payload: {
         class: "project", brief: { ...VALID_BRIEF, reviewPoints: ["before-external-visibility"] }
       }
     });
-    assert.equal((await call(api, "POST", "/api/bots/_ledger/commands", {
+    assert.equal((await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "review.request", taskId: "TK-00000072", actor: { kind: "user", id: "user" },
       idempotencyKey: "rvp-request", payload: { point: "before-external-visibility", reviewer: "bot-reviewer" }
     })).body.ok, true);
@@ -842,12 +842,12 @@ test("复核面消费点在台账腿（27 号票）：同一信封二次提交�
     const hat = issuer.issueRoleCapability({ botId: "bot-reviewer", post: "verifier" });
     assert.equal(hat.ok, true, hat.reason);
     // 入口预筛拒（无帽）不消费任何帽：同一张帽随后照常提交成功
-    const naked = await call(api, "POST", "/api/bots/_ledger/reviews", {
+    const naked = await call(api, "POST", "/api/pod/_ledger/reviews", {
       taskId: "TK-00000072", actor: { kind: "post", id: "bot-reviewer" }, idempotencyKey: "rvp-naked",
       report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "review-model" }
     });
     assert.equal(naked.status, 403);
-    const reported = await call(api, "POST", "/api/bots/_ledger/reviews", {
+    const reported = await call(api, "POST", "/api/pod/_ledger/reviews", {
       taskId: "TK-00000072", actor: { kind: "post", id: "bot-reviewer" }, idempotencyKey: "rvp-ok",
       capability: hat.envelope,
       report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "review-model" }
@@ -856,7 +856,7 @@ test("复核面消费点在台账腿（27 号票）：同一信封二次提交�
     assert.equal(reported.body.ok, true);
 
     // 一次提交恰好消费一次：同一信封重放——预筛仍放行（它不消费），台账腿的消费点拒
-    const replay = await call(api, "POST", "/api/bots/_ledger/reviews", {
+    const replay = await call(api, "POST", "/api/pod/_ledger/reviews", {
       taskId: "TK-00000072", actor: { kind: "post", id: "bot-reviewer" }, idempotencyKey: "rvp-replay",
       capability: hat.envelope,
       report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "review-model" }
@@ -884,7 +884,7 @@ function mkKnowledgeHost(home, { logger = { warn() {}, error() {}, info() {} } }
     botId: "bot-researcher", pid: process.pid, startedAt: `proc:${process.pid}`,
     hostInstanceId: "gen-knowledge-gate", at: Date.now()
   };
-  mkdirSync(join(home, "bots", "started"), { recursive: true });
+  mkdirSync(join(home, "pod", "started"), { recursive: true });
   writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
   const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: () => NOW });
   const issuer = createCapabilityIssuer({ dshHome: home, ledger, now: () => NOW });
@@ -913,11 +913,11 @@ test("knowledge.register 命令腿：索引锁留痕经宿主 logger 出栈（36
     assert.equal(role.ok, true, role.reason);
 
     // 死主锁：.lock 持有者 pid 已不存在 → 快路接管并留痕（宿主事件循环不再为其冻结）
-    const lockDir = join(home, "bots", "knowledge", ".lock");
+    const lockDir = join(home, "pod", "knowledge", ".lock");
     mkdirSync(lockDir, { recursive: true });
     writeFileSync(join(lockDir, "owner.json"), JSON.stringify({ pid: deadPid(), at: Date.now() }));
 
-    const ok = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const ok = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "knowledge.register", actor: { kind: "post", id: "bot-researcher" }, idempotencyKey: "k-trace",
       capability: role.envelope, payload: { title: "留痕", summary: "s", body: "b" }
     });
@@ -950,7 +950,7 @@ test("知识命令腿 actor 形状门：无 actor／畸形 actor 一律拒（与
       ["未知 kind", { kind: "agent", id: "bot-researcher" }]
     ];
     for (const [label, actor] of malformed) {
-      const res = await call(api, "POST", "/api/bots/_ledger/commands", {
+      const res = await call(api, "POST", "/api/pod/_ledger/commands", {
         op: "knowledge.register", actor, idempotencyKey: `k-shape-${label}`, capability: role.envelope,
         payload: { title: "形状负例", summary: "s", body: "b" }
       });
@@ -961,7 +961,7 @@ test("知识命令腿 actor 形状门：无 actor／畸形 actor 一律拒（与
     assert.equal(readIndex(home).length, 0, "形状负例零落盘（共享面无写入）");
 
     // 已知通道策略不回退：host 仍由通道层拦（码不变）
-    const hostActor = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const hostActor = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "knowledge.register", actor: { kind: "host", id: "web" }, idempotencyKey: "k-shape-host",
       payload: { title: "host 冒名", summary: "s", body: "b" }
     });
@@ -969,7 +969,7 @@ test("知识命令腿 actor 形状门：无 actor／畸形 actor 一律拒（与
     assert.equal(hostActor.body.code, "host-channel-forbidden", "host 冒名结论码不变（通道策略先拦）");
 
     // 不消耗：形状门在鉴权门**之前**——同一张信封随后照常可用（正例不回退）
-    const ok = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const ok = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "knowledge.register", actor: { kind: "post", id: "bot-researcher" }, idempotencyKey: "k-shape-after",
       capability: role.envelope, payload: { title: "形状负例之后", summary: "s", body: "b" }
     });
@@ -987,7 +987,7 @@ test("知识命令腿 actor 归属门：user 只许声明 user principal 本人�
 
     // 伪造归属：user 自声明**在册实例**的 id（索引 botId 字段是产出方归属，不由调用方指定）
     const role = issuer.issueRoleCapability({ botId: "bot-researcher", post: "researcher" });
-    const forged = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const forged = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "knowledge.register", actor: { kind: "user", id: "bot-researcher" }, idempotencyKey: "k-spoof",
       capability: role.envelope, payload: { title: "冒名登记", summary: "s", body: "b" }
     });
@@ -997,7 +997,7 @@ test("知识命令腿 actor 归属门：user 只许声明 user principal 本人�
     assert.equal(readIndex(home).length, 0, "伪造归属零落盘");
 
     // user principal 本人（CSRF 通道的唯一 user 身份）照常可登记：产出方记 principal 本人
-    const mine = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const mine = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "knowledge.register", actor: { ...RULING_ACTOR }, idempotencyKey: "k-user",
       payload: { title: "人间登记", summary: "s", body: "b" }
     });
@@ -1006,7 +1006,7 @@ test("知识命令腿 actor 归属门：user 只许声明 user principal 本人�
     assert.equal(readIndex(home)[0].botId, RULING_ACTOR.id, "产出方＝user principal 本人");
 
     // 废弃腿同门（同一拦截腿两 op）：伪造归属在废弃腿同样拒、且不改状态
-    const deprecated = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const deprecated = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "knowledge.deprecate", actor: { kind: "user", id: "bot-researcher" }, idempotencyKey: "k-spoof-dep",
       payload: { id: readIndex(home)[0].id, reason: "冒名废弃" }
     });
@@ -1015,7 +1015,7 @@ test("知识命令腿 actor 归属门：user 只许声明 user principal 本人�
     assert.equal(readIndex(home)[0].status, "valid", "伪造归属的废弃尝试不得改状态");
 
     // user principal 本人在废弃腿同样成立（正例覆盖两 op：register 与 deprecate）
-    const mineDeprecate = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const mineDeprecate = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "knowledge.deprecate", actor: { ...RULING_ACTOR }, idempotencyKey: "k-user-dep",
       payload: { id: readIndex(home)[0].id, reason: "人间废弃" }
     });
@@ -1032,7 +1032,7 @@ test("knowledge.register 命令化：授权过的岗位实例经 host 执行登�
     const { ledger, issuer, api } = mkKnowledgeHost(home);
 
     // 未携 capability → 403（fail closed；不因「登记是轻动作」而放行）
-    const naked = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const naked = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "knowledge.register", actor: { kind: "post", id: "bot-researcher" }, idempotencyKey: "k-naked",
       payload: { title: "裸登记", summary: "s", body: "b" }
     });
@@ -1042,7 +1042,7 @@ test("knowledge.register 命令化：授权过的岗位实例经 host 执行登�
     // 持岗位角色能力 → 200 且索引落一行（写者＝host 进程）
     const role = issuer.issueRoleCapability({ botId: "bot-researcher", post: "researcher" });
     assert.equal(role.ok, true, role.reason);
-    const ok = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const ok = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "knowledge.register", actor: { kind: "post", id: "bot-researcher" }, idempotencyKey: "k-ok",
       capability: role.envelope,
       payload: { title: "命令化登记", summary: "摘要", body: "# 正文", conclusions: ["结论1"] }
@@ -1060,7 +1060,7 @@ test("knowledge.register 命令化：授权过的岗位实例经 host 执行登�
 
     // 复核帽不得持该 op：帽信封调用即拒（op 不在 availableOps）
     const hat = issuer.issueRoleCapability({ botId: "bot-reviewer", post: "verifier" });
-    const denied = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const denied = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "knowledge.register", actor: { kind: "post", id: "bot-reviewer" }, idempotencyKey: "k-hat",
       capability: hat.envelope,
       payload: { title: "帽登记", summary: "s", body: "b" }
@@ -1078,14 +1078,14 @@ test("knowledge.deprecate：命令化废弃腿——授权后走 host 执行，�
     const { ledger, issuer, api } = mkKnowledgeHost(home);
 
     const role = issuer.issueRoleCapability({ botId: "bot-researcher", post: "researcher" });
-    const seeded = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const seeded = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "knowledge.register", actor: { kind: "post", id: "bot-researcher" }, idempotencyKey: "d-0",
       capability: role.envelope, payload: { title: "将被废弃", summary: "s", body: "b" }
     });
     assert.equal(seeded.body.ok, true, seeded.body.reason);
 
     // 未携 capability → 403；废弃路径零写入
-    const naked = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const naked = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "knowledge.deprecate", actor: { kind: "post", id: "bot-researcher" }, idempotencyKey: "d-1",
       payload: { id: "R-2026-001", reason: "无授权尝试" }
     });
@@ -1094,7 +1094,7 @@ test("knowledge.deprecate：命令化废弃腿——授权后走 host 执行，�
 
     // 持角色能力 → 200，状态翻 deprecated 且旧痕迹保留
     const role2 = issuer.issueRoleCapability({ botId: "bot-researcher", post: "researcher" });
-    const ok = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const ok = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "knowledge.deprecate", actor: { kind: "post", id: "bot-researcher" }, idempotencyKey: "d-2",
       capability: role2.envelope, payload: { id: "R-2026-001", reason: "被后续实测否定" }
     });
@@ -1118,7 +1118,7 @@ test("知识命令面未接线 → 503 fail closed（不得跳过鉴权直落盘
       // authorizeCommand / knowledgeRegister 均未接线
     });
     const api = { dshHome: home, ledgerHost: host, ctx: { logger: { warn() {}, error() {}, info() {} } } };
-    const res = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const res = await call(api, "POST", "/api/pod/_ledger/commands", {
       op: "knowledge.register", actor: { kind: "post", id: "bot-x" }, idempotencyKey: "u-1",
       payload: { title: "t", summary: "s", body: "b" }
     });
@@ -1133,7 +1133,7 @@ test("知识命令面未接线 → 503 fail closed（不得跳过鉴权直落盘
       knowledgeRegister: () => ({ ok: true, id: "SHOULD-NOT-RUN" })
     });
     const api2 = { dshHome: home, ledgerHost: host2, ctx: { logger: { warn() {}, error() {}, info() {} } } };
-    const res2 = await call(api2, "POST", "/api/bots/_ledger/commands", {
+    const res2 = await call(api2, "POST", "/api/pod/_ledger/commands", {
       op: "knowledge.register", actor: { kind: "post", id: "bot-x" }, idempotencyKey: "u-2",
       payload: { title: "t", summary: "s", body: "b" }
     });

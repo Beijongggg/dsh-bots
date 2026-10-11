@@ -125,8 +125,8 @@ test("实例身份注册表：五字段齐备、旧格式/损坏 fail closed、�
 
   const home = mkHome();
   try {
-    const file = join(home, "bots", "started", "instances.jsonl");
-    mkdirSync(join(home, "bots", "started"), { recursive: true });
+    const file = join(home, "pod", "started", "instances.jsonl");
+    mkdirSync(join(home, "pod", "started"), { recursive: true });
     const row = { botId: "b1", pid: process.pid, startedAt: "proc:123", hostInstanceId: "host-1", at: "2026-09-16T00:00:00.000Z" };
     writeFileSync(file, `${JSON.stringify(row)}\n`);
     const current = currentInstanceRow(home, "b1");

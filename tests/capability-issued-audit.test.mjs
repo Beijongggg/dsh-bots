@@ -34,7 +34,7 @@ function mkHome() {
 
 /** 写审计链（`<home>/bots/capabilities/issued.jsonl`）；条目为对象或原始行文本。 */
 function writeAudit(home, records) {
-  const dir = join(home, "bots", "capabilities");
+  const dir = join(home, "pod", "capabilities");
   mkdirSync(dir, { recursive: true });
   const lines = records.map((record) => (typeof record === "string" ? record : JSON.stringify(record)));
   writeFileSync(join(dir, "issued.jsonl"), `${lines.join("\n")}\n`);

@@ -44,6 +44,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { PARITY_MANIFEST } from "../lib/parity-manifest.js";
 import { canonicalizePath, pathInsideOrEqual, pathsOverlap, findExistingPathIssue, ProbeError } from "../lib/sentinel-safety.js";
 import { buildDrillBlock, captureLedgerEvidence, readLedgerEventsFile } from "../lib/ledger-evidence.js";
+// 数据面路径单源（14 号票收敛）：台账事件坐标只活在 lib/data-roots.cjs。
+import { ledgerEventsFile as rootsLedgerEventsFile } from "../lib/data-roots.cjs";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const runnerScript = fileURLToPath(import.meta.url);
@@ -55,10 +57,10 @@ const drillCli = join(repoRoot, "scripts", "ledger-drill.mjs");
 
 /** 明确允许变化的易变路径（相对 DSH_HOME；正则，文档化豁免清单）。 */
 export const PROTECTED_SNAPSHOT_EXCLUSIONS = Object.freeze([
-  /^bots\/review\/epoch\.json$/,                 // host 锁纪元刷新（writerEpoch/at）
-  /^bots\/review\/capability\/epoch\.json$/,     // capability 锁纪元刷新
-  /^bots\/review\/capability\/nonces\//,         // nonce 单次消费文件
-  /^bots\/review\/capabilities\//,               // 租约心跳（leaseUntil 单调推进）
+  /^(?:bots|pod)\/review\/epoch\.json$/,                 // host 锁纪元刷新（writerEpoch/at；14 号票切名后新旧根都认）
+  /^(?:bots|pod)\/review\/capability\/epoch\.json$/,     // capability 锁纪元刷新
+  /^(?:bots|pod)\/review\/capability\/nonces\//,         // nonce 单次消费文件
+  /^(?:bots|pod)\/review\/capabilities\//,               // 租约心跳（leaseUntil 单调推进）
   /\.log$/,                                      // 日志
   /^(sessions|session-backups|archived-sessions|attachments|browser-profiles|storages|agent-presets-backup)\//, // 会话/浏览器/存储易变面
   // 28 号票补登：DSH 宿主自身的代理回退状态（宿主每次对外请求写；与本次 run 的产物
@@ -138,7 +140,7 @@ export function validateRunnerOutRoot(outRoot, { profile = "evidence", repoRoot:
   }
   const outAbs = resolve(outRoot);
   const home = resolve(process.env.DSH_HOME ?? join(process.env.HOME ?? "", ".dsh"));
-  const deploy = join(home, "plugins", "dsh-bots");
+  const deploy = join(home, "plugins", "pod");
   const protectedRoots = [
     { label: "DSH_HOME", lexical: home },
     { label: "部署目录", lexical: deploy }
@@ -262,9 +264,9 @@ function writeExclusive(filePath, bytes) {
 export function resolveLedgerEventsPath({ dshHome, explicit = null, drillHome = null }) {
   if (typeof explicit === "string" && explicit !== "") return resolve(explicit);
   if (typeof drillHome === "string" && drillHome !== "") {
-    return join(resolve(drillHome), "bots", "ledger", "events.jsonl");
+    return rootsLedgerEventsFile(resolve(drillHome));
   }
-  return join(resolve(dshHome), "bots", "ledger", "events.jsonl");
+  return rootsLedgerEventsFile(resolve(dshHome));
 }
 
 /** 观测台账末位 seq（Phase 1 用；文件缺失＝0——「本 run 期间新增」的窗口下界）。 */
@@ -369,7 +371,7 @@ async function runEvidence(opts) {
 
   // ---- O-6.3：真实运行面运行前快照（只读） ----
   const home = resolve(process.env.DSH_HOME ?? join(process.env.HOME ?? "", ".dsh"));
-  const deployDir = join(home, "plugins", "dsh-bots");
+  const deployDir = join(home, "plugins", "pod");
   const surfaces = [
     { label: "真实 DSH_HOME", path: home },
     { label: "真实部署目录", path: deployDir }

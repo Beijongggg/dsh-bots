@@ -73,7 +73,7 @@ const script = fileURLToPath(new URL("../scripts/bot-health.cjs", import.meta.ur
 const scopeName = (ws) => "-" + ws.split("/").join("-") + "-";
 
 function addBot(root, botId, sessionId, logs) {
-  const ws = path.join(root, "bot-workspaces", botId);
+  const ws = path.join(root, "pod-workspaces", botId);
   fs.mkdirSync(ws, { recursive: true });
   fs.writeFileSync(path.join(ws, ".dsh-bot-session.json"), JSON.stringify({ sessionId }));
   const sdir = path.join(root, "sessions", scopeName(ws), sessionId);
@@ -84,7 +84,7 @@ function addBot(root, botId, sessionId, logs) {
 // ---- ② 「疑似进行中」保护（第二处使用点）：v4-only 新写入日志也须被看见 ----
 const guardRoot = path.join(home, "guard-root");
 addBot(guardRoot, "g", "sid-g", { "session.v4.jsonl.zstd": logBytes([1]) });
-const guardWs = path.join(guardRoot, "bot-workspaces", "g");
+const guardWs = path.join(guardRoot, "pod-workspaces", "g");
 const guardEntry = { workspace: guardWs };
 assert.equal(isInProgress(guardRoot, "g", guardEntry), true,
   "v4-only 且 mtime < 60s → 疑似进行中（旧实现只认旧名，此处会漏判为 false）");
@@ -94,8 +94,8 @@ assert.equal(isInProgress(guardRoot, "g", guardEntry), false, "日志 mtime 超 
 console.log("✓ 疑似进行中保护：v4-only 新日志可被看见（mtime 口径不变）");
 
 const root = path.join(home, "dsh-root");
-fs.mkdirSync(path.join(root, "bots"), { recursive: true });
-fs.writeFileSync(path.join(root, "bots", "bots.json"), JSON.stringify({ v4only: {}, multi: {} }));
+fs.mkdirSync(path.join(root, "pod"), { recursive: true });
+fs.writeFileSync(path.join(root, "pod", "bots.json"), JSON.stringify({ v4only: {}, multi: {} }));
 addBot(root, "v4only", "sid-v4", { "session.v4.jsonl.zstd": logBytes([1]) });
 addBot(root, "multi", "sid-multi", {
   "session.jsonl.zstd": logBytes([1]),

@@ -55,7 +55,7 @@ test("receipt 写入/水位：max(基线, 最大 receipt)；损坏 receipt 跳�
   assert.equal(readMaxReceiptSeq(home, "w"), 5);
   writeBaselineReceipt(home, "w", 9);
   assert.equal(readMaxReceiptSeq(home, "w"), 9, "基线抬高水位");
-  const dir = path.join(home, "bots", "inbox", "w", "receipts");
+  const dir = path.join(home, "pod", "inbox", "w", "receipts");
   fs.writeFileSync(path.join(dir, "broken.json"), "{not-json", "utf8");
   assert.equal(readMaxReceiptSeq(home, "w"), 9, "损坏 receipt 跳过不抛");
 });
@@ -64,12 +64,12 @@ test("pruneReceipts：超保留上限按 mtime 淘汰最旧，水位只增不减
   const home = mkHome();
   for (let i = 1; i <= 6; i += 1) {
     writeReceipt(home, "w", { messageId: `m${i}`, seq: i });
-    const file = path.join(home, "bots", "inbox", "w", "receipts", `m${i}.json`);
+    const file = path.join(home, "pod", "inbox", "w", "receipts", `m${i}.json`);
     // mtime 递增（淘汰按 mtime 排序，需可分辨）
     fs.utimesSync(file, new Date(Date.now() + i * 1000), new Date(Date.now() + i * 1000));
   }
   pruneReceipts(home, "w", 3);
-  const left = fs.readdirSync(path.join(home, "bots", "inbox", "w", "receipts")).filter((n) => n.endsWith(".json") && !n.startsWith("."));
+  const left = fs.readdirSync(path.join(home, "pod", "inbox", "w", "receipts")).filter((n) => n.endsWith(".json") && !n.startsWith("."));
   assert.equal(left.length, 3, "保留最新 3");
   assert.deepEqual(left.sort(), ["m4.json", "m5.json", "m6.json"]);
   assert.equal(readMaxReceiptSeq(home, "w"), 6, "水位仍由现存最大 receipt 决定");
@@ -81,7 +81,7 @@ test("initialMailCursor：目录未建 → 0 且不创建目录（语义不变�
   const home = mkHome();
   const cursor = initialMailCursor(home, "w");
   assert.deepEqual({ lastSeq: cursor.lastSeq, replay: cursor.replay }, { lastSeq: 0, replay: false });
-  assert.equal(fs.existsSync(path.join(home, "bots", "inbox", "w")), false, "不得创建 inbox 目录");
+  assert.equal(fs.existsSync(path.join(home, "pod", "inbox", "w")), false, "不得创建 inbox 目录");
 });
 
 test("initialMailCursor：旧数据迁移——无 receipt 有消息 → 基线＝文件最大，不回放", () => {
@@ -98,7 +98,7 @@ test("initialMailCursor：旧数据迁移——无 receipt 有消息 → 基线�
 test("initialMailCursor：零 receipt＋存量＋receipts 目录已存在（create 预建痕迹）→ 回放不落基线", () => {
   const home = mkHome();
   for (let i = 0; i < 3; i += 1) appendMessage(home, "w", { from: "user", text: "new" });
-  fs.mkdirSync(path.join(home, "bots", "inbox", "w", "receipts"), { recursive: true });
+  fs.mkdirSync(path.join(home, "pod", "inbox", "w", "receipts"), { recursive: true });
   const cursor = initialMailCursor(home, "w");
   assert.deepEqual({ lastSeq: cursor.lastSeq, replay: cursor.replay }, { lastSeq: 0, replay: true },
     "未启动即收到首封邮件（实例诞生于新消费语义）→ 全量回放，不被迁移基线吞没");

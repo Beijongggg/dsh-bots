@@ -48,8 +48,9 @@
 - **插件目录钉在真实 HOME**：宿主读 `~/.dsh/plugins`，`DSH_HOME` 不重定向
   它——隔离镜像必须同时覆盖 HOME 才会加载镜像插件（镜像打点失效 90+ 步
   诊断的根因）。
-- **插件解析锚＝profile 的 `node_modules/dsh-bots` 符号链接**（指向真实
-  部署目录）；换打点版要改这条链接，改 `DSH_HOME` 无效。
+- **插件解析锚＝profile 的 `node_modules/pod` 符号链接**（指向真实部署目录；
+  13 号票改名批由 `node_modules/dsh-bots` 更名，存量软链重建属运行面动作须点名）；
+  换打点版要改这条链接，改 `DSH_HOME` 无效。
 - **官方 agent loop 的 `kick()` 静默吞回合错误**：followup 后 `whenIdle`
   立即 resolve（polls=0）≠ 成功——须监听 `agent/error` 事件才能拿到被吞
   的错误。
@@ -82,7 +83,7 @@
 
 - `~/.dsh/profiles/<name>/` 成员：`package.json`（bundles＝`@deepseek-ai/dsh-base`
   ＋`@deepseek-ai/dsh-web-app`）、`cordis.yml`、`cordis.patch.yml`、
-  `settings.yaml`、`node_modules`（`dsh-bots` 解析锚符号链接，见上节）。
+  `settings.yaml`、`node_modules`（`pod` 解析锚符号链接，见上节）。
 - **插件活动面是 `cordis.patch.yml`**：provider 配置挂 `- id: llm-pi-ai` 补丁块
   的 `config.providers`（键：displayName／apiKeyEnv／api／baseURL／models／
   headers）。`settings.yaml` 的同名键是旧面——provider 基本解析仍可被读到，

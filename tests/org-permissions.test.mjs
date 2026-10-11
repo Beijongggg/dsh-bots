@@ -42,11 +42,11 @@ test("L1：自身 workspace 内可写（V-A3.1 正例）", () => {
 
 test("L1 负例：~/.dsh 全域与一切共享面零直写——注册表/profiles/他人 workspace/台账/capability/knowledge/mail（V-A3.1）", () => {
   const shared = [
-    join(HOME, "bots", "started", "instances.jsonl"),
+    join(HOME, "pod", "started", "instances.jsonl"),
     join(HOME, "profiles", "bot-a", "config.json"),
-    join(HOME, "bot-workspaces", "bot-b", "steal.md"),
-    join(HOME, "bots", "ledger", "events.jsonl"),
-    join(HOME, "bots", "capabilities", "secret"),
+    join(HOME, "pod-workspaces", "bot-b", "steal.md"),
+    join(HOME, "pod", "ledger", "events.jsonl"),
+    join(HOME, "pod", "capabilities", "secret"),
     join(HOME, "knowledge", "index.jsonl"),
     join(HOME, "bots", "bot-a", "inbox.jsonl"),
     join(HOME, "artifacts", "packages", "0008")
@@ -68,9 +68,9 @@ test("L1 负例：知识库容器协议**真实面**路径全部界外（V-A3.1 
     join(reportsDirFor(HOME), "R-2026-001.md"),
   ];
   const byLiteral = [
-    join(HOME, "bots", "knowledge"),
-    join(HOME, "bots", "knowledge", "index.jsonl"),
-    join(HOME, "bots", "knowledge", ".lock", "owner.json"),
+    join(HOME, "pod", "knowledge"),
+    join(HOME, "pod", "knowledge", "index.jsonl"),
+    join(HOME, "pod", "knowledge", ".lock", "owner.json"),
   ];
   for (const target of [...byHelper, ...byLiteral]) {
     assert.equal(isBotWritablePath({ dshHome: HOME, botId: "bot-a", target }), false,
@@ -97,9 +97,9 @@ test("L1 负例：投递面**真实面**路径（inbox／outbox／receipts／res
     messagesPathFor(HOME, "bot-b"),
   ];
   const byLiteral = [
-    join(HOME, "bots", "inbox", "bot-a", "messages.jsonl"),
-    join(HOME, "bots", "outbox", "bot-a", "2026-09-20T00-00-00-000Z.jsonl"),
-    join(HOME, "bots", "inbox", "bot-a", ".seq.lock", "owner.json"),
+    join(HOME, "pod", "inbox", "bot-a", "messages.jsonl"),
+    join(HOME, "pod", "outbox", "bot-a", "2026-09-20T00-00-00-000Z.jsonl"),
+    join(HOME, "pod", "inbox", "bot-a", ".seq.lock", "owner.json"),
   ];
   for (const target of [...byHelper, ...byLiteral]) {
     assert.equal(isBotWritablePath({ dshHome: HOME, botId: "bot-a", target }), false,
@@ -112,9 +112,9 @@ test("L1 负例：投递面**真实面**路径（inbox／outbox／receipts／res
 });
 
 test("L1 负例：路径遍历（workspace 内的 ../ 跳出）与非法 botId 一律拒（V-A3.1）", () => {
-  const viaTraversal = join(HOME, "bot-workspaces", "bot-a", "..", "..", "profiles", "x");
+  const viaTraversal = join(HOME, "pod-workspaces", "bot-a", "..", "..", "profiles", "x");
   assert.equal(isBotWritablePath({ dshHome: HOME, botId: "bot-a", target: viaTraversal }), false);
-  assert.equal(isBotWritablePath({ dshHome: HOME, botId: "../bot-b", target: join(HOME, "bot-workspaces", "bot-b", "x") }), false);
+  assert.equal(isBotWritablePath({ dshHome: HOME, botId: "../bot-b", target: join(HOME, "pod-workspaces", "bot-b", "x") }), false);
   assert.equal(isBotWritablePath({ dshHome: HOME, botId: "bot-a", target: "" }), false);
   assert.equal(isBotWritablePath({ dshHome: HOME, botId: "bot-a", target: "relative/path.md" }), false,
     "相对路径不落界内（策略只认解析后的绝对界）");
@@ -155,7 +155,7 @@ test("V-A3.9 正交（基底侧）：实例基底再宽（注册表行携带 dan
   // 无信封的 post 命令照样 capability-required（基底放权替代不了任务域授权）。
   const home = mkdtempSync(join(tmpdir(), "dsh-perm-orth-"));
   process.on("exit", () => rmSync(home, { recursive: true, force: true }));
-  mkdirSync(join(home, "bots", "started"), { recursive: true });
+  mkdirSync(join(home, "pod", "started"), { recursive: true });
   writeFileSync(instanceRegistryFile(home), `${JSON.stringify({
     botId: "bot-a", pid: process.pid, startedAt: "proc:x", hostInstanceId: "gen-a", at: Date.now(),
     permissionMode: "danger-full-access" // 实例基底字段：对鉴权面是死数据
@@ -173,7 +173,7 @@ test("V-A3.9 正交（基底侧）：实例基底再宽（注册表行携带 dan
 test("V-A3.9 正交（能力侧）：真 capability 扩不出文件面——共享面写路径仍被 L1 拒", () => {
   // 能力（L2 任务域授权）不携带任何文件面语义：isBotWritablePath 的输入没有
   // capability 槽位——行为上即「有能力≠可写共享面」。
-  assert.equal(isBotWritablePath({ dshHome: HOME, botId: "bot-a", target: join(HOME, "bots", "ledger", "events.jsonl") }), false,
+  assert.equal(isBotWritablePath({ dshHome: HOME, botId: "bot-a", target: join(HOME, "pod", "ledger", "events.jsonl") }), false,
     "L1 不因任何任务域授权而放宽");
 });
 
@@ -195,7 +195,7 @@ test("知识命令腿 actor 门（30 号票）：形状／归属判定表；台�
   // user 全权不经岗位表、host 为进程内确定性组件（V-A3.10；`authorize` 一行未改）
   const home = mkdtempSync(join(tmpdir(), "dsh-perm-knowledge-actor-"));
   process.on("exit", () => rmSync(home, { recursive: true, force: true }));
-  mkdirSync(join(home, "bots", "started"), { recursive: true });
+  mkdirSync(join(home, "pod", "started"), { recursive: true });
   const issuer = createCapabilityIssuer({ dshHome: home });
   const { authorize } = createLedgerAuthorizer({ issuer, postForBot: () => "researcher" });
   assert.deepEqual(
@@ -211,7 +211,7 @@ test("知识命令腿 actor 门（30 号票）：形状／归属判定表；台�
 test("权限装配件工厂（23 号票③）：{issuer, postForBot, logger} 一处装配——authorize 直通鉴权器、createDispatcher 成套取出 dispatcher", async () => {
   const home = mkdtempSync(join(tmpdir(), "dsh-perm-kit-"));
   process.on("exit", () => rmSync(home, { recursive: true, force: true }));
-  mkdirSync(join(home, "bots", "started"), { recursive: true });
+  mkdirSync(join(home, "pod", "started"), { recursive: true });
   const issuer = createCapabilityIssuer({ dshHome: home });
   const kit = createLedgerAccessKit({
     issuer, postForBot: () => "implementer", logger: { warn: () => {} }

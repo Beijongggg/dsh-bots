@@ -89,8 +89,8 @@ test("tightenBotTree：顶层目录＋四具名文件收紧，嵌套内容不递
 
 test("注册表：写后 0600（含存量 0644 回收紧）", () => {
   const home = mkHome();
-  fs.mkdirSync(path.join(home, "bots"), { recursive: true });
-  const reg = path.join(home, "bots", "bots.json"); // registryPath = $DSH_HOME/bots/bots.json
+  fs.mkdirSync(path.join(home, "pod"), { recursive: true });
+  const reg = path.join(home, "pod", "bots.json"); // registryPath = $DSH_HOME/bots/bots.json
   fs.writeFileSync(reg, "{}\n");
   fs.chmodSync(reg, 0o644);
   writeRegistryAtomic(home, {});
@@ -101,8 +101,8 @@ test("注册表：写后 0600（含存量 0644 回收紧）", () => {
 
 test("集成：scaffoldBot builtin 路径——新件即紧＋存量 0644 重 scaffold 收回", () => {
   const home = mkHome();
-  const prevScript = process.env.DSH_BOTS_CREATE_BOT_SCRIPT;
-  process.env.DSH_BOTS_CREATE_BOT_SCRIPT = path.join(home, "no-such-script.cjs");
+  const prevScript = process.env.POD_CREATE_BOT_SCRIPT;
+  process.env.POD_CREATE_BOT_SCRIPT = path.join(home, "no-such-script.cjs");
   try {
     const bot = {
       id: "w1", name: "W", role: "coder", modelProvider: "", model: "",
@@ -110,7 +110,7 @@ test("集成：scaffoldBot builtin 路径——新件即紧＋存量 0644 重 sc
     };
     scaffoldBot({ logger: { info() {}, warn() {}, error() {}, debug() {} } }, home, bot);
     const profile = path.join(home, "profiles", "w1");
-    const workspace = path.join(home, "bot-workspaces", "w1");
+    const workspace = path.join(home, "pod-workspaces", "w1");
     assert.equal(mode(profile), TIGHT_DIR_MODE, "profile 目录 0700");
     assert.equal(mode(workspace), TIGHT_DIR_MODE, "workspace 目录 0700");
     for (const name of ["package.json", "cordis.patch.yml", "settings.yaml", "pnpm-workspace.yaml"]) {
@@ -127,8 +127,8 @@ test("集成：scaffoldBot builtin 路径——新件即紧＋存量 0644 重 sc
     assert.equal(idemAfter.mtimeMs, idemBefore.mtimeMs, "再 scaffold mtime 不变");
     assert.equal(idemAfter.ctimeMs, idemBefore.ctimeMs, "再 scaffold ctime 不变");
   } finally {
-    if (prevScript === undefined) delete process.env.DSH_BOTS_CREATE_BOT_SCRIPT;
-    else process.env.DSH_BOTS_CREATE_BOT_SCRIPT = prevScript;
+    if (prevScript === undefined) delete process.env.POD_CREATE_BOT_SCRIPT;
+    else process.env.POD_CREATE_BOT_SCRIPT = prevScript;
   }
 });
 
@@ -156,8 +156,8 @@ fs.chmodSync(profile, 0o755);
 fs.chmodSync(workspace, 0o755);
 `);
   fs.chmodSync(scriptPath, 0o755);
-  const prevScript = process.env.DSH_BOTS_CREATE_BOT_SCRIPT;
-  process.env.DSH_BOTS_CREATE_BOT_SCRIPT = scriptPath;
+  const prevScript = process.env.POD_CREATE_BOT_SCRIPT;
+  process.env.POD_CREATE_BOT_SCRIPT = scriptPath;
   const ctx = { logger: { info() {}, warn() {}, error() {}, debug() {} } };
   try {
     const bot = {
@@ -166,7 +166,7 @@ fs.chmodSync(workspace, 0o755);
     };
     await scaffoldBot(ctx, home, bot);
     const profile = path.join(home, "profiles", "s1");
-    const workspace = path.join(home, "bot-workspaces", "s1");
+    const workspace = path.join(home, "pod-workspaces", "s1");
     assert.equal(
       fs.readFileSync(path.join(profile, "package.json"), "utf8"),
       "fake package.json",
@@ -191,8 +191,8 @@ fs.chmodSync(workspace, 0o755);
       assert.equal(mode(path.join(profile, name)), TIGHT_FILE_MODE, `第二遍 ${name} 仍 0600`);
     }
   } finally {
-    if (prevScript === undefined) delete process.env.DSH_BOTS_CREATE_BOT_SCRIPT;
-    else process.env.DSH_BOTS_CREATE_BOT_SCRIPT = prevScript;
+    if (prevScript === undefined) delete process.env.POD_CREATE_BOT_SCRIPT;
+    else process.env.POD_CREATE_BOT_SCRIPT = prevScript;
   }
 });
 

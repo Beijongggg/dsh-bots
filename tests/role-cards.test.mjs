@@ -255,17 +255,17 @@ test("提示段由卡渲染派生（插件接线）：home 岗位决定岗位段
   };
 
   const withPost = makeHarness({ id: "bot", name: "研究员", role: "调研", post: "researcher", createdAt: "2026-09-16" });
-  const seg = withPost.sections.find((s) => s.name === "dsh-bots:post");
+  const seg = withPost.sections.find((s) => s.name === "pod:post");
   assert.ok(seg !== undefined, "有 home 岗位时应注册岗位段");
   assert.equal(seg.text, renderPostPromptSegment(roleCardBySlug("researcher")), "段文本＝卡渲染产物（逐字）");
   assert.equal(seg.order, 19, "岗位段在团队段（order 20）之前");
   assert.deepEqual(withPost.warnings, []);
 
   const noPost = makeHarness({ id: "bot", name: "研究员", role: "调研", createdAt: "2026-09-16" });
-  assert.equal(noPost.sections.some((s) => s.name === "dsh-bots:post"), false, "无 home 岗位不注册岗位段");
+  assert.equal(noPost.sections.some((s) => s.name === "pod:post"), false, "无 home 岗位不注册岗位段");
 
   const badPost = makeHarness({ id: "bot", name: "研究员", post: "chief-vibes-officer", createdAt: "2026-09-16" });
-  assert.equal(badPost.sections.some((s) => s.name === "dsh-bots:post"), false, "未知 slug 不注册岗位段");
+  assert.equal(badPost.sections.some((s) => s.name === "pod:post"), false, "未知 slug 不注册岗位段");
   assert.equal(badPost.warnings.length, 1, "未知 slug 必须响亮（不留静默失败）");
   assert.ok(badPost.warnings[0].includes("chief-vibes-officer"));
 });

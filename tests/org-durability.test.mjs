@@ -333,7 +333,7 @@ test("样本本身过换模型试金石：模型记号／散文式判据／缺�
     ...clean,
     brief: {
       ...clean.brief,
-      acceptance: [{ probe: "fs.contains", args: { location: "bot-workspaces/{{botId}}/x.json", text: "报告须完整引用全部来源。" } }]
+      acceptance: [{ probe: "fs.contains", args: { location: "pod-workspaces/{{botId}}/x.json", text: "报告须完整引用全部来源。" } }]
     }
   };
   const prose = sampleTouchstone(proseCriterion);
@@ -360,7 +360,7 @@ test("判据与输出格式单源：fs.contains 文本恰为声明格式的结�
     ...ROLE_EVAL_SET[0],
     brief: {
       ...ROLE_EVAL_SET[0].brief,
-      acceptance: [{ probe: "fs.contains", args: { location: "bot-workspaces/{{botId}}/x.json", text: "未登记记号" } }]
+      acceptance: [{ probe: "fs.contains", args: { location: "pod-workspaces/{{botId}}/x.json", text: "未登记记号" } }]
     }
   });
   assert.equal(rogue.ok, false, "表外记号即违例");
@@ -494,7 +494,7 @@ test("①触发：host 登记腿把评测任务落成 class=duty 任务；同窗
     assert.equal(task.class, "duty", "评测任务＝class duty");
     assert.equal(task.routineId, "eval-researcher-report");
     assert.ok(task.brief.goal.includes("样例模型二"), "任务目标点名新模型");
-    assert.ok(task.brief.acceptance[0].args.location.startsWith("bot-workspaces/bot-a/eval/"), "判据坐标落受影响实例 workspace");
+    assert.ok(task.brief.acceptance[0].args.location.startsWith("pod-workspaces/bot-a/eval/"), "判据坐标落受影响实例 workspace");
     // ②步绑定：任务与受影响实例的绑定写在台账事件里（routineId＋window 幂等窗含实例 id
     // 与目标指派），不只写在目标文案里——「新模型下由谁跑」可事后从台账投影回核
     const intake = ledger.taskEvents(task.taskId).find((event) => event.type === "intake");

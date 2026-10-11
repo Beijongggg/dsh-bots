@@ -46,8 +46,8 @@ await new Promise((r) => server.listen(0, "127.0.0.1", r));
 const port = server.address().port;
 
 const now = new Date().toISOString();
-fs.mkdirSync(path.join(home, "bots"), { recursive: true });
-fs.writeFileSync(path.join(home, "bots", "bots.json"), JSON.stringify({
+fs.mkdirSync(path.join(home, "pod"), { recursive: true });
+fs.writeFileSync(path.join(home, "pod", "bots.json"), JSON.stringify({
   worker: { id: "worker", name: "执行者", role: "干活", modelProvider: "", model: "", port, createdAt: now }
 }));
 
@@ -65,7 +65,7 @@ assert.ok(!methods.includes("session.selectModel"), "空模型字段应跳过 se
 for (const c of captured) {
   assert.equal(c.body.type, "client-request", c.url + " 信封 type");
   assert.equal(c.body.method, c.url.replace("/api/", ""), "信封 method 与 URL 一致");
-  assert.ok(typeof c.body.rpcId === "string" && c.body.rpcId.startsWith("dsh-bots-"), "rpcId 前缀");
+  assert.ok(typeof c.body.rpcId === "string" && c.body.rpcId.startsWith("pod-"), "rpcId 前缀");
   assert.ok(c.body.payload && typeof c.body.payload === "object", "payload 为对象");
 }
 const promptCall = byMethod("session.prompt")[0];
@@ -73,7 +73,7 @@ assert.equal(promptCall.body.payload.mode, "queue");
 assert.equal(promptCall.body.payload.content[0].text, "hello envelope", "prompt 正文透传");
 const createCall = byMethod("session.create")[0];
 assert.ok(createCall.body.payload.cwd.endsWith("worker"), "session.create cwd 指向 workspace");
-assert.ok(fs.existsSync(path.join(home, "bot-workspaces", "worker", ".dsh-bot-session.json")), "sessionId 已落盘");
+assert.ok(fs.existsSync(path.join(home, "pod-workspaces", "worker", ".dsh-bot-session.json")), "sessionId 已落盘");
 
 // 第二个回合：复用 session（不再 create），baseline 轮次推进。
 // 用新的临时端口起服务并改写注册表——避免与第一轮同端口重监听竞争
@@ -82,7 +82,7 @@ captured.length = 0;
 prompts = 0;
 const server2 = http.createServer(handler);
 await new Promise((r) => server2.listen(0, "127.0.0.1", r));
-fs.writeFileSync(path.join(home, "bots", "bots.json"), JSON.stringify({
+fs.writeFileSync(path.join(home, "pod", "bots.json"), JSON.stringify({
   worker: { id: "worker", name: "执行者", role: "干活", modelProvider: "", model: "", port: server2.address().port, createdAt: now }
 }));
 const reply2 = await internals.runNativeAgentTurn(ctx, home, "worker", "second");
@@ -102,7 +102,7 @@ const authenticatedServer = http.createServer((_req, res) => {
   res.end("unauthorized");
 });
 await new Promise(resolve => authenticatedServer.listen(0, "127.0.0.1", resolve));
-fs.writeFileSync(path.join(home, "bots", "bots.json"), JSON.stringify({
+fs.writeFileSync(path.join(home, "pod", "bots.json"), JSON.stringify({
   native: { id: "native", name: "实施者", modelProvider: "niko", model: "approved-model",
     port: authenticatedServer.address().port, createdAt: now }
 }));
@@ -110,7 +110,7 @@ const sessions = new Map();
 const promptIds = new Set();
 const controller = {
   async create({ cwd }) {
-    assert.equal(cwd, path.join(home, "bot-workspaces", "native"));
+    assert.equal(cwd, path.join(home, "pod-workspaces", "native"));
     const sessionId = "native-" + (sessions.size + 1);
     sessions.set(sessionId, { events: [], model: null, turn: 0 });
     return { sessionId };
@@ -154,7 +154,7 @@ console.log("✓ 浏览器认证开启时，原生会话仍完成回合并保留
 // 错误终止保真（2026-09-29 TK-20260929 供应商 400 工具名拒绝的实证形状）：
 // 回合只有一次 turn/end reason.kind=error、无 assistant 消息——driver 必须立即
 // 抛出供应商错误，而不是轮询到十分钟超时后报超时。
-fs.writeFileSync(path.join(home, "bots", "bots.json"), JSON.stringify({
+fs.writeFileSync(path.join(home, "pod", "bots.json"), JSON.stringify({
   errbot: { id: "errbot", name: "错误席", modelProvider: "niko", model: "approved-model",
     port: 3299, createdAt: now }
 }));

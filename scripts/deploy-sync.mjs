@@ -34,7 +34,7 @@
  *   batch            批次短名（记录件 `batch`；**无默认值**，防止误留上一批）
  *   restart          重启口径（默认 "不做"）
  *   inventory        { "require": "all-same" | "batch-only" }（默认 batch-only）
- *   deploySubdir     部署面相对 `--dsh-home` 的子路径（默认 plugins/dsh-bots）
+ *   deploySubdir     部署面相对 `--dsh-home` 的子路径（默认 plugins/pod；13 号票改名批随插件目录更名）
  */
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -139,7 +139,7 @@ function main() {
   }
 
   const dshHome = resolve(args.dshHome ?? spec.dshHome ?? join(homedir(), ".dsh"));
-  const deployDir = join(dshHome, spec.deploySubdir ?? join("plugins", "dsh-bots"));
+  const deployDir = join(dshHome, spec.deploySubdir ?? join("plugins", "pod"));
   /** 计划件路径＝`<runId>-plan-<planSha8>.json`（名字内嵌自身摘要，便于自校验）。 */
   const planPathFor = (planSha8) => join(repoRoot, "artifacts", "cutover-preparation", `${spec.runId}-plan-${planSha8}.json`);
 
@@ -178,7 +178,7 @@ function main() {
     writeFileSync(finalPlanPath, planText);
 
     // 备份：排他目录 + 0600/fsync + 回读复验 + 排他 manifest
-    const backupParent = join(dshHome, "backups", "dsh-bots");
+    const backupParent = join(dshHome, "backups", "pod");
     const backupDir = join(backupParent, `${spec.runId}-backup-${planSha8}`);
     mkdirSync(backupParent, { recursive: true });
     mkdirSync(backupDir);                       // 排他：已存在即 EEXIST

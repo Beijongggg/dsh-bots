@@ -37,7 +37,7 @@ function rig({ postName = "implementer", now = () => Date.now() } = {}) {
   child.connected = true;
   child.send = (message) => { if (message.credential) credential = message.credential; };
   delivery.attach("implementer", child);
-  child.emit("message", { type: "dsh-bots:org-ready", botId: "implementer" });
+  child.emit("message", { type: "pod:org-ready", botId: "implementer" });
   async function request(path, body = null, headers = {}) {
     const req = new EventEmitter();
     Object.assign(req, { method: body === null ? "GET" : "POST", url: path, headers });
@@ -57,7 +57,7 @@ function rig({ postName = "implementer", now = () => Date.now() } = {}) {
   const taskId = "TK-00000016";
   async function command(op, payload) {
     const task = ledger.task(taskId);
-    return request("/api/bots/_ledger/commands", { op, taskId, actor: { kind: "user", id: "user" },
+    return request("/api/pod/_ledger/commands", { op, taskId, actor: { kind: "user", id: "user" },
       idempotencyKey: op, ...(task ? { expectedStatus: task.status, expectedSeq: task.lastSeq } : {}), payload });
   }
   return { home, host, delivery, ledger, registry, request, post, command, taskId, fetchImpl, child,
@@ -147,16 +147,16 @@ test("复核请求召集空闲统筹戴帽：每轮全新会话，只见复核�
     } };
     child.send = (message) => {
       if (message.credential) credential = message.credential;
-      if (message.type === "dsh-bots:org-review") {
+      if (message.type === "pod:org-review") {
         const dispatch = createPostChannel({ origin: "http://127.0.0.1:3080", botId: "coordinator",
           credential: () => credential, review: message.review, fetchImpl: r.fetchImpl,
           probeCtx: { dshHome: r.home } });
         completion = runFreshReview({ ctx, bot: r.registry.coordinator, cwd: r.home, review: message.review, dispatch })
-          .then((result) => child.emit("message", { type: "dsh-bots:org-review-done", review: message.review, ...result }));
+          .then((result) => child.emit("message", { type: "pod:org-review-done", review: message.review, ...result }));
       }
     };
     r.delivery.attach("coordinator", child);
-    child.emit("message", { type: "dsh-bots:org-ready", botId: "coordinator" });
+    child.emit("message", { type: "pod:org-ready", botId: "coordinator" });
     await r.command("task.intake", { class: "project", brief: VALID_BRIEF });
     await r.command("task.triage", { decision: "立项" });
     await r.command("task.plan", {});
@@ -171,7 +171,7 @@ test("复核请求召集空闲统筹戴帽：每轮全新会话，只见复核�
     assert.equal(registered.ok, true, JSON.stringify(registered));
     for (let round = 0; round < 2; round++) {
       const task = r.ledger.task(r.taskId);
-      const request = await r.request("/api/bots/_ledger/commands", { op: "review.request", taskId: r.taskId,
+      const request = await r.request("/api/pod/_ledger/commands", { op: "review.request", taskId: r.taskId,
         actor: { kind: "user", id: "user" }, idempotencyKey: `review-${round}`,
         expectedStatus: task.status, expectedSeq: task.lastSeq,
         payload: { topic: "cutover-check", reviewer: "coordinator" } });
@@ -208,7 +208,7 @@ test("复核未能运行或实例退出时显式入异常账，旧帽不再读�
     const result = await r.command("review.request", { topic: "failure-case", reviewer: "implementer" });
     assert.equal(result.body.reviewDispatch.ok, true);
     const review = result.body.reviewDispatch;
-    const received = await r.request("/api/bots/_ledger/delivery", { ...r.credential(), review }, { "x-dsh-bots-bot-id": "implementer" });
+    const received = await r.request("/api/pod/_ledger/delivery", { ...r.credential(), review }, { "x-pod-bot-id": "implementer" });
     assert.equal(received.body.capabilities[0].payload.post, "verifier");
     await new Promise((resolve) => setImmediate(resolve));
     assert.equal(disposed, false, "复核正在等待模型结束");
@@ -218,11 +218,11 @@ test("复核未能运行或实例退出时显式入异常账，旧帽不再读�
     ipc.emit("disconnect");
     await new Promise((resolve) => setImmediate(resolve));
     assert.equal(disposed, true, "IPC 断开必须立即清理仍在运行的复核 Agent");
-    const view = (await r.request("/api/bots/_ledger/notifications")).body;
+    const view = (await r.request("/api/pod/_ledger/notifications")).body;
     assert.ok(view.notifications.some((row) => row.type === "exception" && row.to === "user"), JSON.stringify(view));
-    const oldHat = await r.request(`/api/bots/_ledger/review-handoff?taskId=${r.taskId}`, null,
-      { "x-dsh-bots-bot-id": "implementer", "x-dsh-bots-review-request": String(review.requestSeq),
-        "x-dsh-bots-capability": JSON.stringify(received.body.capabilities[0]) });
+    const oldHat = await r.request(`/api/pod/_ledger/review-handoff?taskId=${r.taskId}`, null,
+      { "x-pod-bot-id": "implementer", "x-pod-review-request": String(review.requestSeq),
+        "x-pod-capability": JSON.stringify(received.body.capabilities[0]) });
     assert.equal(oldHat.status, 403);
   } finally {
     listener?.close();
@@ -237,7 +237,7 @@ test("能力领取只读既发信封：冒名、自请岗位与 op、错误凭�
   try {
     const original = r.credential();
     const audit = readFileSync(issuedAuditFile(r.home), "utf8");
-    const read = (body, botId = "implementer") => r.request("/api/bots/_ledger/delivery", body, { "x-dsh-bots-bot-id": botId });
+    const read = (body, botId = "implementer") => r.request("/api/pod/_ledger/delivery", body, { "x-pod-bot-id": botId });
     assert.equal((await read(original)).body.ok, true);
     assert.equal((await read(original)).body.ok, true);
     for (const body of [
@@ -279,8 +279,9 @@ test("复核 followup 的消息 source 须为 v4 producer-owned 形（16 号票�
   // 实证（2026-09-29 真实面 TK-20260929 seq 27/29＋镜像打点）：宿主 v4 会话格式
   // 拒绝 kind:"plugin" 退役包装（format v4 message requires a producer-owned
   // source kind）；官方 agent loop 的 kick 对 turn 抛错静默吞掉，复核会话因此
-  // 只剩 preset 事件、whenIdle 立即空转。官方 producerKind 映射未知插件 dsh-bots
-  // → "plugin:dsh-bots"。
+  // 只剩 preset 事件、whenIdle 立即空转。官方 producerKind 对非在册插件映射为
+  // "plugin:<插件名>"（13 号票：插件名随包名改 pod → "plugin:pod"；宿主不自动派生，
+  // 调用点字面量须与四同名链同窗切换）。
   const r = rig();
   let captured = null;
   try {
@@ -293,7 +294,7 @@ test("复核 followup 的消息 source 须为 v4 producer-owned 形（16 号票�
       dispatch: async () => ({ ok: true }) }).catch(() => "fixture 无报告提交，预期结束");
     await new Promise((resolve) => setImmediate(resolve));
     assert.ok(captured, "followup 已被调用");
-    assert.equal(captured.source?.kind, "plugin:dsh-bots", "source.kind 须为官方 producerKind 映射的 producer-owned 形");
+    assert.equal(captured.source?.kind, "plugin:pod", "source.kind 须为官方 producerKind 映射的 producer-owned 形");
     assert.equal(captured.source?.plugin, undefined, "退役的 plugin 包装键不得保留");
     assert.equal(captured.role, "user");
     assert.ok(Array.isArray(captured.content) && captured.content[0]?.type === "text");

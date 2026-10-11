@@ -61,7 +61,7 @@ function bindSection(section, dir) {
 
 function ledgerEvidenceFixture(runId) {
   const dir = mkTmp();
-  const section = captureLedgerEvidence({ eventsPath: path.join(dir, "bots", "ledger", "events.jsonl"), runId, kind: "host-ledger", fromSeq: 0 });
+  const section = captureLedgerEvidence({ eventsPath: path.join(dir, "pod", "ledger", "events.jsonl"), runId, kind: "host-ledger", fromSeq: 0 });
   return bindSection(section, dir);
 }
 
@@ -86,7 +86,7 @@ async function ledgerEvidenceWithEvents(runId, { drill = null } = {}) {
   }
   ledger.close();
   const section = captureLedgerEvidence({
-    eventsPath: path.join(home, "bots", "ledger", "events.jsonl"), runId,
+    eventsPath: path.join(home, "pod", "ledger", "events.jsonl"), runId,
     kind: drill === null ? "host-ledger" : "isolated-drill-root", fromSeq: 0, requireEvents: true, drill
   });
   return bindSection(section, dir);
@@ -108,7 +108,7 @@ function baseEvidence(overrides = {}) {
       deploySyncNeeded: true, restartNeeded: false, basis: ["derive: deploySyncNeeded = (driftCount=2 > 0)"], manualOverride: null,
       driftCount: 2, checked: 8, identical: 6, hashDiff: 2, missingInDeploy: 0,
       files: ["lib/a.js", "lib/b.js"], diffs: [{ file: "lib/a.js", kind: "hash-diff" }, { file: "lib/b.js", kind: "hash-diff" }],
-      deployDir: "/home/x/.dsh/plugins/dsh-bots", deployExists: true
+      deployDir: "/home/x/.dsh/plugins/pod", deployExists: true
     },
     probe: { mode: "shadow", results: [{ action: "write:bots.json", result: "ALLOWED" }] },
     treeDiff: { modified: [], removed: [], added: ["dsh-home/bots/bots.json"], addedUnexpected: [] },
@@ -296,7 +296,7 @@ test("v2 包内容：executionEvidence 与 human 分离；schema/scope/basePacka
 
 // ---------------- O-6.4/O-6.6/O-6.9 新增：parity 派生／交叉核验／七项绑定／archiveBinding ----------------
 
-const PARITY_FIXTURE = { deployDir: "/home/x/.dsh/plugins/dsh-bots", deployExists: true, checked: 8, identical: 6, diffs: [
+const PARITY_FIXTURE = { deployDir: "/home/x/.dsh/plugins/pod", deployExists: true, checked: 8, identical: 6, diffs: [
   { file: "lib/a.js", kind: "hash-diff", repoSha256: "aa", deploySha256: "bb" },
   { file: "lib/b.js", kind: "missing-in-deploy" }
 ] };
@@ -480,7 +480,7 @@ test("/4 演练 run：证据为空／自陈非绿／缺查询结论 → 拒绝�
   });
   assert.equal(built.executionEvidence.ledgerEvidence.drill.id, "drill-ledger-rebuild");
   // 演练证据为空 → 拒
-  const emptySection = captureLedgerEvidence({ eventsPath: path.join(mkTmp(), "bots", "ledger", "events.jsonl"), runId, kind: "isolated-drill-root", fromSeq: 0 });
+  const emptySection = captureLedgerEvidence({ eventsPath: path.join(mkTmp(), "pod", "ledger", "events.jsonl"), runId, kind: "isolated-drill-root", fromSeq: 0 });
   const emptyDrilled = bindSection({ ...emptySection, drill: okDrill }, mkTmp());
   rejectsWith(() => buildEvidencePackageV2({
     executionEvidence: baseEvidence({ provenance: { ...baseEvidence().provenance, runId }, ledgerEvidence: emptyDrilled }),

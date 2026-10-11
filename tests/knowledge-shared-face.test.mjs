@@ -38,7 +38,7 @@ function mkFixture() {
   const lib = join(root, "lib");
   const org = join(lib, "org");
   mkdirSync(org, { recursive: true });
-  mkdirSync(join(root, "fake-home", "bots", "knowledge"), { recursive: true });
+  mkdirSync(join(root, "fake-home", "pod", "knowledge"), { recursive: true });
   return { root, lib, org };
 }
 

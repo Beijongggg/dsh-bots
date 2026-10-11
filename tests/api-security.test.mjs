@@ -1,5 +1,5 @@
 /**
- * B1（2026-09-05，PLAN §十一）：/api/bots 变更面 CSRF 令牌门控。
+ * B1（2026-09-05，PLAN §十一）：/api/pod 变更面 CSRF 令牌门控。
  * 两层覆盖：①api-security 单元（签发/校验/轮换/宽限/过期）；②handleApi 端到端
  * （门控 403/放行、_csrf 引导端点）。
  * 只读直测不写生产代码：handleApi / BotsApi 经 internals 导出（对齐 route.test 惯例）。
@@ -119,16 +119,16 @@ function makeApi(home, { security = true } = {}) {
 
 test("门控：变更请求无令牌 → 403 code=csrf-token-required；伪造 → invalid；GET 不设门", async () => {
   const api = makeApi(mkHome());
-  const missing = await call(api, "PATCH", "/api/bots/worker", { "content-type": "application/json" }, { name: "" });
+  const missing = await call(api, "PATCH", "/api/pod/worker", { "content-type": "application/json" }, { name: "" });
   assert.equal(missing.status, 403);
   assert.equal(missing.body.code, "csrf-token-required");
 
-  const forged = await call(api, "PATCH", "/api/bots/worker",
+  const forged = await call(api, "PATCH", "/api/pod/worker",
     { "content-type": "application/json", [TOKEN_HEADER]: "forged-token" }, { name: "" });
   assert.equal(forged.status, 403);
   assert.equal(forged.body.code, "csrf-token-invalid");
 
-  const reads = await call(api, "GET", "/api/bots");
+  const reads = await call(api, "GET", "/api/pod");
   assert.equal(reads.status, 200, "GET 只读面不要求令牌");
 });
 
@@ -136,28 +136,28 @@ test("门控：有效令牌放行至处理器（坏载荷 400 证明已过门）
   const home = mkHome();
   const api = makeApi(home);
   const token = api.apiSecurity.issue().token;
-  const passed = await call(api, "PATCH", "/api/bots/worker",
+  const passed = await call(api, "PATCH", "/api/pod/worker",
     { "content-type": "application/json", [TOKEN_HEADER]: token }, { name: "" });
   assert.equal(passed.status, 400, "过门后到达校验层（坏载荷 400 而非 403）");
 
   const legacy = makeApi(mkHome(), { security: false });
-  const ungated = await call(legacy, "PATCH", "/api/bots/worker",
+  const ungated = await call(legacy, "PATCH", "/api/pod/worker",
     { "content-type": "application/json" }, { name: "" });
   assert.equal(ungated.status, 400, "库直测未接线 → 沿用旧 fail-open 行为");
 });
 
 test("_csrf 端点：GET 签发（token/expiresAt）；非 GET 405；未接线 404", async () => {
   const api = makeApi(mkHome());
-  const issued = await call(api, "GET", "/api/bots/_csrf");
+  const issued = await call(api, "GET", "/api/pod/_csrf");
   assert.equal(issued.status, 200);
   assert.match(issued.body.token, /^[A-Za-z0-9_-]{43}$/);
   assert.equal(typeof issued.body.expiresAt, "number");
 
-  const badMethod = await call(api, "POST", "/api/bots/_csrf");
+  const badMethod = await call(api, "POST", "/api/pod/_csrf");
   assert.equal(badMethod.status, 405);
 
   const legacy = makeApi(mkHome(), { security: false });
-  assert.equal((await call(legacy, "GET", "/api/bots/_csrf")).status, 404, "未接线对称 404");
+  assert.equal((await call(legacy, "GET", "/api/pod/_csrf")).status, 404, "未接线对称 404");
 });
 
 
