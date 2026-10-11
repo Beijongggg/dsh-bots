@@ -145,3 +145,15 @@ cutover 探针＋host-faces 登记文案两行；rpcPrefix `pod`／`pod-${id}-st
   hits／staleAllow／unusedShapes 全零、三类划分与 bare 反向锁全绿；全量 94/94 绿；
   pre-commit 以 `--no-verify` 通过（②门按 F7 设计性红 7/10，返修零新增；③ lint 0 违例，
   提交前全量实跑留档）（EV-20261011-pod-rename-review-rework）。
+
+### 收口状态（Lead 补记，2026-10-11）
+
+仓库内面收口：实施四笔（`f9b6608`／`9815b34`／`e91b9c0`／`da3b700`）＋评审返修 F1
+（`fe57dea`）已并入 integration/pod-rename（批收口点 `cc2820a`）。四门终态：①回归 94/94
+（14/15 票新测试件抬升）✅、②冻结面 7/10——0010 包 manifest 内三件（sentinel-safety／
+sentinel-shadow／evidence-runner）被改名批触碰，§F7 预期中间态，PASS 随授权窗口新序号包
+承接、③lint 0 违例 ✅、④宿主契约 15 PASS／0 FAIL／0 SKIP ✅。
+**Status 维持 `ready-for-agent`**：部署同步、全 bot 重启链、仓库外两脚本（~/.dsh/dsh-web.sh、
+restart-split.sh）、2 手工软链＋16 份 profile patch 重脚手架、就绪后最小闭环 smoke——均待
+用户逐项点名授权（菜单已随本批收口呈报）。口径判定三条（路由 `/api/pod`、env 第 12 名
+docs-only、producerKind 本地字面量）待用户追认，见本件 Comments「口径判定」。

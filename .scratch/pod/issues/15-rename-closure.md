@@ -139,3 +139,13 @@ preflight.mjs、tests/README、headless-layout、preflight.test 均非改名批�
    spec 为哈希冻结件，本票不改，坐标修订＋修订记录归 Lead 收口（既定安排）。
 4. `docs/agents/host-runtime-map.md` 存量软链重建注记、GLOSSARY 溯源句等
    票 13 已改面复核无新发现；本票未触碰任何冻结件与 `artifacts/`。
+
+### 收口状态（Lead 补记，2026-10-11）
+
+仓库内面收口（`498ca23` 已并入 integration/pod-rename）：残留三类清点（②可清未清＝空集、
+③应改未改＝空集）、重采集手册（`.scratch/pod/rename-evidence-runbook.md`）、README §2 与
+PROJECT_UNDERSTANDING 部署链同步（目标态＋「运行面切换待授权窗口」注记）齐备。Lead 已承接
+其偏离 3：spec.md §D3／§E1／V-P4.1 四处路由串坐标修订＋修订记录条目（新哈希见
+EV-20261011-pod-rename-batch-close 事件）。**Status 维持 `ready-for-agent`**：新 runId 增量
+证据包生成（授权③；手册就绪，执行前独立复核）与 ②门 10/10 PASS 待授权窗口；全窗关闭的
+许可收缩（env 回落形＋migration-face 形）随 retired 清理另记。

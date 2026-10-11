@@ -119,3 +119,12 @@ evidence-runner 沿票 13 携带红，sentinel-shadow 本票触达；F7 设计�
 - 验证：全量 94/94 绿；preflight ①94/94 ✅、③0 违例 ✅、④15 PASS ✅、②7/10 预期红
   （仅既有 3 件，返修零新增）；pre-commit 以 `--no-verify` 通过（②按 F7 设计性红；
   ③ lint 0 违例）（EV-20261011-pod-rename-review-rework）。
+
+### 收口状态（Lead 补记，2026-10-11）
+
+仓库内面收口：三笔（`2979419`／`663fa03`／`2a1aede`）＋评审返修 F2/F3（`cc2820a`）已并入
+integration/pod-rename。方案文档 `.scratch/pod/rename-migration-plan.md` 为**冻结候选，待用户
+过目**（通过后即为窗口执行依据；停机搬迁／新根名 `pod`＋`pod-workspaces`／sessions 不走搬迁
+三项均为 Lead 裁定推荐，用户可逐项否决）。**Status 维持 `ready-for-agent`**：数据迁移
+execute、旧根 `*.retired-*` 清理（另点名）待授权；窗口手册见方案文档 §5（停 bot → 部署同步 →
+迁移 → 起链 → 就绪核验，四件授权逐步标注）。
