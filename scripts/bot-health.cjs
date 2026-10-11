@@ -39,10 +39,10 @@ const crypto = require("node:crypto");
 
 // zstd 帧魔数
 const MAGIC = Buffer.from([0x28, 0xb5, 0x2f, 0xfd]);
-// 会话日志文件名代际（与 lib/stats.js 同口径）：v0 → 旧名 session.jsonl.zstd；
-// v≥1 → 版本化名 session.v<N>.jsonl.zstd（现役宿主与现役 bot 会话写的就是后者）。
-const SESSION_LOG_LEGACY_NAME = "session.jsonl.zstd";
-const SESSION_LOG_VERSIONED_RE = /^session\.v(\d+)\.jsonl\.zstd$/;
+// 会话日志文件名代际发现：单源 lib/session-log-names.cjs（retro R2，
+// EV-20261011-retro-pod-impl；lib/stats.js 同源消费，两处不再手抄同步）。
+// LEGACY_NAME 供「会话文件缺失」报文拼路径（单源件导出，正为此消费者）。
+const { sessionLogCandidates, SESSION_LOG_LEGACY_NAME } = require("../lib/session-log-names.cjs");
 // 本脚本所在目录（scripts/）与 dsh-bots 项目根
 const SCRIPT_DIR = __dirname;
 const PROJECT_DIR = path.join(SCRIPT_DIR, "..");
@@ -208,36 +208,9 @@ function readSessionMeta(root, botId, entry) {
 // 会话日志解析（zstd 帧 + 明文 JSONL 交错；帧解析按既定方法）
 // ---------------------------------------------------------------------------
 
-/**
- * 会话目录内的日志候选路径，**按优先级排序**（先命中者胜）：
- *   ① 全部 `session.v<N>.jsonl.zstd` 按 N 降序（同 N 按文件名升序，保证同目录
- *      同内容的确定性）——现役宿主（dsh-session-format v≥1）写的就是版本化名；
- *   ② 最后回落无版本旧名 `session.jsonl.zstd`（v0 产物；两者并存时版本化名胜出）。
- * 目录不存在／不可读 → 空数组（调用方走「会话文件缺失」分支）。
- * 口径与 `lib/stats.js::sessionLogCandidates` 完全一致（票 06 代际盲区返修），
- * **两处实现必须同步演进**。
- */
-function sessionLogCandidates(dir) {
-  let names;
-  try {
-    names = fs.readdirSync(dir);
-  } catch {
-    return [];
-  }
-  const versioned = [];
-  for (const name of names) {
-    const m = SESSION_LOG_VERSIONED_RE.exec(name);
-    if (m !== null) versioned.push({ name, version: Number(m[1]) });
-  }
-  versioned.sort((a, b) => b.version - a.version
-    || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
-  const candidates = versioned.map((e) => path.join(dir, e.name));
-  if (names.includes(SESSION_LOG_LEGACY_NAME)) candidates.push(path.join(dir, SESSION_LOG_LEGACY_NAME));
-  return candidates;
-}
-
 /** 在**已定位的会话目录**内命中候选序第一个存在者；无候选／均不存在 → null。
- * （`lib/stats.js::findSessionLogFile` 是 dshHome/workspace/sessionId 三元签名，
+ * 候选序由 `lib/session-log-names.cjs::sessionLogCandidates` 单源决定（retro R2；
+ * `lib/stats.js::findSessionLogFile` 是 dshHome/workspace/sessionId 三元签名，
  * 此处只负责单目录取件，两步合起来才是同一发现口径。） */
 function findSessionLogInDir(dir) {
   for (const file of sessionLogCandidates(dir)) {

@@ -35,6 +35,7 @@
 | `trace-projection.js` | L2 工具轨迹投影（pod 06 号票）：`projectTrace` 纯函数（冻结记录形状＋PTC 信封归并＋`counters.gap`）＋`offlineTrace` 离线读盘（复用 `findSessionLogFile`／`readSessionEventsFromFile` 与 mtime/size 结果缓存）；读取面挂 `BotsApi.trace`／`GET /api/bots/:id/trace` |
 | `evidence-packager.js`、`sentinel-*.js` | v3 合同的探针与证据包链（冻结批，改动须新 runId） |
 | `shared.cjs` | 宿主 profile patch 构造共用件（`buildPatchYamlShared`） |
+| `session-log-names.cjs` | 会话日志文件名代际发现单源（`sessionLogCandidates` 候选序；retro R2——`stats.js` 与 `scripts/bot-health.cjs` 同源消费，字面量只准在此件） |
 
 ## lib/index.js 区域划分（粗行段，工作树时点）
 
