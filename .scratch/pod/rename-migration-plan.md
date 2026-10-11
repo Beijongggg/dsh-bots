@@ -129,6 +129,8 @@ started 261 行、bot-workspaces 13 目录 644MB、profiles 19、sessions 47、b
      （host 行含内，窗口内 host 也必须停）。
 - **失败中止语义**：拷贝与复验任一步失败 → 已落新根删除（rm 已建新目录树）、旧根不动、
   exit 非 0——不留半迁移态；旧根改名是**最后一步**，之前任何失败均不影响旧布局。
+  注记（评审返修）：`--profiles` 步不在新根清理面——已重写 patch／已改名软链不自动
+  回滚（旧布局仍现役可继续服务），重写幂等，重跑 `--execute --profiles` 即续完未竟改动。
 - **报告**（`--report` JSON）：迁移前后路径清单、逐面计数（席位表条目/逐 id、台账
   lastSeq/事件数、inbox/outbox 文件数与行数、capabilities/nonce 计数、started 行数、
   knowledge index 行数/reports 数、workspaces 目录与文件数、backups 计数）、逐件 sha

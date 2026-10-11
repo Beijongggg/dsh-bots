@@ -102,3 +102,20 @@ evidence-runner 沿票 13 携带红，sentinel-shadow 本票触达；F7 设计�
    （env 回落许可与形、migration-face 形与两件登记）——均归票 15；
    session 分片不搬（宿主官方面）＝风险②按「兜底扫描＋bot-health 双认」显式兼容，
    其跨根等效性按票面验收项在执行窗口以 --verify-only 前后对比留证。
+
+### 评审返修补记（F2/F3，2026-10-11，worktree pod-review-fix）
+
+- F2（Standards 轴）：迁移脚本 docstring「retire 前任何一步失败……不留半迁移态」过宽
+  （--profiles 段的 patch 重写＋软链改名不在 `cleanupNewRoots` 清理面）→「不留半迁移态」
+  限定**数据根搬迁段**（前置校验／拷贝／复验／retire）；--profiles 段失败语义单列＝
+  **幂等可续跑**（不自动回滚已重写 patch——旧布局仍现役可继续服务，重跑
+  `--execute --profiles` 续完未竟改动）；方案文档 §5 脚本契约节同步补一句注记
+  （判据语义未动，只补失败语义注记）。
+- F3（Standards 轴）：`tests/pod-data-roots.test.mjs` 单源锁只有等值断言、抓不到各面
+  重新内联 join 字面量 → 增**窄口径机械门**（lib/ 除 `data-roots.cjs`：工作区根名
+  引号贴名字面量＋数据根 join 第二参段位，扫前剥注释）；全 lib 74 件先校准**零命中**
+  再钉死（哨兵 `other-bot-workspaces`、`plugins/pod` 部署段、shared-face 自证注释均不
+  误伤；合成违例自测可捕），无豁免条目。
+- 验证：全量 94/94 绿；preflight ①94/94 ✅、③0 违例 ✅、④15 PASS ✅、②7/10 预期红
+  （仅既有 3 件，返修零新增）；pre-commit 以 `--no-verify` 通过（②按 F7 设计性红；
+  ③ lint 0 违例）（EV-20261011-pod-rename-review-rework）。
