@@ -619,20 +619,21 @@ export const IDENTITY_ALLOW_SHAPES = Object.freeze([
 ]);
 
 /**
- * 记号 canonical 形：去掉尾随标点空白与**尾随连字符**（`dsh-bots-`、`dsh-bots-${`、
- * `dsh-bots-${id}` 三种半截形等价为 `dsh-bots`／`dsh-bots-${id}`），供许可比对与反向验真共用。
+ * 记号 canonical 形：去掉尾随标点空白与**尾随连字符**（`dsh-bots-`、`dsh-bots)` 等
+ * 展示形收敛为 `dsh-bots`；模板串整体形 `dsh-bots-${id}` 的收尾 `}` 不在吸收面，
+ * canonical 即原样），供许可比对与反向验真共用。
  * 展示形（`token` 原样）仍进 `hits`／`whitelisted`，供票面清单按实际写法引用。
  */
 export function normalizeToken(token) {
   return token.trim().replace(/["'`\s),;]+$/u, "").replace(/-+$/u, "");
 }
 
-/** 许可比对：canonical 形互为前后缀即算「同一记号的两形」（`dsh-bots`／`${id}` 半截形）。 */
+/** 许可比对：canonical 形**精确等值**（各自先 normalizeToken 收敛展示形差异，再等值）。
+ *  不用前后缀含括——前缀许可过宽（`DSH_BOTS_HOST_URL` 会连带放行未登记的 `*_EXTRA`
+ *  族）；新记号要进许可面须逐条显式登记，不得借既有条目前缀搭车。 */
 export function tokenAllowed(allowed, token) {
   const a = normalizeToken(allowed);
-  const t = normalizeToken(token);
-  if (a === "" || t === "") return false;
-  return a.startsWith(t) || t.startsWith(a);
+  return a !== "" && a === normalizeToken(token);
 }
 
 /**
@@ -692,9 +693,11 @@ export function codeFaceOldNameScan() {
         const fileAllow = IDENTITY_ALLOW_TOKENS[rel] ?? [];
         const shape = IDENTITY_ALLOW_SHAPES.find((entry) => entry.re.test(token));
         if (shape !== undefined) usedShapes.add(shape.id); // 形验真：出现即用到（与是否经形放行无关）
-        // 判定序：**文件级许可 → 形许可**。两关都过才算登记在册；文件级许可因此是
-        // 「该文件还留哪些身份记号」的白名单（`undefined`＝该文件不得留任何旧名），
-        // 形许可只是「这个记号是不是票 13 身份面上的形态」。
+        // 判定序：**文件级许可 → 形许可**。登记文件按白名单逐条比对（via=file）；
+        // **未登记文件**（`IDENTITY_ALLOW_TOKENS[rel] === undefined`）形匹配即 ok
+        // （via=形）——`undefined` 不是「该文件不得留任何旧名」的门。活性门在测试体
+        // 三类划分（退役段名／env 回落／迁移工作面）＋bare 落点反向锁（V-P1.4/V-P1.5
+        // 用例）；单消费本函数不构成完整门。
         const ok = shape !== undefined
           && (IDENTITY_ALLOW_TOKENS[rel] === undefined || fileAllow.some((allowed) => tokenAllowed(allowed, token)));
         if (ok) {

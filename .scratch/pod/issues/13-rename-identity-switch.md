@@ -131,3 +131,17 @@ cutover 探针＋host-faces 登记文案两行；rpcPrefix `pod`／`pod-${id}-st
    请 Lead 过目；不同意可回退该两行（不影响代码面）。
 4. 未闭合（沿票 12 移交）：预览图 13 张与架构派生件重出、PROJECT_UNDERSTANDING 收口、
    全窗关闭（env 回落许可与形、role-cards 之外的残留复核）——均归票 15。
+
+### 评审返修补记（F1，2026-10-11，worktree pod-review-fix）
+
+- Finding（Standards 轴）：`codeFaceOldNameScan` 行内注释与实际语义相反（注释称
+  「未登记文件 `undefined`＝不得留任何旧名」，实际未登记文件形匹配即放行 `via=形`）；
+  `tokenAllowed` 文件许可前缀匹配过宽（`DSH_BOTS_HOST_URL` 连带放行未登记 `*_EXTRA` 族）。
+- 处置：行内注释对齐实际语义（未登记文件形匹配＝ok(via=形)；活性门在测试体三类划分＋
+  bare 落点反向锁；单消费本函数不构成完整门），**函数行为未动**；`tokenAllowed` 改为
+  normalizeToken 后精确等值（normalizeToken docstring 半截形等价句同步对齐），无记号
+  漏许可＝零补登记。
+- 验证：既有 26 记号／4 件许可面全数仍命中（role-cards 2＋env 夹具 11＋迁移工作面 13）、
+  hits／staleAllow／unusedShapes 全零、三类划分与 bare 反向锁全绿；全量 94/94 绿；
+  pre-commit 以 `--no-verify` 通过（②门按 F7 设计性红 7/10，返修零新增；③ lint 0 违例，
+  提交前全量实跑留档）（EV-20261011-pod-rename-review-rework）。
