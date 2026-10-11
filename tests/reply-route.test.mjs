@@ -49,7 +49,7 @@ api.mailRelay = createMailRelay({ dshHome: home, readRegistry: () => api.readReg
 
 /** host 面（handleApi）与 bot b 的假 agent RPC 共用一个服务器。 */
 const server = http.createServer((req, res) => {
-  if (req.url.startsWith("/api/bots")) {
+  if (req.url.startsWith("/api/pod")) {
     return internals.handleApi(req, res, api).catch(() => {
       if (!res.headersSent) res.writeHead(500, { "content-type": "application/json" });
       res.end("{}");
@@ -138,7 +138,7 @@ try {
   // 8) 会话损坏自愈：首轮 prompt 报 corrupt → 归档 + 用同一 promptText（含
   //    寄件人前缀，L-1 回归）重试成功 → 回复带「已归档并重置」说明、且与
   //    正常成功路径同样回路由给发件 bot（自愈路径不丢协作闭环）。
-  process.env.DSH_BOTS_SESSION_AUTO_HEAL = "1";
+  process.env.POD_SESSION_AUTO_HEAL = "1";
   corruptNextPrompt = 1;
   api.mailRelay.send({ from: "a", to: "b", text: "任务 Y" });
   await internals.handleIncoming(ctx, home, "b", lastInboxOf("b"), mail);

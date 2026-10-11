@@ -220,11 +220,11 @@ test("HTTP 投递按 actor 注入的发信人分域，自带回信锚与幂等�
   const api = { mailRelay: r };
   for (const from of ["b", "c"]) {
     const body = { actor: { kind: "post", id: from }, to: "a", text: `${from} 的回信`, replyTo: 1, idempotencyKey: "k1" };
-    const first = await callMailApi(api, "POST", "/api/bots/_mail/send", { body });
+    const first = await callMailApi(api, "POST", "/api/pod/_mail/send", { body });
     assert.equal(first.status, 200);
     assert.equal(first.body.ok, true);
     assert.equal(first.body.replayed, undefined);
-    const replay = await callMailApi(api, "POST", "/api/bots/_mail/send", { body });
+    const replay = await callMailApi(api, "POST", "/api/pod/_mail/send", { body });
     assert.equal(replay.status, 200);
     assert.deepEqual(replay.body, { ...first.body, replayed: true });
   }
@@ -264,7 +264,7 @@ test("鉴权拒绝留痕（V-A4.7 分支二）：回执＋有任务锚时落 com
   const api = { mailRelay: r };
 
   // 有锚：负载自带 taskId → 留痕件可落事件（此处由注入钩子接管，验证调用形状）
-  const spoof = await callMailApi(api, "POST", "/api/bots/_mail/send", {
+  const spoof = await callMailApi(api, "POST", "/api/pod/_mail/send", {
     body: { actor: { kind: "post", id: "a" }, from: "b", to: "b", text: "夹带身份", taskId: "T-9" },
     hooks: { recordRejection }
   });
@@ -276,11 +276,11 @@ test("鉴权拒绝留痕（V-A4.7 分支二）：回执＋有任务锚时落 com
   }, "留痕负载＝{taskId, actor, op, code, reason}（actor 取认证名，不取负载）");
 
   // host 冒名同样留痕（403）；语义失败不留痕（走分支三）
-  await callMailApi(api, "POST", "/api/bots/_mail/send", {
+  await callMailApi(api, "POST", "/api/pod/_mail/send", {
     body: { actor: { kind: "host", id: "host" }, to: "b", text: "x", taskId: "T-9" },
     hooks: { recordRejection }
   });
-  await callMailApi(api, "POST", "/api/bots/_mail/send", {
+  await callMailApi(api, "POST", "/api/pod/_mail/send", {
     body: { actor: { kind: "post", id: "a" }, to: "nobody", text: "x", taskId: "T-9" },
     hooks: { recordRejection }
   });
@@ -365,7 +365,7 @@ test("HTTP 投递：inbox seq 锁留痕经中继 logger 出栈（36 号票 A9）
   mkdirSync(lockDir, { recursive: true });
   writeFileSync(join(lockDir, "owner.json"), JSON.stringify({ pid: deadPid(), at: Date.now() }));
 
-  const res = await callMailApi(api, "POST", "/api/bots/_mail/send", {
+  const res = await callMailApi(api, "POST", "/api/pod/_mail/send", {
     body: { actor: { kind: "post", id: "a" }, to: "b", text: "锁接管后投递" }
   });
   assert.equal(res.status, 200, JSON.stringify(res.body));
@@ -384,7 +384,7 @@ test("HTTP cursor：继承属性不是在册实例，拒绝不落基线并留下
     const legacy = JSON.stringify({ id: `legacy-${id}`, seq: 1, from: "a", text: "存量" }) + "\n";
     writeFileSync(messagesPathFor(home, id), legacy);
     const seen = [];
-    const denied = await callMailApi({ mailRelay: r }, "POST", "/api/bots/_mail/cursor", {
+    const denied = await callMailApi({ mailRelay: r }, "POST", "/api/pod/_mail/cursor", {
       body: { actor: { kind: "post", id } }, hooks: { recordRejection: entry => seen.push(entry) }
     });
     assert.equal(denied.status, 403, `${id} 未登记，不得被继承属性放行`);
@@ -407,17 +407,17 @@ test("HTTP 邮件在册口径一致：继承属性不能发信、消费或作为
     writeFileSync(messagesPathFor(home, id), legacy);
     const seen = [];
     const hooks = { recordRejection: entry => seen.push(entry) };
-    const sent = await callMailApi({ mailRelay: r }, "POST", "/api/bots/_mail/send", {
+    const sent = await callMailApi({ mailRelay: r }, "POST", "/api/pod/_mail/send", {
       body: { actor: { kind: "post", id }, to: "b", text: "不得投递" }, hooks
     });
     assert.equal(sent.status, 403, `${id} 不能冒充发信者`);
     assert.equal(sent.body.code, "mail-sender-unknown");
-    const consumed = await callMailApi({ mailRelay: r }, "POST", "/api/bots/_mail/consume", {
+    const consumed = await callMailApi({ mailRelay: r }, "POST", "/api/pod/_mail/consume", {
       body: { actor: { kind: "post", id }, messageId, seq: 1, outcome: "processed" }, hooks
     });
     assert.equal(consumed.status, 403, `${id} 不能汇报消费`);
     assert.equal(consumed.body.code, "mail-bot-unknown");
-    const recipient = await callMailApi({ mailRelay: r }, "POST", "/api/bots/_mail/send", {
+    const recipient = await callMailApi({ mailRelay: r }, "POST", "/api/pod/_mail/send", {
       body: { actor: { kind: "post", id: "a" }, to: id, text: "不得投递" }
     });
     assert.equal(recipient.status, 409, `${id} 不是在册收件人`);
@@ -437,20 +437,20 @@ test("HTTP 在册判断不禁用名字：注册表自身登记的同名实例仍
   const registry = JSON.parse('{"a":{"id":"a"},"toString":{"id":"toString"},"constructor":{"id":"constructor"},"__proto__":{"id":"__proto__"}}');
   const api = { mailRelay: createMailRelay({ dshHome: home, readRegistry: () => registry }) };
   for (const id of ["toString", "constructor", "__proto__"]) {
-    const sent = await callMailApi(api, "POST", "/api/bots/_mail/send", {
+    const sent = await callMailApi(api, "POST", "/api/pod/_mail/send", {
       body: { actor: { kind: "post", id: "a" }, to: id, text: "合法投递" }
     });
     assert.equal(sent.status, 200);
-    const consumed = await callMailApi(api, "POST", "/api/bots/_mail/consume", {
+    const consumed = await callMailApi(api, "POST", "/api/pod/_mail/consume", {
       body: { actor: { kind: "post", id }, messageId: sent.body.messageId, seq: sent.body.seq, outcome: "processed" }
     });
     assert.equal(consumed.status, 200);
-    const cursor = await callMailApi(api, "POST", "/api/bots/_mail/cursor", {
+    const cursor = await callMailApi(api, "POST", "/api/pod/_mail/cursor", {
       body: { actor: { kind: "post", id } }
     });
     assert.equal(cursor.status, 200);
     assert.equal(cursor.body.lastSeq, sent.body.seq);
-    const reply = await callMailApi(api, "POST", "/api/bots/_mail/send", {
+    const reply = await callMailApi(api, "POST", "/api/pod/_mail/send", {
       body: { actor: { kind: "post", id }, to: "a", text: "合法回信" }
     });
     assert.equal(reply.status, 200);
@@ -465,9 +465,9 @@ test("HTTP cursor（35 号票）：POST actor 认证落基线，GET 下线 405 �
   const baselinePath = join(inboxDirFor(home, "b"), "receipts", ".baseline.json");
 
   // 读面 GET 下线：405 且不触发任何写（迁移条件满足时也不落基线）
-  const get = await callMailApi(api, "GET", "/api/bots/_mail/cursor", { headers: { "x-dsh-bots-bot-id": "b" } });
+  const get = await callMailApi(api, "GET", "/api/pod/_mail/cursor", { headers: { "x-pod-bot-id": "b" } });
   assert.equal(get.status, 405, "GET cursor 下线（读面零写）");
-  assert.equal((await callMailApi(api, "GET", "/api/bots/_mail/cursor")).status, 405, "无身份头 GET 同样拒绝");
+  assert.equal((await callMailApi(api, "GET", "/api/pod/_mail/cursor")).status, 405, "无身份头 GET 同样拒绝");
   assert.equal(existsSync(baselinePath), false, "GET 不生成基线文件");
   assert.equal(readMaxReceiptSeq(home, "b"), 0, "匿名 GET 不得推进水位／落基线");
 
@@ -479,7 +479,7 @@ test("HTTP cursor（35 号票）：POST actor 认证落基线，GET 下线 405 �
     [{ actor: { kind: "post", id: "b" }, botId: "a" }, 409],
     [{ actor: { kind: "post", id: "ghost" } }, 403]
   ]) {
-    const denied = await callMailApi(api, "POST", "/api/bots/_mail/cursor", {
+    const denied = await callMailApi(api, "POST", "/api/pod/_mail/cursor", {
       body, hooks: { recordRejection: entry => seen.push(entry) }
     });
     assert.equal(denied.status, status);
@@ -489,7 +489,7 @@ test("HTTP cursor（35 号票）：POST actor 认证落基线，GET 下线 405 �
   assert.deepEqual(seen.map(entry => entry.op), Array(5).fill("mail.cursor"), "各拒绝分支均记录游标操作");
 
   // 写面 POST：认证 actor 方可触发迁移基线
-  const post = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
+  const post = await callMailApi(api, "POST", "/api/pod/_mail/cursor",
     { body: { actor: { kind: "post", id: "b" } } });
   assert.equal(post.status, 200);
   assert.equal(post.body.ok, true);
@@ -498,7 +498,7 @@ test("HTTP cursor（35 号票）：POST actor 认证落基线，GET 下线 405 �
   assert.equal(readMaxReceiptSeq(home, "b"), 2);
   const baselineBefore = readFileSync(baselinePath, "utf8");
   assert.equal(r.send({ from: "a", to: "b", text: "迁移后新消息" }).seq, 3);
-  const replay = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
+  const replay = await callMailApi(api, "POST", "/api/pod/_mail/cursor",
     { body: { actor: { kind: "post", id: "b" } } });
   assert.equal(replay.status, 200);
   assert.deepEqual({ lastSeq: replay.body.lastSeq, replay: replay.body.replay }, { lastSeq: 2, replay: true });
@@ -519,12 +519,12 @@ test("HTTP cursor 条件触发三路径（35 号票）：prune 只经认证 POST
   assert.equal(readReceipts(home, "b").length, 505);
 
   // 匿名 GET：405 且不触发 prune（写副作用不可经读面触发）
-  const get = await callMailApi(api, "GET", "/api/bots/_mail/cursor", { headers: { "x-dsh-bots-bot-id": "b" } });
+  const get = await callMailApi(api, "GET", "/api/pod/_mail/cursor", { headers: { "x-pod-bot-id": "b" } });
   assert.equal(get.status, 405);
   assert.equal(readReceipts(home, "b").length, 505, "GET 不得触发 prune");
 
   // 认证 POST：prune 至 500，水位 505 只增不减
-  const pruned = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
+  const pruned = await callMailApi(api, "POST", "/api/pod/_mail/cursor",
     { body: { actor: { kind: "post", id: "b" } } });
   assert.equal(pruned.status, 200);
   assert.deepEqual({ lastSeq: pruned.body.lastSeq, replay: pruned.body.replay }, { lastSeq: 505, replay: false });
@@ -533,13 +533,13 @@ test("HTTP cursor 条件触发三路径（35 号票）：prune 只经认证 POST
 
   // 路径二 零水位迁移：bot c 有存量无水位 → 认证 POST 写一次基线
   assert.equal(r.send({ from: "a", to: "c", text: "旧一" }).seq, 1);
-  const migrate = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
+  const migrate = await callMailApi(api, "POST", "/api/pod/_mail/cursor",
     { body: { actor: { kind: "post", id: "c" } } });
   assert.deepEqual({ lastSeq: migrate.body.lastSeq, replay: migrate.body.replay, baseline: migrate.body.baseline },
     { lastSeq: 1, replay: false, baseline: 1 });
 
   // 路径三 纯读：二次 POST 不覆写（无 baseline 键，水位保持迁移基线）
-  const reread = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
+  const reread = await callMailApi(api, "POST", "/api/pod/_mail/cursor",
     { body: { actor: { kind: "post", id: "c" } } });
   assert.equal(reread.status, 200);
   assert.equal(reread.body.baseline, undefined, "二次读取不再写基线（纯读）");
@@ -551,31 +551,31 @@ test("HTTP 面：actor 认证（注册实例＋kind=post）——未在册／hos
   const { home, relay: r } = relay();
   const api = { mailRelay: r };
 
-  const ok = await callMailApi(api, "POST", "/api/bots/_mail/send",
+  const ok = await callMailApi(api, "POST", "/api/pod/_mail/send",
     { body: { actor: { kind: "post", id: "a" }, to: "b", text: "投递" } });
   assert.equal(ok.status, 200);
   assert.equal(ok.body.ok, true);
   assert.equal(readAllInboxLines(home, "b").length, 1);
 
   const ghostSeen = [];
-  const ghost = await callMailApi(api, "POST", "/api/bots/_mail/send",
+  const ghost = await callMailApi(api, "POST", "/api/pod/_mail/send",
     { body: { actor: { kind: "post", id: "ghost" }, to: "b", text: "投递" }, hooks: { recordRejection: (r) => ghostSeen.push(r) } });
   assert.equal(ghost.status, 403);
   assert.equal(ghost.body.code, "mail-sender-unknown");
   assert.equal(ghostSeen.length, 1, "relay 判定的身份类拒绝（不在册发信者）也进鉴权留痕");
   assert.equal(ghostSeen[0].code, "mail-sender-unknown");
 
-  const host = await callMailApi(api, "POST", "/api/bots/_mail/send",
+  const host = await callMailApi(api, "POST", "/api/pod/_mail/send",
     { body: { actor: { kind: "host", id: "host" }, to: "b", text: "投递" } });
   assert.equal(host.status, 403);
   assert.equal(host.body.code, "host-channel-forbidden");
 
-  const spoof = await callMailApi(api, "POST", "/api/bots/_mail/send",
+  const spoof = await callMailApi(api, "POST", "/api/pod/_mail/send",
     { body: { actor: { kind: "post", id: "a" }, from: "b", to: "b", text: "投递" } });
   assert.equal(spoof.status, 409);
   assert.equal(spoof.body.code, "mail-actor-spoof");
 
-  const semantic = await callMailApi(api, "POST", "/api/bots/_mail/send",
+  const semantic = await callMailApi(api, "POST", "/api/pod/_mail/send",
     { body: { actor: { kind: "post", id: "a" }, to: "nobody", text: "投递" } });
   assert.equal(semantic.status, 409);
   assert.equal(semantic.body.code, "mail-unknown-recipient");
@@ -583,49 +583,49 @@ test("HTTP 面：actor 认证（注册实例＋kind=post）——未在册／hos
   assert.equal(readAllInboxLines(home, "b").length, 1, "全部拒绝路径零写入");
 
   // 消费汇报与游标：同一认证口径（35 号票：cursor 同为 POST＋actor 认证）
-  const cursor = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
+  const cursor = await callMailApi(api, "POST", "/api/pod/_mail/cursor",
     { body: { actor: { kind: "post", id: "b" } } });
   assert.equal(cursor.status, 200);
   assert.equal(cursor.body.ok, true);
   const cursorSeen = [];
-  const cursorGhost = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
+  const cursorGhost = await callMailApi(api, "POST", "/api/pod/_mail/cursor",
     { body: { actor: { kind: "post", id: "ghost" } }, hooks: { recordRejection: (r) => cursorSeen.push(r) } });
   assert.equal(cursorGhost.status, 403);
   assert.equal(cursorGhost.body.code, "mail-bot-unknown");
   assert.equal(cursorSeen.length, 1, "cursor 中继判定的身份类拒绝同样进鉴权留痕");
   assert.equal(cursorSeen[0].op, "mail.cursor");
-  const cursorHost = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
+  const cursorHost = await callMailApi(api, "POST", "/api/pod/_mail/cursor",
     { body: { actor: { kind: "host", id: "host" } } });
   assert.equal(cursorHost.status, 403);
   assert.equal(cursorHost.body.code, "host-channel-forbidden");
-  const cursorSpoof = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
+  const cursorSpoof = await callMailApi(api, "POST", "/api/pod/_mail/cursor",
     { body: { actor: { kind: "post", id: "b" }, botId: "a" } });
   assert.equal(cursorSpoof.status, 409);
   assert.equal(cursorSpoof.body.code, "mail-actor-spoof");
-  const cursorFromSpoof = await callMailApi(api, "POST", "/api/bots/_mail/cursor",
+  const cursorFromSpoof = await callMailApi(api, "POST", "/api/pod/_mail/cursor",
     { body: { actor: { kind: "post", id: "b" }, from: "a" } });
   assert.equal(cursorFromSpoof.status, 409, "cursor 腿负载夹带 from 同拒（与 send 同口径）");
   assert.equal(cursorFromSpoof.body.code, "mail-actor-spoof");
-  const cursorNoActor = await callMailApi(api, "POST", "/api/bots/_mail/cursor", { body: {} });
+  const cursorNoActor = await callMailApi(api, "POST", "/api/pod/_mail/cursor", { body: {} });
   assert.equal(cursorNoActor.status, 403, "cursor 腿缺身份同拒");
   assert.equal(cursorNoActor.body.code, "mail-actor-forbidden");
-  const cursorGet = await callMailApi(api, "GET", "/api/bots/_mail/cursor",
-    { headers: { "x-dsh-bots-bot-id": "b" } });
+  const cursorGet = await callMailApi(api, "GET", "/api/pod/_mail/cursor",
+    { headers: { "x-pod-bot-id": "b" } });
   assert.equal(cursorGet.status, 405, "GET cursor 下线（读面零写）");
 
   // 未接线＝503 fail closed（通道不可用分支：客户端按分支一有限重试；无 bot 侧降级通道）；错误方法 405
-  const unwired = await callMailApi({}, "POST", "/api/bots/_mail/send",
+  const unwired = await callMailApi({}, "POST", "/api/pod/_mail/send",
     { body: { actor: { kind: "post", id: "a" }, to: "b", text: "投递" } });
   assert.equal(unwired.status, 503);
   assert.equal(unwired.body.code, "mail-channel-unwired");
-  const wrongMethod = await callMailApi(api, "DELETE", "/api/bots/_mail/send",
+  const wrongMethod = await callMailApi(api, "DELETE", "/api/pod/_mail/send",
     { body: { actor: { kind: "post", id: "a" }, to: "b", text: "投递" } });
   assert.equal(wrongMethod.status, 405);
 });
 
 test("HTTP 面：中继内部异常＝投递面故障→503（通道不可用分支），不裸 500", async () => {
   const api = { mailRelay: { send: () => { throw new Error("relay boom"); }, consume: () => ({}), cursor: () => ({}) } };
-  const res = await callMailApi(api, "POST", "/api/bots/_mail/send",
+  const res = await callMailApi(api, "POST", "/api/pod/_mail/send",
     { body: { actor: { kind: "post", id: "a" }, to: "b", text: "投递" } });
   assert.equal(res.status, 503);
   assert.equal(res.body.code, "mail-relay-failed");

@@ -62,13 +62,13 @@ test("切换 CLI 只在部署、双席代际通道与近期 deploy 探针全齐�
   host.delivery = createCapabilityDelivery({ host, readRegistry: () => registry });
   host.readiness = createCutoverReadiness({ host, readRegistry: () => registry, sourceDigest: inventory.sourceDigest });
   const server = createServer((req, res) => {
-    if (req.url === "/api/bots/_csrf") { res.end(JSON.stringify({ token: "test" })); return; }
+    if (req.url === "/api/pod/_csrf") { res.end(JSON.stringify({ token: "test" })); return; }
     internals.handleApi(req, res, { ledgerHost: host });
   });
   try {
     for (const { path } of inventory.files) {
-      await mkdir(dirname(join(home, "plugins/dsh-bots", path)), { recursive: true });
-      await copyFile(join(root, path), join(home, "plugins/dsh-bots", path));
+      await mkdir(dirname(join(home, "plugins/pod", path)), { recursive: true });
+      await copyFile(join(root, path), join(home, "plugins/pod", path));
     }
     await mkdir(join(home, "bots"), { recursive: true });
     await writeFile(join(home, "bots/bots.json"), JSON.stringify(registry));
@@ -81,7 +81,7 @@ test("切换 CLI 只在部署、双席代际通道与近期 deploy 探针全齐�
       let credential;
       child.send = (message) => { credential = message.credential; };
       host.delivery.attach(botId, child);
-      child.emit("message", { type: "dsh-bots:org-ready", botId, sourceDigest: inventory.sourceDigest });
+      child.emit("message", { type: "pod:org-ready", botId, sourceDigest: inventory.sourceDigest });
       const post = createPostChannel({ origin, botId, credential: () => credential });
       assert.equal((await post.ready()).ok, true);
     }
@@ -110,9 +110,9 @@ test("切换 CLI 只在部署、双席代际通道与近期 deploy 探针全齐�
     await writeFile(join(home, "bots/bots.json"), JSON.stringify(registry));
     const resource = "tests/host-contract-gate.test.mjs";
     assert.ok(report.deployment.files.some((row) => row.path === resource), "探针失效处置所需资源纳入部署清单");
-    await rm(join(home, "plugins/dsh-bots", resource));
+    await rm(join(home, "plugins/pod", resource));
     assert.equal((await run(args)).code, 1, "缺测试资源不得就绪");
-    await copyFile(join(root, resource), join(home, "plugins/dsh-bots", resource));
+    await copyFile(join(root, resource), join(home, "plugins/pod", resource));
     registry.legacy = { id: "legacy", post: "researcher", pid: process.pid };
     await writeFile(join(home, "bots/bots.json"), JSON.stringify(registry));
     assert.equal((await run(args)).code, 1, "切换编制必须恰为双席，不把残留旧席当成可选增席");

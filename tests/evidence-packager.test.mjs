@@ -108,7 +108,7 @@ function baseEvidence(overrides = {}) {
       deploySyncNeeded: true, restartNeeded: false, basis: ["derive: deploySyncNeeded = (driftCount=2 > 0)"], manualOverride: null,
       driftCount: 2, checked: 8, identical: 6, hashDiff: 2, missingInDeploy: 0,
       files: ["lib/a.js", "lib/b.js"], diffs: [{ file: "lib/a.js", kind: "hash-diff" }, { file: "lib/b.js", kind: "hash-diff" }],
-      deployDir: "/home/x/.dsh/plugins/dsh-bots", deployExists: true
+      deployDir: "/home/x/.dsh/plugins/pod", deployExists: true
     },
     probe: { mode: "shadow", results: [{ action: "write:bots.json", result: "ALLOWED" }] },
     treeDiff: { modified: [], removed: [], added: ["dsh-home/bots/bots.json"], addedUnexpected: [] },
@@ -296,7 +296,7 @@ test("v2 包内容：executionEvidence 与 human 分离；schema/scope/basePacka
 
 // ---------------- O-6.4/O-6.6/O-6.9 新增：parity 派生／交叉核验／七项绑定／archiveBinding ----------------
 
-const PARITY_FIXTURE = { deployDir: "/home/x/.dsh/plugins/dsh-bots", deployExists: true, checked: 8, identical: 6, diffs: [
+const PARITY_FIXTURE = { deployDir: "/home/x/.dsh/plugins/pod", deployExists: true, checked: 8, identical: 6, diffs: [
   { file: "lib/a.js", kind: "hash-diff", repoSha256: "aa", deploySha256: "bb" },
   { file: "lib/b.js", kind: "missing-in-deploy" }
 ] };

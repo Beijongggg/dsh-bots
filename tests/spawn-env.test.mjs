@@ -2,8 +2,8 @@
  * B4-01（2026-09-07，PLAN §十一）：spawn env allowlist。
  * 覆盖：①基集并集（其余变量一律不透传）；②拒绝形状绝对性（KEY/TOKEN/
  * SECRET/PASSWORD/NODE_OPTIONS——逃生阀附加与 overrides 同样受约束）；③overrides＝
- * DSH 显式集（最高优先）；④逃生阀 DSH_BOTS_ENV_EXTRA（正常附加＋缺名安全忽略）；
- * ⑤集成：经 DSH_BOTS_DSH_BIN 假 bin 走真 spawn，断言子进程实得环境。
+ * DSH 显式集（最高优先）；④逃生阀 POD_ENV_EXTRA（正常附加＋缺名安全忽略）；
+ * ⑤集成：经 POD_DSH_BIN 假 bin 走真 spawn，断言子进程实得环境。
  */
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -27,7 +27,7 @@ test("基集并集：基础设施变量与 LC_ 系透传，其余一律不透传
     PATH: "/usr/bin", HOME: "/home/u", LANG: "zh_CN.UTF-8", TZ: "Asia/Shanghai",
     TERM: "xterm", TMPDIR: "/tmp", LC_ALL: "zh_CN.UTF-8", LC_CTYPE: "UTF-8",
     FOO: "1", DSH_SOMETHING: "2", npm_config_registry: "https://x",
-    DSH_BOTS_ENV_EXTRA: undefined
+    POD_ENV_EXTRA: undefined
   }, { DSH_HOME: "/dsh" });
   assert.deepEqual(Object.keys(env).sort(),
     ["DSH_HOME", "HOME", "LANG", "LC_ALL", "LC_CTYPE", "PATH", "TERM", "TMPDIR", "TZ"]);
@@ -36,7 +36,7 @@ test("基集并集：基础设施变量与 LC_ 系透传，其余一律不透传
 test("拒绝形状绝对性：KEY/TOKEN/SECRET/PASSWORD/NODE_OPTIONS 连逃生阀也不放行", () => {
   const env = buildSpawnEnv({
     PATH: "/usr/bin", API_KEY: "k", MY_TOKEN: "t", SECRET_X: "s", DB_PASSWORD: "p",
-    NODE_OPTIONS: "--require /evil", DSH_BOTS_ENV_EXTRA: "API_KEY,MY_TOKEN,SECRET_X,DB_PASSWORD,NODE_OPTIONS"
+    NODE_OPTIONS: "--require /evil", POD_ENV_EXTRA: "API_KEY,MY_TOKEN,SECRET_X,DB_PASSWORD,NODE_OPTIONS"
   });
   assert.ok(!("API_KEY" in env) && !("MY_TOKEN" in env) && !("SECRET_X" in env));
   assert.ok(!("DB_PASSWORD" in env) && !("NODE_OPTIONS" in env));
@@ -65,7 +65,7 @@ test("overrides 同受拒绝形状约束：显式给值也不透传（Spec「一
 
 test("逃生阀：按需附加＋缺名安全忽略（不产生 undefined 项）", () => {
   const env = buildSpawnEnv({
-    PATH: "/usr/bin", http_proxy: "http://proxy:1", DSH_BOTS_ENV_EXTRA: "http_proxy,MISSING_NAME"
+    PATH: "/usr/bin", http_proxy: "http://proxy:1", POD_ENV_EXTRA: "http_proxy,MISSING_NAME"
   });
   assert.equal(env.http_proxy, "http://proxy:1");
   assert.ok(!("MISSING_NAME" in env));
@@ -89,15 +89,15 @@ setInterval(() => {}, 1000);
     enabled: true
   };
   writeRegistryAtomic(home, { [botId]: bot });
-  const prevBin = process.env.DSH_BOTS_DSH_BIN;
-  const prevExtra = process.env.DSH_BOTS_ENV_EXTRA;
+  const prevBin = process.env.POD_DSH_BIN;
+  const prevExtra = process.env.POD_ENV_EXTRA;
   const prevCanary = process.env.B4_SECRET_CANARY;
   const prevNodeOpts = process.env.NODE_OPTIONS;
-  const prevHostUrl = process.env.DSH_BOTS_HOST_URL;
-  process.env.DSH_BOTS_DSH_BIN = binPath;
-  process.env.DSH_BOTS_HOST_URL = "  https://bots.example/base///  ";
+  const prevHostUrl = process.env.POD_HOST_URL;
+  process.env.POD_DSH_BIN = binPath;
+  process.env.POD_HOST_URL = "  https://bots.example/base///  ";
   // 逃生阀现场复用：让 dump 路径经逃生阀进入子进程
-  process.env.DSH_BOTS_ENV_EXTRA = "DUMP_PATH";
+  process.env.POD_ENV_EXTRA = "DUMP_PATH";
   process.env.DUMP_PATH = dumpPath;
   process.env.B4_SECRET_CANARY = "leak";
   process.env.NODE_OPTIONS = "--require /evil";
@@ -112,7 +112,7 @@ setInterval(() => {}, 1000);
     assert.ok(dump, "假 bin 已落环境 dump");
     assert.equal(dump.DSH_HOME, home, "DSH 显式集在位");
     assert.equal(dump.DSH_WEB_URL, `http://127.0.0.1:${bot.port}/`, "DSH_WEB_URL 在位（botUrl 契约）");
-    assert.equal(dump.DSH_BOTS_HOST_URL, "https://bots.example/base", "宿主 origin 经 trim 与去尾斜杠后下传");
+    assert.equal(dump.POD_HOST_URL, "https://bots.example/base", "宿主 origin 经 trim 与去尾斜杠后下传");
     // 组织工具带点 op 名被供应商名称模式拒绝（2026-09-29 TK-20260929 HTTP 400）；
     // bot 进程经官方 DSH_TOOLS_MODE 环境缝整体切 PTC run_code 呈现，原名工具
     // 保留在生成的 SDK 内，岗位/任务权限面不变。pod 10 号票基底显式口径：
@@ -123,12 +123,12 @@ setInterval(() => {}, 1000);
     assert.ok(typeof dump.PATH === "string" && dump.PATH !== "", "基集 PATH 在位");
     assert.ok(!("B4_SECRET_CANARY" in dump), "宿主敏感变量不进子进程");
     assert.ok(!("NODE_OPTIONS" in dump), "注入向量不进子进程");
-    assert.ok(!("DSH_BOTS_DSH_BIN" in dump), "宿主侧开关不进子进程");
+    assert.ok(!("POD_DSH_BIN" in dump), "宿主侧开关不进子进程");
   } finally {
     try { await api.stop(botId); } catch { /* 已退出 */ }
-    for (const [k, v] of [["DSH_BOTS_DSH_BIN", prevBin], ["DSH_BOTS_ENV_EXTRA", prevExtra],
+    for (const [k, v] of [["POD_DSH_BIN", prevBin], ["POD_ENV_EXTRA", prevExtra],
       ["B4_SECRET_CANARY", prevCanary], ["NODE_OPTIONS", prevNodeOpts],
-      ["DSH_BOTS_HOST_URL", prevHostUrl], ["DUMP_PATH", undefined]]) {
+      ["POD_HOST_URL", prevHostUrl], ["DUMP_PATH", undefined]]) {
       if (v === undefined) delete process.env[k]; else process.env[k] = v;
     }
   }

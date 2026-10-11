@@ -11,8 +11,8 @@ const logger = { info() {}, warn() {}, error() {} };
 
 async function withProfile(mode, run) {
   const root = mkdtempSync(join(tmpdir(), "dsh-bot-profile-"));
-  const previousScript = process.env.DSH_BOTS_CREATE_BOT_SCRIPT;
-  process.env.DSH_BOTS_CREATE_BOT_SCRIPT = mode === "builtin"
+  const previousScript = process.env.POD_CREATE_BOT_SCRIPT;
+  process.env.POD_CREATE_BOT_SCRIPT = mode === "builtin"
     ? join(root, "missing-create-bot.cjs")
     : fileURLToPath(new URL("../scripts/create-bot.cjs", import.meta.url));
   const bot = { id: "worker", name: "Worker", role: "implementation", port: 3291,
@@ -21,8 +21,8 @@ async function withProfile(mode, run) {
   mkdirSync(profile, { recursive: true });
   try { await run({ root, profile, bot, scaffold: () => internals.scaffoldBot({ logger }, root, bot) }); }
   finally {
-    if (previousScript === undefined) delete process.env.DSH_BOTS_CREATE_BOT_SCRIPT;
-    else process.env.DSH_BOTS_CREATE_BOT_SCRIPT = previousScript;
+    if (previousScript === undefined) delete process.env.POD_CREATE_BOT_SCRIPT;
+    else process.env.POD_CREATE_BOT_SCRIPT = previousScript;
     rmSync(root, { recursive: true, force: true });
   }
 }

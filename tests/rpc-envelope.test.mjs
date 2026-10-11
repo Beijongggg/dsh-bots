@@ -65,7 +65,7 @@ assert.ok(!methods.includes("session.selectModel"), "空模型字段应跳过 se
 for (const c of captured) {
   assert.equal(c.body.type, "client-request", c.url + " 信封 type");
   assert.equal(c.body.method, c.url.replace("/api/", ""), "信封 method 与 URL 一致");
-  assert.ok(typeof c.body.rpcId === "string" && c.body.rpcId.startsWith("dsh-bots-"), "rpcId 前缀");
+  assert.ok(typeof c.body.rpcId === "string" && c.body.rpcId.startsWith("pod-"), "rpcId 前缀");
   assert.ok(c.body.payload && typeof c.body.payload === "object", "payload 为对象");
 }
 const promptCall = byMethod("session.prompt")[0];

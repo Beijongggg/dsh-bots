@@ -78,8 +78,8 @@ test("集成：真 spawn 记录 pidStartTicks，stop 成对清理", async () => 
     enabled: true
   };
   writeRegistryAtomic(home, { [botId]: bot });
-  const prevBin = process.env.DSH_BOTS_DSH_BIN;
-  process.env.DSH_BOTS_DSH_BIN = binPath;
+  const prevBin = process.env.POD_DSH_BIN;
+  process.env.POD_DSH_BIN = binPath;
   const api = new BotsApi({ logger: { info() {}, warn() {}, error() {}, debug() {} } }, home, null);
   try {
     await api.spawnBot(bot);
@@ -95,8 +95,8 @@ test("集成：真 spawn 记录 pidStartTicks，stop 成对清理", async () => 
     assert.ok(!("pidStartTicks" in after), "stop 后 pidStartTicks 成对清理");
   } finally {
     try { await api.stop(botId); } catch { /* 已停 */ }
-    if (prevBin === undefined) delete process.env.DSH_BOTS_DSH_BIN;
-    else process.env.DSH_BOTS_DSH_BIN = prevBin;
+    if (prevBin === undefined) delete process.env.POD_DSH_BIN;
+    else process.env.POD_DSH_BIN = prevBin;
   }
 });
 

@@ -74,7 +74,7 @@ test("O-6.1 负例①：--out-root 指向 DSH_HOME → OUTPUT_CONTRACT_VIOLATION
 });
 
 test("O-6.1 负例②：--out-root 指向部署目录 → 拒绝", () => {
-  const r = validateRunnerOutRoot(path.join(home, "plugins", "dsh-bots"), { profile: "evidence" });
+  const r = validateRunnerOutRoot(path.join(home, "plugins", "pod"), { profile: "evidence" });
   assert.equal(r.ok, false);
 });
 

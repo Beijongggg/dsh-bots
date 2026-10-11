@@ -5,7 +5,7 @@
  *   - selectBotsToAutoStart 纯函数：停用/显式退出/在线 过滤＋注册表插入序；
  *   - autoStartBots 编排：顺序启动、间隔注入零等待、alreadyRunning 分类、
  *     单个失败不中断后续、结果三元组；
- *   - 应急闸 DSH_BOTS_AUTOSTART=0 全局关闭（含环境恢复）。
+ *   - 应急闸 POD_AUTOSTART=0 全局关闭（含环境恢复）。
  * 不 spawn 真实进程——api.start 以 mock 注入（真 spawn 链路由宿主重启实测覆盖）。
  */
 import assert from "node:assert/strict";
@@ -68,21 +68,21 @@ test("编排：无待启动 bot 时零调用零日志噪声路径", async () => 
   assert.deepEqual(r, { started: [], already: [], failed: [], disabled: false });
 });
 
-test("应急闸：DSH_BOTS_AUTOSTART=0 → 全局关闭且零启动调用（含环境恢复）", async () => {
+test("应急闸：POD_AUTOSTART=0 → 全局关闭且零启动调用（含环境恢复）", async () => {
   const api = mockApi({ a: bot("a") });
-  const prev = process.env.DSH_BOTS_AUTOSTART;
+  const prev = process.env.POD_AUTOSTART;
   try {
-    process.env.DSH_BOTS_AUTOSTART = "0";
+    process.env.POD_AUTOSTART = "0";
     const r = await autoStartBots(log, api, noSleep);
     assert.equal(r.disabled, true);
     assert.deepEqual(api.calls, [], "闸开时零启动");
-    process.env.DSH_BOTS_AUTOSTART = "1";
+    process.env.POD_AUTOSTART = "1";
     const r2 = await autoStartBots(log, api, noSleep);
     assert.equal(r2.disabled, false);
     assert.deepEqual(r2.started, ["a"], "闸关后恢复启动");
   } finally {
-    if (prev === undefined) delete process.env.DSH_BOTS_AUTOSTART;
-    else process.env.DSH_BOTS_AUTOSTART = prev;
+    if (prev === undefined) delete process.env.POD_AUTOSTART;
+    else process.env.POD_AUTOSTART = prev;
   }
 });
 

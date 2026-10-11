@@ -1,5 +1,5 @@
 /**
- * 回归：实时事件推送（SSE）—— SseHub 单元 + writeRegistry 广播 + /api/bots/_events 端点。
+ * 回归：实时事件推送（SSE）—— SseHub 单元 + writeRegistry 广播 + /api/pod/_events 端点。
  * 第二条只读直测（不 mock 生产逻辑）：hub 订阅/广播/退订、任何注册表/状态变更经
  * writeRegistry 单一 choke point 广播、events 端点接管 SSE 协议。
  */
@@ -92,12 +92,12 @@ test("writeRegistry：任何注册表/状态变更都广播 bots 事件", () => 
   assert.equal(readRegistry(home).worker.name, "W2");
 });
 
-// ---------- /api/bots/_events 端点 ----------
+// ---------- /api/pod/_events 端点 ----------
 test("events 端点：GET 接 SSE 协议，广播送达连接，close 退订", async () => {
   const home = mkHome({ worker: bot() });
   const hub = createSseHub();
   const api = new BotsApi(makeCtx(), home, hub);
-  const req = makeReq("GET", "/api/bots/_events");
+  const req = makeReq("GET", "/api/pod/_events");
   const res = makeSseRes();
 
   await handleApi(req, res, api);
@@ -121,7 +121,7 @@ test("events 端点：非 GET 方法 → 405", async () => {
   const home = mkHome({ worker: bot() });
   const hub = createSseHub();
   const api = new BotsApi(makeCtx(), home, hub);
-  const req = makeReq("POST", "/api/bots/_events");
+  const req = makeReq("POST", "/api/pod/_events");
   const res = { writeHead(s) { this.status = s; }, end(t) { this.body = t; } };
 
   await handleApi(req, res, api);
@@ -132,7 +132,7 @@ test("events 端点：跨站请求 → 403（与 JSON API 一致）", async () =
   const home = mkHome({ worker: bot() });
   const hub = createSseHub();
   const api = new BotsApi(makeCtx(), home, hub);
-  const req = makeReq("GET", "/api/bots/_events", { "sec-fetch-site": "cross-site" });
+  const req = makeReq("GET", "/api/pod/_events", { "sec-fetch-site": "cross-site" });
   const res = { writeHead(s) { this.status = s; }, end(t) { this.body = t; } };
 
   await handleApi(req, res, api);
@@ -143,7 +143,7 @@ test("id='events' 的 bot 详情不被 SSE 端点吞掉（路径无冲突）", a
   const home = mkHome({ events: bot({ id: "events" }) });
   const hub = createSseHub();
   const api = new BotsApi(makeCtx(), home, hub);
-  const req = makeReq("GET", "/api/bots/events");
+  const req = makeReq("GET", "/api/pod/events");
   const res = { writeHead(s) { this.status = s; }, end(t) { this.body = t; } };
 
   await handleApi(req, res, api);
@@ -174,7 +174,7 @@ test("B5 首连兜底：无 Last-Event-ID → 先发 reload 全量刷新（统�
   const api = new BotsApi(makeCtx(), home, hub);
   const res = makeSseRes();
 
-  await handleApi(makeReq("GET", "/api/bots/_events"), res, api);
+  await handleApi(makeReq("GET", "/api/pod/_events"), res, api);
 
   assert.equal(res.chunks[0], "retry: 3000\n\n");
   assert.equal(res.chunks[1], "event: reload\ndata: {}\n\n", "retry 后第一帧即 reload");
@@ -186,7 +186,7 @@ test("B5 断线补发：窗口内重连 → 先按序收错过事件再接实时
   const hub = createSseHub();
   const api = new BotsApi(makeCtx(), home, hub);
 
-  const req1 = makeReq("GET", "/api/bots/_events");
+  const req1 = makeReq("GET", "/api/pod/_events");
   const first = makeSseRes();
   await handleApi(req1, first, api);
   hub.broadcast("bots", { n: 1 });
@@ -198,7 +198,7 @@ test("B5 断线补发：窗口内重连 → 先按序收错过事件再接实时
   hub.broadcast("bots", { n: 3 });
   hub.broadcast("bots", { n: 4 });
 
-  const req2 = makeReq("GET", "/api/bots/_events", { "last-event-id": lastId });
+  const req2 = makeReq("GET", "/api/pod/_events", { "last-event-id": lastId });
   const second = makeSseRes();
   await handleApi(req2, second, api);
   assert.deepEqual(idsOf(second), [String(Number(lastId) + 1), String(Number(lastId) + 2)],
@@ -216,7 +216,7 @@ test("B5 无错过重连：last-event-id 恰为最新 → 无补发无 reload，
   const api = new BotsApi(makeCtx(), home, hub);
 
   hub.broadcast("bots", {});
-  const req = makeReq("GET", "/api/bots/_events", { "last-event-id": "1" });
+  const req = makeReq("GET", "/api/pod/_events", { "last-event-id": "1" });
   const res = makeSseRes();
   await handleApi(req, res, api);
 
@@ -234,7 +234,7 @@ test("B5 未知/未来 id：非数字与服务重启式未来 id → 兜底 relo
 
   for (const bad of ["abc", "99999", "0", "-1"]) {
     const res = makeSseRes();
-    await handleApi(makeReq("GET", "/api/bots/_events", { "last-event-id": bad }), res, api);
+    await handleApi(makeReq("GET", "/api/pod/_events", { "last-event-id": bad }), res, api);
     assert.equal(res.chunks[1], "event: reload\ndata: {}\n\n", `非法/未知 id ${JSON.stringify(bad)} → reload`);
   }
 });
@@ -249,12 +249,12 @@ test("B5 窗口上限：ledger 淘汰最旧，补发不越过窗口起点（不�
   // id 3 已被淘汰但 4 仍在其后窗口外可见不到：补发会缺 4 → reload，不补半窗
   // （边界：last-event-id = 窗口起点−1 时不缺任何事件，属窗口内，见下）。
   const gap = makeSseRes();
-  await handleApi(makeReq("GET", "/api/bots/_events", { "last-event-id": "3" }), gap, api);
+  await handleApi(makeReq("GET", "/api/pod/_events", { "last-event-id": "3" }), gap, api);
   assert.equal(gap.chunks[1], "event: reload\ndata: {}\n\n", "断层 id → reload 兜底");
 
   // 窗口边界 last-event-id=4（= 起点起点 5 − 1）：错过集恰为 5..260，完整可补 256 条
   const edge = makeSseRes();
-  await handleApi(makeReq("GET", "/api/bots/_events", { "last-event-id": "4" }), edge, api);
+  await handleApi(makeReq("GET", "/api/pod/_events", { "last-event-id": "4" }), edge, api);
   const ids = idsOf(edge);
   assert.equal(ids.length, 256, "边界重连补发恰为窗口内 256 条（条数上限生效）");
   assert.equal(ids[0], "5", "补发从窗口起点开始（不含已淘汰 id 1..4）");
@@ -271,7 +271,7 @@ test("B5 心跳：注释帧原文 : ping、不带 id、不推进序号（桩 set
   global.setInterval = (fn) => { fireHeartbeat = fn; return { unref() {} }; };
   let res;
   try {
-    const req = makeReq("GET", "/api/bots/_events");
+    const req = makeReq("GET", "/api/pod/_events");
     res = makeSseRes();
     await handleApi(req, res, api);
     fireHeartbeat(); // 心跳帧不参与重放语义：这里以实发帧断言其 wire 形态
@@ -283,7 +283,7 @@ test("B5 心跳：注释帧原文 : ping、不带 id、不推进序号（桩 set
   assert.ok(ping, "心跳为注释帧原文（无 event/data/id 字段）");
   // 若心跳占号，以 head id=1 重连就会收到补发或 reload——两者皆无即序号未推进
   const res2 = makeSseRes();
-  await handleApi(makeReq("GET", "/api/bots/_events", { "last-event-id": "1" }), res2, api);
+  await handleApi(makeReq("GET", "/api/pod/_events", { "last-event-id": "1" }), res2, api);
   assert.deepEqual(idsOf(res2), [], "心跳后以最新 id 重连无补发（序号未推进）");
   assert.ok(!res2.chunks.some((c) => c.includes("event: reload")), "亦不触发 reload 兜底");
 });

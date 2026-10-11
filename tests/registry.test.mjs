@@ -97,8 +97,8 @@ test("管理面守卫：原型链名 id 一律 404，不再伪成功/伪放行",
 });
 
 test("detectBotInstance：原型链名不误判在册（env 路径）；真在册仍识别", () => {
-  const prev = process.env.DSH_BOTS_BOT_ID;
-  process.env.DSH_BOTS_BOT_ID = "constructor";
+  const prev = process.env.POD_BOT_ID;
+  process.env.POD_BOT_ID = "constructor";
   try {
     const ctx = { logger: { warn() {} } };
     assert.equal(internals.detectBotInstance(ctx, { readRegistry: () => ({}) }), null,
@@ -109,8 +109,8 @@ test("detectBotInstance：原型链名不误判在册（env 路径）；真在�
       "自身字段命中（真在册）仍识别"
     );
   } finally {
-    if (prev === undefined) delete process.env.DSH_BOTS_BOT_ID;
-    else process.env.DSH_BOTS_BOT_ID = prev;
+    if (prev === undefined) delete process.env.POD_BOT_ID;
+    else process.env.POD_BOT_ID = prev;
   }
 });
 

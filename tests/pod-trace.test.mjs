@@ -4,7 +4,7 @@
  * 三段：
  *  ① 投影纯函数 `projectTrace`（lib/trace-projection.js）对合成事件流的精确断言
  *     —— 正常／错误／中断（stopped）／未闭合回合／并发子调用／缺工具名；
- *  ② 读面契约 `BotsApi.trace(id, since)` ＋ `GET /api/bots/:id/trace`
+ *  ② 读面契约 `BotsApi.trace(id, since)` ＋ `GET /api/pod/:id/trace`
  *     —— 注册表 404、在线 RPC 优先、离线读盘回落、mtime/size 缓存复用、since 增量；
  *  ③ 形状冻结与边界负例 —— 13 字段封闭＋state 枚举、邮件面行键不变、
  *     session-driver 回合返回形状不变。
@@ -563,7 +563,7 @@ test("V-P4.1 读面：v4 版本化日志（代际盲区）→ BotsApi.trace 返�
   assert.equal(viaApi.trace[0].subCalls.length, 1, "PTC 子调用经 v4 日志同样归入信封");
   assert.equal(viaApi.trace[0].subCalls[0].name, "read", "内层真实名不丢");
 
-  const viaRoute = await call(api, "GET", "/api/bots/worker/trace");
+  const viaRoute = await call(api, "GET", "/api/pod/worker/trace");
   assert.equal(viaRoute.status, 200);
   assert.deepEqual(viaRoute.body.trace.map((r) => r.name), ["run_code"], "HTTP 读面同样拿到 v4 轨迹");
 });
@@ -630,12 +630,12 @@ test("V-P4.6 读面：损坏日志 fail-closed（空轨迹，不抛到 HTTP 面�
   // 非 zstd 字节流：扫帧即抛「invalid frame magic」，读面必须捕获
   fs.writeFileSync(file, Buffer.from("not a zstd stream at all"));
 
-  const res = await call(api, "GET", "/api/bots/worker/trace");
+  const res = await call(api, "GET", "/api/pod/worker/trace");
   assert.equal(res.status, 200, "损坏日志不得 500（fail-closed 为空轨迹）");
   assert.deepEqual(res.body, { trace: [], counters: { gap: 0 } });
 });
 
-test("V-P4.1 路由：GET /api/bots/:id/trace ＋ since ＋ 405/404", async () => {
+test("V-P4.1 路由：GET /api/pod/:id/trace ＋ since ＋ 405/404", async () => {
   const home = mkHome({ worker: bot() });
   const api = new BotsApi(makeCtx(), home);
   writeSessionId(home, "worker", "sid-route");
@@ -646,22 +646,22 @@ test("V-P4.1 路由：GET /api/bots/:id/trace ＋ since ＋ 405/404", async () =
   tend(COMPLETED);
   writeSessionLog(home, "worker", "sid-route", [order()]);
 
-  const all = await call(api, "GET", "/api/bots/worker/trace");
-  assert.equal(all.status, 200, "前缀路由 /api/bots 下注册");
+  const all = await call(api, "GET", "/api/pod/worker/trace");
+  assert.equal(all.status, 200, "前缀路由 /api/pod 下注册");
   assert.deepEqual(all.body.trace.map((r) => r.name), ["bash", "glob"]);
 
-  const inc = await call(api, "GET", `/api/bots/worker/trace?since=${all.body.trace[0].seq}`);
+  const inc = await call(api, "GET", `/api/pod/worker/trace?since=${all.body.trace[0].seq}`);
   assert.equal(inc.status, 200);
   assert.deepEqual(inc.body.trace.map((r) => r.name), ["glob"], "?since= 增量（严格 seq 水位）");
 
-  const bad = await call(api, "GET", "/api/bots/worker/trace?since=abc");
+  const bad = await call(api, "GET", "/api/pod/worker/trace?since=abc");
   assert.equal(bad.status, 200);
   assert.equal(bad.body.trace.length, 2, "非法 since → 不过滤（宽容口径）");
 
-  const wrongMethod = await call(api, "POST", "/api/bots/worker/trace");
+  const wrongMethod = await call(api, "POST", "/api/pod/worker/trace");
   assert.equal(wrongMethod.status, 405, "只读面：非 GET → 405");
 
-  const unknown = await call(api, "GET", "/api/bots/nope/trace");
+  const unknown = await call(api, "GET", "/api/pod/nope/trace");
   assert.equal(unknown.status, 404, "未注册 id → 404 {error}");
   assert.ok(typeof unknown.body.error === "string" && unknown.body.error !== "", "错误统一 {error: message}");
 });

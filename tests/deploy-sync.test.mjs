@@ -33,7 +33,7 @@ function makeFixture({ deployedContent = "old\n", extraDeployFile = null } = {})
   const root = mkdtempSync(join(tmpdir(), "deploy-sync-test-"));
   const repo = join(root, "repo");
   const dshHome = join(root, "dsh");
-  const deployDir = join(dshHome, "plugins", "dsh-bots");
+  const deployDir = join(dshHome, "plugins", "pod");
   for (const [rel, content] of INVENTORY_FILES) {
     mkdirSync(dirname(join(repo, rel)), { recursive: true });
     mkdirSync(dirname(join(deployDir, rel)), { recursive: true });
@@ -96,7 +96,7 @@ test("deploy-sync：计划件区分 create／write 并给出现役摘要（纯�
   const spec = { runId: "r", batch: "b", commit: "abc1234", files: ["a.js", "b.js"], reason: "x", authorization: "y" };
   const plan = buildPlan({
     spec,
-    meta: { dshHome: "/h", deployDir: "/h/plugins/dsh-bots" },
+    meta: { dshHome: "/h", deployDir: "/h/plugins/pod" },
     sourceBytes: (path) => Buffer.from(`src:${path}`),
     readDeployed: (path) => (path === "a.js" ? Buffer.from("src:a.js") : null)
   });

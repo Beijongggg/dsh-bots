@@ -34,9 +34,10 @@
  *      清表）。清单条目逐条注明搁置票与实现保留地（`integration/pod` 提交 sha）。
  *   2. **core 附录 A 未补记白名单**（`UNBACKFILLED_ROWS`）：core 批**只改** `spec.md`
  *      的 `Status:` 行、正文与附录 A 不动，故 integration `b5021b6` 里那轮「执行坐标」
- *      补记在 core 不存在——V-P8.1（命令＋票面引注）与 V-P8.3（指 `tests/pod-rename-env
- *      .test.mjs`＝改名批 13 待实现）两条在 core 解析不到落点，显式登记在册（同样双向
- *      锁定：一旦解析成立即红）。其余 26 条补记坐标在 core 现状下**逐条可解析**。
+ *      补记在 core 不存在——V-P8.1（命令＋票面引注）在 core 解析不到落点，显式登记在册
+ *      （同样双向锁定：一旦解析成立即红；原在册的 V-P8.3 已随改名批 13 落地
+ *      `tests/pod-rename-env.test.mjs` 同批移出，2026-10-11）。
+ *      其余 26 条补记坐标在 core 现状下**逐条可解析**。
  * 「core 现状锁定表」`CANONICAL_COORDINATES`＝core 附录 A 执行坐标列的快照（逐条与
  * core 附录 A 同拍；integration 那版记的是补记后的写法，两者按同一机制锁定各自现状）。
  * 逐条复核与适配说明见 11 号票 Comments「收口记录（2026-10-10）」。
@@ -110,13 +111,12 @@ export const PARKED_LANDINGS = Object.freeze({
  * 不动），故 `b5021b6` 那轮「执行坐标」补记在 core 不存在——以下判据在 core 解析不到
  * 落点，显式登记在册（**双向锁定**：一旦解析成立即须同批移出本表）：
  *   - `V-P8.1`：坐标＝命令引注＋票面引注（integration 补记为 `用例:project-context.test.mjs
- *     #--spec-index`＋`tests:project-context.test.mjs`）；
- *   - `V-P8.3`：坐标指 `tests/pod-rename-env.test.mjs`（改名批票 13 待实现落点；
- *     integration 补记改指既有件 `scripts/org-cutover-check.mjs`）。
+ *     #--spec-index`＋`tests:project-context.test.mjs`）。
+ *     （`V-P8.3` 原亦在册——改名批 13 落地 `tests/pod-rename-env.test.mjs` 后坐标可解析，
+ *     已按锁定规则同批移出，2026-10-11。）
  */
 export const UNBACKFILLED_ROWS = Object.freeze({
-  "V-P8.1": "命令＋票面引注（core 未补记；落点见票 11 Comments 坐标复核表）",
-  "V-P8.3": "改名批 13 待实现件 tests/pod-rename-env.test.mjs（core 未补记；integration 改指 scripts/org-cutover-check.mjs）"
+  "V-P8.1": "命令＋票面引注（core 未补记；落点见票 11 Comments 坐标复核表）"
 });
 
 // ---------- 规格解析 ----------
@@ -581,84 +581,28 @@ export const SCAN_SKIP_FILES = Object.freeze(["tests/pod-spec-face.test.mjs"]);
 
 /** 文件级许可：完整记号，一条一记号（反向验真：必须真出现，防陈旧掩体）。 */
 export const IDENTITY_ALLOW_TOKENS = Object.freeze({
-  "lib/api-security.js": Object.freeze(["dsh-bots-token"]),
-  "lib/bot-autostart.js": Object.freeze(["DSH_BOTS_AUTOSTART"]),
-  "lib/bot-supervisor.js": Object.freeze(["DSH_BOTS_AUTORESTART"]),
-  "lib/client.js": Object.freeze(["dsh-bots", "dsh-bots-token"]),
-  "lib/index.js": Object.freeze([
-    "dsh-bots", "dsh-bots-${id}", "dsh-bots-${botId}", "dsh-bots-token",
-    "dsh-bots:post", "dsh-bots:team",
-    "DSH_BOTS_AUTOSTART", "DSH_BOTS_BOT_ID", "DSH_BOTS_CREATE_BOT_SCRIPT", "DSH_BOTS_DSH_BIN",
-    "DSH_BOTS_HOST_URL", "DSH_BOTS_SESSION_AUTO_HEAL", "DSH_BOTS_TURN_TIMEOUT_MS"
-  ]),
-  "lib/org/capability-delivery.js": Object.freeze(["dsh-bots:org-credential", "dsh-bots:org-ready", "dsh-bots:org-review", "dsh-bots:org-review-done"]),
-  "lib/org/cutover.js": Object.freeze(["dsh-bots"]),
-  "lib/org/host-channel.js": Object.freeze(["dsh-bots-bot-id"]),
-  "lib/org/host-env-seam.js": Object.freeze(["DSH_BOTS_HOST_URL"]),
-  "lib/org/ledger-host.js": Object.freeze(["dsh-bots-capability", "dsh-bots-review-request"]),
-  "lib/org/post-channel.js": Object.freeze(["dsh-bots-capability", "dsh-bots-review-request"]),
-  "lib/org/review-session.js": Object.freeze(["dsh-bots"]),
-  // 03 号票退役两段的**历史提及**（注释）；活性面已无该段名
+  // 03 号票退役两段的**历史提及**（注释）；活性面已无该段名（retired-section 形）
   "lib/org/role-cards.js": Object.freeze(["dsh-bots:review", "dsh-bots:review-gate"]),
-  "lib/sentinel-runner.js": Object.freeze(["dsh-bots", "DSH_BOTS_PROBE_REAL_AUTHORIZED"]),
-  "lib/sentinel-safety.js": Object.freeze(["dsh-bots"]),
-  "lib/shared.cjs": Object.freeze(["dsh-bots"]),
-  "lib/spawn-env.js": Object.freeze(["DSH_BOTS_ENV_EXTRA"]),
-  "scripts/bot-health.cjs": Object.freeze(["dsh-bots"]),
-  "scripts/c2-preparation.mjs": Object.freeze(["dsh-bots"]),
-  "scripts/deploy-sync.mjs": Object.freeze(["dsh-bots"]),
-  "scripts/evidence-runner.mjs": Object.freeze(["dsh-bots"]),
-  "scripts/host-contract-probe.mjs": Object.freeze(["DSH_BOTS_PROBE_FACE"]),
-  "scripts/ledger-drill.mjs": Object.freeze(["dsh-bots"]),
-  "tests/bot-autostart.test.mjs": Object.freeze(["DSH_BOTS_AUTOSTART"]),
-  "tests/bot-profile.test.mjs": Object.freeze(["DSH_BOTS_CREATE_BOT_SCRIPT"]),
-  "tests/bot-supervisor.test.mjs": Object.freeze(["DSH_BOTS_AUTORESTART"]),
-  "tests/client-fetch.test.mjs": Object.freeze(["dsh-bots-token"]),
-  "tests/deploy-sync.test.mjs": Object.freeze(["dsh-bots"]),
-  "tests/evidence-packager.test.mjs": Object.freeze(["dsh-bots"]),
-  "tests/evidence-runner-contract.test.mjs": Object.freeze(["dsh-bots"]),
-  "tests/fs-hygiene.test.mjs": Object.freeze(["DSH_BOTS_CREATE_BOT_SCRIPT"]),
-  "tests/host-contract-gate.test.mjs": Object.freeze(["DSH_BOTS_PROBE_FACE"]),
-  "tests/host-env-seam.test.mjs": Object.freeze(["DSH_BOTS_AUTOSTART", "DSH_BOTS_HOST_URL"]),
-  "tests/ledger-host.test.mjs": Object.freeze(["dsh-bots-bot-id", "dsh-bots-capability", "DSH_BOTS_AUTOSTART"]),
-  "tests/org-bootstrap-channel.test.mjs": Object.freeze([
-    "dsh-bots", "dsh-bots-bot-id", "dsh-bots-capability", "dsh-bots-review-request",
-    "dsh-bots:org-ready", "dsh-bots:org-review", "dsh-bots:org-review-done"
-  ]),
-  "tests/org-closed-loop-smoke.test.mjs": Object.freeze(["dsh-bots-bot-id", "dsh-bots-capability"]),
-  "tests/org-cutover-check.test.mjs": Object.freeze(["dsh-bots", "dsh-bots:org-ready"]),
-  "tests/org-mail-client.test.mjs": Object.freeze(["dsh-bots-bot-id", "dsh-bots-token"]),
-  "tests/org-mail-relay.test.mjs": Object.freeze(["dsh-bots-bot-id"]),
-  "tests/org-mail-shared-face.test.mjs": Object.freeze(["dsh-bots-bot-id"]),
-  "tests/org-post-channel.test.mjs": Object.freeze(["dsh-bots-bot-id", "dsh-bots-capability", "dsh-bots-token"]),
-  "tests/p6-5-sentinel-guards.test.mjs": Object.freeze(["DSH_BOTS_PROBE_REAL_AUTHORIZED"]),
-  "tests/pid-bind.test.mjs": Object.freeze(["DSH_BOTS_DSH_BIN"]),
-  "tests/pod-harness-base.test.mjs": Object.freeze(["DSH_BOTS_CREATE_BOT_SCRIPT"]),
-  "tests/registry.test.mjs": Object.freeze(["DSH_BOTS_BOT_ID"]),
-  "tests/reply-route.test.mjs": Object.freeze(["DSH_BOTS_SESSION_AUTO_HEAL"]),
-  "tests/role-cards.test.mjs": Object.freeze(["dsh-bots:post"]),
-  "tests/rpc-envelope.test.mjs": Object.freeze(["dsh-bots"]),
-  "tests/sentinel-layout-manifest.test.mjs": Object.freeze(["DSH_BOTS_PROBE_REAL_AUTHORIZED"]),
-  "tests/sentinel-output-contract.test.mjs": Object.freeze(["DSH_BOTS_PROBE_REAL_AUTHORIZED"]),
-  "tests/spawn-env.test.mjs": Object.freeze(["DSH_BOTS_DSH_BIN", "DSH_BOTS_ENV_EXTRA", "DSH_BOTS_HOST_URL"]),
-  "tests/turn-timeout-seam.test.mjs": Object.freeze(["DSH_BOTS_TURN_TIMEOUT_MS"])
+  // 13 号票 env 双读的**回落测试夹具**（POD_* 优先、旧名回落兼容一个窗口；票 15 全窗关闭时同批收缩）
+  "tests/pod-rename-env.test.mjs": Object.freeze([
+    "DSH_BOTS_HOST_URL", "DSH_BOTS_ENV_EXTRA", "DSH_BOTS_TURN_TIMEOUT_MS", "DSH_BOTS_X", "DSH_BOTS_OTHER"
+  ])
 });
 
 /**
- * 跨文件同形许可（票 13 身份面；这些形态**跨文件一致**，形本身即可判）：
- *   - `identity-bare`：裸 `dsh-bots`（模块 id／包名／插件目录段）；
- *   - `hyphen-ns`：`dsh-bots-*`（头名／rpcPrefix／样式标签 id 等；不含裸 `dsh-bots` 与 `dsh-bots:*`）
- *     ——注意：形许可**不是**文件许可，能不能留仍由 `IDENTITY_ALLOW_TOKENS` 定；
- *   - `ipc-or-section`：`dsh-bots:org-*` IPC 类型与 `dsh-bots:post|team` 提示段名；
- *   - `env-name`：`DSH_BOTS_*`（B 组 env）。
- * 部署目录（`"dsh-bots"` 路径片段）不进形许可——一律走文件级许可逐条登记。
+ * 跨文件同形许可（13 号票身份切换后收缩到两类；其余三形已随改名无命中而删除）：
+ *   - `retired-section`：`dsh-bots:review|review-gate`——03 号票退役段名的**历史提及**
+ *     （role-cards.js 注释，冻结历史，不随改名回写）；
+ *   - `env-name`：`DSH_BOTS_*`——env 双读回落（POD_* 优先）兼容窗口内的**故意残留**，
+ *     只许出现在 `tests/pod-rename-env.test.mjs` 夹具（文件级许可逐条登记）；
+ *     全窗关闭（票 15）时本形与该件条目同批删除。
+ * 已删形（原票 13 身份面）：`identity-bare`／`hyphen-ns`／`ipc-or-section`——
+ * 四同名、wire 头、IPC 类型、提示段名已随 13 号票全部换新名（再出现即 `hits` 红）。
+ * 部署目录（路径片段）不进形许可——一律走文件级许可逐条登记。
  */
 export const IDENTITY_ALLOW_SHAPES = Object.freeze([
-  Object.freeze({ id: "identity-bare", re: /^dsh-bots$/u }),
   // 03 号票退役的提示段名（只应出现在「已退役」历史提及里）
   Object.freeze({ id: "retired-section", re: /^dsh-bots:review(?:-gate)?$/u }),
-  Object.freeze({ id: "hyphen-ns", re: /^dsh-bots-[\w$./{}-]*$/u }),
-  Object.freeze({ id: "ipc-or-section", re: /^dsh-bots:(?:org-[a-z-]+|post|team)$/u }),
   Object.freeze({ id: "env-name", re: /^DSH_BOTS_[A-Z0-9_]+$/u })
 ]);
 
@@ -871,7 +815,7 @@ test("V-P9.3 机械检查④：票面引用坐标逐条存在（零空缺、零�
   const machineResolved = rows.length - proseOnly.length;
   const registered = registeredIds.length;
   assert.equal(machineResolved, rows.length - registered, `机械可解析条数＝64 − 已登记句子型引注条数（${String(registered)}）`);
-  assert.ok(machineResolved >= 55, `机械可解析 ${String(machineResolved)} 条，预期 ≥ 55（治理面 7＋core 未补记 2）`);
+  assert.ok(machineResolved >= 55, `机械可解析 ${String(machineResolved)} 条，预期 ≥ 55（治理面 7＋core 未补记 1）`);
 });
 
 test("V-P9.3 现状锁定同拍：附录 A 执行坐标列与 CANONICAL_COORDINATES 逐条一致（指错落点／坐标漂移即红）", () => {
@@ -902,7 +846,7 @@ test("V-P9.3 人工坐标只许白名单类别：人工:human-visual-checklist�
   );
 });
 
-test("V-P9.3 登记口径：句子型引注＝治理面 7 条＋core 未补记 2 条（两表均双向锁定，非空缺）", () => {
+test("V-P9.3 登记口径：句子型引注＝治理面 7 条＋core 未补记 1 条（两表均双向锁定，非空缺）", () => {
   const { proseOnly, violations } = checkSpecFace();
   assert.deepEqual(
     proseOnly.sort(),
@@ -917,7 +861,8 @@ test("V-P9.3 登记口径：句子型引注＝治理面 7 条＋core 未补记 2
 test("V-P9.3 搁置清单双向锁定：07／08／09 三票的落点只在册放过；在册条目落地即红", () => {
   const { usedParked, violations } = checkSpecFace();
   assert.deepEqual([...usedParked].sort(), Object.keys(PARKED_LANDINGS).sort(), "搁置清单与实况漂移（在册未被引用／被引用未在册）");
-  // 未在册的缺失落点仍须报红（在册才放过）；唯一例外是 core 未补记白名单里的 V-P8.3（另一份双向锁定表）
+  // 未在册的缺失落点仍须报红（在册才放过）；例外过滤按 core 未补记白名单键
+  // （原在册的 V-P8.3 已随改名批 13 落地测试件同批移出）
   const strayMissing = violations.filter((line) => line.includes("测试文件不存在")
     && !Object.keys(UNBACKFILLED_ROWS).some((id) => line.startsWith(`${id}:`)));
   assert.deepEqual(strayMissing, [], "非在册缺失落点仍须报红——在册才放过");
@@ -931,14 +876,14 @@ test("V-P9.3 搁置清单双向锁定：07／08／09 三票的落点只在册放
   }
 });
 
-test("V-P9.3 登记口径：core 现状下「常驻但坐标无测试落点」＝待实现批 7 条＋搁置件落点 15 条（非空缺）", () => {
+test("V-P9.3 登记口径：core 现状下「常驻但坐标无测试落点」＝待实现批 6 条＋搁置件落点 15 条（非空缺）", () => {
   const { rows } = checkSpecFace();
   const gap = residentWithoutTest(rows);
   assert.deepEqual(
     gap,
     ["V-P5.1", "V-P5.2", "V-P5.3", "V-P5.4", "V-P5.5", "V-P5.6", "V-P5.7", "V-P5.8", "V-P5.9",
       "V-P6.1", "V-P6.2", "V-P6.3", "V-P6.4", "V-P6.5", "V-P6.6",
-      "V-P8.1", "V-P8.3", "V-P8.4", "V-P8.5", "V-P8.6", "V-P9.1", "V-P9.2"],
+      "V-P8.1", "V-P8.4", "V-P8.5", "V-P8.6", "V-P9.1", "V-P9.2"],
     "「常驻但坐标无测试落点」集合漂移（新增＝坐标空缺；减少＝坐标已落地，须同批更新本断言）"
   );
   for (const id of gap) {
@@ -993,39 +938,72 @@ test("V-P1.5 代码内部名不随命名批改名：本批自有面旧名命中 
   assert.ok(hits.length >= 3, `本批自有面旧名命中 ${String(hits.length)} 处，预期 ≥ 3（改名批做减法）`);
 });
 
-test("V-P1.5b 内部名不上浮为对外文案：locale 字典入口标签无旧名、实现面命中在声明白名单内", () => {
+test("V-P1.5b 内部名不上浮为对外文案：locale 字典入口标签无旧名、代码面旧名清零（13 号票身份切换后）", () => {
   const hits = oldNameHits();
   const client = readTextOrEmpty(join(REPO_ROOT, "lib/client.js"));
   const labelLines = client.split("\n").filter((line) => /"entry\.label":/.test(line));
   assert.equal(labelLines.length, 2, "入口标签 zh／en 两条");
   assert.ok(labelLines.every((line) => !line.includes("dsh-bots")), "入口标签不得带旧名");
+  assert.ok(hits.every((hit) => POD_BATCH_SURFACES.includes(hit.file)), "命中面必在声明白名单内（冻结规格引文等冻结件两类都可辨）");
+  // 13 号票（身份切换）后：本批自有**代码面**旧名清零——残留命中只许在
+  // 冻结规格（`.scratch/pod/spec.md` 历史引文）内；lib／scripts 实现面命中＝空集。
   const implementationFaces = hits.filter((hit) => hit.file.startsWith("lib/") || hit.file.startsWith("scripts/"));
-  assert.ok(implementationFaces.length > 0, "代码内部名类（实现面）须在命中面内");
-  assert.ok(hits.every((hit) => POD_BATCH_SURFACES.includes(hit.file)), "命中面必在声明白名单内（代码内部名与冻结件两类都可辨）");
-  // 12 号票（仓库内标识符扫）后：展示面类名／元素 id 一律 `pod-*`；旧名只剩**身份串**
-  // （模块 id／host 插件名 `"dsh-bots"`、与宿主四同名绑定，留给票 13 同窗切换）。
+  assert.deepEqual(implementationFaces, [], "代码内部名已随 13 号票切换到新名，实现面不得再有旧名命中");
   for (const name of ['seatView: "pod-pod-seat-view"', 'seatList: "pod-pod-seat-list"', 'layer: "pod-pod-layer"']) {
     assert.ok(client.includes(name), `展示面类名须已换新名：${name}`);
   }
-  // 旧**类名／元素 id／`data-*` 形**在 client 里须绝迹；`dsh-bots` 只准作身份串
-  // （身份形＝带引号/CSV 头名；`dsh-bots/styles` 样式标签 id 随插件名，票 13）
-  assert.equal(/\.dsh-bots-|"dsh-bots-(?!token|\/)|data-dsh-bots/.test(client), false,
-    "client 内不得再留旧类名／元素 id／data-* 前缀");
-  for (const identity of ['id: "dsh-bots"', 'const name = "dsh-bots"', 'tag.dataset.plugin = "dsh-bots"']) {
-    assert.ok(client.includes(identity), `身份串须原样保留（票 13 同窗切换）：${identity}`);
+  // 旧名（任意记号形，含身份串／wire 头）在 client 内绝迹；身份串已换新名（四同名见 V-P8.4）
+  assert.equal(/dsh-bots|DSH_BOTS/i.test(client), false, "client 内旧名（含身份串／wire 头）须绝迹");
+  for (const identity of ['id: "pod"', 'const name = "pod"', 'tag.dataset.plugin = "pod"', 'const tagId = "pod/styles"']) {
+    assert.ok(client.includes(identity), `身份串已换新名：${identity}`);
+  }
+  // 路由前缀随窗切换（V-P8.2「路由前缀」类的 client 侧坐标）
+  assert.ok(client.includes('"/api/pod'), "client 调用面已换 /api/pod 前缀");
+  assert.equal(client.includes("/api/bots"), false, "client 内不得再留 /api/bots 前缀");
+});
+
+test("V-P8.4 四同名一致：patch 行 name＝插件目录段＝package.json.name＝前端模块 id（缺一即加载失败）", () => {
+  const pkgText = readTextOrEmpty(join(REPO_ROOT, "package.json"));
+  const pkg = JSON.parse(pkgText);
+  const client = readTextOrEmpty(join(REPO_ROOT, "lib/client.js"));
+  const shared = readTextOrEmpty(join(REPO_ROOT, "lib/shared.cjs"));
+  const deploySync = readTextOrEmpty(join(REPO_ROOT, "scripts/deploy-sync.mjs"));
+  // 落点逐一提取（提取不到＝该落点形状漂移，fail closed）：
+  // 包名／前端模块 id／插件声明 name／样式标签 dataset／patch 行 name／部署目录段默认值。
+  const names = new Set([
+    pkg.name,
+    (client.match(/^\tid: "([^"]+)"/m) ?? [])[1],
+    (client.match(/const name = "([^"]+)"/) ?? [])[1],
+    (client.match(/tag\.dataset\.plugin = "([^"]+)"/) ?? [])[1],
+    (shared.match(/push\("      name: '([^']+)'"\)/) ?? [])[1],
+    (deploySync.match(/join\("plugins", "([^"]+)"\)/) ?? [])[1]
+  ]);
+  assert.equal(names.size, 1, `四同名绑定（＋部署目录段）须逐落点一致：${[...names].join("／")}`);
+  assert.equal([...names][0], "pod", "插件身份名＝pod（小写单数，与其余身份段一致）");
+  // 同窗反向锁定：旧身份串在四个落点文件中绝迹
+  for (const [rel, text] of [["package.json", pkgText], ["lib/client.js", client], ["lib/shared.cjs", shared]]) {
+    assert.equal(/dsh-bots/.test(text), false, `${rel} 不得再带旧身份串`);
   }
 });
 
-test("V-P1.4/V-P1.5 12 号票标识符扫：代码面旧名残留 ⊆ 身份面白名单（白名单外即「应改未改」）", () => {
-  const { hits, whitelisted, scanned, counts, staleAllow, unusedShapes } = codeFaceOldNameScan();
+test("V-P1.4/V-P1.5 13 号票身份切换：代码面旧名残留 ⊆ 退役段名＋env 回落测试（其余清零）", () => {
+  const { hits, whitelisted, scanned, staleAllow, unusedShapes } = codeFaceOldNameScan();
   assert.ok(scanned > 40, `扫描面须覆盖 lib／tests／scripts（实扫 ${String(scanned)} 件）`);
-  assert.ok(whitelisted.length > 0, "身份面（票 13）许可残留须被识别为一类，不是空集");
-  // 四类记号各有残留登记（bare／hyphen／colon／env），且都属票 13 身份面
-  for (const kind of ["bare", "hyphen", "colon", "env"]) {
-    assert.ok((counts.whitelistedByKind.get(kind) ?? 0) > 0, `记号类 ${kind} 须有登记（剩余命中清单不得漏类）`);
-  }
+  assert.ok(whitelisted.length > 0, "退役历史与双读回落测试的许可残留须被识别为一类，不是空集");
+  // 身份切换后剩余许可只许两类：
+  //   ① role-cards.js 注释里的**退役段名历史提及**（03 号票退役，冻结历史）；
+  //   ② tests/pod-rename-env.test.mjs 的 **env 双读回落夹具**（POD_* 优先、
+  //      DSH_BOTS_* 回落兼容一个窗口，票 15 全窗关闭时同批收缩）。
+  const retired = whitelisted.filter((entry) => entry.file === "lib/org/role-cards.js");
+  const envFallback = whitelisted.filter((entry) => entry.file === "tests/pod-rename-env.test.mjs");
+  assert.ok(retired.length > 0 && retired.every((entry) => entry.kind === "colon"),
+    "role-cards 退役段名历史提及（retired-section 形许可）");
+  assert.ok(envFallback.length > 0 && envFallback.every((entry) => entry.kind === "env"),
+    "env 双读回落测试夹具（兼容窗口内故意残留）");
+  assert.equal(whitelisted.length, retired.length + envFallback.length,
+    "许可面只许上述两类（其余文件条目已随身份切换删除）");
   const detail = hits.map((h) => `${h.file}:${h.kind}:${h.token}`).join("、");
-  assert.deepEqual(hits, [], `白名单外旧名残留＝「应改未改」（应落票 13 身份面清单）：${detail}`);
+  assert.deepEqual(hits, [], `白名单外旧名残留＝「应改未改」（身份切换后代码面应清零）：${detail}`);
   assert.deepEqual(staleAllow, [], `身份面白名单陈旧（许可记号已不存在，须同批删除）：${staleAllow.join("、")}`);
   assert.deepEqual(unusedShapes, [], `身份面许可形未被命中（陈旧形，须同批删除）：${unusedShapes.join("、")}`);
   // 本票已换新的非身份面：这些文件是「旧类名／旧 id 前缀」的密集落点，须为零命中且不得在册
@@ -1034,6 +1012,13 @@ test("V-P1.4/V-P1.5 12 号票标识符扫：代码面旧名残留 ⊆ 身份面�
     // 这些件属票 12 已改面：旧标识符形（旧类名／旧 id／旧 data-*）须绝迹
     assert.equal(OLD_IDENTIFIER_SHAPE.test(readTextOrEmpty(join(REPO_ROOT, rel))), false,
       `${rel} 不得再带旧标识符形（旧类名／旧 id／旧 data-*）`);
+  }
+  // 13 号票身份切换后：bare／hyphen／colon（活性）／env（lib 面）记号清零——
+  // 全码面只许 env 回落测试夹具与退役段名两类残留（上方两类断言已锁）；此处
+  // 反向验证 lib／scripts 面旧名记号（env 类含）全零。
+  for (const [root, kind] of [["lib/", "env"], ["lib/", "bare"], ["scripts/", "bare"]]) {
+    assert.equal(whitelisted.filter((entry) => entry.file.startsWith(root) && entry.kind === kind).length, 0,
+      `${root} 面不得再留 ${kind} 类旧名记号`);
   }
 });
 
@@ -1044,17 +1029,18 @@ test("V-P8.2 A 组九类清单扫全：模块 id／包名／CSS 前缀／locale 
   assert.ok(/A 组范围齐备/.test(row.criterion), "V-P8.2 判据文本须为 A 组九类清单（范围齐备）");
   assert.ok(/模块 id／包名／CSS 前缀／locale ns／host 插件名／wire 头／路由前缀／日志前缀／测试与脚本字面量/.test(row.criterion), "V-P8.2 九类清单须逐类点名");
   assert.ok(/A 组九类清单扫全/.test(row.coordinate), "V-P8.2 补记坐标须保留 A 组九类清单扫全口径");
-  // 九类清单逐类在活面上有真实落点（12 号票做非身份类减法，身份段留票 13 同窗切换）
+  // 九类清单逐类在活面上有真实落点（13 号票身份切换后九类全部换新名；
+  // 「路由前缀」类的目标名 /api/pod 系 Lead 按「单数 pod 收敛规律」裁定，待用户过目）
   const clientText = readTextOrEmpty(join(REPO_ROOT, "lib/client.js"));
   const indexText = readTextOrEmpty(join(REPO_ROOT, "lib/index.js"));
   const probeText = readTextOrEmpty(join(REPO_ROOT, "scripts/host-contract-probe.mjs"));
   const classes = [
-    // 身份／wire 段（票 13）：留旧名，与宿主四同名／跨进程契约绑定
-    { id: "模块 id", stage: "identity", hit: clientText.includes('id: "dsh-bots"') },
-    { id: "包名", stage: "identity", hit: readTextOrEmpty(join(REPO_ROOT, "package.json")).includes('"dsh-bots"') },
-    { id: "host 插件名", stage: "identity", hit: clientText.includes('const name = "dsh-bots"') },
-    { id: "wire 头", stage: "identity", hit: indexText.includes("x-dsh-bots") },
-    { id: "路由前缀", stage: "identity", hit: indexText.includes("/api/bots") },
+    // 身份／wire 段（13 号票已换新名；四同名一致性另见 V-P8.4）
+    { id: "模块 id", stage: "renamed", hit: clientText.includes('id: "pod"') && !clientText.includes('id: "dsh-bots"') },
+    { id: "包名", stage: "renamed", hit: JSON.parse(readTextOrEmpty(join(REPO_ROOT, "package.json"))).name === "pod" },
+    { id: "host 插件名", stage: "renamed", hit: clientText.includes('const name = "pod"') },
+    { id: "wire 头", stage: "renamed", hit: indexText.includes("x-pod-") && !indexText.includes("x-dsh-bots") },
+    { id: "路由前缀", stage: "renamed", hit: indexText.includes("/api/pod") && !indexText.includes("/api/bots") },
     // 非身份段（票 12 已换新名）：`pod-*`
     { id: "CSS 前缀", stage: "renamed", hit: /\.pod-[a-z0-9-]+\{/.test(clientText) && !OLD_IDENTIFIER_SHAPE.test(clientText) },
     { id: "locale ns", stage: "renamed", hit: clientText.includes('const LOCALE_NS = "pod";') },
@@ -1063,7 +1049,7 @@ test("V-P8.2 A 组九类清单扫全：模块 id／包名／CSS 前缀／locale 
   ];
   const missing = classes.filter((entry) => !entry.hit).map((entry) => entry.id);
   assert.deepEqual(missing, [], "A 组九类清单在活面上出现空类（清单扫全即不得有空类）");
-  assert.equal(classes.filter((entry) => entry.stage === "identity").length, 5, "身份段五类（票 13）");
-  assert.equal(classes.filter((entry) => entry.stage === "renamed").length, 4, "非身份段四类（票 12 已换新名）");
+  assert.equal(classes.filter((entry) => entry.stage === "identity").length, 0, "身份段已随 13 号票切换（无留旧名类）");
+  assert.equal(classes.filter((entry) => entry.stage === "renamed").length, 9, "九类全部已换新名（票 12 四类＋票 13 五类）");
   assert.equal(classes.length, 9, "A 组九类逐类有点名");
 });

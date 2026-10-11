@@ -41,7 +41,7 @@ test("restartAllowed：三层开关（enabled/autoRestart/应急闸）", () => {
   assert.equal(restartAllowed(base, { env: {} }), true);
   assert.equal(restartAllowed({ ...base, enabled: false }, { env: {} }), false);
   assert.equal(restartAllowed({ ...base, autoRestart: false }, { env: {} }), false);
-  assert.equal(restartAllowed(base, { env: { DSH_BOTS_AUTORESTART: "0" } }), false);
+  assert.equal(restartAllowed(base, { env: { POD_AUTORESTART: "0" } }), false);
   assert.equal(restartAllowed(null, { env: {} }), false);
 });
 
@@ -168,11 +168,11 @@ test("挂起重启被 onStop 取消；触发时开关拦截（enabled=false）�
   await blocked.timers.advance(nextBackoffMs(1) + 1);
   assert.equal(blocked.startCalls.length, 0, "触发时 enabled=false 拦截");
 
-  const fuse = makeFixture({ registry: { w: { id: "w", enabled: true } }, env: { DSH_BOTS_AUTORESTART: "0" } });
+  const fuse = makeFixture({ registry: { w: { id: "w", enabled: true } }, env: { POD_AUTORESTART: "0" } });
   const fgen = fuse.supervisor.begin("w");
   fuse.supervisor.onExit("w", fgen, { code: 1, signal: null });
   await fuse.timers.advance(nextBackoffMs(1) + 1);
-  assert.equal(fuse.startCalls.length, 0, "DSH_BOTS_AUTORESTART=0 应急闸拦截");
+  assert.equal(fuse.startCalls.length, 0, "POD_AUTORESTART=0 应急闸拦截");
 });
 
 test("readiness 观测链：端口通 → ready；截止未通 → degraded；代数被取代 → 探针弃置", async () => {

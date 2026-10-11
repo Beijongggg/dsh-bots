@@ -83,25 +83,25 @@ test("dispatch：list/detail 200，未知路径 404，错误方法 405，未知 
   const home = mkHome({ worker: bot() });
   const api = new BotsApi(makeCtx(), home);
 
-  const list = await call(api, "GET", "/api/bots");
+  const list = await call(api, "GET", "/api/pod");
   assert.equal(list.status, 200);
   assert.equal(list.body.bots.length, 1);
   assert.equal(list.body.bots[0].id, "worker");
 
-  const detail = await call(api, "GET", "/api/bots/worker");
+  const detail = await call(api, "GET", "/api/pod/worker");
   assert.equal(detail.status, 200);
   assert.equal(detail.body.bot.name, "Worker");
 
   const notFound = await call(api, "GET", "/api/other");
   assert.equal(notFound.status, 404);
 
-  const methodNotAllowed = await call(api, "PUT", "/api/bots");
+  const methodNotAllowed = await call(api, "PUT", "/api/pod");
   assert.equal(methodNotAllowed.status, 405);
 
-  const unknownAction = await call(api, "GET", "/api/bots/worker/unknownaction");
+  const unknownAction = await call(api, "GET", "/api/pod/worker/unknownaction");
   assert.equal(unknownAction.status, 404);
 
-  const missing = await call(api, "GET", "/api/bots/nope");
+  const missing = await call(api, "GET", "/api/pod/nope");
   assert.equal(missing.status, 404);
 });
 
@@ -109,13 +109,13 @@ test("dispatch：跨站请求被拒（CSRF，fail-open 缺头放行）", async (
   const home = mkHome({ worker: bot() });
   const api = new BotsApi(makeCtx(), home);
 
-  const crossSite = await call(api, "GET", "/api/bots", { "sec-fetch-site": "cross-site" });
+  const crossSite = await call(api, "GET", "/api/pod", { "sec-fetch-site": "cross-site" });
   assert.equal(crossSite.status, 403);
 
-  const sameOrigin = await call(api, "GET", "/api/bots", { "sec-fetch-site": "same-origin" });
+  const sameOrigin = await call(api, "GET", "/api/pod", { "sec-fetch-site": "same-origin" });
   assert.equal(sameOrigin.status, 200);
 
-  const noHeader = await call(api, "GET", "/api/bots");
+  const noHeader = await call(api, "GET", "/api/pod");
   assert.equal(noHeader.status, 200);
 });
 
@@ -124,13 +124,13 @@ test("patch 校验失败：400 + 注册表不变", async () => {
   const home = mkHome({ worker: bot() });
   const api = new BotsApi(makeCtx(), home);
 
-  const emptyName = await call(api, "PATCH", "/api/bots/worker", { "content-type": "application/json" }, { name: "" });
+  const emptyName = await call(api, "PATCH", "/api/pod/worker", { "content-type": "application/json" }, { name: "" });
   assert.equal(emptyName.status, 400);
 
-  const badPermission = await call(api, "PATCH", "/api/bots/worker", { "content-type": "application/json" }, { permission: "root" });
+  const badPermission = await call(api, "PATCH", "/api/pod/worker", { "content-type": "application/json" }, { permission: "root" });
   assert.equal(badPermission.status, 400);
 
-  const badPort = await call(api, "PATCH", "/api/bots/worker", { "content-type": "application/json" }, { port: 70 });
+  const badPort = await call(api, "PATCH", "/api/pod/worker", { "content-type": "application/json" }, { port: 70 });
   assert.equal(badPort.status, 400);
 
   // 全部失败后注册表仍是原始权限
@@ -141,7 +141,7 @@ test("patch 端口冲突：400", async () => {
   const home = mkHome({ worker: bot(), other: bot({ id: "other", port: 3202 }) });
   const api = new BotsApi(makeCtx(), home);
 
-  const clash = await call(api, "PATCH", "/api/bots/worker", { "content-type": "application/json" }, { port: 3202 });
+  const clash = await call(api, "PATCH", "/api/pod/worker", { "content-type": "application/json" }, { port: 3202 });
   assert.equal(clash.status, 400);
 });
 
@@ -149,7 +149,7 @@ test("patch 未知 id：404", async () => {
   const home = mkHome({ worker: bot() });
   const api = new BotsApi(makeCtx(), home);
 
-  const res = await call(api, "PATCH", "/api/bots/nope", { "content-type": "application/json" }, { name: "x" });
+  const res = await call(api, "PATCH", "/api/pod/nope", { "content-type": "application/json" }, { name: "x" });
   assert.equal(res.status, 404);
 });
 
@@ -158,7 +158,7 @@ test("patch group（changed=false）：不触发脚手架，注册表更新", as
   const home = mkHome({ worker: bot() });
   const api = new BotsApi(makeCtx(), home);
 
-  const res = await call(api, "PATCH", "/api/bots/worker", { "content-type": "application/json" }, { group: "alpha" });
+  const res = await call(api, "PATCH", "/api/pod/worker", { "content-type": "application/json" }, { group: "alpha" });
   assert.equal(res.status, 200);
   assert.equal(readRegistry(home).worker.group, "alpha");
 });
@@ -167,7 +167,7 @@ test("patch permission（changed=true）：200 + 注册表权限更新（scaffol
   const home = mkHome({ worker: bot() });
   const api = new BotsApi(makeCtx(), home);
 
-  const res = await call(api, "PATCH", "/api/bots/worker", { "content-type": "application/json" }, { permission: "read-only" });
+  const res = await call(api, "PATCH", "/api/pod/worker", { "content-type": "application/json" }, { permission: "read-only" });
   assert.equal(res.status, 200);
   assert.equal(readRegistry(home).worker.permission, "read-only");
   // 内置脚手架（model 空 → 不 spawn）应在写注册表前完成，生成 profile 清单
@@ -181,7 +181,7 @@ test("patch 回滚：脚手架失败 → 500 + 注册表不变（scaffold-before
   fs.writeFileSync(path.join(home, "profiles", "worker"), "not-a-dir");
   const api = new BotsApi(makeCtx(), home);
 
-  const res = await call(api, "PATCH", "/api/bots/worker", { "content-type": "application/json" }, { permission: "read-only" });
+  const res = await call(api, "PATCH", "/api/pod/worker", { "content-type": "application/json" }, { permission: "read-only" });
   assert.equal(res.status, 500, "脚手架失败应映射为 500 而非部分成功");
   assert.equal(readRegistry(home).worker.permission, "workspace-write", "脚手架失败后注册表必须保持原值");
 });
@@ -191,7 +191,7 @@ test("patch reasoningEffort（model 联动）：200 + 注册表 + settings.yaml 
   const home = mkHome({ worker: bot() });
   const api = new BotsApi(makeCtx(), home);
 
-  const res = await call(api, "PATCH", "/api/bots/worker", { "content-type": "application/json" },
+  const res = await call(api, "PATCH", "/api/pod/worker", { "content-type": "application/json" },
     { modelProvider: "deepseek-official", model: "deepseek-v4-pro", reasoningEffort: "max" });
   assert.equal(res.status, 200);
   const reg = readRegistry(home).worker;
@@ -221,7 +221,7 @@ test("patch reasoningEffort 清空：注册表置空 + settings.yaml 段去 effo
     "utf8");
   const api = new BotsApi(makeCtx(), home);
 
-  const res = await call(api, "PATCH", "/api/bots/worker", { "content-type": "application/json" }, { reasoningEffort: "" });
+  const res = await call(api, "PATCH", "/api/pod/worker", { "content-type": "application/json" }, { reasoningEffort: "" });
   assert.equal(res.status, 200);
   assert.equal(readRegistry(home).worker.reasoningEffort, "", "注册表 reasoningEffort 应清空");
 
@@ -243,7 +243,7 @@ test("patch 清空 model：settings.yaml 的 agent-default-model 段整体删除
     "utf8");
   const api = new BotsApi(makeCtx(), home);
 
-  const res = await call(api, "PATCH", "/api/bots/worker", { "content-type": "application/json" }, { model: "" });
+  const res = await call(api, "PATCH", "/api/pod/worker", { "content-type": "application/json" }, { model: "" });
   assert.equal(res.status, 200);
   const settings = fs.readFileSync(settingsPath, "utf8");
   assert.ok(!/agent-default-model/.test(settings), "模型清空后段应删除");
@@ -254,7 +254,7 @@ test("patch reasoningEffort 非法类型：400 + 注册表不变", async () => {
   const home = mkHome({ worker: bot() });
   const api = new BotsApi(makeCtx(), home);
 
-  const res = await call(api, "PATCH", "/api/bots/worker", { "content-type": "application/json" }, { reasoningEffort: 42 });
+  const res = await call(api, "PATCH", "/api/pod/worker", { "content-type": "application/json" }, { reasoningEffort: 42 });
   assert.equal(res.status, 400);
   assert.equal(readRegistry(home).worker.reasoningEffort, undefined, "注册表不应写入非法值");
 });
@@ -263,7 +263,7 @@ test("create 携带 reasoningEffort：201 + 注册表 + settings.yaml 活源", a
   const home = mkHome({});
   const api = new BotsApi(makeCtx(), home);
 
-  const res = await call(api, "POST", "/api/bots", { "content-type": "application/json" }, {
+  const res = await call(api, "POST", "/api/pod", { "content-type": "application/json" }, {
     name: "评审员",
     role: "双审评审：证据卫生、复证纪律",
     modelProvider: "deepseek-official",

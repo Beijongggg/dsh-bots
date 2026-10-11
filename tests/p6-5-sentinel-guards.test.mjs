@@ -43,10 +43,10 @@ function buildSentinel(root, { withDirs = true } = {}) {
  *  DSH_HOME（finally 恢复）。O-2 输出合同：--out 落 tmp 基目录（仓库/保护区之外）
  *  必须走 ephemeral profile。返回 {status,payload?,error?,stderr} 兼容原断言面。 */
 function runRealSentinel(root, outFile, { authorized = true, dshHome = null } = {}) {
-  const savedAuth = process.env.DSH_BOTS_PROBE_REAL_AUTHORIZED;
+  const savedAuth = process.env.POD_PROBE_REAL_AUTHORIZED;
   const savedHome = process.env.DSH_HOME;
-  if (authorized) process.env.DSH_BOTS_PROBE_REAL_AUTHORIZED = "1";
-  else delete process.env.DSH_BOTS_PROBE_REAL_AUTHORIZED;
+  if (authorized) process.env.POD_PROBE_REAL_AUTHORIZED = "1";
+  else delete process.env.POD_PROBE_REAL_AUTHORIZED;
   if (dshHome !== null) process.env.DSH_HOME = dshHome;
   try {
     const { payload } = executeRealSentinel({
@@ -62,8 +62,8 @@ function runRealSentinel(root, outFile, { authorized = true, dshHome = null } = 
     };
     return { status: pe.exitCode, error: pe, stderr: `[sentinel] ${pe.code}（phase=${pe.phase}）\n${JSON.stringify(pe)}` };
   } finally {
-    if (savedAuth === undefined) delete process.env.DSH_BOTS_PROBE_REAL_AUTHORIZED;
-    else process.env.DSH_BOTS_PROBE_REAL_AUTHORIZED = savedAuth;
+    if (savedAuth === undefined) delete process.env.POD_PROBE_REAL_AUTHORIZED;
+    else process.env.POD_PROBE_REAL_AUTHORIZED = savedAuth;
     if (savedHome === undefined) delete process.env.DSH_HOME;
     else process.env.DSH_HOME = savedHome;
   }

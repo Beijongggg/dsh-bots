@@ -150,7 +150,7 @@ async function runClosedLoop() {
   const { home, ledger, issuer, api } = rig;
   const steps = {};
   const command = async (name, body) => {
-    const res = await call(api, "POST", "/api/bots/_ledger/commands", body);
+    const res = await call(api, "POST", "/api/pod/_ledger/commands", body);
     steps[name] = res;
     return res;
   };
@@ -165,12 +165,12 @@ async function runClosedLoop() {
     op: "task.triage", taskId: TASK_ID, actor: USER, idempotencyKey: "loop-triage",
     expectedStatus: "intake", expectedSeq: 1, payload: { decision: "立项" }
   });
-  steps.plan = await call(api, "POST", "/api/bots/_ledger/commands", {
+  steps.plan = await call(api, "POST", "/api/pod/_ledger/commands", {
     op: "task.plan", taskId: TASK_ID, actor: POST("project-lead"), idempotencyKey: "loop-plan",
     capability: roleCap(issuer, "project-lead"), expectedStatus: "triaged", expectedSeq: 2, payload: {}
   });
   // 派单：assign 回执携带被派方的第一张任务能力（签发联动）
-  steps.assign = await call(api, "POST", "/api/bots/_ledger/commands", {
+  steps.assign = await call(api, "POST", "/api/pod/_ledger/commands", {
     op: "task.assign", taskId: TASK_ID, actor: POST("project-lead"), idempotencyKey: "loop-assign",
     capability: roleCap(issuer, "project-lead"), expectedStatus: "planned", expectedSeq: 3,
     payload: { assignee: "implementer", dispatcher: "project-lead" }
@@ -184,7 +184,7 @@ async function runClosedLoop() {
     ["start", "task.start", {}],
     ["report", "task.report", { deliverable: "闭环烟测的交付件" }]
   ]) {
-    const res = await call(api, "POST", "/api/bots/_ledger/commands", {
+    const res = await call(api, "POST", "/api/pod/_ledger/commands", {
       op, taskId: TASK_ID, actor: POST("implementer"), idempotencyKey: `loop-${name}`,
       capability: cap, expectedStatus: ledger.task(TASK_ID).status, expectedSeq: ledger.task(TASK_ID).lastSeq,
       payload
@@ -203,48 +203,48 @@ async function runClosedLoop() {
     excludeBotIds: ["implementer"]
   });
   // 负例（台账权威门）：产出方自任复核者即拒
-  steps.selfReview = await call(api, "POST", "/api/bots/_ledger/commands", {
+  steps.selfReview = await call(api, "POST", "/api/pod/_ledger/commands", {
     op: "review.request", taskId: TASK_ID, actor: USER, idempotencyKey: "loop-self-review",
     payload: { point: "before-external-visibility", reviewer: "implementer" }
   });
   // 复核召集（必审点来自简报冻结清单，可加审不可免审）
-  steps.reviewRequest = await call(api, "POST", "/api/bots/_ledger/commands", {
+  steps.reviewRequest = await call(api, "POST", "/api/pod/_ledger/commands", {
     op: "review.request", taskId: TASK_ID, actor: POST("project-lead"), idempotencyKey: "loop-review-request",
     capability: roleCap(issuer, "project-lead"),
     payload: { point: "before-external-visibility", reviewer: "verifier" }
   });
   // 必审拦截：复核未闭合时交付被拒（V-A2.7）——烟测要看见这道门真的关着
   // （授权通过而命令被拒同样续签，续签帽接着用于后面的合法交付）
-  steps.deliverBlocked = await call(api, "POST", "/api/bots/_ledger/commands", {
+  steps.deliverBlocked = await call(api, "POST", "/api/pod/_ledger/commands", {
     op: "task.deliver", taskId: TASK_ID, actor: POST("implementer"), idempotencyKey: "loop-deliver-blocked",
     capability: cap, expectedStatus: "produced", expectedSeq: ledger.task(TASK_ID).lastSeq, payload: {}
   });
   cap = steps.deliverBlocked.body.capability ?? cap;
   // 复核者持帽读移交件（fresh context：只含冻结简报与复核史，读不消费帽）＋提交报告
   const hat = roleCap(issuer, "verifier");
-  steps.handoff = await call(api, "GET", `/api/bots/_ledger/review-handoff?taskId=${TASK_ID}`, null, {
-    "x-dsh-bots-bot-id": "verifier",
-    "x-dsh-bots-capability": JSON.stringify(hat)
+  steps.handoff = await call(api, "GET", `/api/pod/_ledger/review-handoff?taskId=${TASK_ID}`, null, {
+    "x-pod-bot-id": "verifier",
+    "x-pod-capability": JSON.stringify(hat)
   });
-  steps.reviewReport = await call(api, "POST", "/api/bots/_ledger/reviews", {
+  steps.reviewReport = await call(api, "POST", "/api/pod/_ledger/reviews", {
     taskId: TASK_ID, actor: POST("verifier"), idempotencyKey: "loop-review-report",
     capability: hat,
     report: { subject: "before-external-visibility", verdict: "closed", gaps: [], modelIdentity: "复核实例模型（身份登记）" }
   });
 
   // ⑤ 结算（派单方）：交付 → 结算 → 关闭（关闭前置须先过）
-  steps.deliver = await call(api, "POST", "/api/bots/_ledger/commands", {
+  steps.deliver = await call(api, "POST", "/api/pod/_ledger/commands", {
     op: "task.deliver", taskId: TASK_ID, actor: POST("implementer"), idempotencyKey: "loop-deliver",
     capability: cap, expectedStatus: "produced", expectedSeq: ledger.task(TASK_ID).lastSeq, payload: {}
   });
   cap = steps.deliver.body.capability ?? cap;
-  steps.settle = await call(api, "POST", "/api/bots/_ledger/commands", {
+  steps.settle = await call(api, "POST", "/api/pod/_ledger/commands", {
     op: "task.settle", taskId: TASK_ID, actor: POST("project-lead"), idempotencyKey: "loop-settle",
     capability: roleCap(issuer, "project-lead"),
     expectedStatus: "delivered", expectedSeq: ledger.task(TASK_ID).lastSeq, payload: {}
   });
   // 关闭前置（§B）：产出尚未登记时关闭被拒——门是活的，不是纸面条款
-  steps.closeBlocked = await call(api, "POST", "/api/bots/_ledger/commands", {
+  steps.closeBlocked = await call(api, "POST", "/api/pod/_ledger/commands", {
     op: "task.close", taskId: TASK_ID, actor: POST("project-lead"), idempotencyKey: "loop-close-blocked",
     capability: roleCap(issuer, "project-lead"),
     expectedStatus: "settled", expectedSeq: ledger.task(TASK_ID).lastSeq, payload: {}
@@ -254,27 +254,27 @@ async function runClosedLoop() {
   const spare = issuer.issueTaskCapability({ taskId: TASK_ID, botId: "implementer", post: "implementer" });
   assert.equal(spare.ok, true, spare.reason);
   // 交付后任务能力即随「离开在办态」吊销：已消费的帽＝replayed，未消费的帽＝revoked
-  steps.replayedCapAfterDeliver = await call(api, "POST", "/api/bots/_ledger/commands", {
+  steps.replayedCapAfterDeliver = await call(api, "POST", "/api/pod/_ledger/commands", {
     op: "task.heartbeat", taskId: TASK_ID, actor: POST("implementer"), idempotencyKey: "loop-stale-cap",
     capability: cap, payload: {}
   });
-  steps.revokedCapAfterDeliver = await call(api, "POST", "/api/bots/_ledger/commands", {
+  steps.revokedCapAfterDeliver = await call(api, "POST", "/api/pod/_ledger/commands", {
     op: "task.heartbeat", taskId: TASK_ID, actor: POST("implementer"), idempotencyKey: "loop-revoked-cap",
     capability: spare.envelope, payload: {}
   });
   // 产出按「谁产出谁登记」登记（登记方＝产出方，锚本任务）——执行面 op 不进任务域，
   // 由岗位**角色能力**覆盖（op-set：执行面 op 四个常设岗各持一份）
-  steps.register = await call(api, "POST", "/api/bots/_ledger/commands", {
+  steps.register = await call(api, "POST", "/api/pod/_ledger/commands", {
     op: "knowledge.register", actor: POST("implementer"), idempotencyKey: "loop-register",
     capability: roleCap(issuer, "implementer"),
     payload: { title: "闭环烟测产出", summary: "闭环跑通", body: "# 闭环跑通的结论", task: TASK_ID }
   });
-  steps.close = await call(api, "POST", "/api/bots/_ledger/commands", {
+  steps.close = await call(api, "POST", "/api/pod/_ledger/commands", {
     op: "task.close", taskId: TASK_ID, actor: POST("project-lead"), idempotencyKey: "loop-close",
     capability: roleCap(issuer, "project-lead"),
     expectedStatus: "settled", expectedSeq: ledger.task(TASK_ID).lastSeq, payload: {}
   });
-  steps.reopen = await call(api, "POST", "/api/bots/_ledger/commands", {
+  steps.reopen = await call(api, "POST", "/api/pod/_ledger/commands", {
     op: "task.close", taskId: TASK_ID, actor: POST("project-lead"), idempotencyKey: "loop-reopen",
     capability: roleCap(issuer, "project-lead"),
     expectedStatus: "closed", expectedSeq: ledger.task(TASK_ID).lastSeq, payload: {}

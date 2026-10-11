@@ -159,8 +159,8 @@ test("real-sentinel payload 携带 manifest digest（与 lib digest 相等）＋
   for (const dir of ["dsh-home", "project", "deploy-copy", "other-bot-workspaces", "system-config"]) {
     fs.mkdirSync(path.join(root, dir));
   }
-  const savedAuth = process.env.DSH_BOTS_PROBE_REAL_AUTHORIZED;
-  process.env.DSH_BOTS_PROBE_REAL_AUTHORIZED = "1";
+  const savedAuth = process.env.POD_PROBE_REAL_AUTHORIZED;
+  process.env.POD_PROBE_REAL_AUTHORIZED = "1";
   let payload;
   try {
     ({ payload } = executeRealSentinel({
@@ -169,8 +169,8 @@ test("real-sentinel payload 携带 manifest digest（与 lib digest 相等）＋
       emit: () => {}
     }));
   } finally {
-    if (savedAuth === undefined) delete process.env.DSH_BOTS_PROBE_REAL_AUTHORIZED;
-    else process.env.DSH_BOTS_PROBE_REAL_AUTHORIZED = savedAuth;
+    if (savedAuth === undefined) delete process.env.POD_PROBE_REAL_AUTHORIZED;
+    else process.env.POD_PROBE_REAL_AUTHORIZED = savedAuth;
   }
   assert.equal(payload.layoutManifest.digest, shadowLayoutManifestDigest());
   assert.equal(payload.layoutManifest.entries, SHADOW_LAYOUT_MANIFEST.length);

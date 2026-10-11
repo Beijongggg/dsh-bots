@@ -271,7 +271,7 @@ test("real-sentinel Phase 4 失败 → preserve-for-caller（布局现场保留�
   fs.chmodSync(ro, 0o555);
   let caught = null;
   try {
-    withEnv({ DSH_BOTS_PROBE_REAL_AUTHORIZED: "1" }, () => {
+    withEnv({ POD_PROBE_REAL_AUTHORIZED: "1" }, () => {
       try {
         executeRealSentinel({
           sentinelDir: root,

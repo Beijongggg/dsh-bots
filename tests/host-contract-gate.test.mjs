@@ -151,7 +151,7 @@ test("parseFaceMode：--face 旗标与 env 覆盖，默认 dev", () => {
   assert.equal(parseFaceMode([], {}), "dev");
   assert.equal(parseFaceMode(["--face=deploy"], {}), "deploy");
   assert.equal(parseFaceMode(["--face=bogus"], {}), "dev");
-  assert.equal(parseFaceMode([], { DSH_BOTS_PROBE_FACE: "deploy" }), "deploy");
+  assert.equal(parseFaceMode([], { POD_PROBE_FACE: "deploy" }), "deploy");
 });
 
 test("findMarkerFile：候选文件内容标记检索（命中/未命中/缺文件）", () => {

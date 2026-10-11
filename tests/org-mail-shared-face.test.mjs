@@ -53,18 +53,18 @@ test("投递面写者名单闭合：真实仓库里只有中继面写 mail 面�
   assert.ok(r.scanned > 0, "确有被扫文件");
 });
 
-test("身份头字面量单源：x-dsh-bots-bot-id 恰一处（host-channel.js 登记源，消费面一律引用 BOT_ID_HEADER）", () => {
+test("身份头字面量单源：x-pod-bot-id 恰一处（host-channel.js 登记源，消费面一律引用 BOT_ID_HEADER）", () => {
   const consumers = [
     "lib/org/mail-client.js", "lib/org/mail-relay.js",
     "lib/org/post-channel.js", "lib/org/ledger-host.js"
   ];
   for (const rel of consumers) {
     const text = readFileSync(join(repoRoot, rel), "utf8");
-    assert.ok(!text.includes('"x-dsh-bots-bot-id"'),
+    assert.ok(!text.includes('"x-pod-bot-id"'),
       `${rel} 不得内联身份头字面量（引用 host-channel.BOT_ID_HEADER）`);
   }
   const source = readFileSync(join(repoRoot, "lib/org/host-channel.js"), "utf8");
-  assert.equal((source.match(/"x-dsh-bots-bot-id"/g) ?? []).length, 1,
+  assert.equal((source.match(/"x-pod-bot-id"/g) ?? []).length, 1,
     "字面量唯一登记源＝host-channel.js");
 });
 

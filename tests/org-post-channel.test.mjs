@@ -44,9 +44,9 @@ function makeFetch({ routes = {}, requests = [] } = {}) {
 
 function baseRoutes(overrides = {}) {
   return {
-    "GET /api/bots/_csrf": async () => [200, { token: "csrf-1" }],
-    "GET /api/bots/_ledger": async () => [200, { lastSeq: 4, open: 1, tasks: [{ taskId: "TK-00000090", status: "accepted", owner: "bot-a", brief: structuredClone(BRIEF) }] }],
-    "POST /api/bots/_ledger/commands": async (body) => [200, { ok: true, taskId: body.taskId, status: "accepted", seq: 4, capability: NEXT_ENVELOPE }],
+    "GET /api/pod/_csrf": async () => [200, { token: "csrf-1" }],
+    "GET /api/pod/_ledger": async () => [200, { lastSeq: 4, open: 1, tasks: [{ taskId: "TK-00000090", status: "accepted", owner: "bot-a", brief: structuredClone(BRIEF) }] }],
+    "POST /api/pod/_ledger/commands": async (body) => [200, { ok: true, taskId: body.taskId, status: "accepted", seq: 4, capability: NEXT_ENVELOPE }],
     ...overrides
   };
 }
@@ -58,7 +58,7 @@ test("ledger.read：GET 台账投影读面，返回视图本体", async () => {
   assert.equal(view.lastSeq, 4);
   const [request] = fetchImpl.requests;
   assert.equal(request.method, "GET");
-  assert.equal(request.path, "/api/bots/_ledger");
+  assert.equal(request.path, "/api/pod/_ledger");
 });
 
 test("台账命令：POST 命令面，body 携带 op／actor(kind=post)／CAS／payload；令牌头随请求", async () => {
@@ -69,8 +69,8 @@ test("台账命令：POST 命令面，body 携带 op／actor(kind=post)／CAS／
   });
   assert.equal(result.ok, true);
   const post = fetchImpl.requests.find((r) => r.method === "POST");
-  assert.equal(post.path, "/api/bots/_ledger/commands");
-  assert.equal(post.headers["x-dsh-bots-token"], "csrf-1");
+  assert.equal(post.path, "/api/pod/_ledger/commands");
+  assert.equal(post.headers["x-pod-token"], "csrf-1");
   assert.deepEqual(post.body.actor, { kind: "post", id: "bot-a" });
   assert.equal(post.body.op, "task.accept");
   assert.equal(post.body.expectedStatus, "assigned");
@@ -94,7 +94,7 @@ test("接单即得契约＋判据真源：accept 响应携带简报，探针按�
   writeFileSync(join(home, "docs", "x.md"), "示例产出已落坐标", "utf8");
   const fetchImpl = makeFetch({
     routes: baseRoutes({
-      "POST /api/bots/_ledger/commands": async (body) => [200, { ok: true, taskId: body.taskId, status: "accepted", seq: 4, capability: NEXT_ENVELOPE, task: { taskId: "TK-00000090", status: "accepted", brief: structuredClone(BRIEF) } }]
+      "POST /api/pod/_ledger/commands": async (body) => [200, { ok: true, taskId: body.taskId, status: "accepted", seq: 4, capability: NEXT_ENVELOPE, task: { taskId: "TK-00000090", status: "accepted", brief: structuredClone(BRIEF) } }]
     })
   });
   const dispatch = createPostChannel({ origin: ORIGIN, botId: "bot-a", probeCtx: { dshHome: home }, fetchImpl });
@@ -114,7 +114,7 @@ test("接单即得契约＋判据真源：accept 响应携带简报，探针按�
 test("探针路由 fail closed：台账无任务／任务无简报／索引越界／本地持有件与台账不符即拒", async () => {
   const home = mkdtempSync(join(tmpdir(), "post-channel-"));
   const routes = baseRoutes({
-    "GET /api/bots/_ledger": async () => [200, {
+    "GET /api/pod/_ledger": async () => [200, {
       lastSeq: 4, open: 2,
       tasks: [
         { taskId: "TK-00000091", status: "accepted", owner: "bot-a", brief: { ...BRIEF, goal: "台账上是被 amend 过的目标" } },
@@ -126,8 +126,8 @@ test("探针路由 fail closed：台账无任务／任务无简报／索引越�
   // 先持有一份旧简报（accept 响应），台账上已是 amend 后的新简报 → 逐字比对不符即拒
   const seeded = makeFetch({
     routes: baseRoutes({
-      "POST /api/bots/_ledger/commands": async () => [200, { ok: true, taskId: "TK-00000091", status: "accepted", seq: 4, capability: NEXT_ENVELOPE, task: { taskId: "TK-00000091", status: "accepted", brief: structuredClone(BRIEF) } }],
-      "GET /api/bots/_ledger": routes["GET /api/bots/_ledger"]
+      "POST /api/pod/_ledger/commands": async () => [200, { ok: true, taskId: "TK-00000091", status: "accepted", seq: 4, capability: NEXT_ENVELOPE, task: { taskId: "TK-00000091", status: "accepted", brief: structuredClone(BRIEF) } }],
+      "GET /api/pod/_ledger": routes["GET /api/pod/_ledger"]
     })
   });
   const stale = createPostChannel({ origin: ORIGIN, botId: "bot-a", probeCtx: { dshHome: home }, fetchImpl: seeded });
@@ -155,7 +155,7 @@ test("CSRF 轮换：403（csrf-*）后重取令牌并重试一次", async () => 
   let firstPost = true;
   const fetchImpl = makeFetch({
     routes: baseRoutes({
-      "POST /api/bots/_ledger/commands": async (body, seq) => {
+      "POST /api/pod/_ledger/commands": async (body, seq) => {
         if (firstPost) {
           firstPost = false;
           return [403, { error: "forbidden", code: "csrf-token-invalid" }];
@@ -169,7 +169,7 @@ test("CSRF 轮换：403（csrf-*）后重取令牌并重试一次", async () => 
   assert.equal(result.ok, true, "重试后成功");
   const posts = fetchImpl.requests.filter((r) => r.method === "POST");
   assert.equal(posts.length, 2, "恰好重试一次");
-  assert.ok(fetchImpl.requests.filter((r) => r.path === "/api/bots/_csrf").length >= 2, "重试前重取了令牌");
+  assert.ok(fetchImpl.requests.filter((r) => r.path === "/api/pod/_csrf").length >= 2, "重试前重取了令牌");
 });
 
 // ---------------- 复核面路由（org-v2 08 号票） ----------------
@@ -180,11 +180,11 @@ test("复核面路由：review.report 走 POST /reviews；响应捕获复核帽�
   const fetchImpl = makeFetch({
     routes: {
       ...baseRoutes(),
-      "POST /api/bots/_ledger/reviews": async () => [200, {
+      "POST /api/pod/_ledger/reviews": async () => [200, {
         ok: true, taskId: "TK-00000090", subject: "before-external-visibility",
         round: 1, consecutiveUnclosed: 0, escalated: false, capability: NEXT_HAT
       }],
-      "GET /api/bots/_ledger/review-handoff": async () => [200, {
+      "GET /api/pod/_ledger/review-handoff": async () => [200, {
         taskId: "TK-00000090", status: "produced", brief: structuredClone(BRIEF), requests: [], reports: []
       }]
     }
@@ -196,19 +196,19 @@ test("复核面路由：review.report 走 POST /reviews；响应捕获复核帽�
     idempotencyKey: "rr-1"
   });
   assert.equal(report.ok, true);
-  const post = fetchImpl.requests.find((r) => r.path === "/api/bots/_ledger/reviews");
+  const post = fetchImpl.requests.find((r) => r.path === "/api/pod/_ledger/reviews");
   assert.equal(post.method, "POST", "review.report 是执行面 op，但路由独立于探针（不落 runProbe）");
-  assert.equal(post.headers["x-dsh-bots-token"], "csrf-1");
+  assert.equal(post.headers["x-pod-token"], "csrf-1");
   assert.deepEqual(post.body.actor, { kind: "post", id: "bot-r" });
   assert.equal(post.body.report.verdict, "closed");
   assert.equal(post.body.capability, undefined, "首报无帽不携带（帽的初次分发＝13 号票自举）");
   // 响应携带续签帽 → 捕获为复核帽（与命令信封分槽持有，互不覆盖）
   const handoff = await dispatch("artifact.read", { taskId: "TK-00000090" });
   assert.equal(handoff.body.taskId, "TK-00000090");
-  const get = fetchImpl.requests.find((r) => r.path === "/api/bots/_ledger/review-handoff");
+  const get = fetchImpl.requests.find((r) => r.path === "/api/pod/_ledger/review-handoff");
   assert.equal(get.method, "GET");
-  assert.equal(get.headers["x-dsh-bots-bot-id"], "bot-r");
-  assert.deepEqual(JSON.parse(get.headers["x-dsh-bots-capability"]), NEXT_HAT);
+  assert.equal(get.headers["x-pod-bot-id"], "bot-r");
+  assert.deepEqual(JSON.parse(get.headers["x-pod-capability"]), NEXT_HAT);
   assert.ok(get.url.includes("taskId=TK-00000090"));
 });
 
@@ -236,8 +236,8 @@ test("brief.refresh（19 号票②）：amend 后持有件重同步为台账真�
     ]
   };
   const routes = baseRoutes({
-    "GET /api/bots/_ledger": async () => [200, ledgerView],
-    "POST /api/bots/_ledger/commands": async (body) => [200, { ok: true, taskId: body.taskId, status: "accepted", seq: 4, capability: NEXT_ENVELOPE, task: { taskId: body.taskId, status: "accepted", brief: structuredClone(BRIEF) } }]
+    "GET /api/pod/_ledger": async () => [200, ledgerView],
+    "POST /api/pod/_ledger/commands": async (body) => [200, { ok: true, taskId: body.taskId, status: "accepted", seq: 4, capability: NEXT_ENVELOPE, task: { taskId: body.taskId, status: "accepted", brief: structuredClone(BRIEF) } }]
   });
   const dispatch = createPostChannel({ origin: ORIGIN, botId: "bot-a", probeCtx: { dshHome: home }, fetchImpl: makeFetch({ routes }) });
   // 接单持有旧简报；台账上已是 amend 后新简报 → 逐字比对不符，探针 fail closed
@@ -286,7 +286,7 @@ test("knowledge.register 路由：走 POST /commands（含 capability／payload�
   const payload = { title: "命令化登记", summary: "摘要", body: "# 正文" };
   const result = await dispatch("knowledge.register", { payload, idempotencyKey: "k1" });
   assert.equal(result.ok, true);
-  const posted = fetchImpl.requests.filter((r) => r.path === "/api/bots/_ledger/commands").at(-1);
+  const posted = fetchImpl.requests.filter((r) => r.path === "/api/pod/_ledger/commands").at(-1);
   assert.equal(posted.method, "POST");
   assert.equal(posted.body.op, "knowledge.register");
   assert.deepEqual(posted.body.payload, payload, "报告入参经 payload 透传");
@@ -298,7 +298,7 @@ test("knowledge.register 路由：走 POST /commands（含 capability／payload�
 
 test("knowledge.register 未携 payload：仍走命令面（形状由 host 侧登记执行面判，bot 侧不预判）", async () => {
   const fetchImpl = makeFetch({ routes: baseRoutes({
-    "POST /api/bots/_ledger/commands": async (body) => [409, { ok: false, code: "title 不能为空", op: body.op }]
+    "POST /api/pod/_ledger/commands": async (body) => [409, { ok: false, code: "title 不能为空", op: body.op }]
   }) });
   const dispatch = createPostChannel({ origin: ORIGIN, botId: "bot-a", probeCtx: { dshHome: tmpdir() }, fetchImpl });
   const result = await dispatch("knowledge.register", { idempotencyKey: "k2" });

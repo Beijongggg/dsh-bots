@@ -237,12 +237,12 @@ test("V-P7.5 反向验证：dsh --dump-config 不再出现 agent-presets／setti
   if (bin === null) return announceSkip("dsh CLI（lib/bin.js）不在本机载体（SKIP）", t);
   if (!existsSync(join(repoRoot, "scripts/create-bot.cjs"))) return announceSkip("生成器脚本缺失（SKIP）", t);
   const home = mkdtempSync(join(tmpdir(), "pod10-dump-config-"));
-  const previousScript = process.env.DSH_BOTS_CREATE_BOT_SCRIPT;
+  const previousScript = process.env.POD_CREATE_BOT_SCRIPT;
   try {
     writeFileSync(join(home, "settings.yaml"),
       "llm-pi-ai:\n  providers:\n    local-route:\n      api: openai-completions\n"
       + "      baseURL: https://example.invalid/v1\n      models:\n        - id: model-a\n");
-    process.env.DSH_BOTS_CREATE_BOT_SCRIPT = join(home, "missing-create-bot.cjs"); // 内置脚手架路径
+    process.env.POD_CREATE_BOT_SCRIPT = join(home, "missing-create-bot.cjs"); // 内置脚手架路径
     const bot = { id: "worker", name: "Worker", role: "implementation", port: 3291,
       modelProvider: "local-route", model: "model-a", permission: "workspace-write" };
     mkdirSync(join(home, "profiles", bot.id), { recursive: true });
@@ -266,8 +266,8 @@ test("V-P7.5 反向验证：dsh --dump-config 不再出现 agent-presets／setti
     assert.ok(ourText.includes("- id: llm-pi-ai"), "我方 patch 层须含迁移后的 llm-pi-ai（定位有效性锚）");
     assert.ok(!/^- id: settings$/m.test(ourText), "我方 patch 层不得含 settings 死重定向行");
   } finally {
-    if (previousScript === undefined) delete process.env.DSH_BOTS_CREATE_BOT_SCRIPT;
-    else process.env.DSH_BOTS_CREATE_BOT_SCRIPT = previousScript;
+    if (previousScript === undefined) delete process.env.POD_CREATE_BOT_SCRIPT;
+    else process.env.POD_CREATE_BOT_SCRIPT = previousScript;
     rmSync(home, { recursive: true, force: true });
   }
 });

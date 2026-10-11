@@ -62,7 +62,7 @@ let gateUp = true;
 const mailServer = http.createServer((req, res) => {
   const { pathname } = new URL(req.url, "http://dsh.local");
   if (!gateUp) return json(res, 503, { ok: false, code: "gate-down", reason: "测试闸门：通道不可用" });
-  if (pathname === "/api/bots/_csrf") return json(res, 200, { token: "t-watcher" });
+  if (pathname === "/api/pod/_csrf") return json(res, 200, { token: "t-watcher" });
   return handleMailApi(req, res, { mailRelay: relay });
 });
 await new Promise((r) => mailServer.listen(0, "127.0.0.1", r));

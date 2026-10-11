@@ -31,7 +31,7 @@ function fakeFetch(route, log = []) {
   };
 }
 
-const CSRF_OK = (url) => (url.endsWith("/api/bots/_csrf") ? { status: 200, body: { token: "t-1" } } : null);
+const CSRF_OK = (url) => (url.endsWith("/api/pod/_csrf") ? { status: 200, body: { token: "t-1" } } : null);
 
 test("投递成功：actor 身份由通道注入、CSRF 令牌随头携带、结论原样回传（零 capability 门槛）", async () => {
   const log = [];
@@ -41,9 +41,9 @@ test("投递成功：actor 身份由通道注入、CSRF 令牌随头携带、结
   const receipt = await client.send({ to: "b", text: "请处理", taskId: "T-1" });
   assert.deepEqual(receipt, { ok: true, to: "b", seq: 3, messageId: "m-3" });
 
-  const sendCall = log.find((entry) => entry.url.endsWith("/api/bots/_mail/send"));
+  const sendCall = log.find((entry) => entry.url.endsWith("/api/pod/_mail/send"));
   assert.equal(sendCall.method, "POST");
-  assert.equal(sendCall.headers["x-dsh-bots-token"], "t-1", "认证 host 命令：CSRF 令牌随头");
+  assert.equal(sendCall.headers["x-pod-token"], "t-1", "认证 host 命令：CSRF 令牌随头");
   assert.deepEqual(JSON.parse(sendCall.body), {
     actor: { kind: "post", id: "a" }, to: "b", text: "请处理", taskId: "T-1"
   });
@@ -114,10 +114,10 @@ test("消费汇报与游标腿：claim／finalize／skip／cursor 均走 POST �
 
   const cursorCall = log.find((entry) => entry.url.endsWith("/_mail/cursor"));
   assert.equal(cursorCall.method, "POST");
-  assert.equal(cursorCall.headers["x-dsh-bots-token"], "t-1", "认证 host 命令：CSRF 令牌随头");
+  assert.equal(cursorCall.headers["x-pod-token"], "t-1", "认证 host 命令：CSRF 令牌随头");
   assert.deepEqual(JSON.parse(cursorCall.body), { actor: { kind: "post", id: "a" } },
     "游标腿身份由通道注入（零 capability 门槛，但仍须认证身份）");
-  assert.equal("x-dsh-bots-bot-id" in cursorCall.headers, false, "游标不再发送旧身份头");
+  assert.equal("x-pod-bot-id" in cursorCall.headers, false, "游标不再发送旧身份头");
   assert.equal(log.some(entry => entry.url.endsWith("/_mail/cursor") && entry.method === "GET"), false);
 });
 
@@ -125,11 +125,11 @@ test("CSRF 令牌轮换：403 csrf-* 重取令牌重试一次（与命令面同�
   const log = [];
   let csrfIssued = 0;
   const fetchImpl = fakeFetch((url, entry) => {
-    if (url.endsWith("/api/bots/_csrf")) {
+    if (url.endsWith("/api/pod/_csrf")) {
       csrfIssued += 1;
       return { status: 200, body: { token: `t-${csrfIssued}` } };
     }
-    if (entry.headers["x-dsh-bots-token"] === "t-1") {
+    if (entry.headers["x-pod-token"] === "t-1") {
       return { status: 403, body: { ok: false, code: "csrf-token-stale" } };
     }
     return { status: 200, body: { ok: true, to: "b", seq: 1 } };
