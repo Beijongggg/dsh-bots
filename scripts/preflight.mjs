@@ -206,12 +206,61 @@ export function codeMapLint(repoRoot) {
   return { scanned: files.length, violations };
 }
 
-/** ③门成功行摘要：preflight 主块与 ci-gates 共用单源，防两处格式串漂移（retro3 评审处置）。 */
-export function lintSummary(lint) {
-  return `扫 ${lint.scanned} 个 md；命名扫描 ${lint.namingScanned} 个活文件；知识库扫描 ${lint.knowledgeScanned} 个脚本，登记／废弃调用者 ${lint.knowledgeCallers.length} 个；地图覆盖 ${lint.mapScanned} 个 lib/org 件`;
+/**
+ * 第③门恒真断言 lint（retro R1②，EV-20261011-retro-pod-impl）：tests/ 下测试件里
+ * 恒真形态的断言即违例。pod 批 04 号票复核先例——四门计数全绿的同时，票面判据
+ * V-P2.9／V-P2.2 由 `children.length >= 0`、硬编码 scope 列表自比等恒真断言
+ * 「证明」，计数不降而判据无力。机械形态三类：
+ *   ① `.length >= 0`／`.length > -1`（数组 length 恒非负）
+ *   ② 同操作数自比 `X === X`（左右逐字相同；`n.taskId === taskId` 属性对同名
+ *     变量不在此列）
+ *   ③ `assert.ok(true, …)`（字面真断言）
+ * 注释行（//、*、/* 起始）不计；仅扫 tests/ 下 .mjs（夹具与 helper 同罪）。
+ */
+const TAUTOLOGY_PATTERNS = [
+  [/\.length\s*>=\s*0(?![\w$])/, "`.length >= 0` 恒真（length 恒非负）"],
+  [/\.length\s*>\s*-1(?![\w$])/, "`.length > -1` 恒真（length 恒非负）"],
+  [/(?<![\w$.])([A-Za-z_$][\w$.]*)\s*===\s*\1(?![\w$])/, "同操作数自比恒真"],
+  [/assert\.ok\(\s*true(?![\w$])/, "assert.ok(true) 字面真断言"],
+];
+
+function walkTestsMjs(repoRoot, relDir, out = []) {
+  const abs = join(repoRoot, relDir);
+  if (!existsSync(abs)) return out;
+  for (const entry of readdirSync(abs, { withFileTypes: true })) {
+    const rel = relDir ? `${relDir}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) walkTestsMjs(repoRoot, rel, out);
+    else if (entry.name.endsWith(".mjs")) out.push(rel);
+  }
+  return out;
 }
 
-/** 第③门：状态词表、知识库写者、日志、命名与代码地图覆盖检查共用违例出口，独立于回归和宿主探针。 */
+/** 扫测试件恒真断言形态；返回 {scanned, violations[]}。 */
+export function tautologyLint(repoRoot) {
+  const violations = [];
+  const files = walkTestsMjs(repoRoot, "tests").sort();
+  for (const rel of files) {
+    const lines = readFileSync(join(repoRoot, rel), "utf8").split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const stripped = lines[i].trimStart();
+      if (stripped.startsWith("//") || stripped.startsWith("*") || stripped.startsWith("/*")) continue;
+      for (const [pattern, reason] of TAUTOLOGY_PATTERNS) {
+        if (pattern.test(lines[i])) {
+          violations.push(`${rel}:${i + 1} ${reason}`);
+          break;
+        }
+      }
+    }
+  }
+  return { scanned: files.length, violations };
+}
+
+/** ③门成功行摘要：preflight 主块与 ci-gates 共用单源，防两处格式串漂移（retro3 评审处置）。 */
+export function lintSummary(lint) {
+  return `扫 ${lint.scanned} 个 md；命名扫描 ${lint.namingScanned} 个活文件；知识库扫描 ${lint.knowledgeScanned} 个脚本，登记／废弃调用者 ${lint.knowledgeCallers.length} 个；地图覆盖 ${lint.mapScanned} 个 lib/org 件；恒真断言扫描 ${lint.tautScanned} 个测试件`;
+}
+
+/** 第③门：状态词表、知识库写者、日志、命名、代码地图覆盖与恒真断言检查共用违例出口，独立于回归和宿主探针。 */
 export function repositoryLint(repoRoot) {
   const status = statusLint(join(repoRoot, ".scratch"));
   const knowledge = scanKnowledgeLayerFace(repoRoot);
@@ -219,13 +268,15 @@ export function repositoryLint(repoRoot) {
   const changelog = checkChangelog(repoRoot);
   const naming = namingLint(repoRoot);
   const codeMap = codeMapLint(repoRoot);
+  const taut = tautologyLint(repoRoot);
   return {
     scanned: status.scanned,
     namingScanned: naming.scanned,
     knowledgeScanned: knowledge.scanned,
     knowledgeCallers: writers.callers,
     mapScanned: codeMap.scanned,
-    violations: [...status.violations, ...knowledge.violations, ...writers.violations, ...changelog.violations, ...naming.violations, ...codeMap.violations]
+    tautScanned: taut.scanned,
+    violations: [...status.violations, ...knowledge.violations, ...writers.violations, ...changelog.violations, ...naming.violations, ...codeMap.violations, ...taut.violations]
   };
 }
 

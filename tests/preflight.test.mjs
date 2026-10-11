@@ -15,6 +15,7 @@ import {
   statusLint,
   namingLint,
   codeMapLint,
+  tautologyLint,
   repositoryLint,
 } from "../scripts/preflight.mjs";
 
@@ -286,6 +287,65 @@ test("statusLint：历史豁免基线不报警", () => {
     writeFileSync(join(feat, "spec.md"), "# B5\n\nStatus: done（历史异词）\n");
     const r = statusLint(sc);
     assert.equal(r.violations.length, 0);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+/**
+ * retro R1②（EV-20261011-retro-pod-impl）：恒真断言 lint。pod 批 04 号票复核
+ * 先例——四门计数全绿的同时，票面判据 V-P2.9／V-P2.2 由 `children.length >= 0`、
+ * 硬编码列表自比等恒真断言「证明」，计数不降而判据无力。三类机械形态
+ * （length 恒非负比较／同操作数自比／字面真断言）＋注释行豁免。
+ * 本用例的违例样例串一律拆写构造，免本文件自指违例（namingLint 同款手法）。
+ */
+test("tautologyLint：恒真形态即违例；属性对同名变量、注释行不误报", () => {
+  const root = makeFixture();
+  try {
+    const testsDir = join(root, "tests");
+    const helpers = join(testsDir, "helpers");
+    mkdirSync(helpers, { recursive: true });
+    const lenTaut = `assert.ok(rows.children.length ` + `>= 0, "覆盖期非空");`;
+    const lenTaut2 = `assert.ok(list.length > ` + `-1, "非空");`;
+    const identTaut = `assert.equal(box.meta ` + `=== box.meta, true);`;
+    const literalTrue = `assert.ok(` + `true, "占位");`;
+    writeFileSync(join(testsDir, "a.test.mjs"), [
+      lenTaut, lenTaut2, identTaut, literalTrue,
+      // 注释行不计（含文档注释续行）
+      `// const stale = rows.length ` + `>= 0;`,
+      ` * badge.length ` + `>= 0 文档注释续行`,
+      // 合法：属性对同名变量（左右操作数不逐字相同）
+      `const hit = rows.find((n) => n.taskId === taskId);`,
+      `assert.equal(hit.taskId, taskId);`,
+    ].join("\n"));
+    writeFileSync(join(helpers, "fixture.mjs"), `export const probe = (m) => m.scope ` + `=== m.scope;\n`);
+    const r = tautologyLint(root);
+    assert.equal(r.scanned, 2, "tests/ 下 .mjs 全扫（含 helpers）");
+    assert.equal(r.violations.length, 5);
+    assert.match(r.violations[0], /tests\/a\.test\.mjs:1 .*length/);
+    assert.match(r.violations[1], /tests\/a\.test\.mjs:2 .*length/);
+    assert.match(r.violations[2], /tests\/a\.test\.mjs:3 .*自比/);
+    assert.match(r.violations[3], /tests\/a\.test\.mjs:4 .*字面真/);
+    assert.ok(r.violations.some((v) => v.includes("tests/helpers/fixture.mjs:1")));
+    // 合法行（第 7 行属性对同名变量）不得产出违例——钉行号，防空转断言（评审处置）
+    assert.ok(r.violations.every((v) => !/tests\/a\.test\.mjs:[5-8]/.test(v)), "注释行与属性对同名变量行不得误报");
+    // 清空违例后零报警
+    writeFileSync(join(testsDir, "a.test.mjs"), "assert.equal(1, 1);\n");
+    writeFileSync(join(helpers, "fixture.mjs"), "export const probe = 1;\n");
+    assert.deepEqual(tautologyLint(root).violations, []);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("tautologyLint：汇入 repositoryLint 出口与扫描计数", () => {
+  const root = makeFixture();
+  try {
+    mkdirSync(join(root, "tests"), { recursive: true });
+    writeFileSync(join(root, "tests", "rogue.test.mjs"), `assert.ok(items.length ` + `>= 0);\n`);
+    const agg = repositoryLint(root);
+    assert.equal(agg.tautScanned, 1);
+    assert.ok(agg.violations.some((v) => v.includes("tests/rogue.test.mjs:1")));
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
