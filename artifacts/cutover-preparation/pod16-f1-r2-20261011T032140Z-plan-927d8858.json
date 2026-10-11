@@ -1,0 +1,32 @@
+{
+ "packageType": "deploy-sync-executor",
+ "specSha256": "38c5020babe701ecea6696e3967b9af6c4ab914288756038839f306bbcddd2b2",
+ "runId": "pod16-f1-r2-20261011T032140Z",
+ "batch": "pod16-f1-r2",
+ "commit": "d2e71ea2b22b5937e682f90281895c7f5abb7c6d",
+ "reason": "F1 修复两件在提交 d2e71ea 后重发（r1 时修复未提交、源字节取 HEAD 致 no-op——先提交后部署）；retro 九件已由 r1 写入",
+ "authorization": "用户 2026-10-11 票 47 裁定「按建议」Q4 部署条款（r1 失败的完成路径）",
+ "restart": "client 面按请求重打包（页面刷新即生效），无需重启",
+ "dshHome": "/home/beijong/.dsh",
+ "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+ "snapshot": "源字节取自 git archive <commit> -- <paths>（不读工作树）",
+ "inventoryRequire": "all-same",
+ "entries": [
+  {
+   "path": "lib/client.js",
+   "action": "write",
+   "sourceSha256": "bd967a4b0695822f27a6f905c250aa95100d78ba4e713d12acd4934ce31519f5",
+   "sourceByteLength": 216703,
+   "deployedSha256Before": "9e35504a06b8227cfccc0ce6a4ec5948f3bafb475d7ec6beca9a352b7d8fbcc4",
+   "changed": true
+  },
+  {
+   "path": "tests/pod-transition.test.mjs",
+   "action": "write",
+   "sourceSha256": "ce9cbedf9f77fab7f8752fd97bc21ee27677a18fd9fe84af18a1f4c45baa51e0",
+   "sourceByteLength": 41469,
+   "deployedSha256Before": "1455a550a1842521e9f60bc6ccd04c830950fac5b003d9e0377a886a75d17f48",
+   "changed": true
+  }
+ ]
+}

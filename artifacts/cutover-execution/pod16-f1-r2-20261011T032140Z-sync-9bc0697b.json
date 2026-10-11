@@ -1,0 +1,46 @@
+{
+ "packageType": "deploy-sync-execution",
+ "runId": "pod16-f1-r2-20261011T032140Z",
+ "batch": "pod16-f1-r2",
+ "planPath": "artifacts/cutover-preparation/pod16-f1-r2-20261011T032140Z-plan-927d8858.json",
+ "planSha8": "927d8858",
+ "specSha256": "38c5020babe701ecea6696e3967b9af6c4ab914288756038839f306bbcddd2b2",
+ "commit": "d2e71ea2b22b5937e682f90281895c7f5abb7c6d",
+ "dshHome": "/home/beijong/.dsh",
+ "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+ "backupDir": "/home/beijong/.dsh/backups/dsh-bots/pod16-f1-r2-20261011T032140Z-backup-927d8858",
+ "backupManifestSha8": "c1189b9b",
+ "capturedAt": "2026-10-11T03:21:41.083Z",
+ "authorization": "用户 2026-10-11 票 47 裁定「按建议」Q4 部署条款（r1 失败的完成路径）",
+ "restart": "client 面按请求重打包（页面刷新即生效），无需重启",
+ "written": [
+  "lib/client.js",
+  "tests/pod-transition.test.mjs"
+ ],
+ "verify": [
+  {
+   "path": "lib/client.js",
+   "sourceSha256": "bd967a4b0695822f27a6f905c250aa95100d78ba4e713d12acd4934ce31519f5",
+   "deployedSha256After": "bd967a4b0695822f27a6f905c250aa95100d78ba4e713d12acd4934ce31519f5",
+   "ok": true
+  },
+  {
+   "path": "tests/pod-transition.test.mjs",
+   "sourceSha256": "ce9cbedf9f77fab7f8752fd97bc21ee27677a18fd9fe84af18a1f4c45baa51e0",
+   "deployedSha256After": "ce9cbedf9f77fab7f8752fd97bc21ee27677a18fd9fe84af18a1f4c45baa51e0",
+   "ok": true
+  }
+ ],
+ "inventoryAfter": {
+  "ok": true,
+  "require": "all-same",
+  "allSame": true,
+  "batchAllSame": true,
+  "total": 217,
+  "same": 217,
+  "notSame": [],
+  "deploymentOnly": 0,
+  "violations": []
+ },
+ "restoreNote": "cp -a /home/beijong/.dsh/backups/dsh-bots/pod16-f1-r2-20261011T032140Z-backup-927d8858/<path> /home/beijong/.dsh/plugins/dsh-bots/<path>（manifest.json.restore 段逐件给出）"
+}
