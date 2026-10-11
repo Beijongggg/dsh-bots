@@ -1,0 +1,119 @@
+{
+ "packageType": "deploy-sync-execution",
+ "runId": "pod16-f1-20261011T032025Z",
+ "batch": "pod16-f1",
+ "planPath": "artifacts/cutover-preparation/pod16-f1-20261011T032025Z-plan-d5047a17.json",
+ "planSha8": "d5047a17",
+ "specSha256": "869bde3b128ac57a71a6dce98053f99e7ddee9ded7cf42a6e10ace2bb24e5325",
+ "commit": "b4b10e631cd1f48f2c923ce65ca8a8151b0b7bf0",
+ "dshHome": "/home/beijong/.dsh",
+ "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+ "backupDir": "/home/beijong/.dsh/backups/dsh-bots/pod16-f1-20261011T032025Z-backup-d5047a17",
+ "backupManifestSha8": "4bcc27bb",
+ "capturedAt": "2026-10-11T03:20:26.117Z",
+ "authorization": "用户 2026-10-11 票 47 裁定「按建议」Q4：F1 修复落地后部署面小批再同步",
+ "restart": "client 面按请求重打包（页面刷新即生效），无需重启",
+ "written": [
+  "lib/session-log-names.cjs",
+  "lib/stats.js",
+  "scripts/bot-health.cjs",
+  "scripts/preflight.mjs",
+  "tests/README.md",
+  "tests/evidence-runner-contract.test.mjs",
+  "tests/helpers/headless-layout.mjs",
+  "tests/pod-overlay.test.mjs",
+  "tests/preflight.test.mjs"
+ ],
+ "verify": [
+  {
+   "path": "lib/client.js",
+   "sourceSha256": "9e35504a06b8227cfccc0ce6a4ec5948f3bafb475d7ec6beca9a352b7d8fbcc4",
+   "deployedSha256After": "9e35504a06b8227cfccc0ce6a4ec5948f3bafb475d7ec6beca9a352b7d8fbcc4",
+   "ok": true
+  },
+  {
+   "path": "lib/session-log-names.cjs",
+   "sourceSha256": "93aeafe191c335643b2dbca3b57a3fd427940db8a63e11bb280f7e6dbac1b513",
+   "deployedSha256After": "93aeafe191c335643b2dbca3b57a3fd427940db8a63e11bb280f7e6dbac1b513",
+   "ok": true
+  },
+  {
+   "path": "lib/stats.js",
+   "sourceSha256": "0c4b6834bece3344ae33f361cd9b8f376bcf286671ec109a8dc0aafb6c362784",
+   "deployedSha256After": "0c4b6834bece3344ae33f361cd9b8f376bcf286671ec109a8dc0aafb6c362784",
+   "ok": true
+  },
+  {
+   "path": "scripts/bot-health.cjs",
+   "sourceSha256": "26588bbd8f0a5549dbb7779b3fbabf66588e54e7be0d6a24e592b40dd30df079",
+   "deployedSha256After": "26588bbd8f0a5549dbb7779b3fbabf66588e54e7be0d6a24e592b40dd30df079",
+   "ok": true
+  },
+  {
+   "path": "scripts/preflight.mjs",
+   "sourceSha256": "c4d78028603cee2404b4f1a9d6d07580aa0fe3a3fb54050b993298610227b01e",
+   "deployedSha256After": "c4d78028603cee2404b4f1a9d6d07580aa0fe3a3fb54050b993298610227b01e",
+   "ok": true
+  },
+  {
+   "path": "tests/README.md",
+   "sourceSha256": "3e3f94260dff8ec6153bae2fcbb9480255f517f30309e686d0f22b432f86e1c1",
+   "deployedSha256After": "3e3f94260dff8ec6153bae2fcbb9480255f517f30309e686d0f22b432f86e1c1",
+   "ok": true
+  },
+  {
+   "path": "tests/evidence-runner-contract.test.mjs",
+   "sourceSha256": "340ed901c96fd0957fad2c87bf3bcc01bf4feb65ee1d3f32ef1cd0a61767a839",
+   "deployedSha256After": "340ed901c96fd0957fad2c87bf3bcc01bf4feb65ee1d3f32ef1cd0a61767a839",
+   "ok": true
+  },
+  {
+   "path": "tests/helpers/headless-layout.mjs",
+   "sourceSha256": "db2fc5bed778f0209ddd5c71b54bdfe79c829fc9595e5495e019c257e8366732",
+   "deployedSha256After": "db2fc5bed778f0209ddd5c71b54bdfe79c829fc9595e5495e019c257e8366732",
+   "ok": true
+  },
+  {
+   "path": "tests/pod-overlay.test.mjs",
+   "sourceSha256": "099263d066710adf473f65a47537ca4dd453172d7d6e31789719a0825a0b278a",
+   "deployedSha256After": "099263d066710adf473f65a47537ca4dd453172d7d6e31789719a0825a0b278a",
+   "ok": true
+  },
+  {
+   "path": "tests/pod-transition.test.mjs",
+   "sourceSha256": "1455a550a1842521e9f60bc6ccd04c830950fac5b003d9e0377a886a75d17f48",
+   "deployedSha256After": "1455a550a1842521e9f60bc6ccd04c830950fac5b003d9e0377a886a75d17f48",
+   "ok": true
+  },
+  {
+   "path": "tests/preflight.test.mjs",
+   "sourceSha256": "6e4b9eb1fb5877c87daff011bcb005a25dea8573f9468de420b8aa47912c86cd",
+   "deployedSha256After": "6e4b9eb1fb5877c87daff011bcb005a25dea8573f9468de420b8aa47912c86cd",
+   "ok": true
+  }
+ ],
+ "inventoryAfter": {
+  "ok": false,
+  "require": "all-same",
+  "allSame": false,
+  "batchAllSame": false,
+  "total": 217,
+  "same": 215,
+  "notSame": [
+   {
+    "path": "lib/client.js",
+    "state": "changed"
+   },
+   {
+    "path": "tests/pod-transition.test.mjs",
+    "state": "changed"
+   }
+  ],
+  "deploymentOnly": 0,
+  "violations": [
+   "本批文件在部署面非 same：lib/client.js／tests/pod-transition.test.mjs",
+   "require=all-same：实测 2 件漂移"
+  ]
+ },
+ "restoreNote": "cp -a /home/beijong/.dsh/backups/dsh-bots/pod16-f1-20261011T032025Z-backup-d5047a17/<path> /home/beijong/.dsh/plugins/dsh-bots/<path>（manifest.json.restore 段逐件给出）"
+}

@@ -509,6 +509,29 @@ test("V-P3.3 范围差分：进出时侧栏与主区同一过渡；Pod 内切席
 	});
 });
 
+// ================= V-P3.3 补（票 47 F1）：预选挂载无标记 =================
+test("V-P3.3 补：预选场景挂载收敛后主区无切席位标记（挂载期不推序号，避免与层根进场叠加）", () => {
+	withTimers(() => {
+		withFakeDom(() => {
+			const fixture = createLayerFixture();
+			// 预选＝I4「重进保选」常态形态：挂载时已有有效选中（enter() 不清 selectedBotId）
+			fixture.state.selectedBotId = "bot-x";
+			const tree = fixture.render();
+			const detail = byClass(tree, SEAT_DETAIL);
+			assert.ok(detail, "预选场景主区视图须在挂载树");
+			assert.equal(
+				hasClassPrefix(detail, mod.POD_TRANSITION.viewMarker),
+				false,
+				"挂载收敛后主区不得带切席位标记（票 47 F1：[botId] 效应挂载期必跑，标记与层根进场动画叠加＝票 05 所禁的重影）"
+			);
+			// 挂载后的首次真实换代仍须打标记（守卫只跳过首跑，不吞换代）
+			const second = fixture.select("bot-y");
+			assert.equal(hasClassPrefix(byClass(second, SEAT_DETAIL), mod.POD_TRANSITION.viewMarker), true,
+				"挂载后切席位仍须打标记（首跑守卫不得吞掉真实换代）");
+		});
+	});
+});
+
 // ================= V-P3.4：reduced-motion 退化 =================
 test("V-P3.4 prefers-reduced-motion: reduce 退化为瞬时切换", () => {
 	const css = transitionCss();

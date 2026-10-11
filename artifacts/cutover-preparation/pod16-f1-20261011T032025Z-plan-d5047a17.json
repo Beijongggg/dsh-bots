@@ -1,0 +1,104 @@
+{
+ "packageType": "deploy-sync-executor",
+ "specSha256": "869bde3b128ac57a71a6dce98053f99e7ddee9ded7cf42a6e10ace2bb24e5325",
+ "runId": "pod16-f1-20261011T032025Z",
+ "batch": "pod16-f1",
+ "commit": "b4b10e631cd1f48f2c923ce65ca8a8151b0b7bf0",
+ "reason": "票 47 F1 修复批（pod/16 首帧标记挂载门）＋自 99dc3c0 后未同步的 retro 批九件（sessionLog 单源/headless 布局共享件/恒真断言门）＋pod/02 吸收件，一并拉齐",
+ "authorization": "用户 2026-10-11 票 47 裁定「按建议」Q4：F1 修复落地后部署面小批再同步",
+ "restart": "client 面按请求重打包（页面刷新即生效），无需重启",
+ "dshHome": "/home/beijong/.dsh",
+ "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+ "snapshot": "源字节取自 git archive <commit> -- <paths>（不读工作树）",
+ "inventoryRequire": "all-same",
+ "entries": [
+  {
+   "path": "lib/client.js",
+   "action": "write",
+   "sourceSha256": "9e35504a06b8227cfccc0ce6a4ec5948f3bafb475d7ec6beca9a352b7d8fbcc4",
+   "sourceByteLength": 216205,
+   "deployedSha256Before": "9e35504a06b8227cfccc0ce6a4ec5948f3bafb475d7ec6beca9a352b7d8fbcc4",
+   "changed": false
+  },
+  {
+   "path": "lib/session-log-names.cjs",
+   "action": "create",
+   "sourceSha256": "93aeafe191c335643b2dbca3b57a3fd427940db8a63e11bb280f7e6dbac1b513",
+   "sourceByteLength": 2331,
+   "deployedSha256Before": null,
+   "changed": true
+  },
+  {
+   "path": "lib/stats.js",
+   "action": "write",
+   "sourceSha256": "0c4b6834bece3344ae33f361cd9b8f376bcf286671ec109a8dc0aafb6c362784",
+   "sourceByteLength": 15089,
+   "deployedSha256Before": "d4910325d4d1dfcb07ee46e4d0b3b3741b0cf08e200ca9e02c8a21bba7e4caa4",
+   "changed": true
+  },
+  {
+   "path": "scripts/bot-health.cjs",
+   "action": "write",
+   "sourceSha256": "26588bbd8f0a5549dbb7779b3fbabf66588e54e7be0d6a24e592b40dd30df079",
+   "sourceByteLength": 36822,
+   "deployedSha256Before": "eb4e8c94e67de4b209abdbb30d3fe893490df2f869e8f6f92952ed4b1f258388",
+   "changed": true
+  },
+  {
+   "path": "scripts/preflight.mjs",
+   "action": "write",
+   "sourceSha256": "c4d78028603cee2404b4f1a9d6d07580aa0fe3a3fb54050b993298610227b01e",
+   "sourceByteLength": 18312,
+   "deployedSha256Before": "68961f96fae1cb313e05528da472d23c94facf3dbc10cfa224e5501fab77bd1f",
+   "changed": true
+  },
+  {
+   "path": "tests/README.md",
+   "action": "write",
+   "sourceSha256": "3e3f94260dff8ec6153bae2fcbb9480255f517f30309e686d0f22b432f86e1c1",
+   "sourceByteLength": 2187,
+   "deployedSha256Before": "e3069fd0974e23aa6a3d75b913ac2c07d19df83363b4b00f5f50038e9967f5f0",
+   "changed": true
+  },
+  {
+   "path": "tests/evidence-runner-contract.test.mjs",
+   "action": "write",
+   "sourceSha256": "340ed901c96fd0957fad2c87bf3bcc01bf4feb65ee1d3f32ef1cd0a61767a839",
+   "sourceByteLength": 19968,
+   "deployedSha256Before": "9e5ad2b0b67a1d3d58fc4bdcc2a4f48a9953b27f22ad236f894c68230029c924",
+   "changed": true
+  },
+  {
+   "path": "tests/helpers/headless-layout.mjs",
+   "action": "create",
+   "sourceSha256": "db2fc5bed778f0209ddd5c71b54bdfe79c829fc9595e5495e019c257e8366732",
+   "sourceByteLength": 3881,
+   "deployedSha256Before": null,
+   "changed": true
+  },
+  {
+   "path": "tests/pod-overlay.test.mjs",
+   "action": "write",
+   "sourceSha256": "099263d066710adf473f65a47537ca4dd453172d7d6e31789719a0825a0b278a",
+   "sourceByteLength": 81828,
+   "deployedSha256Before": "a015ca1d9e8e6455975d2b02f3697660e68283d33d529e20f6f2868985842262",
+   "changed": true
+  },
+  {
+   "path": "tests/pod-transition.test.mjs",
+   "action": "write",
+   "sourceSha256": "1455a550a1842521e9f60bc6ccd04c830950fac5b003d9e0377a886a75d17f48",
+   "sourceByteLength": 40271,
+   "deployedSha256Before": "1455a550a1842521e9f60bc6ccd04c830950fac5b003d9e0377a886a75d17f48",
+   "changed": false
+  },
+  {
+   "path": "tests/preflight.test.mjs",
+   "action": "write",
+   "sourceSha256": "6e4b9eb1fb5877c87daff011bcb005a25dea8573f9468de420b8aa47912c86cd",
+   "sourceByteLength": 20002,
+   "deployedSha256Before": "c2d6b68f6b151bb661c5f9e76d4f69ee1c5bbd838d525e34e7fc14d38984fe72",
+   "changed": true
+  }
+ ]
+}
