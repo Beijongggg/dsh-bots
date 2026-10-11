@@ -56,5 +56,22 @@
 Single-context：`GLOSSARY.md` ＋ `docs/adr/`（有内容需要记录时才创建）；定形领域词
 或立 ADR 前先读该文件。See `docs/agents/domain.md`.
 
+### Codebase map
+
+改 `lib/`、找符号住在哪、查跨文件不变量（CSRF 门序、身份头单源）前先读
+`docs/agents/codebase-map.md`；新文件落图由 preflight ③门把守。
+
+### Host runtime map
+
+逆向宿主（`/usr/lib/node_modules/@deepseek-ai/dsh`）或 `~/.dsh` 运行面、宿主升级
+后核对缝之前，先读 `docs/agents/host-runtime-map.md` 并查 `lib/host-faces.js`
+登记表。
+
+### ZCode env
+
+排查本机 ZCode 会话库／rollout／记忆布局，或写审计、retro、统计会话行为之前，
+先读 `docs/agents/zcode-env.md`。
+
 > 旧引用兼容。2026-09-20 技能节上提为 §1；此前原 §1 至 §4 依次对应现 §2 至 §5，
-> 旧引用按条款主题定位。
+> 旧引用按条款主题定位。Codebase map／Host runtime map／ZCode env 三节为本仓库
+> 扩展（retro4 批），重跑 setup 勿覆盖。

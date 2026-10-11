@@ -57,6 +57,47 @@
   `source:{kind:"plugin"}` 被拒（报错 `format v4 message requires a
   producer-owned source kind`），与 PTC 呈现模式无关。
 
+## 实例 /api 鉴权链与启动竞态（实证于 2026-10-05，17 号票 v1）
+
+- 实例（`dsh --profile <bot> --port <n>`）的 `/api` 面由 `dsh-client-connection`
+  的 `requestRejection` 把守：非信任 host → 403；`browserAuth` 未过 → 401。
+  `dsh web --trusted-host <authority>` 可追加信任 authority（403 栅栏）。
+- 鉴权＝**进程启动令牌换签名 cookie**：`processLaunchToken(owner)` 按进程 owner
+  生成，启动 banner 打印 `http://127.0.0.1:<port>/?token=<T>`；GET `/?token=<T>`
+  → 303 `set-cookie`（带 maxAge 的签名 cookie）。实测只有 cookie 能过 401——
+  同一令牌以 query 参数或 header 携带均 401。
+- 插件侧 `spawnBot` 把实例 stdout **直接丢弃**（`child.stdout` 的 data 回调为空），
+  banner 令牌无人接收——所以从宿主进程 HTTP 打实例 `/api` 不是可用通道。回合
+  必须走进程内 native RPC（`lib/native-session-rpc.js` 直调
+  `dsh-api-session-controller`，无需令牌）。
+- **启动竞态（`session.create` 401 的实际根因）**：积压邮件在实例启动几秒内被
+  watcher 消费，回合触发时 `dsh-web-app` 插件栈尚未装配完 → nativeRpc 取不到 →
+  HTTP 兜底 → 401（该 HTTP 路由本就不存在）。实例装配完成后再投邮件（新 seq
+  新回合）即愈；切换烟测不暴露，是因为当时实例先起、邮件几小时后才到。
+- 实例回信的错误形状是 `[bot error] DSH session.create HTTP 401`——见到它先查
+  启动时序与实例装配态，不要先怀疑宿主版本（同版本下时序不同结论不同，
+  2026-10-05 实证：9-29/30 同版本回合是通的）。
+
+## bot profile 配置分层（实证于 2026-10-05，17 号票 v2）
+
+- `~/.dsh/profiles/<name>/` 成员：`package.json`（bundles＝`@deepseek-ai/dsh-base`
+  ＋`@deepseek-ai/dsh-web-app`）、`cordis.yml`、`cordis.patch.yml`、
+  `settings.yaml`、`node_modules`（`dsh-bots` 解析锚符号链接，见上节）。
+- **插件活动面是 `cordis.patch.yml`**：provider 配置挂 `- id: llm-pi-ai` 补丁块
+  的 `config.providers`（键：displayName／apiKeyEnv／api／baseURL／models／
+  headers）。`settings.yaml` 的同名键是旧面——provider 基本解析仍可被读到，
+  但 `headers` 等字段只在 patch 面生效（实证：headers 写 settings.yaml 无效）。
+- 写入侧构造走 `lib/shared.cjs` 单一坐标（见 HF-CONFIG-IDS 登记行）；手工改
+  配置优先改 patch 面，两处并存时以 patch 面为准。
+- 密钥经 `apiKeyEnv` 引用进程环境变量（如 `OPENCODE_GO_API_KEY`），不落
+  profile 文件。
+- opencode zen 网关（`baseURL: https://opencode.ai/zen/go/v1`）要求路由头
+  `x-opencode-session`（缺则 400 `MissingSessionID`）；模型 id 从网关
+  `GET /models` 取；headers 挂在 provider 块（patch 面）。
+- 脚手架（`scaffoldBot`）不写 provider 定义：裸席 profile 只指
+  `agent-default-model` 会报 `Select an available model`，须补 providers 块
+  并重启实例才可用。
+
 ## 常用实证手法
 
 - 读类型：`rg -n -A25 '<TypeName>' .../dsh-api-session-controller/lib/types/*.d.ts`。

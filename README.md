@@ -57,6 +57,7 @@
 | [triage-labels.md](docs/agents/triage-labels.md) | 解释或修改 `Status` |
 | [domain.md](docs/agents/domain.md) | 探索领域、维护词汇或 ADR |
 | [codebase-map.md](docs/agents/codebase-map.md) | 改 `lib/`、找函数或导出的位置、查跨文件不变量 |
+| [ledger-commands.md](docs/agents/ledger-commands.md) | 经 HTTP 驱动台账任务（派单／终裁全链）或排查命令拒绝码 |
 | [host-runtime-map.md](docs/agents/host-runtime-map.md) | 探已安装宿主（@deepseek-ai/dsh）的行为与坐标 |
 | [zcode-env.md](docs/agents/zcode-env.md) | 排查 ZCode 会话库／rollout／记忆布局；写审计、retro 或统计会话行为前读 |
 

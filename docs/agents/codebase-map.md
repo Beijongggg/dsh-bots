@@ -1,8 +1,9 @@
 # 代码地图：lib/ 与 tests/
 
 何时读：要改 `lib/`、找某个函数或导出住在哪、或需要跨文件不变量（门的顺序、
-单源常量）时。行号为工作树时点的粗坐标，只用于定位，改动后自行重验；
-精确事实以源码与 `grep` 为准。本图只写「东西在哪」，不重复写设计——设计
+单源常量）时。定位一律以符号名＋`grep` 为锚——行号坐标已按 retro4 裁定移除
+（两个批次内实测漂移 +10～+33 行，行号缓存的维护成本大于价值）；精确事实以
+源码与 `grep` 为准。本图只写「东西在哪」，不重复写设计——设计
 读 `.scratch/<feature>/spec.md` 与票面。
 
 ## 查询习惯
@@ -36,36 +37,36 @@
 | `evidence-packager.js`、`sentinel-*.js` | v3 合同的探针与证据包链（冻结批，改动须新 runId） |
 | `shared.cjs` | 宿主 profile patch 构造共用件（`buildPatchYamlShared`） |
 
-## lib/index.js 区域划分（粗行段，工作树时点）
+## lib/index.js 区域划分（自上而下按序，符号为锚）
 
-| 行段 | 内容 | 关键符号 |
+| 区段 | 内容 | 关键符号（`grep -n "function <名>" lib/index.js` 定位） |
 |---|---|---|
-| 1–250 | 常量与配置 | — |
-| 251–824 | 注册表与进程工具 | `readRegistry`(:400)、`httpError`(:385)、`slugify`(:506)、`uniqueId`(:523)、`scaffoldBot`(:720) |
-| 825–1440 | `class BotsApi`：Bot 管理 API 面 | — |
-| 1441–1605 | HTTP 工具与 SSE | `json`、`readBody`、`routeSegments`、`createSseHub` |
-| 1606–1727 | `handleApi`：路由分发 | CSRF 门(:1611–1640) 先于一切变更方法 |
-| 1728–2048 | RPC、原生回合、会话自愈、回信路由 | `dshRpc`、`runNativeAgentTurn`、`handleIncoming` 前半 |
-| 2049–2183 | 邮件接收处理 | `routeReplyToSender`、`handleIncoming` |
-| 2184–2443 | bot 面注册 | `registerKnowledgeTools`(:2184)、`registerOrgTools`(:2247)、`registerBotFacesOnReady`(:2310)、`registerTeamPromptSection`(:2340) |
-| 2444–2843 | inbox watcher 与邮件监控 | `startInboxWatcher`(:2444)、`createMailMonitor`(:2772) |
-| 2844–3050 | `apply()`：宿主/bot 双分支装配 | host 接线与 ledgerHost 装配约 :2880–2970 |
-| 3051– | `internals` 导出块（测试插槽） | — |
+| 1 | 常量与配置 | — |
+| 2 | 注册表与进程工具 | `readRegistry`、`httpError`、`slugify`、`uniqueId`、`scaffoldBot` |
+| 3 | `class BotsApi`：Bot 管理 API 面 | — |
+| 4 | HTTP 工具与 SSE | `json`、`readBody`、`routeSegments`、`createSseHub` |
+| 5 | `handleApi`：路由分发 | CSRF 门（入口即核 `api-security` 令牌）先于一切变更方法 |
+| 6 | RPC、原生回合、会话自愈、回信路由 | `dshRpc`、`runNativeAgentTurn`、`handleIncoming` 前半 |
+| 7 | 邮件接收处理 | `routeReplyToSender`、`handleIncoming` |
+| 8 | bot 面注册 | `registerKnowledgeTools`、`registerOrgTools`、`registerBotFacesOnReady`、`registerTeamPromptSection` |
+| 9 | inbox watcher 与邮件监控 | `startInboxWatcher`、`createMailMonitor` |
+| 10 | `apply()`：宿主/bot 双分支装配 | host 接线与 ledgerHost 装配 |
+| 11 | `internals` 导出块（测试插槽） | — |
 
 ## lib/org/（组织层）
 
 | 模块 | 职责（一句话） |
 |---|---|
-| `task-ledger.js` | 任务台账：读面（常驻投影＋`at`／`since`／`taskEvents`）、命令门、关闭前置；`producerOf`(:187)、`reject`(:854) |
+| `task-ledger.js` | 任务台账：读面（常驻投影＋`at`／`since`／`taskEvents`）、命令门、关闭前置；`producerOf`、`reject`、命令速查见 [ledger-commands.md](ledger-commands.md) |
 | `task-projection.js` | 台账投影本体：状态词表＋折叠（`emptyTask`／`applyEvent`／`projectEvents`／`foldAll`）、快照与三种查询（`createTaskProjection`）；台账面按名再导出（40 号票） |
-| `ledger-events.js` | 事件契约叶件：类型词表、`TASK_ID_RE`(:66)、`isTaskId` |
+| `ledger-events.js` | 事件契约叶件：类型词表、`TASK_ID_RE`（单源）、`isTaskId` |
 | `ledger-host.js` | 台账宿主接线：HTTP 命令面、值守轮询、异常汇入 |
 | `store-base.js` | store 底座原语（append-only、幂等门） |
 | `op-set.js` | op-set 岗位表与工具面派生（OP_SET/EXECUTE_OPS） |
 | `permissions.js` | 命令鉴权三元组与签发联动（`HOST_CHANNEL_FORBIDDEN`） |
 | `capability-base.js` / `capability-issue.js` / `capability-delivery.js` | capability 原语（HMAC 签名验签／nonce 单次消费／capability 账）／签发面（签发权在 host，台账转移上签发）／岗位能力递送（IPC 绑出生代际，HTTP 只递已签发 grant） |
 | `post-channel.js` | bot→host 组织命令通道（幂等键经 `dispatch` 传入） |
-| `host-channel.js` | bot→host 认证通道原语；`BOT_ID_HEADER`(:17) 单源 |
+| `host-channel.js` | bot→host 认证通道原语；`BOT_ID_HEADER` 单源 |
 | `host-contract.js` | 宿主契约巡检子进程适配（16 号票）：报告只落临时目录，台账写入归 ledger-host |
 | `host-env-seam.js` | 宿主环境缝判定与报警文案单源：`DSH_BOTS_HOST_URL` 缺失/形状非法即宿主台面响亮（39 号票） |
 | `mail-relay.js` / `mail-client.js` | host 邮件中继（投递面唯一写者）／bot 侧通道腿 |
@@ -89,16 +90,16 @@
 
 ## 跨文件不变量（改前必读）
 
-- **CSRF 门先于一切变更方法**：`handleApi`（index.js:1611 起）在路由分发前核
+- **CSRF 门先于一切变更方法**：`handleApi`（路由分发入口）在分发前核
   `api-security` 令牌；任何新的变更端点自动受门，但绕过 `handleApi` 自建路由
   的 bot 侧客户端必须自带令牌（先例：mail 客户端返工）。
-- **身份头单源**：`BOT_ID_HEADER` 只在 `host-channel.js:17` 定义；不得在别处
+- **身份头单源**：`BOT_ID_HEADER` 只在 `host-channel.js` 定义；不得在别处
   字面量 `x-dsh-bots-bot-id`（`tests/org-mail-shared-face.test.mjs` 有单源锁）。
-- **产出方单源**：`producerOf`（task-ledger.js:187）是登记门、复核工件、独立性
+- **产出方单源**：`producerOf`（task-ledger.js）是登记门、复核工件、独立性
   门共用的唯一原语；不要用易变的 `owner` 判产出方（16 号票 rv1 blocker 教训）。
-- **拒绝落账走 `reject()`**（task-ledger.js:854）：幂等键由调用方传入，必须稳定
+- **拒绝落账走 `reject()`**（task-ledger.js）：幂等键由调用方传入，必须稳定
   ——不能内嵌会随事件推进的序号（先例：`lastSeq` 入键导致二次必变）。
-- **任务号格式**：`TASK_ID_RE = /^TK-[A-Za-z0-9]{4,40}$/`（ledger-events.js:66）。
+- **任务号格式**：`TASK_ID_RE = /^TK-[A-Za-z0-9]{4,40}$/`（ledger-events.js 单源）。
 - **判定面输入键封闭＝归因无入口**（17 号票）：`judgeExperiment` 只收
   `prereg／frozen／runs`（experiment-verdict.js 的 `VERDICT_INPUT_KEYS`）；机制
   归因（experiment-attribution.js）只作诊断输出，进不了通过与否的判定。
