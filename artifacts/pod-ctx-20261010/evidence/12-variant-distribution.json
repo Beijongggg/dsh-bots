@@ -1,0 +1,2 @@
+(Use `node --trace-warnings ...` to show where the warning was created)
+"{\"expanded\":43,\"rows\":140,\"variants\":{\"code\":137,\"bash\":2,\"others\":1},\"tools\":{\"run_code\":137,\"bash\":2,\"mail.send\":1},\"blockClasses\":[]}"

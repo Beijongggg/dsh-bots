@@ -1,0 +1,2 @@
+(Use `node --trace-warnings ...` to show where the warning was created)
+"{\"expandedEnvelopes\":50,\"totalRows\":313,\"variants\":{\"code\":253,\"others\":51,\"bash\":3,\"search\":3,\"read\":3},\"subTools\":{\"ledger.read\":15,\"task.accept\":9,\"mail.send\":7,\"brief.refresh\":4,\"task.start\":4,\"knowledge.register\":1,\"evidence.probe\":5,\"task.report\":4,\"task.deliver\":2,\"bash\":3,\"glob\":3,\"read\":3}}"

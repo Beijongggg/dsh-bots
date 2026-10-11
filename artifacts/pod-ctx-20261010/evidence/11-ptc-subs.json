@@ -1,0 +1,2 @@
+(Use `node --trace-warnings ...` to show where the warning was created)
+"{\"expanded\":\"true\",\"subCount\":1,\"subs\":[{\"tool\":\"bash\",\"variant\":\"bash\",\"head\":\"成功执行命令Verify drift locations and duty de\"}],\"bodySnippet\":\"输入const safe = async (p: Promise<any>) => { try { return await p; } catch (e:any) { return\",\"hasPreWrap\":\"pre-wrap\"}"

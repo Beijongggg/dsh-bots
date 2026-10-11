@@ -1,0 +1,260 @@
+(node:5) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+TAP version 13
+# Subtest: V-P9.3 机械检查①＋②：附录 A 64 条四字段可解析、id 连续、组计数与冻结一致
+ok 1 - V-P9.3 机械检查①＋②：附录 A 64 条四字段可解析、id 连续、组计数与冻结一致
+  ---
+  duration_ms: 11.73261
+  type: 'test'
+  ...
+# Subtest: V-P9.3 机械检查③：级别词封闭在「常驻／验收期一次／运行面点名」三档词表内
+not ok 2 - V-P9.3 机械检查③：级别词封闭在「常驻／验收期一次／运行面点名」三档词表内
+  ---
+  duration_ms: 2.337228
+  type: 'test'
+  location: '/home/beijong/project/dsh-bots/.worktrees/pod-integration/tests/pod-spec-face.test.mjs:552:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    级别词表外取值或空级别
+    + actual - expected
+    
+    + [
+    +   'V-P2.2: 级别词「验收期两次」不在封闭三档词表内'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'V-P2.2: 级别词「验收期两次」不在封闭三档词表内'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/beijong/project/dsh-bots/.worktrees/pod-integration/tests/pod-spec-face.test.mjs:555:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: V-P9.3 机械检查④：票面引用坐标逐条存在（零空缺、零指向空气、57 条机械可解析）
+not ok 3 - V-P9.3 机械检查④：票面引用坐标逐条存在（零空缺、零指向空气、57 条机械可解析）
+  ---
+  duration_ms: 2.519896
+  type: 'test'
+  location: '/home/beijong/project/dsh-bots/.worktrees/pod-integration/tests/pod-spec-face.test.mjs:564:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    有坐标记号解析不到落点
+    + actual - expected
+    
+    + [
+    +   'V-P6.4｜用例:pod-tool-rows.test.mjs#V-P6.9｜tests/pod-tool-rows.test.mjs 内无标题含「V-P6.9」的用例'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'V-P6.4｜用例:pod-tool-rows.test.mjs#V-P6.9｜tests/pod-tool-rows.test.mjs 内无标题含「V-P6.9」的用例'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/beijong/project/dsh-bots/.worktrees/pod-integration/tests/pod-spec-face.test.mjs:566:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: V-P9.3 补记坐标同拍：附录 A 执行坐标列与 CANONICAL_COORDINATES 逐条一致（指错落点／旧 ID 前缀即红）
+not ok 4 - V-P9.3 补记坐标同拍：附录 A 执行坐标列与 CANONICAL_COORDINATES 逐条一致（指错落点／旧 ID 前缀即红）
+  ---
+  duration_ms: 1.827249
+  type: 'test'
+  location: '/home/beijong/project/dsh-bots/.worktrees/pod-integration/tests/pod-spec-face.test.mjs:575:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    补记坐标与规格坐标列漂移
+    + actual - expected
+    
+    + [
+    +   'V-P6.4: 坐标列「用例:pod-tool-rows.test.mjs#V-P6.9」≠ 补记「用例:pod-tool-rows.test.mjs#V-P6.4」'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'V-P6.4: 坐标列「用例:pod-tool-rows.test.mjs#V-P6.9」≠ 补记「用例:pod-tool-rows.test.mjs#V-P6.4」'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/beijong/project/dsh-bots/.worktrees/pod-integration/tests/pod-spec-face.test.mjs:577:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: V-P9.3 人工坐标只许白名单类别：人工:human-visual-checklist／human-knowledge-reuse
+ok 5 - V-P9.3 人工坐标只许白名单类别：人工:human-visual-checklist／human-knowledge-reuse
+  ---
+  duration_ms: 2.205814
+  type: 'test'
+  ...
+# Subtest: V-P9.3 登记口径：治理面 7 条坐标＝句子型引注（白名单双向锁定，非空缺）
+not ok 6 - V-P9.3 登记口径：治理面 7 条坐标＝句子型引注（白名单双向锁定，非空缺）
+  ---
+  duration_ms: 2.982778
+  type: 'test'
+  location: '/home/beijong/project/dsh-bots/.worktrees/pod-integration/tests/pod-spec-face.test.mjs:603:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    治理面白名单与实况漂移
+    + actual - expected
+    
+      [
+    +   'V-P6.4',
+        'V-P6.6',
+        'V-P8.4',
+        'V-P8.5',
+        'V-P8.6',
+        'V-P8.7',
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'V-P6.6'
+    1: 'V-P8.4'
+    2: 'V-P8.5'
+    3: 'V-P8.6'
+    4: 'V-P8.7'
+    5: 'V-P9.1'
+    6: 'V-P9.2'
+  actual:
+    0: 'V-P6.4'
+    1: 'V-P6.6'
+    2: 'V-P8.4'
+    3: 'V-P8.5'
+    4: 'V-P8.6'
+    5: 'V-P8.7'
+    6: 'V-P9.1'
+    7: 'V-P9.2'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/beijong/project/dsh-bots/.worktrees/pod-integration/tests/pod-spec-face.test.mjs:605:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: V-P9.3 登记口径：28 处补记坐标已落附录 A，剩余 7 条常驻判据坐标为待实现批落点（非空缺）
+not ok 7 - V-P9.3 登记口径：28 处补记坐标已落附录 A，剩余 7 条常驻判据坐标为待实现批落点（非空缺）
+  ---
+  duration_ms: 3.412985
+  type: 'test'
+  location: '/home/beijong/project/dsh-bots/.worktrees/pod-integration/tests/pod-spec-face.test.mjs:610:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    「常驻但坐标无测试落点」集合漂移（新增＝坐标空缺；减少＝补记坐标已落地，须同批更新本断言）
+    + actual - expected
+    
+      [
+    +   'V-P6.4',
+        'V-P6.6',
+        'V-P8.3',
+        'V-P8.4',
+        'V-P8.5',
+        'V-P8.6',
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'V-P6.6'
+    1: 'V-P8.3'
+    2: 'V-P8.4'
+    3: 'V-P8.5'
+    4: 'V-P8.6'
+    5: 'V-P9.1'
+    6: 'V-P9.2'
+  actual:
+    0: 'V-P6.4'
+    1: 'V-P6.6'
+    2: 'V-P8.3'
+    3: 'V-P8.4'
+    4: 'V-P8.5'
+    5: 'V-P8.6'
+    6: 'V-P9.1'
+    7: 'V-P9.2'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/beijong/project/dsh-bots/.worktrees/pod-integration/tests/pod-spec-face.test.mjs:613:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: V-P1.1 GLOSSARY 收「Pod」词条：视觉 Pod／标识符小写 pod／宿主包名校验只收小写
+ok 8 - V-P1.1 GLOSSARY 收「Pod」词条：视觉 Pod／标识符小写 pod／宿主包名校验只收小写
+  ---
+  duration_ms: 0.346201
+  type: 'test'
+  ...
+# Subtest: V-P1.2 「席位／岗位」词不外借：词条显式声明 + 活文档无「Pod 席位」式用法
+ok 9 - V-P1.2 「席位／岗位」词不外借：词条显式声明 + 活文档无「Pod 席位」式用法
+  ---
+  duration_ms: 61.761144
+  type: 'test'
+  ...
+# Subtest: V-P1.3 旧别名收作 _Avoid_：`Bot 模式` 标注为历史别名；入口标签已是 Pod 不回改
+ok 10 - V-P1.3 旧别名收作 _Avoid_：`Bot 模式` 标注为历史别名；入口标签已是 Pod 不回改
+  ---
+  duration_ms: 2.084061
+  type: 'test'
+  ...
+# Subtest: V-P1.4/V-P1.5/V-P8.2 命名残留登记口径：pod 功能批自有面旧名命中 ⊆ 白名单、应改未改为空集
+ok 11 - V-P1.4/V-P1.5/V-P8.2 命名残留登记口径：pod 功能批自有面旧名命中 ⊆ 白名单、应改未改为空集
+  ---
+  duration_ms: 4.309413
+  type: 'test'
+  ...
+# Subtest: V-P1.5 代码内部名不随命名批改名：本批自有面旧名命中 ⊆ 声明白名单（代码内部名／冻结件）
+ok 12 - V-P1.5 代码内部名不随命名批改名：本批自有面旧名命中 ⊆ 声明白名单（代码内部名／冻结件）
+  ---
+  duration_ms: 4.750241
+  type: 'test'
+  ...
+# Subtest: V-P1.5b 内部名不上浮为对外文案：locale 字典入口标签无旧名、实现面命中在声明白名单内
+ok 13 - V-P1.5b 内部名不上浮为对外文案：locale 字典入口标签无旧名、实现面命中在声明白名单内
+  ---
+  duration_ms: 5.074545
+  type: 'test'
+  ...
+# Subtest: V-P8.2 A 组九类清单扫全：模块 id／包名／CSS 前缀／locale ns／host 插件名／wire 头／路由前缀／日志前缀／测试与脚本字面量逐类有落点
+ok 14 - V-P8.2 A 组九类清单扫全：模块 id／包名／CSS 前缀／locale ns／host 插件名／wire 头／路由前缀／日志前缀／测试与脚本字面量逐类有落点
+  ---
+  duration_ms: 4.56198
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 9
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 122.358253

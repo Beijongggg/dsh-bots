@@ -1,0 +1,2 @@
+(Use `node --trace-warnings ...` to show where the warning was created)
+"{\"host\":true,\"layerRole\":\"dialog\",\"ariaModal\":\"true\",\"dataState\":\"shown\",\"layerRect\":{\"x\":0,\"y\":0,\"w\":1440,\"h\":900},\"viewport\":{\"w\":1440,\"h\":900},\"bodyW\":0,\"views\":[{\"hidden\":true,\"rect\":0,\"pos\":\"absolute\"},{\"hidden\":false,\"rect\":0,\"pos\":\"static\"}],\"officialStillMounted\":true,\"scrollTopAfter\":3000,\"inertCount\":3,\"noticesZ\":null,\"noticesState\":null,\"nodes\":8002}"
