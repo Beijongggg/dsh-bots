@@ -13,4 +13,4 @@
 
 | 任务 | 会话／工具 | 工作面 | 领取时间 | 备注 |
 |---|---|---|---|---|
-| pod core 批（01–06/10/11）＋12 号票改名扫 | DSH implement-spec（session-dc33ac81）；2026-10-10 起评审返修由 zcode 会话接手（用户点名） | `integration/pod-core`（待并）；搁置件留 `integration/pod`；工作树 `.worktrees/pod-*` | 2026-10-09 14:20 | 2026-10-10 用户裁定 07／08／09（工具行/专用行/turn-trigger）搁置、不并入主树；12 号票已收口（`ed6033a`）；用户点名 zcode 会话完成两轴评审＋返修两轮（`0efc9e8`＋`99dc3c0`）＋真机部署（r1 暴露 46 件漂移、r2 补齐 all-same 215/215 @ `99dc3c0`，`EV-20261011-pod-core-rework-deploy`；client 面刷新即生效，host 未重启）；分支待并（`31b1879`）；六条人工判据走查与署名待用户（清单已付）；13／14／15 待逐项点名 |
+| pod core 批（01–06/10/11）＋12 号票改名扫 | DSH implement-spec（session-dc33ac81）；2026-10-10 起评审返修由 zcode 会话接手（用户点名） | `integration/pod-core`（待并）；搁置件留 `integration/pod`；工作树 `.worktrees/pod-*` | 2026-10-09 14:20 | 2026-10-10 用户裁定 07／08／09（工具行/专用行/turn-trigger）搁置、不并入主树；12 号票已收口（`ed6033a`）；zcode 会话完成两轴评审＋返修两轮（`0efc9e8`＋`99dc3c0`）＋真机部署（all-same 215/215，`EV-20261011-pod-core-rework-deploy`；client 面刷新即生效，host 未重启）；用户 2026-10-11 走查署名「没有问题」——六条人工判据闭合、core 批 64 条判据面全部闭合（`a9e1335`，`EV-20261011-pod-core-human-signoff`）；分支待并（合并/push 待点名）；13／14／15 待逐项点名 |
