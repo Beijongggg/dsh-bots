@@ -48,8 +48,10 @@ test("真实入口：sourceManifest 恰为［脚本＋依赖闭包］，sha256/b
   const paths = sourceManifest.map((e) => e.path);
   // 15 号票后：runner 静态导入 parity-manifest/safety＋动态字面量导入
   // provenance/shadow——闭包恰为五文件；28 号票加台账证据段（ledger-evidence ＋
-  // 台账事件契约叶件 ledger-events/store-base），闭包恰为八文件。
+  // 台账事件契约叶件 ledger-events/store-base），闭包恰为八文件；14 号票（改名批）
+  // 台账事件坐标收敛 lib/data-roots.cjs（runner 经它取 events.jsonl 坐标），闭包九文件。
   assert.deepEqual(paths, [
+    "lib/data-roots.cjs",
     "lib/ledger-evidence.js",
     "lib/org/ledger-events.js",
     "lib/org/store-base.js",
@@ -393,7 +395,7 @@ test("O-6.4 ledger /2 负例：缺绑定字段/非法 hash/非终态 → 拒绝�
   assert.equal(fs.existsSync(path.join(dir, "run-registry.jsonl")), false, "残缺终态记录零落盘");
 });
 
-test("O-6.5 执行闭包：runner∪packager 闭包恰为 10 文件（含台账事件契约叶件，不含组织图）；evidenceRunnerHash 绑定 runner", () => {
+test("O-6.5 执行闭包：runner∪packager 闭包恰为 11 文件（含台账事件契约叶件与 data-roots 单源件，不含组织图）；evidenceRunnerHash 绑定 runner", () => {
   const { sourceManifest, sourceManifestSha256 } = buildExecutionSourceManifest({
     repoRoot, runnerScript: RUNNER,
     consumerScripts: ["scripts/evidence-packager.mjs"]
@@ -403,6 +405,7 @@ test("O-6.5 执行闭包：runner∪packager 闭包恰为 10 文件（含台账�
   // 一律不在清单里）；这条正是「抽取叶件」的理由：闭包即 preflight 门② 的冻结面，
   // 拉进整张组织图会让此后每次改 lib/org/* 都要重出证据包。
   assert.deepEqual(sourceManifest.map((e) => e.path).sort(), [
+    "lib/data-roots.cjs",
     "lib/evidence-packager.js", "lib/ledger-evidence.js",
     "lib/org/ledger-events.js", "lib/org/store-base.js",
     "lib/parity-manifest.js",

@@ -44,6 +44,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { PARITY_MANIFEST } from "../lib/parity-manifest.js";
 import { canonicalizePath, pathInsideOrEqual, pathsOverlap, findExistingPathIssue, ProbeError } from "../lib/sentinel-safety.js";
 import { buildDrillBlock, captureLedgerEvidence, readLedgerEventsFile } from "../lib/ledger-evidence.js";
+// 数据面路径单源（14 号票收敛）：台账事件坐标只活在 lib/data-roots.cjs。
+import { ledgerEventsFile as rootsLedgerEventsFile } from "../lib/data-roots.cjs";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const runnerScript = fileURLToPath(import.meta.url);
@@ -262,9 +264,9 @@ function writeExclusive(filePath, bytes) {
 export function resolveLedgerEventsPath({ dshHome, explicit = null, drillHome = null }) {
   if (typeof explicit === "string" && explicit !== "") return resolve(explicit);
   if (typeof drillHome === "string" && drillHome !== "") {
-    return join(resolve(drillHome), "bots", "ledger", "events.jsonl");
+    return rootsLedgerEventsFile(resolve(drillHome));
   }
-  return join(resolve(dshHome), "bots", "ledger", "events.jsonl");
+  return rootsLedgerEventsFile(resolve(dshHome));
 }
 
 /** 观测台账末位 seq（Phase 1 用；文件缺失＝0——「本 run 期间新增」的窗口下界）。 */

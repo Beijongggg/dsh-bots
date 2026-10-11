@@ -502,6 +502,8 @@ test("接线 fail closed：坏链与断号经台账读面新成员一律抛（�
 const PROJECTION_REL = "lib/org/task-projection.js";
 /** 票面定案 3 的闭包上限：折叠与词表件＋其传递依赖（证据叶件链），多一件即越界。 */
 const ALLOWED_CLOSURE = [
+  // 14 号票（改名批）：capability-base 的实例登记坐标收敛 lib/data-roots.cjs，进闭包。
+  "lib/data-roots.cjs",
   "lib/org/capability-base.js",
   "lib/org/is-non-empty-string.js",
   "lib/org/ledger-events.js",
