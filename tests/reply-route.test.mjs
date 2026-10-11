@@ -40,7 +40,7 @@ const eventsOf = () => {
 };
 
 const now = new Date().toISOString();
-fs.mkdirSync(path.join(home, "bots"), { recursive: true });
+fs.mkdirSync(path.join(home, "pod"), { recursive: true });
 
 const ctx = { logger: { info() {}, warn() {}, error() {}, debug() {} } };
 const api = new internals.BotsApi(ctx, home);
@@ -81,7 +81,7 @@ const server = http.createServer((req, res) => {
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
 const origin = `http://127.0.0.1:${server.address().port}`;
 
-fs.writeFileSync(path.join(home, "bots", "bots.json"), JSON.stringify({
+fs.writeFileSync(path.join(home, "pod", "bots.json"), JSON.stringify({
   a: { id: "a", name: "发件 bot", role: "发信", modelProvider: "", model: "", port: 61000, createdAt: now },
   b: { id: "b", name: "收件 bot", role: "干活", modelProvider: "", model: "", port: server.address().port, createdAt: now }
 }));
@@ -133,7 +133,7 @@ try {
   await internals.handleIncoming(ctx, home, "b", lastInboxOf("b"), mail);
   assert.deepEqual(outbox(), ["REPLY-1", "REPLY-2", "REPLY-3", "REPLY-4"], "未注册发件人的消息仍应回复");
   assert.equal(inboxA().length, 1, "未注册发件人不路由");
-  assert.ok(!fs.existsSync(path.join(home, "bots", "inbox", "ghost")), "不得为未注册 id 创建 inbox");
+  assert.ok(!fs.existsSync(path.join(home, "pod", "inbox", "ghost")), "不得为未注册 id 创建 inbox");
 
   // 8) 会话损坏自愈：首轮 prompt 报 corrupt → 归档 + 用同一 promptText（含
   //    寄件人前缀，L-1 回归）重试成功 → 回复带「已归档并重置」说明、且与

@@ -52,7 +52,7 @@ async function fixture() {
   assert.equal(second.ok, true);
   ledger.close();
   const runId = "11111111-2222-3333-4444-555555555555";
-  const section = captureLedgerEvidence({ eventsPath: join(home, "bots", "ledger", "events.jsonl"), runId, kind: "host-ledger", fromSeq: 0, requireEvents: true });
+  const section = captureLedgerEvidence({ eventsPath: join(home, "pod", "ledger", "events.jsonl"), runId, kind: "host-ledger", fromSeq: 0, requireEvents: true });
   const runDir = join(mkTmp(), "run");
   mkdirSync(runDir);
   const artifactPath = join(runDir, "ledger-evidence.json");
@@ -62,7 +62,7 @@ async function fixture() {
   const packageObj = { packageType: "review-evidence-package-v2", executionEvidence: { ledgerEvidence: { binding, ...section } } };
   const pkgPath = join(runDir, "review-evidence-package-0099-aaaaaaaa.json");
   writeFileSync(pkgPath, JSON.stringify(packageObj, null, 2) + "\n");
-  return { home, runId, section, artifactPath, binding, pkgPath, ledgerPath: join(home, "bots", "ledger", "events.jsonl") };
+  return { home, runId, section, artifactPath, binding, pkgPath, ledgerPath: join(home, "pod", "ledger", "events.jsonl") };
 }
 
 test("包外独立复算：一个包文件即可验绿（台账不在场也成立）", async () => {

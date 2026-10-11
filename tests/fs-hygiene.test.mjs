@@ -89,8 +89,8 @@ test("tightenBotTree：顶层目录＋四具名文件收紧，嵌套内容不递
 
 test("注册表：写后 0600（含存量 0644 回收紧）", () => {
   const home = mkHome();
-  fs.mkdirSync(path.join(home, "bots"), { recursive: true });
-  const reg = path.join(home, "bots", "bots.json"); // registryPath = $DSH_HOME/bots/bots.json
+  fs.mkdirSync(path.join(home, "pod"), { recursive: true });
+  const reg = path.join(home, "pod", "bots.json"); // registryPath = $DSH_HOME/bots/bots.json
   fs.writeFileSync(reg, "{}\n");
   fs.chmodSync(reg, 0o644);
   writeRegistryAtomic(home, {});
@@ -110,7 +110,7 @@ test("集成：scaffoldBot builtin 路径——新件即紧＋存量 0644 重 sc
     };
     scaffoldBot({ logger: { info() {}, warn() {}, error() {}, debug() {} } }, home, bot);
     const profile = path.join(home, "profiles", "w1");
-    const workspace = path.join(home, "bot-workspaces", "w1");
+    const workspace = path.join(home, "pod-workspaces", "w1");
     assert.equal(mode(profile), TIGHT_DIR_MODE, "profile 目录 0700");
     assert.equal(mode(workspace), TIGHT_DIR_MODE, "workspace 目录 0700");
     for (const name of ["package.json", "cordis.patch.yml", "settings.yaml", "pnpm-workspace.yaml"]) {
@@ -166,7 +166,7 @@ fs.chmodSync(workspace, 0o755);
     };
     await scaffoldBot(ctx, home, bot);
     const profile = path.join(home, "profiles", "s1");
-    const workspace = path.join(home, "bot-workspaces", "s1");
+    const workspace = path.join(home, "pod-workspaces", "s1");
     assert.equal(
       fs.readFileSync(path.join(profile, "package.json"), "utf8"),
       "fake package.json",

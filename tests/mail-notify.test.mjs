@@ -25,9 +25,9 @@ const test = (name, fn) => results.push([name, fn]);
 const homes = [];
 function mkHome(registry = {}) {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-mailnotify-"));
-  fs.mkdirSync(path.join(home, "bots"), { recursive: true });
+  fs.mkdirSync(path.join(home, "pod"), { recursive: true });
   if (Object.keys(registry).length > 0) {
-    fs.writeFileSync(path.join(home, "bots", "bots.json"), JSON.stringify(registry));
+    fs.writeFileSync(path.join(home, "pod", "bots.json"), JSON.stringify(registry));
   }
   homes.push(home);
   return home;
@@ -36,8 +36,8 @@ const bot = (id, overrides = {}) => ({
   id, name: id, role: "coder", modelProvider: "", model: "",
   port: 3201, permission: "workspace-write", createdAt: new Date().toISOString(), ...overrides
 });
-const inboxFile = (home, id) => path.join(home, "bots", "inbox", id, "messages.jsonl");
-const outboxDir = (home, id) => path.join(home, "bots", "outbox", id);
+const inboxFile = (home, id) => path.join(home, "pod", "inbox", id, "messages.jsonl");
+const outboxDir = (home, id) => path.join(home, "pod", "outbox", id);
 /** inbox 一行（含换行）：{seq, from, text, at[, taskId/replyTo]}。 */
 const inboxLine = (seq, text, extra = {}) =>
   JSON.stringify({ seq, from: extra.from ?? "user", text, at: extra.at ?? "2026-08-23T01:00:00.000Z", ...extra }) + "\n";

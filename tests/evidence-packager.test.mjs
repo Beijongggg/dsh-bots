@@ -61,7 +61,7 @@ function bindSection(section, dir) {
 
 function ledgerEvidenceFixture(runId) {
   const dir = mkTmp();
-  const section = captureLedgerEvidence({ eventsPath: path.join(dir, "bots", "ledger", "events.jsonl"), runId, kind: "host-ledger", fromSeq: 0 });
+  const section = captureLedgerEvidence({ eventsPath: path.join(dir, "pod", "ledger", "events.jsonl"), runId, kind: "host-ledger", fromSeq: 0 });
   return bindSection(section, dir);
 }
 
@@ -86,7 +86,7 @@ async function ledgerEvidenceWithEvents(runId, { drill = null } = {}) {
   }
   ledger.close();
   const section = captureLedgerEvidence({
-    eventsPath: path.join(home, "bots", "ledger", "events.jsonl"), runId,
+    eventsPath: path.join(home, "pod", "ledger", "events.jsonl"), runId,
     kind: drill === null ? "host-ledger" : "isolated-drill-root", fromSeq: 0, requireEvents: true, drill
   });
   return bindSection(section, dir);
@@ -480,7 +480,7 @@ test("/4 演练 run：证据为空／自陈非绿／缺查询结论 → 拒绝�
   });
   assert.equal(built.executionEvidence.ledgerEvidence.drill.id, "drill-ledger-rebuild");
   // 演练证据为空 → 拒
-  const emptySection = captureLedgerEvidence({ eventsPath: path.join(mkTmp(), "bots", "ledger", "events.jsonl"), runId, kind: "isolated-drill-root", fromSeq: 0 });
+  const emptySection = captureLedgerEvidence({ eventsPath: path.join(mkTmp(), "pod", "ledger", "events.jsonl"), runId, kind: "isolated-drill-root", fromSeq: 0 });
   const emptyDrilled = bindSection({ ...emptySection, drill: okDrill }, mkTmp());
   rejectsWith(() => buildEvidencePackageV2({
     executionEvidence: baseEvidence({ provenance: { ...baseEvidence().provenance, runId }, ledgerEvidence: emptyDrilled }),

@@ -290,7 +290,7 @@ test("real-sentinel Phase 4 失败 → preserve-for-caller（布局现场保留�
   assert.equal(e.exitCode, 1);
   assert.equal(e.scenePolicy, "preserve-for-caller");
   // preserve-for-caller：守卫排他创建的布局现场必须保留，交调用方处置
-  assert.equal(fs.existsSync(path.join(root, "dsh-home", "bots", "bots.json")), true, "布局现场必须保留");
+  assert.equal(fs.existsSync(path.join(root, "dsh-home", "pod", "bots.json")), true, "布局现场必须保留");
   assert.equal(fs.existsSync(path.join(root, "project", "allowed.txt")), true, "布局现场必须保留");
 });
 
@@ -302,10 +302,10 @@ const { ProbeError, toProbeError, validateOutputDestination, PROBE_ERROR_EXIT_CO
 
 test("prepare 默认＝overwrite-shadow（既有兼容语义：无条件覆盖）", () => {
   const root = mkTmp();
-  fs.mkdirSync(path.join(root, "dsh-home", "bots"), { recursive: true });
-  fs.writeFileSync(path.join(root, "dsh-home", "bots", "bots.json"), "CUSTOM-CONTENT");
+  fs.mkdirSync(path.join(root, "dsh-home", "pod"), { recursive: true });
+  fs.writeFileSync(path.join(root, "dsh-home", "pod", "bots.json"), "CUSTOM-CONTENT");
   prepareShadowTargets(root);
-  assert.equal(fs.readFileSync(path.join(root, "dsh-home", "bots", "bots.json"), "utf8"), "{}");
+  assert.equal(fs.readFileSync(path.join(root, "dsh-home", "pod", "bots.json"), "utf8"), "{}");
 });
 
 test("prepare=none：目标齐备 → 只读核验通过、零写入（树 hash 前后一致）", () => {
@@ -342,8 +342,8 @@ test("prepare=none：目标缺失 → ProbeError PRECONDITION_FAILED（phase 1�
 test("prepare=none：目标类型错误（bots.json 为目录）→ PRECONDITION_FAILED", () => {
   const root = mkTmp();
   prepareShadowTargets(root, { prepare: "overwrite-shadow" });
-  fs.rmSync(path.join(root, "dsh-home", "bots", "bots.json"));
-  fs.mkdirSync(path.join(root, "dsh-home", "bots", "bots.json"));
+  fs.rmSync(path.join(root, "dsh-home", "pod", "bots.json"));
+  fs.mkdirSync(path.join(root, "dsh-home", "pod", "bots.json"));
   assert.throws(() => prepareShadowTargets(root, { prepare: "none" }), (error) =>
     error instanceof ProbeError && error.probeError.code === "PRECONDITION_FAILED");
 });

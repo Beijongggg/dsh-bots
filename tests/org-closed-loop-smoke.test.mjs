@@ -90,7 +90,7 @@ const TASK_ID = "TK-00000014";
  * 检查该坐标含报告正文——25 号票起关闭前置会在关闸时**真跑**这条判据，故夹具必须
  * 给出真能跑过的坐标（旧夹具指向 `docs/x.md`，那是永远跑不过的死判据）。
  */
-const PRODUCED_LOCATION = "bots/knowledge/reports/R-2026-001.md";
+const PRODUCED_LOCATION = "pod/knowledge/reports/R-2026-001.md";
 const BRIEF = Object.freeze({
   ...VALID_BRIEF,
   deliverables: [{ format: "markdown", location: PRODUCED_LOCATION }],

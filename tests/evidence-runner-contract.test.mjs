@@ -175,24 +175,24 @@ test("O-6.2 --init-registry：幂等（真实根已存在 → exit 0 零改动�
 
 test("O-6.3 snapshotProtectedSurface：只读；豁免清单生效（epoch/nonces/leases/日志）", () => {
   const fakeHome = mkTmp();
-  fs.mkdirSync(path.join(fakeHome, "bots", "review", "capability", "nonces"), { recursive: true });
-  fs.mkdirSync(path.join(fakeHome, "bots", "review", "capabilities"), { recursive: true });
-  fs.writeFileSync(path.join(fakeHome, "bots", "bots.json"), "{}");
-  fs.writeFileSync(path.join(fakeHome, "bots", "review", "epoch.json"), '{"writerEpoch":1}');
-  fs.writeFileSync(path.join(fakeHome, "bots", "review", "capability", "epoch.json"), "{}");
-  fs.writeFileSync(path.join(fakeHome, "bots", "review", "capability", "nonces", "n.json"), "{}");
-  fs.writeFileSync(path.join(fakeHome, "bots", "review", "capabilities", "lease.json"), "{}");
+  fs.mkdirSync(path.join(fakeHome, "pod", "review", "capability", "nonces"), { recursive: true });
+  fs.mkdirSync(path.join(fakeHome, "pod", "review", "capabilities"), { recursive: true });
+  fs.writeFileSync(path.join(fakeHome, "pod", "bots.json"), "{}");
+  fs.writeFileSync(path.join(fakeHome, "pod", "review", "epoch.json"), '{"writerEpoch":1}');
+  fs.writeFileSync(path.join(fakeHome, "pod", "review", "capability", "epoch.json"), "{}");
+  fs.writeFileSync(path.join(fakeHome, "pod", "review", "capability", "nonces", "n.json"), "{}");
+  fs.writeFileSync(path.join(fakeHome, "pod", "review", "capabilities", "lease.json"), "{}");
   fs.writeFileSync(path.join(fakeHome, "host.log"), "log");
   const before = snapshotProtectedSurface(fakeHome);
   // 真实写入（探针自身运行期不得做的事）——此处仅验证快照与豁免逻辑
-  fs.writeFileSync(path.join(fakeHome, "bots", "bots.json"), "{}"); // 同内容写（无变化）
+  fs.writeFileSync(path.join(fakeHome, "pod", "bots.json"), "{}"); // 同内容写（无变化）
   const after = snapshotProtectedSurface(fakeHome);
   const d = diffProtectedSnapshots(before, after);
   assert.deepEqual({ m: d.modified, r: d.removed, a: d.added, i: d.addedIrregular.length }, { m: [], r: [], a: [], i: 0 }, "同内容重写与豁免路径不得计为污染");
   // 豁免面不在快照内
   const keys = Object.keys(before.files);
   assert.equal(keys.some((k) => k.includes("epoch.json") || k.includes("nonces") || k.includes("capabilities/") || k.endsWith(".log")), false, "豁免清单必须生效");
-  assert.ok(keys.includes(path.join("bots", "bots.json").split(path.sep).join("/")), "非豁免文件必须入快照");
+  assert.ok(keys.includes(path.join("pod", "bots.json").split(path.sep).join("/")), "非豁免文件必须入快照");
 });
 
 test("O-6.3 前后 diff：新增/修改/删除/新增 symlink 全部捕获", () => {
@@ -264,10 +264,10 @@ test("/3 阶段链：runner 无 v1 段（并发压测／probe CLI）调用；pay
 
 test("28 号票 台账坐标：演练根优先于 DSH_HOME；显式路径优先于两者", () => {
   const dshHome = "/tmp/dsh-home-x";
-  assert.equal(resolveLedgerEventsPath({ dshHome }), path.join(dshHome, "bots", "ledger", "events.jsonl"));
+  assert.equal(resolveLedgerEventsPath({ dshHome }), path.join(dshHome, "pod", "ledger", "events.jsonl"));
   assert.equal(
     resolveLedgerEventsPath({ dshHome, drillHome: "/tmp/run-1/drill-home" }),
-    path.join("/tmp/run-1/drill-home", "bots", "ledger", "events.jsonl"),
+    path.join("/tmp/run-1/drill-home", "pod", "ledger", "events.jsonl"),
     "演练 run 取隔离演练根的台账（真实运行面零写入）"
   );
   assert.equal(
@@ -279,8 +279,8 @@ test("28 号票 台账坐标：演练根优先于 DSH_HOME；显式路径优先�
 
 test("28 号票 窗口下界观测：台账缺失＝0；有事件＝末位 seq（只读）", () => {
   const dir = mkTmp();
-  assert.equal(observeLedgerCursor(path.join(dir, "bots", "ledger", "events.jsonl")), 0);
-  const eventsPath = path.join(dir, "bots", "ledger", "events.jsonl");
+  assert.equal(observeLedgerCursor(path.join(dir, "pod", "ledger", "events.jsonl")), 0);
+  const eventsPath = path.join(dir, "pod", "ledger", "events.jsonl");
   fs.mkdirSync(path.dirname(eventsPath), { recursive: true });
   const lines = [1, 2, 3].map((seq) => JSON.stringify({ seq, eventHash: "x" })).join("\n") + "\n";
   fs.writeFileSync(eventsPath, lines);
@@ -318,7 +318,7 @@ test("28 号票 run 内证据件：真实台账窗口写出＋绑定账实相符
   const runDir = path.join(mkTmp(), "run");
   fs.mkdirSync(runDir);
   const capture = captureLedgerEvidenceArtifact({
-    eventsPath: path.join(home, "bots", "ledger", "events.jsonl"),
+    eventsPath: path.join(home, "pod", "ledger", "events.jsonl"),
     runId: "22222222-3333-4444-5555-666666666666",
     fromSeq: 0, runDir, kind: "isolated-drill-root", requireEvents: true, drillBlock: null
   });
@@ -333,7 +333,7 @@ test("28 号票 run 内证据件：真实台账窗口写出＋绑定账实相符
   const emptyRunDir = path.join(mkTmp(), "run-empty");
   fs.mkdirSync(emptyRunDir);
   assert.throws(() => captureLedgerEvidenceArtifact({
-    eventsPath: path.join(mkTmp(), "bots", "ledger", "events.jsonl"),
+    eventsPath: path.join(mkTmp(), "pod", "ledger", "events.jsonl"),
     runId: "33333333-4444-5555-6666-777777777777",
     fromSeq: 0, runDir: emptyRunDir, kind: "isolated-drill-root", requireEvents: true, drillBlock: null
   }), /不得为空/);

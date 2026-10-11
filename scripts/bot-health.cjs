@@ -47,7 +47,7 @@ const { sessionLogCandidates, SESSION_LOG_LEGACY_NAME } = require("../lib/sessio
 // 坐标只活在 lib/data-roots.cjs（工作区分片前缀标记亦同源）。
 const {
   registryPath, workspaceDirFor, profileDirFor,
-  inboxDirFor, outboxDirFor, sessionBackupsDir
+  inboxDirFor, outboxDirFor, sessionBackupsDir, WORKSPACE_SHARD_MARKERS
 } = require("../lib/data-roots.cjs");
 // 本脚本所在目录（scripts/）与 Pod 项目根
 const SCRIPT_DIR = __dirname;
@@ -161,7 +161,7 @@ function readBots(root) {
   }
 }
 
-/** 定位 <root>/sessions/ 下该 bot 的作用域目录（含 bot-workspaces-<botId>-- 或含 <botId>）。 */
+/** 定位 <root>/sessions/ 下该 bot 的作用域目录（含 <工作区前缀><botId>--（新旧都认）或含 <botId>）。 */
 function findScopeDirs(root, botId) {
   const sessionsRoot = path.join(root, "sessions");
   if (!fs.existsSync(sessionsRoot)) return [];
@@ -176,7 +176,8 @@ function findScopeDirs(root, botId) {
       continue;
     }
     if (!st.isDirectory()) continue;
-    if (name.includes(`bot-workspaces-${botId}--`)) exact.push(p);
+    // 14 号票切名：新旧工作区前缀都认（新前缀现役、旧前缀 retired 分片兼容一个窗口）。
+    if (WORKSPACE_SHARD_MARKERS.some((marker) => name.includes(`${marker}${botId}--`))) exact.push(p);
     else if (name.includes(botId)) loose.push(p);
   }
   return exact.length > 0 ? exact : loose;

@@ -136,8 +136,8 @@ test("状态表：主干十态＋四旁路齐备，每态答「下一步谁负�
 test("台账文件坐标：落在 dshHome 台账域内；taskId 校验拒绝旧评审前缀", () => {
   const home = mkHome();
   try {
-    assert.equal(ledgerDir(home), join(home, "bots", "ledger"));
-    assert.equal(eventsFile(home), join(home, "bots", "ledger", "events.jsonl"));
+    assert.equal(ledgerDir(home), join(home, "pod", "ledger"));
+    assert.equal(eventsFile(home), join(home, "pod", "ledger", "events.jsonl"));
     assert.equal(isTaskId("TK-ab12cd34"), true);
     assert.equal(isTaskId("T-1"), false, "旧评审前缀 T- 不得复用");
     assert.equal(isTaskId("J-1"), false, "旧评审前缀 J- 不得复用");

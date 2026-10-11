@@ -76,7 +76,7 @@ function mkHome(registry) {
   return home;
 }
 
-const workspaceFor = (home, id) => path.join(home, "bot-workspaces", id);
+const workspaceFor = (home, id) => path.join(home, "pod-workspaces", id);
 
 /** 写 bot workspace 的持久 sessionId（与 readBotSessionId 的读取约定一致）。 */
 function writeSessionId(home, id, sessionId) {

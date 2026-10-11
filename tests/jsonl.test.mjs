@@ -15,7 +15,7 @@ const { internals } = await import("../lib/index.js");
 const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-jsonl-"));
 // exit 钩子清理临时目录：正常退出、显式 exit 与断言失败后都会运行
 process.on("exit", () => fs.rmSync(home, { recursive: true, force: true }));
-const inboxFile = path.join(home, "bots", "inbox", "w", "messages.jsonl");
+const inboxFile = path.join(home, "pod", "inbox", "w", "messages.jsonl");
 fs.mkdirSync(path.dirname(inboxFile), { recursive: true });
 
 // inbox：正常行 + 撕裂行 + 空行 + 乱序（seq 不按文件顺序也能取最大值）
@@ -28,7 +28,7 @@ fs.writeFileSync(inboxFile, [
 ].join("\n") + "\n", "utf8");
 
 // outbox：多文件 + 损坏行
-const outboxDir = path.join(home, "bots", "outbox", "w");
+const outboxDir = path.join(home, "pod", "outbox", "w");
 fs.mkdirSync(outboxDir, { recursive: true });
 fs.writeFileSync(path.join(outboxDir, "t1.jsonl"),
   JSON.stringify({ id: "o1", text: "r1", from: "bot", timestamp: "2026-08-22T01:30:00.000Z" }) + "\n{broken\n");
@@ -73,7 +73,7 @@ console.log("✓ JSONL 容错解析 + 邮局语义（maxSeq/readAll/readOutbox/�
 const { acquireMailSeqLock } = await import("../lib/mail-seq-lock.js");
 const lockHome = fs.mkdtempSync(path.join(os.tmpdir(), "pod-fs15-"));
 process.on("exit", () => fs.rmSync(lockHome, { recursive: true, force: true }));
-const lockInbox = path.join(lockHome, "bots", "inbox", "race");
+const lockInbox = path.join(lockHome, "pod", "inbox", "race");
 fs.mkdirSync(lockInbox, { recursive: true });
 
 // 锁单测①：唯一获取；持锁时第二获取者超时；释放后可再获取且目录清理
@@ -91,7 +91,7 @@ fs.mkdirSync(lockInbox, { recursive: true });
 
 // 锁单测②：陈旧锁（mtime 超阈值）自动接管；他进程 owner 的锁保守释放不删
 {
-  const staleDir = path.join(lockHome, "bots", "inbox", "stale");
+  const staleDir = path.join(lockHome, "pod", "inbox", "stale");
   fs.mkdirSync(staleDir, { recursive: true });
   const lockDir = path.join(staleDir, ".seq.lock");
   fs.mkdirSync(lockDir);
@@ -100,7 +100,7 @@ fs.mkdirSync(lockInbox, { recursive: true });
   const taken = acquireMailSeqLock(staleDir, { spinMs: 1000, tickMs: 10 });
   taken.release(); // 接管成功且可正常释放
 
-  const foreignDir = path.join(lockHome, "bots", "inbox", "foreign");
+  const foreignDir = path.join(lockHome, "pod", "inbox", "foreign");
   fs.mkdirSync(foreignDir, { recursive: true });
   const fLockDir = path.join(foreignDir, ".seq.lock");
   const mine = acquireMailSeqLock(foreignDir, { spinMs: 500, tickMs: 10 });
@@ -114,7 +114,7 @@ fs.mkdirSync(lockInbox, { recursive: true });
 // 锁单测③（36 号票 A9）：死主快路（持有者 pid 已死 → 不等 staleMs 即接管）＋
 // 投递面留痕经 logger 出栈（快路径零告警，接管恰一行）。
 {
-  const dir = path.join(lockHome, "bots", "inbox", "deads");
+  const dir = path.join(lockHome, "pod", "inbox", "deads");
   fs.mkdirSync(path.join(dir, ".seq.lock"), { recursive: true });
   fs.writeFileSync(path.join(dir, ".seq.lock", "owner.json"),
     JSON.stringify({ pid: deadPid(), at: Date.now() }));

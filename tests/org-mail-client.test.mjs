@@ -162,8 +162,8 @@ test("工具面升表：mail.send 归四常设岗、入执行面与变异集、�
 test("mail.send 工具腿：dispatch 经邮件中继（不经组织命令面），通道未接线 fail closed", async () => {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-mail-tool-"));
   process.on("exit", () => fs.rmSync(home, { recursive: true, force: true }));
-  fs.mkdirSync(path.join(home, "bots"), { recursive: true });
-  fs.writeFileSync(path.join(home, "bots", "bots.json"), JSON.stringify({
+  fs.mkdirSync(path.join(home, "pod"), { recursive: true });
+  fs.writeFileSync(path.join(home, "pod", "bots.json"), JSON.stringify({
     worker: { id: "worker", name: "工人", role: "干活", post: "implementer", port: 3201, createdAt: new Date().toISOString() }
   }));
 
@@ -173,7 +173,7 @@ test("mail.send 工具腿：dispatch 经邮件中继（不经组织命令面）�
     logger: { info() {}, warn() {}, error() {}, debug() {} },
     get: (name) => (name === "tools" ? tools : undefined)
   };
-  const api = { dshHome: home, readRegistry: () => JSON.parse(fs.readFileSync(path.join(home, "bots", "bots.json"), "utf8")) };
+  const api = { dshHome: home, readRegistry: () => JSON.parse(fs.readFileSync(path.join(home, "pod", "bots.json"), "utf8")) };
 
   const sent = [];
   const mail = { send: async (args) => { sent.push(args); return { ok: true, to: args.to, seq: 7 }; } };

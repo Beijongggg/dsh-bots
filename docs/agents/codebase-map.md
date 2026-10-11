@@ -37,6 +37,7 @@
 | `evidence-packager.js`、`sentinel-*.js` | v3 合同的探针与证据包链（冻结批，改动须新 runId） |
 | `shared.cjs` | 宿主 profile patch 构造共用件（`buildPatchYamlShared`） |
 | `session-log-names.cjs` | 会话日志文件名代际发现单源（`sessionLogCandidates` 候选序；retro R2——`stats.js` 与 `scripts/bot-health.cjs` 同源消费，字面量只准在此件） |
+| `data-roots.cjs` | 数据面路径族单源（pod 14 号票）：`$DSH_HOME/pod`／`pod-workspaces` 根名常量＋registry/inbox/outbox/knowledge/ledger/capabilities/started/profiles/session-backups 路径函数——各面既有导出名委托本件（mail-plane/knowledge/task-ledger/capability-*/permissions/index.js 同源），分片前缀标记 `WORKSPACE_SHARD_MARKERS` 供 bot-health 新旧双认；根名字面量只准在此件 |
 
 ## lib/index.js 区域划分（自上而下按序，符号为锚）
 

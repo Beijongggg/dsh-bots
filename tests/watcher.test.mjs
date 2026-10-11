@@ -25,7 +25,7 @@ const { createMailClient } = await import("../lib/org/mail-client.js");
 const { readMaxReceiptSeq } = await import("../lib/mail-plane.js");
 
 const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-watcher-"));
-const inboxDir = path.join(home, "bots", "inbox", "w");
+const inboxDir = path.join(home, "pod", "inbox", "w");
 const inboxFile = path.join(inboxDir, "messages.jsonl");
 fs.mkdirSync(inboxDir, { recursive: true });
 
@@ -39,7 +39,7 @@ await new Promise((r) => probe.close(() => r()));
 const registry = {
   w: { id: "w", name: "观察对象", role: "干活", modelProvider: "", model: "", port: deadPort, createdAt: new Date().toISOString() }
 };
-fs.writeFileSync(path.join(home, "bots", "bots.json"), JSON.stringify(registry));
+fs.writeFileSync(path.join(home, "pod", "bots.json"), JSON.stringify(registry));
 
 // —— host 侧中继（真实件）：CSRF 引导 + `_mail` 面 ——
 const json = (res, status, value) => {

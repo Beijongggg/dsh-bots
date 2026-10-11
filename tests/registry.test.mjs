@@ -21,7 +21,7 @@ test("原子写 + 读回 roundtrip", () => {
   internals.writeRegistryAtomic(home, registry);
   assert.deepEqual(internals.readRegistry(home), registry);
   // 无临时文件残留
-  const leftovers = fs.readdirSync(path.join(home, "bots")).filter((n) => n.endsWith(".tmp"));
+  const leftovers = fs.readdirSync(path.join(home, "pod")).filter((n) => n.endsWith(".tmp"));
   assert.equal(leftovers.length, 0, "不应残留 .tmp 文件");
 });
 
@@ -29,10 +29,10 @@ test("缺失/空文件 → {}；损坏 JSON → 抛错（apply 侧负责移开�
   const empty = fs.mkdtempSync(path.join(os.tmpdir(), "pod-reg-"));
   tmpDirs.push(empty);
   assert.deepEqual(internals.readRegistry(empty), {});
-  fs.mkdirSync(path.join(empty, "bots"), { recursive: true });
-  fs.writeFileSync(path.join(empty, "bots", "bots.json"), "");
+  fs.mkdirSync(path.join(empty, "pod"), { recursive: true });
+  fs.writeFileSync(path.join(empty, "pod", "bots.json"), "");
   assert.deepEqual(internals.readRegistry(empty), {});
-  fs.writeFileSync(path.join(empty, "bots", "bots.json"), "{broken");
+  fs.writeFileSync(path.join(empty, "pod", "bots.json"), "{broken");
   assert.throws(() => internals.readRegistry(empty));
 });
 

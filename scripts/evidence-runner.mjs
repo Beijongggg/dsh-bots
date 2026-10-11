@@ -57,10 +57,10 @@ const drillCli = join(repoRoot, "scripts", "ledger-drill.mjs");
 
 /** 明确允许变化的易变路径（相对 DSH_HOME；正则，文档化豁免清单）。 */
 export const PROTECTED_SNAPSHOT_EXCLUSIONS = Object.freeze([
-  /^bots\/review\/epoch\.json$/,                 // host 锁纪元刷新（writerEpoch/at）
-  /^bots\/review\/capability\/epoch\.json$/,     // capability 锁纪元刷新
-  /^bots\/review\/capability\/nonces\//,         // nonce 单次消费文件
-  /^bots\/review\/capabilities\//,               // 租约心跳（leaseUntil 单调推进）
+  /^(?:bots|pod)\/review\/epoch\.json$/,                 // host 锁纪元刷新（writerEpoch/at；14 号票切名后新旧根都认）
+  /^(?:bots|pod)\/review\/capability\/epoch\.json$/,     // capability 锁纪元刷新
+  /^(?:bots|pod)\/review\/capability\/nonces\//,         // nonce 单次消费文件
+  /^(?:bots|pod)\/review\/capabilities\//,               // 租约心跳（leaseUntil 单调推进）
   /\.log$/,                                      // 日志
   /^(sessions|session-backups|archived-sessions|attachments|browser-profiles|storages|agent-presets-backup)\//, // 会话/浏览器/存储易变面
   // 28 号票补登：DSH 宿主自身的代理回退状态（宿主每次对外请求写；与本次 run 的产物

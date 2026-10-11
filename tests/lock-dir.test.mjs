@@ -108,7 +108,7 @@ test("活主不被抢：pid 存活（本进程）且 mtime 未陈旧 → 超时�
 
 test("跨进程活主互斥：两种锁超过陈旧阈值仍不可抢，持有者释放后可再获取", async (t) => {
   for (const [name, moduleFile, acquire, relativeDir, lockName] of [
-    ["acquireIndexLock", "knowledge.js", acquireIndexLock, "bots/knowledge", ".lock"],
+    ["acquireIndexLock", "knowledge.js", acquireIndexLock, "pod/knowledge", ".lock"],
     ["acquireMailSeqLock", "mail-seq-lock.js", acquireMailSeqLock, ".", ".seq.lock"]
   ]) {
     await t.test(name, () => {

@@ -15,28 +15,28 @@ import d from "../lib/data-roots.cjs";
 
 const HOME = "/tmp/nonexistent-dsh-home";
 
-test("V-P8.5 roots 单源：名常量钉根名（收敛基线＝旧名，切名批同批翻转）", () => {
-  equal(d.DATA_ROOT_NAME, "bots");
-  equal(d.WORKSPACE_ROOT_NAME, "bot-workspaces");
+test("V-P8.5 roots 单源：名常量钉根名（14 号票切名后＝pod 族；旧名 retired 只读窗口见迁移方案）", () => {
+  equal(d.DATA_ROOT_NAME, "pod");
+  equal(d.WORKSPACE_ROOT_NAME, "pod-workspaces");
   equal(d.PROFILE_ROOT_NAME, "profiles");
   equal(d.SESSION_BACKUPS_ROOT_NAME, "session-backups");
 });
 
 test("V-P8.5 roots 单源：数据根族路径函数（registry/inbox/outbox/knowledge/ledger/capability/started）", () => {
-  equal(d.dataRoot(HOME), join(HOME, "bots"));
-  equal(d.registryPath(HOME), join(HOME, "bots", "bots.json"));
-  equal(d.inboxDirFor(HOME, "w"), join(HOME, "bots", "inbox", "w"));
-  equal(d.outboxDirFor(HOME, "w"), join(HOME, "bots", "outbox", "w"));
-  equal(d.knowledgeRoot(HOME), join(HOME, "bots", "knowledge"));
-  equal(d.ledgerRoot(HOME), join(HOME, "bots", "ledger"));
-  equal(d.ledgerEventsFile(HOME), join(HOME, "bots", "ledger", "events.jsonl"));
-  equal(d.capabilityRoot(HOME), join(HOME, "bots", "capabilities"));
-  equal(d.startedDir(HOME), join(HOME, "bots", "started"));
-  equal(d.startedRegistryFile(HOME), join(HOME, "bots", "started", "instances.jsonl"));
+  equal(d.dataRoot(HOME), join(HOME, "pod"));
+  equal(d.registryPath(HOME), join(HOME, "pod", "bots.json"));
+  equal(d.inboxDirFor(HOME, "w"), join(HOME, "pod", "inbox", "w"));
+  equal(d.outboxDirFor(HOME, "w"), join(HOME, "pod", "outbox", "w"));
+  equal(d.knowledgeRoot(HOME), join(HOME, "pod", "knowledge"));
+  equal(d.ledgerRoot(HOME), join(HOME, "pod", "ledger"));
+  equal(d.ledgerEventsFile(HOME), join(HOME, "pod", "ledger", "events.jsonl"));
+  equal(d.capabilityRoot(HOME), join(HOME, "pod", "capabilities"));
+  equal(d.startedDir(HOME), join(HOME, "pod", "started"));
+  equal(d.startedRegistryFile(HOME), join(HOME, "pod", "started", "instances.jsonl"));
 });
 
 test("V-P8.5 roots 单源：工作区／profile／session-backups 路径函数", () => {
-  equal(d.workspaceDirFor(HOME, "w"), join(HOME, "bot-workspaces", "w"));
+  equal(d.workspaceDirFor(HOME, "w"), join(HOME, "pod-workspaces", "w"));
   equal(d.profileRoot(HOME), join(HOME, "profiles"));
   equal(d.profileDirFor(HOME, "w"), join(HOME, "profiles", "w"));
   equal(d.sessionBackupsDir(HOME), join(HOME, "session-backups"));
@@ -78,6 +78,6 @@ test("V-P8.5 单源等值：host 装配面（index.js）workspace 路径与单�
   equal(anchor.workspace, d.workspaceDirFor(HOME, anchor.id));
 });
 
-test("V-P8.5 单源等值：workspace 分片前缀标记（bot-health 双认面；收敛基线＝旧前缀）", () => {
-  deepEqual(d.WORKSPACE_SHARD_MARKERS, ["bot-workspaces-"]);
+test("V-P8.5 单源等值：workspace 分片前缀标记（bot-health 双认面：新前缀现役优先＋旧前缀兼容一个窗口）", () => {
+  deepEqual(d.WORKSPACE_SHARD_MARKERS, ["pod-workspaces-", "bot-workspaces-"]);
 });

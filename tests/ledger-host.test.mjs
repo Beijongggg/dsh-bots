@@ -123,7 +123,7 @@ const { handleApi, createLedgerHost: createHostViaInternals, createTaskLedger: c
 
 function mkHome() {
   const home = mkdtempSync(join(tmpdir(), "dsh-ledger-host-"));
-  mkdirSync(join(home, "bots", "inbox"), { recursive: true });
+  mkdirSync(join(home, "pod", "inbox"), { recursive: true });
   return home;
 }
 
@@ -136,7 +136,7 @@ function writeStaleReceipt(home, botId, { messageId, seq, at }) {
 
 /** 写一条回合失败回复（v1 回合失败不重试的现场证据）。 */
 function writeErrorReply(home, botId, { id, at, text = "[bot error] rpc timeout" }) {
-  const dir = join(home, "bots", "outbox", botId);
+  const dir = join(home, "pod", "outbox", botId);
   mkdirSync(dir, { recursive: true });
   const name = `${at.replace(/[:.]/g, "-")}.jsonl`;
   writeFileSync(join(dir, name), JSON.stringify({ id, text, from: "bot", timestamp: at }) + "\n");
@@ -404,7 +404,7 @@ test("HTTP 命令面是唯一写入口：台账事件只由命令面产生（V-A
     // 台账模块导出面不含裸 append（写通道只有命令面）
     assert.equal(typeof createLedgerViaInternals({ dshHome: home }).append, "undefined");
     assert.equal(typeof createHostViaInternals, "function");
-    assert.equal(eventsFile(home), join(home, "bots", "ledger", "events.jsonl"));
+    assert.equal(eventsFile(home), join(home, "pod", "ledger", "events.jsonl"));
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
@@ -537,7 +537,7 @@ test("复核面 HTTP：移交件读与报告提交经帽信封门；未携帽 40
       botId: "bot-reviewer", pid: process.pid, startedAt: `proc:${process.pid}`,
       hostInstanceId: "gen-reviewer", at: Date.now()
     };
-    mkdirSync(join(home, "bots", "started"), { recursive: true });
+    mkdirSync(join(home, "pod", "started"), { recursive: true });
     writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
     const { issuer, ledger } = wireReviewHat({
       home, now: () => NOW, ledgerOptions: { ...CRITERION_INJECTION }
@@ -633,7 +633,7 @@ test("复核移交件读（16 号票 rv1 blocker）：归属让渡（owner=null�
       botId: "bot-reviewer", pid: process.pid, startedAt: `proc:${process.pid}`,
       hostInstanceId: "gen-reviewer", at: Date.now()
     };
-    mkdirSync(join(home, "bots", "started"), { recursive: true });
+    mkdirSync(join(home, "pod", "started"), { recursive: true });
     writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
     writeFileSync(instanceRegistryFile(home), `${JSON.stringify({
       botId: "bot-producer", pid: process.pid, startedAt: `proc:${process.pid}`,
@@ -739,7 +739,7 @@ test("复核面续签（21 号票 ①）：报告被台账拒绝（review-not-re
       botId: "bot-reviewer", pid: process.pid, startedAt: `proc:${process.pid}`,
       hostInstanceId: "gen-reviewer", at: Date.now()
     };
-    mkdirSync(join(home, "bots", "started"), { recursive: true });
+    mkdirSync(join(home, "pod", "started"), { recursive: true });
     writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
     const { issuer, ledger } = wireReviewHat({
       home, now: () => NOW, ledgerOptions: { ...CRITERION_INJECTION }
@@ -816,7 +816,7 @@ test("复核面消费点在台账腿（27 号票）：同一信封二次提交�
       botId: "bot-reviewer", pid: process.pid, startedAt: `proc:${process.pid}`,
       hostInstanceId: "gen-reviewer", at: Date.now()
     };
-    mkdirSync(join(home, "bots", "started"), { recursive: true });
+    mkdirSync(join(home, "pod", "started"), { recursive: true });
     writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
     const { issuer, ledger } = wireReviewHat({
       home, now: () => NOW, ledgerOptions: { ...CRITERION_INJECTION }
@@ -884,7 +884,7 @@ function mkKnowledgeHost(home, { logger = { warn() {}, error() {}, info() {} } }
     botId: "bot-researcher", pid: process.pid, startedAt: `proc:${process.pid}`,
     hostInstanceId: "gen-knowledge-gate", at: Date.now()
   };
-  mkdirSync(join(home, "bots", "started"), { recursive: true });
+  mkdirSync(join(home, "pod", "started"), { recursive: true });
   writeFileSync(instanceRegistryFile(home), `${JSON.stringify(row)}\n`, { flag: "a" });
   const ledger = createTaskLedger({ ...CRITERION_INJECTION, dshHome: home, now: () => NOW });
   const issuer = createCapabilityIssuer({ dshHome: home, ledger, now: () => NOW });
@@ -913,7 +913,7 @@ test("knowledge.register 命令腿：索引锁留痕经宿主 logger 出栈（36
     assert.equal(role.ok, true, role.reason);
 
     // 死主锁：.lock 持有者 pid 已不存在 → 快路接管并留痕（宿主事件循环不再为其冻结）
-    const lockDir = join(home, "bots", "knowledge", ".lock");
+    const lockDir = join(home, "pod", "knowledge", ".lock");
     mkdirSync(lockDir, { recursive: true });
     writeFileSync(join(lockDir, "owner.json"), JSON.stringify({ pid: deadPid(), at: Date.now() }));
 
