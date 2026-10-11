@@ -277,7 +277,7 @@ async function fetchReadiness(route) {
   return { status: res.status, body: JSON.parse(res.body) };
 }
 
-const seamRows = (rows) => rows.filter(([, text]) => text.includes("[dsh-bots][seam]"));
+const seamRows = (rows) => rows.filter(([, text]) => text.includes("[pod][seam]"));
 
 test("真 apply 宿主分支：缺缝 → warn 出栈恰一行组，就绪面 HTTP 携带 hostEnv=missing", async () => {
   const h = mkApplyHarness();

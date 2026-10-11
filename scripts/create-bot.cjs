@@ -40,6 +40,7 @@ const {
   BUNDLES,
   PERMISSION_MODES,
   DEFAULT_PERMISSION,
+  BOT_SETTINGS_HEADER,
   buildPatchYaml,
   syncPiAiSection
 } = require("../lib/shared.cjs");
@@ -187,11 +188,13 @@ try {
   fs.mkdirSync(workspace, { recursive: true });
 
   fs.writeFileSync(pkgPath, buildPackageJson(botId));
-  // Ensure the per-bot settings file exists (idempotent; never overwrite user edits).
-  // Older hosts use the patch's settings.path redirect; current hosts use Config.
+  // Ensure the per-bot settings file exists (idempotent; never overwrite user
+  // edits): llm-pi-ai sync target + legacy-host model-pin migration source.
+  // Current hosts read the patch, not this file; the initial content carries
+  // notes only (BOT_SETTINGS_HEADER) — no `agent-presets:` dead key.
   const botSettingsPath = path.join(profilesDir, "settings.yaml");
   if (!fs.existsSync(botSettingsPath)) {
-    fs.writeFileSync(botSettingsPath, "agent-presets:\n  default: bot-nopersona\n", "utf8");
+    fs.writeFileSync(botSettingsPath, BOT_SETTINGS_HEADER, "utf8");
   }
 
   // Ensure pnpm-workspace.yaml exists (idempotent; same as the host plugin's
@@ -213,7 +216,6 @@ try {
     reasoningEffort: args.reasoningEffort,
     permission,
     workspace,
-    settingsPath: botSettingsPath,
     settingsText: fs.readFileSync(botSettingsPath, "utf8"),
     previousPatch: patchExisted ? fs.readFileSync(patchPath, "utf8") : ""
   }));

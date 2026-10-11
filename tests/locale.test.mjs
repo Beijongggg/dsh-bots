@@ -1,5 +1,5 @@
 /**
- * 回归：官方 locale 系统（"bots" 命名空间字典）—— 键集 zh/en 平衡、模板占位符
+ * 回归：官方 locale 系统（"pod" 命名空间字典）—— 键集 zh/en 平衡、模板占位符
  * 一致、client.js 全部 tr/t 键均有定义（含 common 命名空间允许集）、无残留
  * 「tr(中文, 英文) 二元形态」、样本文本快照防措辞漂移。
  *
@@ -35,11 +35,11 @@ const COMMON_NS_WORDS = [
   "copy", "copied", "codeBlock.title", "codeBlock.wrap", "codeBlock.unwrap", "markdown.footnotes"
 ];
 
-test("localeDicts / LOCALE_NS 导出存在，命名空间为 bots", () => {
+test("localeDicts / LOCALE_NS 导出存在，命名空间为 pod", () => {
   assert.ok(mod.localeDicts, "localeDicts 缺失");
   assert.ok(mod.localeDicts.zh, "zh 字典缺失");
   assert.ok(mod.localeDicts.en, "en 字典缺失");
-  assert.equal(mod.LOCALE_NS, "bots");
+  assert.equal(mod.LOCALE_NS, "pod");
 });
 
 test("zh/en 键集完全一致", () => {

@@ -26,7 +26,7 @@ function bot(overrides = {}) {
   };
 }
 function mkHome(registry) {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-events-"));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-events-"));
   writeRegistryAtomic(home, registry);
   homes.push(home);
   return home;

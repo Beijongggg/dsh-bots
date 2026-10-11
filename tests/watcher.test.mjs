@@ -24,7 +24,7 @@ const { createMailHttpApi, createMailRelay } = await import("../lib/org/mail-rel
 const { createMailClient } = await import("../lib/org/mail-client.js");
 const { readMaxReceiptSeq } = await import("../lib/mail-plane.js");
 
-const home = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-watcher-"));
+const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-watcher-"));
 const inboxDir = path.join(home, "bots", "inbox", "w");
 const inboxFile = path.join(inboxDir, "messages.jsonl");
 fs.mkdirSync(inboxDir, { recursive: true });

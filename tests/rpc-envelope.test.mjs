@@ -12,7 +12,7 @@ import os from "node:os";
 
 const { internals } = await import("../lib/index.js");
 
-const home = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-rpc-"));
+const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-rpc-"));
 // exit 钩子清理临时目录：正常退出、显式 exit 与断言失败后都会运行
 process.on("exit", () => fs.rmSync(home, { recursive: true, force: true }));
 const captured = [];

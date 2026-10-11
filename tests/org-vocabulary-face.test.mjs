@@ -21,7 +21,7 @@ const repoRoot = join(import.meta.dirname, "..");
 
 const roots = [];
 function mkFixture(files) {
-  const root = mkdtempSync(join(tmpdir(), "dsh-bots-vocab-scan-"));
+  const root = mkdtempSync(join(tmpdir(), "pod-vocab-scan-"));
   roots.push(root);
   const lib = join(root, "lib");
   const org = join(lib, "org");

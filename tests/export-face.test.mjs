@@ -22,7 +22,9 @@
  * 基线纪律（棘轮，双向相等断言）：
  *   - 新增零引用导出＝红：删除、取消导出或给出真实引用后复绿；**不得静默加基线**
  *     （确属有意保留的须在基线行注明理由并过 CHANGELOG 事件）；
- *   - 收窄／删除存量后未同步基线＝同样红（基线不得留陈旧项）；
+ *   - 收窄／删除存量后未同步基线＝同样红（基线不得留陈旧项）；**被新消费者
+ *     引用**（棘轮放行）同样要同步移除——`findSessionLogFile` 即先例：pod 06
+ *     号票的 `lib/trace-projection.js` 复用该符号后，本基线即行删除；
  *   - 两组存量的处置边界见组注释：冻结件动不得（触碰须新 runId 重采集），
  *     暂缓件登记在 docs/PROJECT_UNDERSTANDING.md「仍可选题」。
  */
@@ -73,7 +75,11 @@ function exportNames(src) {
   return names;
 }
 
-/** 存量基线（2026-10-09 锁定：68＝冻结 20＋暂缓 48）。只减不增；处置边界见组注释。 */
+/**
+ * 存量基线（2026-10-09 锁定 68＝冻结 20＋暂缓 48；同日 pod 06 号票复用
+ * `lib/stats.js:findSessionLogFile` 后棘轮放行一项 → **67＝冻结 20＋暂缓 47**）。
+ * 只减不增；处置边界见组注释。
+ */
 const BASELINE = [
   // ── 冻结件（20）：终版包 sourceManifest 所列文件（evidence/sentinel/parity/store-base
   //    链）。触碰须新 runId 重采集＋新序号增量包，纯接口收窄不值得启动证据链——留基线。
@@ -97,8 +103,9 @@ const BASELINE = [
   "lib/org/store-base.js:canonicalValue",
   "lib/org/store-base.js:EVENT_CORE_REQUIRED",
   "lib/org/store-base.js:EVENT_FILE_RE",
-  // ── 暂缓收窄件（48）：内部在用、导出无人。机械取消 export 即可收窄，但本批
+  // ── 暂缓收窄件（47）：内部在用、导出无人。机械取消 export 即可收窄，但本批
   //    不动（见 docs/PROJECT_UNDERSTANDING.md「仍可选题」零引用导出收窄项）。
+  //    findSessionLogFile 已由 pod 06 的 lib/trace-projection.js 复用 → 移出基线。
   //    其中 VERDICT_INPUT_KEYS 等被 docs/agents/codebase-map.md 当不变量名字载体，
   //    收窄时须同核文档引用。
   "lib/bot-supervisor.js:READINESS_INTERVAL_MS",
@@ -106,7 +113,6 @@ const BASELINE = [
   "lib/host-faces.js:HOST_FACE_FAILURE_MODES",
   "lib/mail-plane.js:responsesDirFor",
   "lib/mail-plane.js:compareConversationMessages",
-  "lib/stats.js:findSessionLogFile",
   "lib/org/acceptance-coordinates.js:acceptanceSemanticsDigest",
   "lib/org/acceptance-coordinates.js:ACCEPTANCE_SEMANTICS_BASELINE",
   "lib/org/acceptance-coordinates.js:GATE_IDS",

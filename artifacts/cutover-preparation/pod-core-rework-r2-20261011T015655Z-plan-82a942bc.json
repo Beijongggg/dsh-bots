@@ -1,0 +1,384 @@
+{
+ "packageType": "deploy-sync-executor",
+ "specSha256": "24e54cee65c10ad7547db6654f18f6658da0c1f776d76d602d7d2f2c2f8dde75",
+ "runId": "pod-core-rework-r2-20261011T015655Z",
+ "batch": "pod-core-rework-r2",
+ "commit": "99dc3c0165cf840ecf5fb1f603d6677324c7881f",
+ "reason": "补齐首跑（fe5f9c6f）暴露的面漂移：12 号票改名扫（f557f51/6fa9841）自 core 收口 bbb382d 后未部署的 46 件；与首跑已写入的返修 4 件合并后整面拉齐 99dc3c0",
+ "authorization": "用户 2026-10-11 本会话点名「真机部署，人工判据给我清晰的要求」；r2＝同一授权的补齐执行（首跑 all-same 失败的还原路径＝完成同步，非回滚）",
+ "restart": "client 面按请求重打包（页面刷新即生效），无需重启",
+ "dshHome": "/home/beijong/.dsh",
+ "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+ "snapshot": "源字节取自 git archive <commit> -- <paths>（不读工作树）",
+ "inventoryRequire": "all-same",
+ "entries": [
+  {
+   "path": "lib/bot-autostart.js",
+   "action": "write",
+   "sourceSha256": "1d80b2b659a5a4d499b9a45bbfb25074092b7de06788b3a7eaaaf12573471ec4",
+   "sourceByteLength": 2863,
+   "deployedSha256Before": "746a6ff821579c297e0458a628bf0664824545d34196f4d8af2cdac47ed0b1b3",
+   "changed": true
+  },
+  {
+   "path": "lib/bot-supervisor.js",
+   "action": "write",
+   "sourceSha256": "18cf7508035071c4be7c28e9365f0f6c62b2135533983a50d902418854930a78",
+   "sourceByteLength": 11454,
+   "deployedSha256Before": "42896e46037891438440716132e78bc8176a15aa32533afa95bf9532dab766bd",
+   "changed": true
+  },
+  {
+   "path": "lib/index.js",
+   "action": "write",
+   "sourceSha256": "afad028a9ad91707146dae7dd084f3002ec0c5eee283d3f5eb533083e1c2156b",
+   "sourceByteLength": 157740,
+   "deployedSha256Before": "ffdffd182e275591f111ff4b6f4e0a903b3f522fd0234ef75759c809e8c69e6d",
+   "changed": true
+  },
+  {
+   "path": "lib/lock-trace.js",
+   "action": "write",
+   "sourceSha256": "1272602ff84a1141dfc675fe46ac96662fc82976f6734edddb5f62c0aadd746b",
+   "sourceByteLength": 1707,
+   "deployedSha256Before": "afa6eddef3293a0e63107ab900fc597023139826b53fbf2cc327b5781ac4c6ac",
+   "changed": true
+  },
+  {
+   "path": "lib/org/capability-delivery.js",
+   "action": "write",
+   "sourceSha256": "6fcd109d4c314695b72ab81c44beec175d626a381eb8c34de0c516d7160b8644",
+   "sourceByteLength": 10744,
+   "deployedSha256Before": "e88538d4f909b0c5a79a8699c942832234ab6fac3c18d46eb9ca0dc1cda598a6",
+   "changed": true
+  },
+  {
+   "path": "lib/org/host-env-seam.js",
+   "action": "write",
+   "sourceSha256": "f87f622ee4a5741fa34393778416ebad24622ce35247402a6528ce9a49ae68b4",
+   "sourceByteLength": 8223,
+   "deployedSha256Before": "9e4e331c8e2bd619656cf870e3f84685873007ba1c7abcd410026847400cb15b",
+   "changed": true
+  },
+  {
+   "path": "lib/org/ledger-host.js",
+   "action": "write",
+   "sourceSha256": "d1837ce90d743683966c2809578867aee06bcac6f00f93a553f7d89b8461f9ed",
+   "sourceByteLength": 34155,
+   "deployedSha256Before": "4368a73ccbae77e90edd585a450f3d622acf30c32e8a06dfa0382627fec89f56",
+   "changed": true
+  },
+  {
+   "path": "lib/org/mail-relay.js",
+   "action": "write",
+   "sourceSha256": "4ab8d0a4594ebc38812caab27315c703715c72360a73c30fab4d95fd21ccd536",
+   "sourceByteLength": 20137,
+   "deployedSha256Before": "047329b734d01649c53757beed258c15b8636581cd12d4ae3bc4e474394e68bd",
+   "changed": true
+  },
+  {
+   "path": "lib/org/op-set.js",
+   "action": "write",
+   "sourceSha256": "e1ba106d306f71e2f84af129cbf1f7f00a688069d97b4a46b4f9e822d4299750",
+   "sourceByteLength": 20113,
+   "deployedSha256Before": "503d8123fc4d5dc6adcab415ca4544dd2d0b78d075d1c1add3bd779ea9427082",
+   "changed": true
+  },
+  {
+   "path": "lib/org/permissions.js",
+   "action": "write",
+   "sourceSha256": "f4483d5da8fd19fd378744793719b6ecb450562ecb30e489f766ad42be781263",
+   "sourceByteLength": 18105,
+   "deployedSha256Before": "3fe7ddb0f6ff0953e4762f1ff09beef187e1a193c219fa786660bc35bf26f9ad",
+   "changed": true
+  },
+  {
+   "path": "lib/org/post-channel.js",
+   "action": "write",
+   "sourceSha256": "794c5e03a1ee59ec2a194560ba78122f219fcbc8e0a203d2da5ad248192c4ec2",
+   "sourceByteLength": 13299,
+   "deployedSha256Before": "43dba6b1372c85a2174dfe19ac3123136cc3edffdcd66d900d640422ec2a2642",
+   "changed": true
+  },
+  {
+   "path": "lib/org/role-cards.js",
+   "action": "write",
+   "sourceSha256": "02e5f766446edf3db9cf2858b84c8bcb6ab080cdb447cab5e6ebe7df69af111e",
+   "sourceByteLength": 23755,
+   "deployedSha256Before": "02516941245b5220f28f85f8e55601a39e046b321b191108c9452b06bab0ae90",
+   "changed": true
+  },
+  {
+   "path": "lib/shared.cjs",
+   "action": "write",
+   "sourceSha256": "5093d8202dcd5455cca65f3ae5fdef0800306ac19808425d19de5ec6d75d608e",
+   "sourceByteLength": 18522,
+   "deployedSha256Before": "aa8e853eccfa1d58c7e404f951de6e7ab087885b4ba2b6f7506f90c9c81c4383",
+   "changed": true
+  },
+  {
+   "path": "lib/stats.js",
+   "action": "write",
+   "sourceSha256": "d4910325d4d1dfcb07ee46e4d0b3b3741b0cf08e200ca9e02c8a21bba7e4caa4",
+   "sourceByteLength": 16183,
+   "deployedSha256Before": "5835644e30787576e3779a9bd4bb7ff958089a0b84ea97d91b32193b41fa9d12",
+   "changed": true
+  },
+  {
+   "path": "scripts/host-contract-probe.mjs",
+   "action": "write",
+   "sourceSha256": "4fe1096fb445f95197a136134f1ee40bbb58ee9d6dcf703b256f1f2aedbaecf7",
+   "sourceByteLength": 134918,
+   "deployedSha256Before": "0aed4ab433659922b5f36fe88a945361dde5aaf6dbddee195669eadca72f204d",
+   "changed": true
+  },
+  {
+   "path": "tests/anchor-bootstrap.test.mjs",
+   "action": "write",
+   "sourceSha256": "97466cd595a7b2adc84740274b3b23398058e938b083d1d5a353e639298b4131",
+   "sourceByteLength": 16741,
+   "deployedSha256Before": "88d53cbf46b0589420a0b2433b9199408e848f33713d8ecccb69b39139adec83",
+   "changed": true
+  },
+  {
+   "path": "tests/api-security.test.mjs",
+   "action": "write",
+   "sourceSha256": "ab5984403af10f39167c45306b5ff557f556401ea226e1008f38b483b0b4f1d1",
+   "sourceByteLength": 7236,
+   "deployedSha256Before": "f738f94526c6f80c7ea2799919c134ec88a3fddc2b400ca6e67b989929ed3b29",
+   "changed": true
+  },
+  {
+   "path": "tests/bot-health-session-log.test.mjs",
+   "action": "write",
+   "sourceSha256": "b6139fcf4518710e5e09e2a5df8dd5a7a2ec302c39d3aba29adc3cf9e9d6f469",
+   "sourceByteLength": 8401,
+   "deployedSha256Before": "b341708a42036634ac1d3609a604ceb75c3c21001300119024730064cdf44633",
+   "changed": true
+  },
+  {
+   "path": "tests/events.test.mjs",
+   "action": "write",
+   "sourceSha256": "80fa63cf1e43f51f5646955689d17b11d6c8573c2dd59195a466857d0428e552",
+   "sourceByteLength": 12546,
+   "deployedSha256Before": "0288052f33d7d0b32f242c7aa512089e0fc05468a0d3e224e2ed5b743cc69671",
+   "changed": true
+  },
+  {
+   "path": "tests/fs-hygiene.test.mjs",
+   "action": "write",
+   "sourceSha256": "60312eb5ac20e14ccb74094d37f12b488d249c9ac8a3774c9a5d5fe7cc6a13a9",
+   "sourceByteLength": 9988,
+   "deployedSha256Before": "3c649b61df0393e3ef1b3b7a69c1ceda3b51e3e7c261bcfe4e2be9313fe0f4e9",
+   "changed": true
+  },
+  {
+   "path": "tests/host-contract-gate.test.mjs",
+   "action": "write",
+   "sourceSha256": "52e64c9f8278e99f8822ff7f474e20859431efab194c0fd7eb9d575442b8ebc0",
+   "sourceByteLength": 74062,
+   "deployedSha256Before": "16591949adff5a3895aa189af252a63f17549e4fc57761a2c6752283db2eaa41",
+   "changed": true
+  },
+  {
+   "path": "tests/host-env-seam.test.mjs",
+   "action": "write",
+   "sourceSha256": "2f459a6c51a4f534a83e791972f31f89dd7d114bd50e0b6f5814ac5737e2f2bb",
+   "sourceByteLength": 20338,
+   "deployedSha256Before": "9c842834781de8a13be19f05759674b247e423f1f48fa214c32ebe3bb13f3597",
+   "changed": true
+  },
+  {
+   "path": "tests/jsonl.test.mjs",
+   "action": "write",
+   "sourceSha256": "1e8f36dec9d043d20b4ee941e81d1421b58f568d5c0d6d4148fd9d6ee5aaaad2",
+   "sourceByteLength": 9289,
+   "deployedSha256Before": "ba375c234d39b5e929dbdf30852b1ce065dd0e1c6565a9b68ae81b833b64ba70",
+   "changed": true
+  },
+  {
+   "path": "tests/knowledge-shared-face.test.mjs",
+   "action": "write",
+   "sourceSha256": "14ddff635373e000e179abfaf5c302df16231f65439c3ea612ae04df6d0bb2d2",
+   "sourceByteLength": 16479,
+   "deployedSha256Before": "707adfe94c8fc6af359cd5ac5790ccddb2f1374a179b729eaf39f319c707966c",
+   "changed": true
+  },
+  {
+   "path": "tests/knowledge.test.mjs",
+   "action": "write",
+   "sourceSha256": "1a7a6ac7c29084d3f1a9fb326744227e6fbac28acd762fe1e95f176e7e1cbb61",
+   "sourceByteLength": 38957,
+   "deployedSha256Before": "12d06553b15778341a5b846d4c1c34fd7615c1aab32643d9c0b316cdd381d17d",
+   "changed": true
+  },
+  {
+   "path": "tests/ledger-host.test.mjs",
+   "action": "write",
+   "sourceSha256": "58b25379386e0dcc34dafa8a2066b4752be2540b7bc99c5343e577c0191c78d8",
+   "sourceByteLength": 65897,
+   "deployedSha256Before": "b0cab7e2c83b89d42f2abedb806594de1c22457d2fca90627fec30a5476db31e",
+   "changed": true
+  },
+  {
+   "path": "tests/locale-runtime.test.mjs",
+   "action": "write",
+   "sourceSha256": "39571aef71bf4abcf3d6d72de7215e93473865dbc2c3865da5feca8a10966829",
+   "sourceByteLength": 7186,
+   "deployedSha256Before": "5252f6ec24417271202a5f3ef85ca7f4716d36de3cfb31b514d50380083b33e4",
+   "changed": true
+  },
+  {
+   "path": "tests/locale.test.mjs",
+   "action": "write",
+   "sourceSha256": "c3d44658ed5c11d6e38e23523c18eb63e61ecd07135307568fa79654af5d973a",
+   "sourceByteLength": 8283,
+   "deployedSha256Before": "0a19f9123df7dc730fa27f963df9540c5efe7bd672b343b30051284ae45e2125",
+   "changed": true
+  },
+  {
+   "path": "tests/lock-dir.test.mjs",
+   "action": "write",
+   "sourceSha256": "fc6a8671e7a6fc63a14c3bdca275d2d2d9c8d260b5d34aecc379a4d8d44e0035",
+   "sourceByteLength": 16339,
+   "deployedSha256Before": "cd24fd22c541fad5b641bb433bdd8371acf661627d49d42dbee706db3826d7be",
+   "changed": true
+  },
+  {
+   "path": "tests/mail-at-least-once.test.mjs",
+   "action": "write",
+   "sourceSha256": "77378c8b6e5aba4f88d99a3570a7e9be231afa4ffe59e23a380b45ee2ef7c005",
+   "sourceByteLength": 13562,
+   "deployedSha256Before": "51ff24fa6fbfa4db8f474feaeb0c38fbfd99fe5d1a9c573cad66646c6bfa12ad",
+   "changed": true
+  },
+  {
+   "path": "tests/mail-notify.test.mjs",
+   "action": "write",
+   "sourceSha256": "4e995c380ed4af4fd661406e7f0172d58543cc3f3ad3f2f377700577e19889cf",
+   "sourceByteLength": 20723,
+   "deployedSha256Before": "bbf8fe0ae028ad0059ec9cbe6cb8de887af748d8f55c2d66e873d2a3456399f5",
+   "changed": true
+  },
+  {
+   "path": "tests/org-acceptance-coordinates.test.mjs",
+   "action": "write",
+   "sourceSha256": "ebb07f14893c6e3586ec7d3014a8340a8c467e390c0b7ab1b9d00b9dcde484cd",
+   "sourceByteLength": 14839,
+   "deployedSha256Before": "a3ce1ea0e99dafeba9dddc2a8ba31155492c4dba895399131df2ab9d82bcdf4b",
+   "changed": true
+  },
+  {
+   "path": "tests/org-mail-client.test.mjs",
+   "action": "write",
+   "sourceSha256": "56d3aa51531e3ae6bf6cbcb4e23936a9dc178e6202a38f6a192e2a4dff43b951",
+   "sourceByteLength": 11092,
+   "deployedSha256Before": "82de9061bee6edbf9de4a06bd92d1d529a87964bf2d54beea3fc40cb271404de",
+   "changed": true
+  },
+  {
+   "path": "tests/org-mail-shared-face.test.mjs",
+   "action": "write",
+   "sourceSha256": "92bf5d9769b6c10e685c4712c9126f6ba7d6e79529e0c5d7e73a8f56218a1760",
+   "sourceByteLength": 8673,
+   "deployedSha256Before": "156f69ed998e4bd007669db1e94b8047ee6e32514d89a5456d72ec7173224e0f",
+   "changed": true
+  },
+  {
+   "path": "tests/org-vocabulary-face.test.mjs",
+   "action": "write",
+   "sourceSha256": "82b32156b40ffd18bf8cb3623e6e27a678388385ecbbf56e251c87fa95d6cfb4",
+   "sourceByteLength": 3547,
+   "deployedSha256Before": "d028cb98a641a5e974031fb8285d2194d383d2d42209303644861b99d4a631d7",
+   "changed": true
+  },
+  {
+   "path": "tests/pid-bind.test.mjs",
+   "action": "write",
+   "sourceSha256": "54508f4217b7bb643a980dd44eb9ace347a38825abe6757b3f3fe6f7bd1cbe3c",
+   "sourceByteLength": 6059,
+   "deployedSha256Before": "0d23490f6d89d36790650fd881195afb30ab6486422104f994bf9d6ebc288589",
+   "changed": true
+  },
+  {
+   "path": "tests/pod-spec-face.test.mjs",
+   "action": "write",
+   "sourceSha256": "51edb632f872d33acd2bc1f7780274d1558e2e18fb4b74974d44c06a3fa5a917",
+   "sourceByteLength": 64026,
+   "deployedSha256Before": "564ab2484d8bf1153582ac3a8cd50af08986c7b00597adfa4cff30569378805b",
+   "changed": true
+  },
+  {
+   "path": "tests/pod-trace.test.mjs",
+   "action": "write",
+   "sourceSha256": "9ec6b72547fe3b812abb093ed6f7a1ea10d5a9767567b475d2825907455e45df",
+   "sourceByteLength": 36508,
+   "deployedSha256Before": "99d628e97e4191a8808a0bea90a76251b5386f9367a445a08224b58524e2ccc1",
+   "changed": true
+  },
+  {
+   "path": "tests/registry.test.mjs",
+   "action": "write",
+   "sourceSha256": "346d593a84f61a4e64289de6012b63b7ccb0b9a5da500b91d3aaa70cbdf6a222",
+   "sourceByteLength": 6605,
+   "deployedSha256Before": "0025e5ff5d477531787765374024e4a8fa09dc60521422a29fcd8676faf4035b",
+   "changed": true
+  },
+  {
+   "path": "tests/reply-route.test.mjs",
+   "action": "write",
+   "sourceSha256": "cad6f813e1b201cefb1e2d2ce34c97e1a6c2e124c1cf4b22af525ce51894c146",
+   "sourceByteLength": 10632,
+   "deployedSha256Before": "d9b5411839686d721f3d0ad962d85569473fd6322c9b9154c4812fe7e4e3577d",
+   "changed": true
+  },
+  {
+   "path": "tests/route.test.mjs",
+   "action": "write",
+   "sourceSha256": "b1dd30b9cac88bc158b00c3466133e3dbf65a12cccc6f5514456a128776cb93d",
+   "sourceByteLength": 16735,
+   "deployedSha256Before": "2f1a941b4caad2a1a5d0a851ff65dcd0258b64fffbffced27674edde705172d2",
+   "changed": true
+  },
+  {
+   "path": "tests/rpc-envelope.test.mjs",
+   "action": "write",
+   "sourceSha256": "e5fe276abde2c8b7cdebe76265ff3ec69ce46a9f2797156dcb4091145dbc3e6c",
+   "sourceByteLength": 9356,
+   "deployedSha256Before": "bc68c8a3216105539870dff38bd1fdb48ffc72e695d6ecced19d89fc5b8595a1",
+   "changed": true
+  },
+  {
+   "path": "tests/run.mjs",
+   "action": "write",
+   "sourceSha256": "4e84409affb1e077d46fdbce3d89ea0fffb41a5042ed580cd86d26551228fc08",
+   "sourceByteLength": 3539,
+   "deployedSha256Before": "55d282b092f6b05daa5dcbdd11d2ab5c2c9d4ebe75dec8206b46eb6bf9dee144",
+   "changed": true
+  },
+  {
+   "path": "tests/spawn-env.test.mjs",
+   "action": "write",
+   "sourceSha256": "4af5bf2aef27abbcef17e791a958614f2e416f54cd0210e9cc872c93eb45f54d",
+   "sourceByteLength": 7308,
+   "deployedSha256Before": "db74682cf69b5764dc46fb8aeb9e15e2b6b09445944208675b132b4808458fd1",
+   "changed": true
+  },
+  {
+   "path": "tests/stats.test.mjs",
+   "action": "write",
+   "sourceSha256": "cf7950e3c89b2ccaf69ad21cc52a5cc4f65fb3064dfa7e712286ace8ede7c403",
+   "sourceByteLength": 8753,
+   "deployedSha256Before": "012c3eee0caec59527c9b5cae3c8d7758ffcc66459e88103732937fad6ccc113",
+   "changed": true
+  },
+  {
+   "path": "tests/watcher.test.mjs",
+   "action": "write",
+   "sourceSha256": "6a41027324758c1bd681322329e41f551acd1ab169884dcfb46d4f23b0b247b6",
+   "sourceByteLength": 7065,
+   "deployedSha256Before": "d75c6829839cf82e3bc127eef929fb728537dcebce2b7bcf181e1aef7cd0eb86",
+   "changed": true
+  }
+ ]
+}

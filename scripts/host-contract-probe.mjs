@@ -27,7 +27,7 @@
  * 用法：node scripts/host-contract-probe.mjs [--face=dev|deploy] [--report <file>]
  * 退出码：0＝门通过；1＝FAIL（或部署面 SKIP）；2＝门自身错误。
  */
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join, basename, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -37,7 +37,7 @@ import { profileIdFromBaseUrl } from "../lib/host-services.js";
 import { createNativeSessionRpc } from "../lib/native-session-rpc.js";
 import { createRequire } from "node:module";
 import { createTaskLedger, eventsFile, validateEventRecord } from "../lib/org/task-ledger.js";
-import { deriveStats, readSessionEventsFromFile } from "../lib/stats.js";
+import { deriveStats, readSessionEventsFromFile, sessionLogCandidates } from "../lib/stats.js";
 
 // CJS 共享层（仓库惯例经 createRequire 消费，见 lib/index.js）：patch 构造单一坐标
 const requireCjs = createRequire(import.meta.url);
@@ -259,12 +259,17 @@ async function importViaModuleLoader(file) {
   const previousLoader = globalThis.window.__ModuleLoader__;
   globalThis.window.__ModuleLoader__ = { load: (opts) => { captured = opts; } };
   try {
-    await import(pathToFileURL(file).href);
+    // 带 cache-buster：同一进程内前序探针可能已 import 过同一 bundle，裸路径会命中
+    // ESM 缓存而不重跑，捕获到的工厂留痕即变空（表现为假「未走装载协议」）。
+    await import(pathToFileURL(file).href + `?dsh-probe=${Date.now()}-${captureNonce++}`);
   } finally {
     globalThis.window.__ModuleLoader__ = previousLoader;
   }
   return captured;
 }
+
+/** cache-buster 序号（同毫秒内多次装载仍各自唯一）。 */
+let captureNonce = 0;
 
 /**
  * 真实调起一个官方 client bundle：ModuleLoader 捕获 → factory(shim) →
@@ -292,19 +297,23 @@ export async function runClientBundle(roots, pkg) {
 }
 
 /**
- * Bot 模式必须命中的槽落点（`HF-CLIENT-SLOTS` 的消费面，覆盖「apply 期常驻」与「enter 期占用」两相）：
- *   - `sidebar.footer.action`（list）：入口钮 `dsh-bots-entry`（Bot 模式外可见）；
- *   - `shell.overlay`（list）：全局通知容器 `dsh-bots-notices`（V-A6.8 第 4 项的结构前置）；
- *   - `sidebar`（single）：Bot 模式接管 `dsh-bots-sidebar`；
- *   - `main`（keyed）：Bot 模式接管 `key="conversation"`。
+ * Bot 模式必须命中的槽落点（`HF-CLIENT-SLOTS` 的消费面）。**pod 04 起 Pod 改为覆盖式常驻**
+ * （规格 §B3-1；附录 A `V-P2.1`），故本表按三类坐标断言：
+ *   - `phase:"apply"`：装置期常驻条目——入口钮 `pod-entry`、全局通知容器 `pod-notices`（V-A6.8
+ *     第 4 项的结构前置）；
+ *   - `phase:"enter"`：进出 Pod 期增删的条目——覆盖层 `pod-pod`（唯一新增条目）；
+ *   - `phase:"never"`：**任何相位都不得**占用的宿主槽——官方 `sidebar` 单槽与主区 `main` 的
+ *     `conversation` 键必须是「无我方条目」。这条是保活的机制判据：一旦 Pod 去占槽，
+ *     官方会话页与侧栏就会随槽位切换（key 自增）卸载重挂，滚动位置与展开态即丢。
  * 宿主把 `conversation` 改回独立单槽（旧宿主 0.1.0-rc.6 形态）也会在此报出——那是**宿主契约变更**，
  * 须同步改 `lib/client.js` 的 `HOST_SLOTS`，由本门把守，不许静默退回原生界面。
  */
 export const BOT_MODE_SLOT_TARGETS = Object.freeze([
-  { slot: "sidebar.footer.action", match: { field: "id", value: "dsh-bots-entry" }, phase: "apply" },
-  { slot: "shell.overlay", match: { field: "id", value: "dsh-bots-notices" }, phase: "apply" },
-  { slot: "sidebar", match: { field: "id", value: "dsh-bots-sidebar" }, phase: "enter" },
-  { slot: "main", match: { field: "key", value: "conversation" }, phase: "enter" }
+  { slot: "sidebar.footer.action", match: { field: "id", value: "pod-entry" }, phase: "apply" },
+  { slot: "shell.overlay", match: { field: "id", value: "pod-notices" }, phase: "apply" },
+  { slot: "shell.overlay", match: { field: "id", value: "pod-pod" }, phase: "enter" },
+  { slot: "sidebar", match: { field: "id", value: "pod-sidebar" }, phase: "never" },
+  { slot: "main", match: { field: "key", value: "conversation" }, phase: "never" }
 ]);
 
 /** 我方 client 调起用的 react 桩：模块级只用到 hooks 与 createElement（产物为可走查的普通对象）。 */
@@ -334,8 +343,10 @@ function findClickable(node) {
  * 查，相位盲——apply 期就把宿主 `sidebar`/`main` 占掉的坏形态也能通过）：
  *   - `phase:"apply"`（`sidebar.footer.action` 入口钮、`shell.overlay` 通知容器）：`apply` 后
  *     即须在位，且点击后仍在位；
- *   - `phase:"enter"`（`sidebar` 单槽占位、`main` keyed 槽的 `conversation` 键）：点击**之前
- *     不得占用**（留待 Bot 模式接管＝abdicate 语义），点击之后须在位。
+ *   - `phase:"enter"`（`shell.overlay` 的 Pod 覆盖层条目 `pod-pod`）：点击**之前**
+ *     不得注册（覆盖层是进出期增删的条目），点击之后须在位；
+ *   - `phase:"never"`（宿主 `sidebar` 单槽、`main` keyed 槽的 `conversation` 键）：apply 前与
+ *     点击后都**不得**有我方条目——pod 04 起 Pod 为覆盖式常驻，占槽即卸载官方页（`V-P2.1`）。
  *
  * 诚实口径：**宿主实体件只有 `SlotCore`**（真实槽注册表，对未声明槽 fail closed）；我方 bundle
  * 是真实装载协议取到的工厂产物，但**整个 `ctx` 是手写桩**——locale／layout／effect 为空桩，
@@ -397,7 +408,7 @@ function runClientSlotChecks({ core, apply, targets, entrySlot }) {
     violations.push("入口组件树内无带 onClick 的按钮（入口渲染形状漂移）");
     return { ok: false, violations, observations };
   }
-  const phaseOf = (target) => (target.phase === "apply" ? "apply" : "enter");
+  const phaseOf = (target) => (target.phase === "never" ? "never" : target.phase === "apply" ? "apply" : "enter");
   const seenOf = (target) => (core.entriesOfSlot(target.slot) ?? [])
     .map((occupant) => occupant?.options?.[target.match.field] ?? "(未命名)");
   const requirePresent = (target, phase) => {
@@ -407,13 +418,24 @@ function runClientSlotChecks({ core, apply, targets, entrySlot }) {
       violations.push(`Bot 模式未占用宿主声明槽「${target.slot}」（${phase} 相；${target.match.field}=${target.match.value}；实测占用：${seen.join("／") || "无"}）`);
     }
   };
+  /** `phase:"never"`：进出前后都不许出现我方条目（覆盖式常驻的机制判据，pod 04 起）。 */
+  const requireAbsent = (target, phase) => {
+    const seen = seenOf(target);
+    observations[`${target.slot}.${target.match.field}.${phase}`] = seen;
+    if (seen.includes(target.match.value)) {
+      violations.push(`覆盖式常驻被破坏：${phase} 时占用了宿主声明槽「${target.slot}」`
+        + `（${target.match.field}=${target.match.value}）——Pod 须以 shell.overlay 覆盖层呈现，`
+        + `占槽会令官方页随槽位切换卸载重挂（滚动位置与展开态即丢）`);
+    }
+  };
 
   for (const target of targets.filter((t) => phaseOf(t) === "apply")) requirePresent(target, "apply");
+  for (const target of targets.filter((t) => phaseOf(t) === "never")) requireAbsent(target, "beforeEnter");
   for (const target of targets.filter((t) => phaseOf(t) === "enter")) {
     const seen = seenOf(target);
     observations[`${target.slot}.${target.match.field}.beforeEnter`] = seen;
     if (seen.includes(target.match.value)) {
-      violations.push(`enter 前已占用宿主声明槽「${target.slot}」（${target.match.field}=${target.match.value}）——Bot 模式接管须发生在进入时，不得在 apply 期抢占`);
+      violations.push(`enter 前已占用宿主声明槽「${target.slot}」（${target.match.field}=${target.match.value}）——Pod 覆盖层须在进入时注册，不得在 apply 期抢占`);
     }
   }
 
@@ -423,7 +445,11 @@ function runClientSlotChecks({ core, apply, targets, entrySlot }) {
     violations.push(`Bot 模式入口点击抛错：${errMsg(error)}`);
   }
 
-  for (const target of targets) requirePresent(target, phaseOf(target) === "apply" ? "apply 后仍在位" : "enter");
+  const enterable = targets.filter((t) => phaseOf(t) !== "never");
+  for (const target of enterable) requirePresent(target, phaseOf(target) === "apply" ? "apply 后仍在位" : "enter");
+  // `never` 相在**进入后**仍须成立；退出相不经此路径驱动（无头 harness 没有公开 exit 出口，
+  // 退出＝撤层的账本断言归 tests/pod-overlay.test.mjs 的 `V-P2.1` 与 preflight ④ 实跑）
+  for (const target of targets.filter((t) => phaseOf(t) === "never")) requireAbsent(target, "afterEnter");
   return { ok: violations.length === 0, violations, observations };
 }
 
@@ -513,8 +539,11 @@ export function checkPrimitivesReferences(sourceText, exportNames, { requiredPro
  * P-CLIENT-SLOTS 行为化 stage：真实 apply 官方 layout/sidebar bundle，断言其
  * 声明的槽树覆盖组织层依赖的槽坐标（sidebar single／main keyed／shell.overlay
  * list／sidebar.footer.action list）；**再以真实 SlotCore 复算我方 client 的槽注册
- * 落点**（`verifyClientSlotRegistrations`：入口点击 → `sidebar` 占位 + `main` 的
- * `conversation` 键），把「插件槽名 ⊆ 宿主声明树」纳入门内。渲染期 priority/abdicate
+ * 落点**（`verifyClientSlotRegistrations`：apply 期常驻 `sidebar.footer.action` 入口钮与
+ * `shell.overlay` 通知容器；enter 期**只在 `shell.overlay` 增一条 Pod 覆盖层条目**——
+ * 官方 `sidebar`／`main` 账本在 beforeEnter／afterEnter 两相都不得被我方占用，占即
+ * 「覆盖式常驻被破坏」响亮报错；注册未声明槽即 FAIL——2026-10-07 返修批收口的
+ * 「我方槽名 ⊆ 宿主声明树」口径继续成立）。渲染期 priority/abdicate
  * 语义与渲染结果无头不可调起——显式降级声明见探针 describe 与登记表 readAccess，
  * 归 V-A6.8 人工目视清单覆盖。
  */
@@ -559,9 +588,10 @@ export async function probeClientSlotsStage(roots) {
  * 收口「我方槽名 ⊆ 宿主声明树」这一门覆盖缺口）。
  *
  * 三查：① `primitives.<Name>` 引用名 ⊆ 官方包导出面；② `MarkdownText` 调用点带
- * `labels`（0.2.0-rc.1 起必填）；③ 真实 SlotCore 下实调我方 bundle：入口点击 →
- * `sidebar` 占位 + `main` 槽 `key=conversation`。三类漂移（槽名／图标变体名／
- * labels）在修复前的形态下均判 FAIL（红证据见 18 号票附件 gate-guard 件）。
+ * `labels`（0.2.0-rc.1 起必填）；③ 真实 SlotCore 下实调我方 bundle：apply 期常驻入口钮
+ * ＋通知容器，enter 期只在 `shell.overlay` 增一条 Pod 覆盖层条目（官方 `sidebar`／`main`
+ * 两相都不占——pod 04 覆盖式常驻口径）。三类漂移（槽名／图标变体名／labels）在修复前的
+ * 形态下均判 FAIL（红证据见 18 号票附件 gate-guard 件）。
  *
  * 与 `probeClientSlotsStage` 分开：前者只断言宿主**声明面**（合成 fixture 可测），
  * 本 stage 需要真实宿主包（官方 layout/sidebar/slots/primitives 实体包）。
@@ -617,9 +647,14 @@ export async function probeClientConformanceStage(roots, declared) {
       coordinate: "lib/client.js HOST_SLOTS ↔ 宿主声明槽树（真实 SlotCore 实跑）"
     };
   }
+  // 相位后缀读取（复核 M5）：`never` 相的观测键带 `.beforeEnter`／`.afterEnter` 后缀，
+  // 原来的无后缀读取恒为 undefined ⇒ 坐标行恒打印「无／无」（相位盲区）。两相分别取。
+  const occupancy = (slot, field) => ["beforeEnter", "afterEnter"]
+    .map((phase) => `${phase}=${(verdict.observations[`${slot}.${field}.${phase}`] ?? []).join("／") || "无"}`)
+    .join("、");
   return {
     state: "PASS",
-    coordinate: `我方引用面（${references.referencedNames} 个 primitives 引用名 ⊆ 官方导出 ${primitivesNames.size} 名）＋槽落点（apply 期 footer=${verdict.observations["sidebar.footer.action.id"]?.join("／")}、overlay=${verdict.observations["shell.overlay.id"]?.join("／")}；enter 期 sidebar=${verdict.observations["sidebar.id"]?.join("／")}、main.key=${verdict.observations["main.key"]?.join("／")}）`
+    coordinate: `我方引用面（${references.referencedNames} 个 primitives 引用名 ⊆ 官方导出 ${primitivesNames.size} 名）＋槽落点（apply 期 footer=${verdict.observations["sidebar.footer.action.id"]?.join("／")}、overlay=${verdict.observations["shell.overlay.id"]?.join("／")}；enter 期 overlay=${verdict.observations["shell.overlay.id"]?.join("／")}；官方 sidebar／main 占用＝无／无——实测 sidebar.id 相位观测［${occupancy("sidebar", "id")}］／main.key 相位观测［${occupancy("main", "key")}］）`
   };
 }
 
@@ -765,7 +800,12 @@ export async function probeCtxServicesBaseUrlStage(roots) {
   }
 }
 
-/** 定位本机最新的真实会话日志（<DSH_HOME>/sessions/<分片>/<会话>/session.jsonl.zstd）。 */
+/**
+ * 定位本机最新的真实会话日志（<DSH_HOME>/sessions/<分片>/<会话>/<日志名>，
+ * 日志名＝`session[.v<N>].jsonl.zstd`，代际解析复用 lib/stats.js::sessionLogCandidates
+ * ——只认旧名会让现役 v4 会话日志不可达）。同目录多代并存时逐个按 mtime 比较，
+ * 仍取「最新」语义。
+ */
 export function findNewestSessionLog(dshHome) {
   const sessionsRoot = join(dshHome, "sessions");
   let shards;
@@ -779,12 +819,14 @@ export function findNewestSessionLog(dshHome) {
     catch { continue; }
     for (const session of sessions) {
       if (!session.isDirectory()) continue;
-      const file = join(sessionsRoot, shard.name, session.name, "session.jsonl.zstd");
-      if (!existsSync(file)) continue;
-      try {
-        const mtime = statSync(file).mtimeMs;
-        if (best === null || mtime > best.mtime) best = { file, mtime, coordinate: join(shard.name, session.name) };
-      } catch { /* 不可读 → 跳过 */ }
+      const dir = join(sessionsRoot, shard.name, session.name);
+      for (const file of sessionLogCandidates(dir)) {
+        if (!existsSync(file)) continue;
+        try {
+          const mtime = statSync(file).mtimeMs;
+          if (best === null || mtime > best.mtime) best = { file, mtime, coordinate: join(shard.name, session.name) };
+        } catch { /* 不可读 → 跳过 */ }
+      }
     }
   }
   return best;
@@ -830,19 +872,22 @@ export function probeSessionLogStage(dshHome) {
 }
 
 /**
- * 关键配置 id（静默 no-op 即伤核心配置者：模型 pin／人设／沙箱／审批／settings
- * 重定向／模型路由／只读禁用的两个 shell 工具）。只读禁用的其余 tool-* id 属
- * shared.cjs 已声明可选（条目 id 不存在时 patch loader 无害忽略），只核往返、
- * 不核官方全集在位。
+ * 关键配置 id（静默 no-op 即伤核心配置者：模型 pin／人设／沙箱／审批／官方
+ * dsh-settings 服务／模型路由／只读禁用的两个 shell 工具）。只读禁用的其余
+ * tool-* id 属 shared.cjs 已声明可选（条目 id 不存在时 patch loader 无害忽略），
+ * 只核往返、不核官方全集在位。
+ * 注：pod 10 号票起我方 patch 不再写 settings 重定向行（`dsh-settings` 不声明
+ * Config schema，写了也不进入解析＝死键），本清单的 `settings` 只作官方组合
+ * patch 的宿主侧改名看守，不再要求出现在我方 patch（见 OUR_PATCH_MUST_RETAIN）。
  */
 export const CONFIG_IDS_CRITICAL = Object.freeze([
   "agent-default-model", "system-prompt", "sandbox-policy", "approval",
   "settings", "llm-pi-ai", "tool-bash", "tool-pwsh"
 ]);
 
-/** 我方 workspace-write patch 往返后必须全数保留的 id（含 insert 的 bots；与 CONFIG_IDS_CRITICAL 语义不同集）。 */
+/** 我方 workspace-write patch 往返后必须全数保留的 id（含 insert 的 bots；与 CONFIG_IDS_CRITICAL 语义不同集；settings 重定向行已按 pod 10 号票删除，故不在此集）。 */
 const OUR_PATCH_MUST_RETAIN = Object.freeze([
-  "agent-default-model", "system-prompt", "sandbox-policy", "approval", "settings", "bots"
+  "agent-default-model", "system-prompt", "sandbox-policy", "approval", "bots"
 ]);
 
 /** 从官方装载器的解析产物里收全部 id（含 insert 子项）。 */
@@ -885,7 +930,7 @@ export async function probeConfigIdsStage(roots) {
     } } };
     writeFileSync(patchFile, buildPatchYaml({
       botId: "dsh-contract-probe", role: "probe", ...modelPin,
-      permission: "workspace-write", workspace: "/tmp/dsh-contract-probe-ws", settingsPath: "/tmp/dsh-contract-probe-settings.yaml",
+      permission: "workspace-write", workspace: "/tmp/dsh-contract-probe-ws",
       settingsText: `llm-pi-ai: ${JSON.stringify(providerConfig)}\n`
     }));
     let ours;
@@ -993,7 +1038,987 @@ export async function probeConfigIdsStage(roots) {
   }
 }
 
-// ---------------- 探针实现（每个返回 {state, reason?, coordinate?}） ----------------
+// ---------------- pod 02 号票：整屏层几何／过渡令牌／焦点隔离的探针件 ----------------
+
+/**
+ * 官方整屏层的层本体档（宿主 `overlayLayer` 自身即 `z-index:20` 层叠上下文）。
+ * 我方整屏层须 portal 到 body 并落在**根堆叠上下文**的该档之上、官方浮层之下。
+ */
+export const SHELL_OVERLAY_LAYER_BAND = 20;
+
+/**
+ * 官方 body 级浮层的档位构成（层本体之上的各档）：每项＝一个官方提供方 bundle。
+ * 取值来源两路互证：① 先按**我方通用装载器**真实 apply 官方 bundle 并取其**运行期注入
+ * 样式**；② 若该 bundle 的运行期注入面为空（提供方在别处注入 CSS 时可能如此），退回
+ * 该 bundle 源里的**内联样式文本**（同样是官方产物，格式固定）。两路都取不到 → FAIL。
+ */
+export const HOST_OVERLAY_BANDS = Object.freeze([
+  { source: "dsh-client-ui-settings-account", note: "onboarding 900；设置/平台页 1001" },
+  { source: "dsh-client-ui-settings-general", note: "primitives Modal 设置面板 1000" },
+  { source: "dsh-client-ui-conversation", note: "Toast／Menu portal 1100" }
+]);
+
+/**
+ * 我方 portal 层「低于官方 body 级浮层最低档」的地板（V-P2.5）。
+ * 现装宿主实测＝**900**（dsh-client-ui-settings-account 的 `.tQSFJa_onboardingOverlay`
+ * `position:fixed;z-index:900` 全屏 onboarding）。该值决定我方 portal 的 z-index 上限，
+ * 官方浮层集合里的最小**体量级**档位与它不符即 FAIL。
+ * 注：宿主另有低于该地板的官方固定定位件（现装实测 `.zwW4-W_card` `position:fixed;
+ * z-index:40`）——那是窄态卡片，不构成 V-P2.5 所指的 body 级浮层档；探针只把
+ * 「不低于地板的官方浮层集合」纳入地板判定，层本体档与地板之间的零散固定件仅作诊断。
+ */
+export const HOST_FLOAT_FLOOR_BAND = 900;
+
+/** 从一个 bundle 源文本里收集内联样式文本（`const css = "…"` 这类构建产物形态）。 */
+export function collectInlineStyleText(source) {
+  const chunks = [];
+  for (const match of String(source).matchAll(/(?:const|let|var)\s+[A-Za-z0-9_$]+\s*=\s*"((?:[^"\\]|\\.){80,})"/g)) {
+    const text = match[1];
+    if (text.includes("z-index") || text.includes("position:")) chunks.push(text.replace(/\\"/g, '"').replace(/\\n/g, "\n"));
+  }
+  return chunks.join("\n");
+}
+
+/** 取一个 bundle 的样式文本：先运行期注入，再退回源内联样式；都空→null（调用方 FAIL）。 */
+async function bandStyleText(roots, entry) {
+  const candidates = resolveCandidates(roots, entry.source, "lib", "client.js");
+  if (candidates.length === 0) return { text: null, via: "missing" };
+  let injected = "";
+  try {
+    const bundle = await runClientBundle(roots, entry.source);
+    injected = injectedStylesOf(bundle);
+  } catch { /* 运行期注入面不可用 → 退回源文本路 */ }
+  if (injected.trim() !== "" && injected.includes("z-index")) return { text: injected, via: "runtime" };
+  try {
+    const inline = collectInlineStyleText(readFileSync(candidates[0], "utf8"));
+    if (inline.includes("z-index")) return { text: inline, via: `${entry.source} 源内联样式` };
+  } catch { /* 不可读 → 下方判 FAIL */ }
+  return { text: null, via: "missing" };
+}
+
+/** 过渡令牌族（存在性与取值形状；官方 `:root` 级定义，共 3 时长 + 1 缓动）。 */
+export const HOST_TRANSITION_TOKENS = Object.freeze([
+  { name: "--ds-transition-duration", kind: "time" },
+  { name: "--ds-transition-duration-fast", kind: "time" },
+  { name: "--ds-transition-duration-slow", kind: "time" },
+  { name: "--ds-ease-in-out", kind: "ease" }
+]);
+
+/** 时间取值形状（`<number><s|ms>`；不做数值换算，只看形状）。 */
+const TIME_VALUE_RE = /^(?:\d+\.?\d*|\.\d+)(?:ms|s)$/;
+/** 缓动取值形状（关键字或 `cubic-bezier(...)`／`steps(...)`）。 */
+const EASE_VALUE_RE = /^(?:linear|ease|ease-in|ease-out|ease-in-out|step-start|step-end|cubic-bezier\([^)]*\)|steps\([^)]*\))$/;
+
+/** 取一个官方 bundle 运行期注入的全部样式文本。 */
+function injectedStylesOf(bundle) {
+  return (bundle?.elements ?? []).map((el) => String(el.textContent ?? "")).join("\n");
+}
+
+/** 在样式文本中取一个声明体（选择器 + `{...}`）的**首个**匹配。 */
+export function firstRuleBody(css, selectorPattern) {
+  const match = new RegExp(`(?:${selectorPattern.source})\\s*\\{([^{}]*)\\}`, "g").exec(css);
+  return match === null ? null : match[1];
+}
+
+/** 是否声明了四边归零（简写 `inset:0` 或 `top/right/bottom/left:0` 全写）。 */
+export function hasFullInset(declarations) {
+  if (declarations.inset !== undefined) {
+    const values = declarations.inset.split(/\s+/).filter(Boolean);
+    return values.length >= 1 && values.length <= 4 && values.every((value) => value === "0" || value === "0px");
+  }
+  return ["top", "right", "bottom", "left"].every((side) => declarations[side] === "0" || declarations[side] === "0px");
+}
+
+/** 解析声明体为「属性 → 值」（按首个冒号切分；值内冒号保留）。 */
+export function parseDeclarations(body) {
+  const out = {};
+  for (const chunk of String(body ?? "").split(";")) {
+    const at = chunk.indexOf(":");
+    if (at <= 0) continue;
+    out[chunk.slice(0, at).trim()] = chunk.slice(at + 1).trim();
+  }
+  return out;
+}
+
+/** 样式里声明的全部 `--ds-*` 自定义属性名（诊断/否证用）。 */
+export function collectCustomPropertyNames(css) {
+  return [...new Set([...String(css).matchAll(/(--[a-z0-9-]+)\s*:/g)].map((m) => m[1]))].sort();
+}
+
+/** 样式里声明的全部 z-index 取值（声明序留痕，重复不去重）。 */
+export function collectZIndexModes(css) {
+  return [...String(css).matchAll(/z-index\s*:\s*(-?\d+)/g)].map((m) => Number(m[1]));
+}
+
+/**
+ * 样式里**同时声明 `position:fixed` 与 `z-index`** 的规则的档位（去重升序）。
+ * 这才是「body 级浮层档」：固定定位的浮层在根堆叠上下文里与整屏层比档，故该档位构成
+ * 决定覆盖式呈现是否被官方浮层盖章在下面。规则内其余声明（含同规则里的 margin/border
+ * 简写）不参与——只认 `position:fixed` 与 `z-index` 两枚键。
+ */
+export function collectFixedLayerBands(css) {
+  const bands = new Set();
+  for (const match of String(css).matchAll(/\{([^{}]*)\}/g)) {
+    const body = parseDeclarations(match[1]);
+    if (body.position !== "fixed") continue;
+    const band = Number(body["z-index"]);
+    if (Number.isInteger(band) && body["z-index"] !== undefined) bands.add(band);
+  }
+  return [...bands].sort((a, b) => a - b);
+}
+
+/**
+ * 从官方 bundle 的**运行期注入样式**解析整屏层几何语义：
+ *   - 层本体规则＝「`position:absolute` ＋ `inset:0` 四边 ＋ 整数 `z-index`（1..99 档）
+ *     ＋ `pointer-events:none`」唯一签名（宿主压缩类名会变，这条语义签名不会）；
+ *   - 直系子节点规则＝同一类名的 `>*` 规则（`pointer-events:auto`）；
+ *   - 祖先链风险项＝同一份样式里对 AppFrame 根（`position:relative` 且 `overflow` 非
+ *     `visible`）声明了 `transform`／`filter`／`contain`／`container-type` 的规则——
+ *     命中即层内 `position:fixed` 可被裁剪或重锚。
+ * 返回 `{ layerClass, layer, children, ancestorRisk, css }`；层本体规则缺失时 `layer=null`
+ * （调用方报 FAIL）。
+ */
+export function resolveOverlayLayerFacts(bundle) {
+  const css = injectedStylesOf(bundle);
+  // 按**选择器**归并同一条规则的多次声明（后声明覆盖先声明＝CSS 级联口径）：宿主产物里
+  // 同一类名分散在多条规则是常态，只取「首个匹配规则」会漏掉后续规则上的风险声明
+  // （2026-10-09 修正：`.probe_frame{transform:…}` 追加在既有 `.probe_frame{position:relative;
+  // overflow:hidden}` 之后时，祖先前缀风险此前**取不到**，负例恒 PASS）。
+  const merged = new Map();
+  const selectorOrder = [];
+  const record = (className, isChild, body) => {
+    const key = isChild ? `${className}>` : className;
+    if (!merged.has(key)) {
+      merged.set(key, { className, isChild, body: {} });
+      selectorOrder.push(key);
+    }
+    Object.assign(merged.get(key).body, parseDeclarations(body));
+  };
+  // 两种规则形态分开认：直系子节点规则（`.cls>*{}`，`>` 与 `*` 均须出现——漏掉 `*`
+  // 时该规则整条取不到，「直系子节点恢复交互」判据曾在真实宿主上恒 FAIL）与本体规则
+  // （`.cls{}`）。先吃子节点形态，本体形态再用否定前瞻排除 `>`/`*` 形态，防重复归并。
+  for (const match of css.matchAll(/(?<![\w$#-])\.([A-Za-z0-9_$]+)[\s]*>\s*\*\{([^{}]*)\}/g)) record(match[1], true, match[2]);
+  for (const match of css.matchAll(/(?<![\w$#-])\.([A-Za-z0-9_$]+)(?![\s]*>\s*\*)\s*\{([^{}]*)\}/g)) record(match[1], false, match[2]);
+  const rules = selectorOrder.map((key) => merged.get(key));
+  const layerRule = rules.find((rule) => !rule.isChild && rule.body.position === "absolute" && hasFullInset(rule.body)
+    && rule.body["pointer-events"] === "none"
+    && Number.isInteger(Number(rule.body["z-index"])) && Number(rule.body["z-index"]) >= 1 && Number(rule.body["z-index"]) <= 99) ?? null;
+  const ancestorRisk = [];
+  for (const rule of rules) {
+    if (rule.isChild || rule.body.position !== "relative" || rule.body.overflow === undefined || rule.body.overflow === "visible") continue;
+    for (const property of ["transform", "filter", "contain", "container-type"]) {
+      const value = rule.body[property];
+      if (value !== undefined && value !== "none" && value !== "normal") ancestorRisk.push(`.${rule.className}{${property}:${value}}`);
+    }
+  }
+  if (layerRule === null) return { layerClass: null, layer: null, children: null, ancestorRisk, css };
+  return {
+    layerClass: layerRule.className,
+    layer: layerRule.body,
+    children: merged.get(`${layerRule.className}>`)?.body ?? {},
+    ancestorRisk,
+    css
+  };
+}
+
+/**
+ * P-SHELL-OVERLAY-GEOMETRY 行为化 stage（整屏层几何与层叠语义）：
+ *   ① 官方 layout bundle 真实 apply，从运行期注入样式取层本体规则，断言整屏几何档
+ *      （`position:absolute; inset:0; z-index:<层本体档>; pointer-events:none`）与
+ *      直系子节点可交互（`>*{pointer-events:auto}`）——层本体自身即定位上下文；
+ *   ② 层叠档构成：各官方提供方 bundle 的注入样式里 z-index 实测值去重升序，须含
+ *      层本体档且官方浮层全在其上（任一浮层落进层本体之下＝FAIL）；
+ *   ③ 同层 `order` 语义：官方 slots 包**真实 SlotCore** 实跑（乱序注册 → 读回渲染序
+ *      为 order 升序）。
+ * 我方整屏层的 portal 锚点与祖先链「无 transform 类属性」属真实浏览器坐标——
+ * **显式降级**：归 V-A6.8 人工目视清单（同 HF-CLIENT-SLOTS 的降级口径）。
+ */
+export async function probeShellOverlayGeometryStage(roots) {
+  let layout;
+  try { layout = await runClientBundle(roots, "dsh-client-ui-layout"); }
+  catch (error) {
+    return { state: "FAIL", reason: `官方 layout bundle 无法调起：${errMsg(error)}`, coordinate: "dsh-client-ui-layout/lib/client.js" };
+  }
+  const facts = resolveOverlayLayerFacts(layout);
+  if (facts.layer === null) {
+    return {
+      state: "FAIL",
+      reason: "layout 运行期注入样式里未解析出整屏层几何（`position:absolute;inset:0;z-index;<档>;pointer-events:none` 唯一签名缺失）——覆盖式整屏层的宿主依据消失",
+      coordinate: "dsh-client-ui-layout/lib/client.js（执行期样式注入）"
+    };
+  }
+  const required = { position: "absolute", "pointer-events": "none" };
+  for (const [property, expected] of Object.entries(required)) {
+    if (facts.layer[property] !== expected) {
+      return { state: "FAIL", reason: `整屏层几何漂移：${property}=${JSON.stringify(facts.layer[property] ?? null)}（期望 ${expected}）——覆盖式整屏层落点改变`, coordinate: `dsh-client-ui-layout 注入样式 .${facts.layerClass}` };
+    }
+  }
+  if (!hasFullInset(facts.layer)) {
+    return { state: "FAIL", reason: `整屏层四边未归零（inset=${JSON.stringify(facts.layer.inset ?? null)}）——整屏覆盖不再满屏`, coordinate: `dsh-client-ui-layout 注入样式 .${facts.layerClass}` };
+  }
+  const layerBand = Number(facts.layer["z-index"]);
+  if (!Number.isInteger(layerBand)) {
+    return { state: "FAIL", reason: `整屏层未声明整数 z-index（${JSON.stringify(facts.layer["z-index"] ?? null)}）——层叠档无从锚定`, coordinate: `dsh-client-ui-layout 注入样式 .${facts.layerClass}` };
+  }
+  if (layerBand !== SHELL_OVERLAY_LAYER_BAND) {
+    return { state: "FAIL", reason: `整屏层层叠档漂移：z-index=${layerBand}（期望宿主范式 ${SHELL_OVERLAY_LAYER_BAND}）——层叠上限档改变，覆盖式呈现的定档依据失效`, coordinate: `dsh-client-ui-layout 注入样式 .${facts.layerClass}` };
+  }
+  if (facts.children["pointer-events"] !== "auto") {
+    return { state: "FAIL", reason: `整屏层直系子节点未恢复交互（>*{pointer-events:${JSON.stringify(facts.children["pointer-events"] ?? null)}}，期望 auto）——层内组件整体不可点`, coordinate: `dsh-client-ui-layout 注入样式 .${facts.layerClass}>*` };
+  }
+  if (facts.ancestorRisk.length > 0) {
+    return {
+      state: "FAIL",
+      reason: `整屏层祖先链出现裁剪/重锚风险声明：${facts.ancestorRisk.join("、")}（AppFrame 根声明 transform/filter/contain/container-type 后，层内 position:fixed 会被裁剪或重锚）`,
+      coordinate: `dsh-client-ui-layout 注入样式（祖先链规则）`
+    };
+  }
+  const bandModes = [];
+  for (const entry of HOST_OVERLAY_BANDS) {
+    const styles = await bandStyleText(roots, entry);
+    bandModes.push({ entry, styles: styles.via, modes: styles.text === null ? [] : collectFixedLayerBands(styles.text) });
+  }
+  const emptyBands = bandModes.filter((row) => row.modes.length === 0);
+  if (emptyBands.length > 0) {
+    return { state: "FAIL", reason: `官方浮层档位提供方缺失或样式里无 z-index：${emptyBands.map((row) => `${row.entry.source}（${row.styles}）`).join("、")}——层叠构成无从核验`, coordinate: emptyBands.map((row) => row.entry.source).join(" ; ") };
+  }
+  const ordered = [...new Set([layerBand, ...bandModes.flatMap((row) => row.modes)])].sort((a, b) => a - b);
+  // V-P2.5：我方 portal 层须「高于 AppFrame、低于官方 body 级浮层**最低档**」。
+  // 官方 body 级浮层地板＝{900,1000,1001,1100} 的最小档（现装宿主实测 900＝
+  // settings-account 的 `.tQSFJa_onboardingOverlay` position:fixed;z-index:900）。
+  // 判据：**不低于地板的官方固定定位档里最小者恰等于地板常量**——比地板小 ⇒ 官方
+  // 浮层下沉（我方 portal 取值上限被压低）；比地板大 ⇒ 地板本身漂移。
+  // 诊断（不作门）：层本体档与地板之间的官方固定定位件——现装实测 40＝
+  // settings-account 的 `.zwW4-W_card`（position:fixed;z-index:40 窄态卡片）。它是
+  // 官方既有次级层、低于整屏层档，永远盖不到我方 portal，故不参与地板判定。
+  // 实现用显式循环（不用谓词过滤）：2026-10-09 实测谓词式过滤在本门进程内对同一
+  // 数组会给出与逐元素比较不符的输出，档位选取必须确定。
+  let hasAboveLayer = false;
+  for (let i = 0; i < ordered.length; i += 1) {
+    if (ordered[i] - layerBand > 0) { hasAboveLayer = true; break; }
+  }
+  if (!hasAboveLayer) {
+    return { state: "FAIL", reason: `官方浮层未全在整屏层之上（实测档位 ${ordered.join("／")}）——层本体档被反超＝官方浮层盖章在整屏层之下`, coordinate: "各官方浮层 bundle 样式（position:fixed 规则档位）", bands: ordered };
+  }
+  let floatFloor = null;
+  for (let i = 0; i < ordered.length; i += 1) {
+    const band = ordered[i];
+    if (band - HOST_FLOAT_FLOOR_BAND < 0) continue;
+    if (floatFloor === null || floatFloor - band > 0) floatFloor = band;
+  }
+  const aboveLayer = [];
+  for (let i = 0; i < ordered.length; i += 1) {
+    if (ordered[i] - HOST_FLOAT_FLOOR_BAND >= 0) aboveLayer.push(ordered[i]);
+  }
+  const layerToFloorBands = [];
+  for (let i = 0; i < ordered.length; i += 1) {
+    const band = ordered[i];
+    if (band - layerBand > 0 && HOST_FLOAT_FLOOR_BAND - band > 0) layerToFloorBands.push(band);
+  }
+  const floorProvider = bandModes.find((row) => row.modes.includes(floatFloor));
+  if (floatFloor !== HOST_FLOAT_FLOOR_BAND) {
+    return {
+      state: "FAIL",
+      reason: `官方 body 级浮层最低档漂移：${floatFloor}（期望宿主范式 ${HOST_FLOAT_FLOOR_BAND}，来源 ${floorProvider?.entry.source ?? "未知"}）——我方 portal 层的「低于官方浮层」取值上限改变，V-P2.5 的层叠约束失效`,
+      coordinate: "各官方浮层 bundle 样式（position:fixed 规则档位）",
+      bands: ordered
+    };
+  }
+  const declaredBands = Object.fromEntries(bandModes.map((row) => [row.entry.source, row.modes]));
+  // 同层 order 语义：真实 SlotCore 实跑（乱序注册 → list 槽按 order 升序读回）
+  let SlotCore;
+  try {
+    const slotsApi = await importHostIndex(roots, "dsh-client-ui-slots");
+    SlotCore = slotsApi?.SlotCore;
+  } catch (error) {
+    return { state: "FAIL", reason: `官方 slots 包无法装载：${errMsg(error)}`, coordinate: "dsh-client-ui-slots" };
+  }
+  if (typeof SlotCore !== "function") {
+    return { state: "FAIL", reason: "官方 slots 包未导出 SlotCore（槽装载协议漂移）", coordinate: "dsh-client-ui-slots/lib/index.js" };
+  }
+  const core = new SlotCore();
+  core.register({ name: "root", children: { "shell.overlay": { kind: "list" } } }, () => null);
+  for (const [id, order] of [["probe-b", 30], ["probe-a", -10], ["probe-c", 0]]) {
+    core.register({ name: "shell.overlay", id, order }, () => null);
+  }
+  const orderedIds = (core.entriesOfSlot("shell.overlay") ?? []).map((entry) => entry.options.id);
+  if (orderedIds.join(",") !== "probe-a,probe-c,probe-b") {
+    return { state: "FAIL", reason: `同层兄弟 order 语义漂移：乱序注册后读回 ${orderedIds.join("／") || "空"}（期望 order 升序 probe-a／probe-c／probe-b）——同层定序依据失效，覆盖式呈现不得依赖 order`, coordinate: "dsh-client-ui-slots SlotCore.entriesOfSlot" };
+  }
+  return {
+    state: "PASS",
+    coordinate: `layout 注入样式 .${facts.layerClass}（整屏几何档 z-index=${layerBand}＋>* pointer-events＋祖先链无裁剪/重锚声明）＋官方浮层档位构成（${ordered.join("／")}；地板 ${floatFloor}）＋SlotCore order 升序实跑；我方整屏层的实际 portal 落点与浏览器裁剪行为属渲染期坐标——显式降级归 V-A6.8 人工目视清单`,
+    bands: ordered,
+    floatFloor,
+    layerToFloorBands,
+    overlay: { ...facts.layer },
+    ancestorRisk: facts.ancestorRisk,
+    declaredBands
+  };
+}
+
+/**
+ * P-HOST-TRANSITION-TOKENS 行为化 stage：真实 apply 官方 theme bundle，从运行期注入
+ * 样式取过渡令牌族的存在性与取值形状（3 时长 + 1 缓动）。令牌改名／改单位即 FAIL
+ * （宿主对未知令牌静默不报错，我方常量回退也会静默接管——这条静默面只由本探针把守）。
+ */
+export async function probeHostTransitionTokensStage(roots) {
+  let theme;
+  try { theme = await runClientBundle(roots, "dsh-client-ui-theme"); }
+  catch (error) {
+    return { state: "FAIL", reason: `官方 theme bundle 无法调起：${errMsg(error)}`, coordinate: "dsh-client-ui-theme/lib/client.js" };
+  }
+  const css = injectedStylesOf(theme);
+  const declarations = parseDeclarations(firstRuleBody(css, /:root/));
+  const readings = {};
+  for (const token of HOST_TRANSITION_TOKENS) {
+    const value = declarations[token.name];
+    if (value === undefined || value === "") {
+      const declared = collectCustomPropertyNames(css).filter((name) => name.startsWith("--ds-"));
+      return {
+        state: "FAIL",
+        reason: `宿主过渡令牌缺失：${token.name}（官方 :root 级声明 ${declared.join("／") || "无 --ds-*"}）——过渡参数无从取值，动效退化为硬切`,
+        coordinate: "dsh-client-ui-theme 注入样式 :root"
+      };
+    }
+    const shapeOk = token.kind === "time" ? TIME_VALUE_RE.test(value) : EASE_VALUE_RE.test(value);
+    if (!shapeOk) {
+      return {
+        state: "FAIL",
+        reason: `宿主过渡令牌取值形状漂移：${token.name}=${JSON.stringify(value)}（期望${token.kind === "time" ? "时间量 <number><s|ms>" : "缓动函数/关键字"}）`,
+        coordinate: "dsh-client-ui-theme 注入样式 :root"
+      };
+    }
+    readings[token.name] = value;
+  }
+  return {
+    state: "PASS",
+    coordinate: `theme 注入样式 :root 过渡令牌族（${HOST_TRANSITION_TOKENS.map((token) => `${token.name}=${readings[token.name]}`).join("／")}）`,
+    readings
+  };
+}
+
+
+
+// ---------------- pod 02 号票：焦点隔离面（真实 primitives 实包装载＋合成 DOM） ----------------
+
+/**
+ * 官方 primitives 实包必须导出的焦点隔离符号（04 号票的消费坐标）与其形状：
+ * 三个函数＋一枚选择器字面常量（`modalSelector` 本身就是字符串，不是函数）。
+ */
+export const FOCUS_LAYER_SYMBOLS = Object.freeze(["useModalLayer", "modalSelector", "closeTopModal", "isBehindModal"]);
+export const FOCUS_LAYER_SYMBOL_KINDS = Object.freeze({
+  useModalLayer: "function",
+  modalSelector: "string",
+  closeTopModal: "function",
+  isBehindModal: "function"
+});
+
+/** 官方 modal 契约选择器字面（快捷键分发器按文档序最后一个该类元素取 modal scope）。 */
+export const MODAL_SELECTOR_LITERAL = "[role=\"dialog\"][aria-modal=\"true\"], [role=\"menu\"]";
+
+/**
+ * 官方 `useModalLayer` 的 Tab 候选选择器字面（焦点囚笼的判定依据；宿主改名＝焦点
+ * 泄漏面漂移）。合成 DOM 的 `focusableItems` 与探针判据共用此串，防两边各写一份。
+ */
+export const FOCUSABLE_SELECTOR = "button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), a[href], [tabindex=\"0\"]";
+
+/**
+ * 收集一个 ESM 源的 import 需求：specifier → { named:Set, hasDefault:bool }。
+ * 用于为「按构建产物装盘、依赖未随盘安装」的官方前端包生成桩依赖图。
+ */
+export function collectImportNeeds(source) {
+  const needs = new Map();
+  const record = (spec) => {
+    if (!needs.has(spec)) needs.set(spec, { named: new Set(), hasDefault: false });
+    return needs.get(spec);
+  };
+  for (const match of String(source).matchAll(/^import\s*"([^"]+)";$/gm)) record(match[1]);
+  for (const match of String(source).matchAll(/^import\s+(\{[^}]*\}|[A-Za-z_$][\w$]*)(?:\s*,\s*(\{[^}]*\}|[A-Za-z_$][\w$]*))?\s+from\s+"([^"]+)";$/gm)) {
+    const need = record(match[3]);
+    for (const name of namedBindings(match[1], match[2])) need.named.add(name);
+    if (defaultBinding(match[1], match[2]) !== null) need.hasDefault = true;
+  }
+  return needs;
+}
+
+/** 从 import 子句两段里取命名绑定（`as` 取别名）；非标识符形态丢弃（防括号跨行吞并）。 */
+function namedBindings(...parts) {
+  const names = [];
+  for (const part of parts) {
+    if (typeof part !== "string" || !part.startsWith("{")) continue;
+    for (const item of part.slice(1, -1).split(",")) {
+      const name = item.trim().split(/\s+as\s+/).pop().trim();
+      if (/^[A-Za-z_$][\w$]*$/.test(name)) names.push(name);
+    }
+  }
+  return names;
+}
+
+/** 从 import 子句两段里取默认绑定名（无则 null）。 */
+function defaultBinding(...parts) {
+  for (const part of parts) {
+    if (typeof part === "string" && /^[A-Za-z_$][\w$]*$/.test(part.trim())) return part.trim();
+  }
+  return null;
+}
+
+/** 收集 import 子句里的**本地绑定名**（后续闭包提取用；`as` 取别名）。 */
+export function collectLocalBindings(source) {
+  const names = new Set();
+  for (const match of String(source).matchAll(/^import\s+(\{[^}]*\}|[A-Za-z_$][\w$]*)(?:\s*,\s*(\{[^}]*\}|[A-Za-z_$][\w$]*))?\s+from\s+"[^"]+";$/gm)) {
+    for (const name of namedBindings(match[1], match[2])) names.add(name);
+    const head = defaultBinding(match[1], match[2]);
+    if (head !== null) names.add(head);
+  }
+  return names;
+}
+
+/**
+ * 以「顶层声明跳读」实现闭包提取：从目标导出名出发，按需纳入引用到的顶层声明，直到
+ * 闭包收敛。覆盖 `function`／`class`（括号配对跳读声明体）与**单行标量常量**
+ * （`const X = 字面量|内置构造(...)`，如选择器字符串、`new WeakMap()` 这类模块级缓存
+ * ——四枚目标符号的闭包只吃这两类）。返回 `{ code, externals, missing }`：
+ * `externals`＝需由桩绑定的 import 名；`missing`＝闭包外仍未声明的根（＝打包形态漂移，
+ * 调用方报 FAIL）。
+ */
+export function sliceDeclarationClosure(source, roots, localBindings = new Set(), declaredNames = new Set()) {
+  const text = String(source);
+  const declarations = new Map();
+
+  /** 从 `{` 起做括号配对跳读（跳过字符串/模板/行注释），返回声明体结束下标。 */
+  const skipBody = (start) => {
+    let depth = 0;
+    let quote = null;
+    let escaped = false;
+    for (let index = start; index < text.length; index++) {
+      const char = text[index];
+      if (quote !== null) {
+        if (escaped) { escaped = false; continue; }
+        if (char === "\\") { escaped = true; continue; }
+        if (char === quote) quote = null;
+        continue;
+      }
+      if (char === '"' || char === "'" || char === "`") { quote = char; continue; }
+      if (char === "/" && text[index + 1] === "/") { index = text.indexOf("\n", index) - 1; continue; }
+      if (char === "{") depth += 1;
+      else if (char === "}") { depth -= 1; if (depth === 0) return index + 1; }
+    }
+    return text.length;
+  };
+
+  /**
+   * 从 `=` 起取整条声明语句的 `;`：跳过字符串/模板/注释，并按 `()`／`[]`／`{}` 配平
+   * （多行构造如 `new Set([...])` 也要吃全），配平归零后的首个 `;` 即语句末。
+   */
+  const skipStatement = (start) => {
+    let quote = null;
+    let escaped = false;
+    let depth = 0;
+    for (let index = start; index < text.length; index++) {
+      const char = text[index];
+      if (quote !== null) {
+        if (escaped) { escaped = false; continue; }
+        if (char === "\\") { escaped = true; continue; }
+        if (char === quote) quote = null;
+        continue;
+      }
+      if (char === '"' || char === "'" || char === "`") { quote = char; continue; }
+      if (char === "/" && text[index + 1] === "/") { index = text.indexOf("\n", index) - 1; continue; }
+      if (char === "/" && text[index + 1] === "*") { index = text.indexOf("*/", index) + 1; continue; }
+      if (char === "(" || char === "[" || char === "{") depth += 1;
+      else if (char === ")" || char === "]" || char === "}") depth -= 1;
+      else if (char === ";" && depth <= 0) return index + 1;
+    }
+    return text.length;
+  };
+
+  let at = 0;
+  while (at < text.length) {
+    const newline = text.indexOf("\n", at);
+    const lineEnd = newline === -1 ? text.length : newline;
+    const line = text.slice(at, lineEnd);
+    const fnClass = /^(?:export\s+)?(function\*?|class)\s+([A-Za-z_$][\w$]*)/.exec(line);
+    const constDecl = /^(?:export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=/.exec(line);
+    if (fnClass !== null && line.includes("{", fnClass[0].length)) {
+      const end = skipBody(at + line.indexOf("{", fnClass[0].length));
+      declarations.set(fnClass[2], text.slice(at, end).replace(/^export\s+/, "").trim());
+      at = Math.max(end, lineEnd) + 1;
+      continue;
+    }
+    if (constDecl !== null) {
+      const end = skipStatement(at + constDecl[0].length - 1);
+      declarations.set(constDecl[1], text.slice(at, end).replace(/^export\s+/, "").trim());
+      at = Math.max(end, lineEnd) + 1;
+      continue;
+    }
+    at = lineEnd + 1;
+  }
+
+  const inClosure = new Set();
+  const externals = new Set();
+  const identifiersOf = (code) => new Set([...code.matchAll(/[A-Za-z_$][\w$]*/g)].map((m) => m[0]));
+  const queue = [...roots];
+  while (queue.length > 0) {
+    const name = queue.pop();
+    if (inClosure.has(name)) continue;
+    const code = declarations.get(name);
+    if (code === undefined) continue;
+    inClosure.add(name);
+    for (const identifier of identifiersOf(code)) {
+      if (inClosure.has(identifier)) continue;
+      if (declarations.has(identifier)) {
+        if (!queue.includes(identifier)) queue.push(identifier);
+      } else if (localBindings.has(identifier)) {
+        externals.add(identifier);
+      }
+    }
+  }
+  const missing = [...roots].filter((name) => !inClosure.has(name) && !declaredNames.has(name));
+  return { code: [...inClosure].map((name) => declarations.get(name)).join("\n"), externals: [...externals], missing };
+}
+
+/** 官方 primitives 实包的 `export {…}` 自述面（诊断/否证用；真实装载走闭包提取）。 */
+export function readPrimitivesExportNamesFromEntry(entry) {
+  const source = readFileSync(entry, "utf8");
+  const names = new Set();
+  for (const match of source.matchAll(/^export\s*\{([\s\S]*?)\}\s*;?\s*$/gm)) {
+    for (const part of match[1].split(",")) {
+      const name = part.trim().split(/\s+as\s+/).pop().trim();
+      if (name) names.add(name);
+    }
+  }
+  return names;
+}
+
+/**
+ * 官方前端实包的**实体调起**（闭包提取，无 loader 钩子）：
+ *   - 官方把前端按**构建产物**装盘，依赖（react／shiki／mdast…）未随盘安装，`import`
+ *     实包在本机必然失败；本函数从包入口源里**提取目标符号可达的声明闭包**（顶层
+ *     函数/类声明＋标量常量），把 import 绑定与其余外部标识符降级为参数桩（外部标识符
+ *     给空函数，闭包外的取值不会执行），在 VM 里以函数体求值，返回目标符号的值。
+ *   - 这是**真实执行官方实现体**（不是文本/导出名断言）：依赖解析被桩掉，行为语义
+ *     完整。若官方改打包形态（目标符号不再是顶层声明），`missing` 非空即抛错（响亮）。
+ */
+export async function loadHostFrontendFacade(pkgDir, symbols) {
+  const entry = join(pkgDir, "lib", "index.js");
+  const source = readFileSync(entry, "utf8");
+  const localBindings = collectLocalBindings(source);
+  const declared = new Set(symbols.filter((name) => new RegExp(`^export\\s*\\{[^}]*\\b${name}\\b`, "m").test(source)));
+  const closure = sliceDeclarationClosure(source, symbols, localBindings, new Set(symbols));
+  if (closure.missing.length > 0) {
+    throw new Error(`官方 ${basename(pkgDir)} 打包形态漂移：目标符号 ${closure.missing.join("／")} 不在顶层声明面`);
+  }
+  const { runInThisContext } = await import("node:vm");
+  // 外部标识符（import 绑定等）以**形参**注入：闭包体里对这些名字的引用即取注入值，
+  // 未注入的标识符（闭包外的模块级名字）在闭包体内为 undefined——只在使用时才抛。
+  const injected = [...new Set([...localBindings, ...closure.externals])];
+  const factory = runInThisContext(`((${injected.join(", ")}) => {
+    ${closure.code}
+    return { ${symbols.map((name) => `${JSON.stringify(name)}: ${name}`).join(", ")} };
+  })`);
+  const arg = (name) => {
+    if (name === "useRef" || name === "useLayoutEffect") {
+      return (...args) => {
+        const fixture = globalThis.__dshHooks;
+        if (fixture === undefined) throw new Error(`官方 primitives 调起 ${name} 但 hook 夹具未装载（globalThis.__dshHooks）`);
+        return fixture[name](...args);
+      };
+    }
+    if (name === "jsx" || name === "jsxs" || name === "createElement") return (type, props) => ({ type, props });
+    if (name === "createPortal") return (node) => node;
+    if (name === "useId") return () => "stub-id";
+    if (name === "Fragment") return Symbol("Fragment");
+    if (name === "useState") return (initial) => [typeof initial === "function" ? initial() : initial, () => {}];
+    if (name === "useMemo") return (fn) => fn();
+    if (name === "useCallback") return (fn) => fn;
+    if (name === "useSyncExternalStore") return (_subscribe, getSnapshot) => getSnapshot();
+    return Object.assign(function stub() { return {}; }, new Proxy({}, { get: () => () => ({}) }));
+  };
+  const exportsObject = factory(...injected.map(arg));
+  return { exports: exportsObject, entry, closure, injected };
+}
+
+/** 极简 hook 夹具：`useRef` 起记忆、`useLayoutEffect` 按依赖变化重跑（`run` 返回清理器）。 */
+export function createHookFixture() {
+  const slots = [];
+  let cursor = 0;
+  const react = {
+    useRef(initial) {
+      const at = cursor++;
+      if (!slots[at] || !("ref" in slots[at])) slots[at] = { ref: { current: initial } };
+      return slots[at].ref;
+    },
+    useLayoutEffect(effect, deps) {
+      const at = cursor++;
+      const prev = slots[at];
+      const changed = !prev || !Array.isArray(prev.deps) || !Array.isArray(deps)
+        || deps.length !== prev.deps.length || deps.some((dep, index) => !Object.is(dep, prev.deps[index]));
+      if (changed) slots[at] = { deps: [...deps], effect };
+      else slots[at].effect = undefined;
+    }
+  };
+  return {
+    useRef: (value) => react.useRef(value),
+    useLayoutEffect: (effect, deps) => react.useLayoutEffect(effect, deps),
+    run(componentCall) {
+      cursor = 0;
+      componentCall();
+      const cleanups = [];
+      for (const slot of slots) {
+        if (!slot?.effect) continue;
+        const cleanup = slot.effect();
+        slot.effect = undefined;
+        if (typeof cleanup === "function") cleanups.push(cleanup);
+      }
+      return () => { for (const cleanup of cleanups.reverse()) cleanup(); };
+    }
+  };
+}
+
+/**
+ * 合成 DOM（焦点隔离面的执行域，见 `probeShellFocusLayerStage`）：元素继承注入的
+ * `HTMLElement`（官方钩子用 `instanceof HTMLElement` 判焦点归还目标），支持官方
+ * `useModalLayer` 用到的选择器子集：
+ *   - 复合选择器列表＝`分析器在**括号外**按 `,` 切分`（`:not([inert], [hidden])` 里的逗号
+ *     属 `:not` 的实参列表，不是选择器分隔符——2026-10-09 修正：原先按裸 `,` 切分，
+ *     该形态被切成两段残片后恒不匹配，`[inert]` 子树的排除语义在夹具里**静默失效**）；
+ *   - `:not(...)`＝实参再按裸 `,` 折为「排除组」（组内逗号＝或），每组支持标签、属性、
+ *     `:disabled`、`:focus` 三类简单形态；
+ *   - 裸形态＝标签＋属性选择器（`a[href]`／`[tabindex="0"]`）＋`:focus`。
+ * 选择器解析失败（出现本子集不认的形态）**抛错**而非静默不匹配——「夹具不认」必须响亮，
+ * 否则探针会在错误的执行域上给出 PASS。
+ */
+export function createFocusDom() {
+  const root = { tag: "#root", children: [], parent: null, attrs: {}, inert: false };
+  const listeners = new Map();
+  const dom = { root, document: null, activeElement: null };
+  class ElementStub {}
+  class HTMLElementStub extends ElementStub {}
+  dom.Element = ElementStub;
+  dom.HTMLElement = HTMLElementStub;
+
+  /** 顶层选择器列表切分：只认括号外的 `,`（`:not(a, b)` 的实参逗号不在此列）。 */
+  const splitTopLevel = (selector) => {
+    const parts = [];
+    let depth = 0;
+    let current = "";
+    for (const char of String(selector)) {
+      if (char === "(") depth += 1;
+      if (char === ")") depth -= 1;
+      if (char === "," && depth === 0) { parts.push(current); current = ""; continue; }
+      current += char;
+    }
+    parts.push(current);
+    return parts.map((part) => part.trim()).filter(Boolean);
+  };
+
+  /** `:not(...)` 实参切分（组内 `,` ＝或）。 */
+  const splitNotArgs = (args) => args.split(",").map((item) => item.trim()).filter(Boolean);
+
+  /** 取尽一个 `:not(` 的实参（括号配对；本子集内不会嵌套 `:not`）。`at` 指向 `:not(` 的冒号。 */
+  const takeNotArg = (rest, at) => {
+    let depth = 1; // 起点＝实参开头的 `(` 之后
+    for (let index = at + 5; index < rest.length; index++) {
+      if (rest[index] === "(") depth += 1;
+      else if (rest[index] === ")") {
+        depth -= 1;
+        if (depth === 0) return rest.slice(at + 5, index);
+      }
+    }
+    throw new Error(`合成 DOM 选择器解析失败：「${rest}」的 :not( 未闭合`);
+  };
+
+  /** 一个简单形态（无逗号、无 `:not`）→ {tag, attrs, disabled, focus, leftover}。 */
+  const simpleSpec = (part) => {
+    const spec = { tag: null, attrs: [], disabled: false, focus: false, leftover: "" };
+    let rest = part.trim();
+    const tag = /^[a-zA-Z][\w-]*/.exec(rest);
+    if (tag) { spec.tag = tag[0].toLowerCase(); rest = rest.slice(tag[0].length); }
+    rest = rest.replace(/:focus/g, () => { spec.focus = true; return ""; });
+    for (const attr of rest.matchAll(/\[([\w-]+)(?:="([^"]*)")?\]/g)) spec.attrs.push({ name: attr[1], value: attr[2] });
+    spec.leftover = rest.replace(/\[[\w-]+(?:="[^"]*")?\]/g, "").trim();
+    return spec;
+  };
+
+  /**
+   * 解析一个复合形态 → {tag, attrs, disabled, focus, notGroups[][]}。
+   * `:not(:disabled)` 单独识别（`disabled` 是**元素自身**的属性，不是选择器子串）：
+   * 关闭态＝元素未标 disabled。`inert` 是**祖先**属性，浏览器里被 inert 盖住的控件
+   * 仍是 `:not(:disabled)` 的命中项（不可聚焦由 inert 自身保证）；夹具不得替浏览器
+   * 多算这一层，否则「背景 inert 由谁排除」的判据会被夹具自己兜掉。
+   */
+  const parseCompound = (part) => {
+    const spec = { tag: null, attrs: [], disabled: false, focus: false, notGroups: [] };
+    let rest = part.trim().replace(/:not\(:disabled\)/g, () => { spec.disabled = true; return ""; });
+    const tag = /^[a-zA-Z][\w-]*/.exec(rest);
+    if (tag) { spec.tag = tag[0].toLowerCase(); rest = rest.slice(tag[0].length); }
+    while (true) {
+      const at = rest.indexOf(":not(");
+      if (at === -1) break;
+      const args = takeNotArg(rest, at);
+      spec.notGroups.push(splitNotArgs(args));
+      rest = rest.slice(0, at) + rest.slice(at + 5 + args.length + 1);
+    }
+    const simple = simpleSpec(rest);
+    spec.focus = simple.focus;
+    spec.attrs = [...spec.attrs, ...simple.attrs];
+    if (simple.leftover !== "") throw new Error(`合成 DOM 选择器解析失败：不认识的形态「${simple.leftover}」（片段「${part.trim()}」）`);
+    return spec;
+  };
+
+  const specMatches = (el, spec) => {
+    if (spec.tag !== null && String(el.tag).toLowerCase() !== spec.tag) return false;
+    // `:disabled` 只看 disabled 属性：`inert` 是**祖先**属性，浏览器里被 inert 盖住的
+    // 控件仍是 `:not(:disabled)` 的命中项（不可聚焦由 inert 自身保证）——夹具不得替
+    // 浏览器多算这一层，否则「背景 inert 由谁排除」的判据会被夹具自己兜掉。
+    if (spec.disabled && el.attrs.disabled !== undefined) return false;
+    if (spec.focus && dom.activeElement !== el) return false;
+    for (const attr of spec.attrs) {
+      if (attr.value === undefined) { if (el.attrs[attr.name] === undefined) return false; }
+      else if (el.attrs[attr.name] !== attr.value) return false;
+    }
+    for (const group of spec.notGroups) {
+      if (group.some((arg) => specMatches(el, parseCompound(arg)))) return false;
+    }
+    return true;
+  };
+
+  const matchesOne = (el, part) => specMatches(el, parseCompound(part));
+  dom.matchesSelector = (el, selector) =>
+    typeof selector === "string" && splitTopLevel(selector).some((part) => matchesOne(el, part));
+
+  const collect = (scope, selector) => {
+    const out = [];
+    const walk = (node) => {
+      for (const child of node.children ?? []) {
+        if (dom.matchesSelector(child, selector)) out.push(child);
+        walk(child);
+      }
+    };
+    walk(scope);
+    return out;
+  };
+
+  /**
+   * 可聚焦项集合；`excludeInert:true` 时套用官方 `useModalLayer` 的 Tab 候选过滤
+   * （`closest("[inert], [hidden]")`）。探针用它把「inert 子树确实进入过候选集、又被
+   * 过滤机制排除」两半分别照亮——两者都断言才算真考到过滤机制。
+   */
+  dom.focusableItems = (scope, { selector = FOCUSABLE_SELECTOR, excludeInert = false } = {}) => {
+    const items = collect(scope, selector);
+    return excludeInert ? items.filter((el) => el.closest("[inert], [hidden]") === null) : items;
+  };
+
+  const documentStub = {
+    addEventListener(type, fn) {
+      if (!listeners.has(type)) listeners.set(type, new Set());
+      listeners.get(type).add(fn);
+    },
+    removeEventListener(type, fn) { listeners.get(type)?.delete(fn); },
+    dispatch(type, event) { for (const fn of listeners.get(type) ?? []) fn(event); },
+    defaultView: { addEventListener: () => {}, removeEventListener: () => {} },
+    querySelectorAll: (selector) => collect(root, selector),
+    querySelector: (selector) => collect(root, selector)[0] ?? null
+  };
+  Object.defineProperty(documentStub, "activeElement", { get: () => dom.activeElement, set: (value) => { dom.activeElement = value; } });
+  dom.document = documentStub;
+
+  dom.make = (tag = "div", props = {}) => {
+    const el = new HTMLElementStub();
+    el.tag = tag;
+    el.attrs = { ...(props.attrs ?? {}) };
+    el.dataset = { ...(props.dataset ?? {}) };
+    el.children = [];
+    el.parent = null;
+    el.inert = props.inert ?? false;
+    el.isConnected = true;
+    el.ownerDocument = documentStub;
+    el.focusCount = 0;
+    el.setAttribute = function setAttribute(name, value) { this.attrs[name] = String(value); };
+    el.removeAttribute = function removeAttribute(name) { delete this.attrs[name]; };
+    el.getAttribute = function getAttribute(name) { return this.attrs[name] ?? null; };
+    el.addEventListener = () => {};
+    el.removeEventListener = () => {};
+    el.dispatchEvent = () => true;
+    el.focus = function focus() { this.focusCount += 1; dom.activeElement = this; };
+    el.contains = function contains(node) {
+      for (let cursor2 = node; cursor2 !== null && cursor2 !== undefined; cursor2 = cursor2.parent) {
+        if (cursor2 === this) return true;
+      }
+      return false;
+    };
+    el.querySelectorAll = (selector) => collect(el, selector);
+    el.querySelector = (selector) => collect(el, selector)[0] ?? null;
+    el.matches = (selector) => dom.matchesSelector(el, selector);
+    el.closest = function closest(selector) {
+      for (let cursor2 = this; cursor2 !== null && cursor2 !== undefined; cursor2 = cursor2.parent) {
+        if (cursor2 !== root && dom.matchesSelector(cursor2, selector)) return cursor2;
+      }
+      return null;
+    };
+    return el;
+  };
+  dom.append = (parent, child) => { child.parent = parent; parent.children.push(child); return child; };
+  dom.listeners = listeners;
+  return dom;
+}
+
+/** 键盘事件的默认形状（官方钩子读 `defaultPrevented`／`isComposing`／`repeat`／`shiftKey`）。 */
+export function keyEvent(patch = {}) {
+  const event = {
+    key: "", shiftKey: false, isComposing: false, repeat: false, defaultPrevented: false,
+    preventDefault: () => { event.defaultPrevented = true; }, ...patch
+  };
+  return event;
+}
+
+/**
+ * P-SHELL-FOCUS-LAYER 行为化 stage：真实装载官方 primitives 实包（构建产物，依赖以
+ * loader 桩替换），先断言四个导出在位且 `modalSelector` 字面精确，再以合成 DOM 实调
+ * `useModalLayer`：
+ *   ① 挂载即焦点入园（自动聚焦首个可聚焦控件）；
+ *   ② 背景 `[inert]` 子树被排除出 Tab 链；
+ *   ③ Tab 囚笼：末位控件 Tab 回卷首项；
+ *   ④ Escape 只关栈顶层；
+ *   ⑤ 焦点归还按 LIFO，且非栈顶层卸载时**不抢**焦点；
+ *   ⑥ `isBehindModal` 把被盖页面元素判为「应让键」。
+ * 真实浏览器里的 `inert`（不可聚焦／不可点）与 portal 渲染属渲染期坐标——**显式降级**：
+ * 归 V-A6.8 人工目视清单。
+ */
+export async function probeShellFocusLayerStage(roots) {
+  const pkgDirs = resolveCandidates(roots, "dsh-client-ui-primitives");
+  if (pkgDirs.length === 0) {
+    return { state: "FAIL", reason: "官方 primitives 实包不在本机（焦点隔离面载体缺失）", coordinate: roots.join(" ; ") || "discoverPackageRoots" };
+  }
+  let loaded;
+  try { loaded = await loadHostFrontendFacade(pkgDirs[0], FOCUS_LAYER_SYMBOLS); }
+  catch (error) {
+    return { state: "FAIL", reason: `官方 primitives 实包无法调起：${errMsg(error)}`, coordinate: pkgDirs.map((dir) => `${dir}/lib/index.js`).join(" ; ") };
+  }
+  const primitives = loaded.exports;
+  for (const symbol of FOCUS_LAYER_SYMBOLS) {
+    if (typeof primitives[symbol] !== FOCUS_LAYER_SYMBOL_KINDS[symbol]) {
+      return { state: "FAIL", reason: `官方 primitives 未导出 ${symbol}（期望 ${FOCUS_LAYER_SYMBOL_KINDS[symbol]}，实测 ${typeof primitives[symbol]}）——焦点／键盘隔离的宿主坐标缺失或形状漂移`, coordinate: "dsh-client-ui-primitives 导出面" };
+    }
+  }
+  if (primitives.modalSelector !== MODAL_SELECTOR_LITERAL) {
+    return {
+      state: "FAIL",
+      reason: `modal 契约选择器漂移：${JSON.stringify(primitives.modalSelector ?? null)}（期望 ${JSON.stringify(MODAL_SELECTOR_LITERAL)}）——快捷键分发器对 modal scope 的判定依据改变`,
+      coordinate: "dsh-client-ui-primitives lib/types/useModalLayer.js"
+    };
+  }
+  const dom = createFocusDom();
+  const fixture = createHookFixture();
+  const savedGlobals = new Map();
+  const installGlobal = (name, value) => {
+    savedGlobals.set(name, Object.getOwnPropertyDescriptor(globalThis, name));
+    Object.defineProperty(globalThis, name, { value, writable: true, configurable: true });
+  };
+  const violations = [];
+  const observations = {};
+  const cleanups = [];
+  try {
+    installGlobal("document", dom.document);
+    installGlobal("Element", dom.Element);
+    installGlobal("HTMLElement", dom.HTMLElement);
+    installGlobal("__dshHooks", { useRef: fixture.useRef, useLayoutEffect: fixture.useLayoutEffect });
+
+    const background = dom.make("button", { attrs: { tabindex: "0" } });
+    const covered = dom.make("button", { attrs: { tabindex: "0" } });
+    dom.append(dom.root, background);
+    dom.append(dom.root, covered);
+    const first = dom.make("button", { attrs: { tabindex: "0" } });
+    const last = dom.make("button", { attrs: { tabindex: "0" } });
+    const dialog = dom.make("div", { attrs: { role: "dialog", "aria-modal": "true" } });
+    // 背景 inert 的**实证坐标**：inert 子树必须真在 dialog 的查询域内，且位于末位之后
+    // ——这样「被 inert 排除」必须由 `closest("[inert], [hidden]")` 过滤机制自己做到，
+    // 而不是靠子树不在场（2026-10-09 修正：原先把 inert 子树挂在树外，排除判据恒真、
+    // 过滤机制实际未被考到）。
+    const inertWrap = dom.make("div", { attrs: { inert: "" } });
+    const inertButton = dom.make("button", { attrs: { tabindex: "0" } });
+    dom.append(inertWrap, inertButton);
+    dom.append(dialog, first);
+    dom.append(dialog, last);
+    dom.append(dialog, inertWrap);
+    dom.append(dom.root, dialog);
+    dom.document.activeElement = covered;
+
+    const closed = [];
+    const mount = (element, onClose) => {
+      const cleanup = fixture.run(() => primitives.useModalLayer({ current: element }, true, onClose));
+      cleanups.push(cleanup);
+      return cleanup;
+    };
+
+    mount(dialog, () => closed.push("dialog"));
+    observations.mountedActive = dom.activeElement === first ? "首个可聚焦控件" : (dom.activeElement === dialog ? "dialog 本体" : "未入园");
+    if (dom.activeElement !== first) violations.push(`挂载后焦点未进入 modal（实测 ${observations.mountedActive}）——焦点隔离第一步失效`);
+
+    // ② 背景 inert：inert 子树内的控件被排除出 Tab 链（inert 是**祖先**属性，官方
+    //    `useModalLayer` 靠 `closest("[inert], [hidden]")` 过滤，夹具须真走到这一步）
+    dom.document.activeElement = last;
+    const inertEvent = keyEvent({ key: "Tab" });
+    dom.document.dispatch("keydown", inertEvent);
+    observations.inertExcluded = dom.focusableItems(dialog).includes(inertButton)
+      && dom.focusableItems(dialog, { excludeInert: true }).includes(inertButton) === false
+      && inertButton.focusCount === 0
+      && dom.activeElement === first && inertEvent.defaultPrevented;
+    if (!observations.inertExcluded) violations.push("背景 inert 子树内控件仍进入 Tab 链——背景 inert 语义未生效");
+
+    // ③ Tab 囚笼：末位回卷首项
+    dom.document.activeElement = last;
+    const tabEvent = keyEvent({ key: "Tab" });
+    dom.document.dispatch("keydown", tabEvent);
+    observations.tabTrap = tabEvent.defaultPrevented && dom.activeElement === first;
+    if (!observations.tabTrap) violations.push("Tab 囚笼失效（末位 Tab 未回卷首项）——焦点会泄漏到被盖页面");
+
+    // ④ Escape 只关栈顶
+    const escapeEvent = keyEvent({ key: "Escape" });
+    dom.document.dispatch("keydown", escapeEvent);
+    observations.escapeClosedTop = escapeEvent.defaultPrevented && closed.join(",") === "dialog";
+    if (!observations.escapeClosedTop) violations.push(`Escape 处置异常（prevented=${escapeEvent.defaultPrevented}，关闭序 ${closed.join("／") || "无"}）`);
+
+    // ⑥ 被盖页面元素须让键
+    observations.behindModal = primitives.isBehindModal(covered) === true && primitives.isBehindModal(first) === false;
+    if (primitives.isBehindModal(covered) !== true || primitives.isBehindModal(first) !== false) {
+      violations.push("isBehindModal 判定漂移（被盖页面元素未判为「应让键」）");
+    }
+
+    // ⑤ LIFO：第二层挂载后卸载**第一层不得抢焦点**（首层已非栈顶）
+    const secondFirst = dom.make("button", { attrs: { tabindex: "0" } });
+    const secondDialog = dom.make("div", { attrs: { role: "dialog", "aria-modal": "true" } });
+    dom.append(secondDialog, secondFirst);
+    dom.append(dom.root, secondDialog);
+    const firstCleanup = cleanups[0];
+    mount(secondDialog, () => closed.push("second"));
+    firstCleanup();
+    observations.nonTopUnmountKeepsFocus = dom.activeElement === secondFirst;
+    if (!observations.nonTopUnmountKeepsFocus) violations.push("非栈顶层卸载时抢走焦点——嵌套还原语义（LIFO）失效");
+
+    cleanups[1]();
+    dom.document.activeElement = covered;
+    cleanups[0]();
+    observations.returnFocus = dom.activeElement === covered;
+    if (!observations.returnFocus) violations.push("卸载后焦点未归还挂载前元素");
+  } catch (error) {
+    return { state: "FAIL", reason: `真实调起官方 useModalLayer 失败：${errMsg(error)}`, coordinate: "dsh-client-ui-primitives useModalLayer（合成 DOM 执行域）" };
+  } finally {
+    for (const [name, descriptor] of savedGlobals) {
+      if (descriptor === undefined) delete globalThis[name];
+      else Object.defineProperty(globalThis, name, descriptor);
+    }
+  }
+  if (violations.length > 0) {
+    return { state: "FAIL", reason: violations.join("；"), coordinate: "dsh-client-ui-primitives useModalLayer／modalSelector（合成 DOM 实跑）" };
+  }
+  return {
+    state: "PASS",
+    coordinate: `primitives 实包导出 ${FOCUS_LAYER_SYMBOLS.join("／")}＋modalSelector 字面＋useModalLayer 合成 DOM 实跑（${JSON.stringify(observations)}）；真实浏览器 inert／portal 渲染——显式降级归 V-A6.8 人工目视清单`,
+    observations
+  };
+}
 
 /**
  * 上下文：{ roots, cliDirs, hostInstalled }。hostInstalled=false（两个发现面都
@@ -1056,7 +2081,7 @@ export const HOST_CONTRACT_PROBES = [
   {
     id: "P-CLIENT-SLOTS",
     face: "HF-CLIENT-SLOTS",
-    describe: "前端槽位：行为探针——真实 apply 官方 layout/sidebar bundle，断言声明槽树（sidebar single／main keyed／shell.overlay list／sidebar.footer.action list），并以真实 SlotCore 实跑我方 client 的槽注册落点（入口点击 → sidebar 占位 + main 槽 conversation 键；注册未声明槽即 FAIL）；渲染期 priority/abdicate 语义与渲染结果无头不可调起——显式降级归 V-A6.8 人工目视清单",
+    describe: "前端槽位：行为探针——真实 apply 官方 layout/sidebar bundle，断言声明槽树（sidebar single／main keyed／shell.overlay list／sidebar.footer.action list），并以真实 SlotCore 实跑我方 client 的槽注册落点（apply 期常驻入口钮＋通知容器；enter 期只在 shell.overlay 增一条 Pod 覆盖层条目，官方 sidebar／main 两相皆不得被我方占用＝覆盖式常驻口径；注册未声明槽即 FAIL）；渲染期 priority/abdicate 语义与渲染结果无头不可调起——显式降级归 V-A6.8 人工目视清单",
     async run(ctx) {
       if (!ctx.hostInstalled) return noHostSkip();
       const declaration = await probeClientSlotsStage(ctx.roots);
@@ -1331,6 +2356,33 @@ export const HOST_CONTRACT_PROBES = [
     run(ctx) {
       if (!ctx.hostInstalled) return noHostSkip("discoverDshCliDirs");
       return probeSessionLogStage(process.env.DSH_HOME ?? join(homedir(), ".dsh"));
+    }
+  },
+  {
+    id: "P-SHELL-OVERLAY-GEOMETRY",
+    face: "HF-SHELL-OVERLAY-GEOMETRY",
+    describe: "整屏层几何与层叠语义：行为探针——真实 apply 官方 layout bundle，从运行期注入样式断言层本体整屏几何档（position:absolute／inset:0／z-index:20／pointer-events:none＋>* auto；类名按几何语义签名反解），再由各官方浮层 bundle 的注入样式实测 z-index 构成（官方浮层须全在整屏层之上），同层 order 升序以真实 SlotCore 实跑；我方 portal 锚点与祖先链「无 transform 类属性」属渲染期坐标——显式降级归 V-A6.8 人工目视清单",
+    async run(ctx) {
+      if (!ctx.hostInstalled) return noHostSkip();
+      return probeShellOverlayGeometryStage(ctx.roots);
+    }
+  },
+  {
+    id: "P-HOST-TRANSITION-TOKENS",
+    face: "HF-HOST-TRANSITION-TOKENS",
+    describe: "过渡令牌族：行为探针——真实 apply 官方 theme bundle，从运行期注入样式取 `--ds-transition-duration(-fast/-slow)` 与 `--ds-ease-in-out`，断言存在性与取值形状（时间量／缓动函数）；宿主无 `--dsw-*` 动效令牌",
+    async run(ctx) {
+      if (!ctx.hostInstalled) return noHostSkip();
+      return probeHostTransitionTokensStage(ctx.roots);
+    }
+  },
+  {
+    id: "P-SHELL-FOCUS-LAYER",
+    face: "HF-SHELL-FOCUS-LAYER",
+    describe: "焦点／键盘隔离面：行为探针——真实装载官方 primitives 实包（构建产物依赖以 loader 桩替换）断言 `useModalLayer`／`modalSelector`／`closeTopModal`／`isBehindModal` 导出在位且 `modalSelector` 字面精确，再以合成 DOM 实调 `useModalLayer`：焦点入园／`[inert]` 子树排除／Tab 囚笼／Escape 只关栈顶／LIFO 焦点归还／被盖元素让键；真实浏览器 inert 语义——显式降级归 V-A6.8 人工目视清单",
+    async run(ctx) {
+      if (!ctx.hostInstalled) return noHostSkip();
+      return probeShellFocusLayerStage(ctx.roots);
     }
   }
 ];

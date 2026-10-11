@@ -33,7 +33,7 @@ const { scanKnowledgeLayerFace, knowledgeFaceShape, scanKnowledgeRegisterWriters
 // ---------- 夹具 ----------
 const roots = [];
 function mkFixture() {
-  const root = mkdtempSync(join(tmpdir(), "dsh-bots-kl-scan-"));
+  const root = mkdtempSync(join(tmpdir(), "pod-kl-scan-"));
   roots.push(root);
   const lib = join(root, "lib");
   const org = join(lib, "org");
@@ -44,7 +44,7 @@ function mkFixture() {
 
 /** 知识库根 fixture（建出空根；缺省已存在，测试可自行 rmSync 模拟未安装）。 */
 function mkKnowledgeRoot() {
-  const root = mkdtempSync(join(tmpdir(), "dsh-bots-kl-face-"));
+  const root = mkdtempSync(join(tmpdir(), "pod-kl-face-"));
   roots.push(root);
   return root;
 }

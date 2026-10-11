@@ -1,0 +1,60 @@
+{
+ "packageType": "deploy-sync-execution",
+ "runId": "pod-core-20261010T2016Z",
+ "batch": "pod-core",
+ "planPath": "artifacts/cutover-preparation/pod-core-20261010T2016Z-plan-37ad440c.json",
+ "planSha8": "37ad440c",
+ "specSha256": "ef305b776e55a52a5d0b32f4047665677ff7c028b090eafb1b0d034fbbcd6de3",
+ "commit": "bbb382db3cc0751c438fa5a965ea3688ef08031d",
+ "dshHome": "/home/beijong/.dsh",
+ "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+ "backupDir": "/home/beijong/.dsh/backups/dsh-bots/pod-core-20261010T2016Z-backup-37ad440c",
+ "backupManifestSha8": "1b590bce",
+ "capturedAt": "2026-10-10T12:15:34.432Z",
+ "authorization": "用户 2026-10-10 选定「把部署面回到不含工具行的形态（推荐）」",
+ "restart": "client 面按请求重打包（页面刷新即生效），无需重启",
+ "written": [
+  "lib/client.js",
+  "tests/client-disclosure.test.mjs",
+  "tests/locale.test.mjs",
+  "tests/pod-spec-face.test.mjs"
+ ],
+ "verify": [
+  {
+   "path": "lib/client.js",
+   "sourceSha256": "6efaba69a6b4af38d6d1ff9b35fc28f31d0184dbc3c107c5d08703ef76490c43",
+   "deployedSha256After": "6efaba69a6b4af38d6d1ff9b35fc28f31d0184dbc3c107c5d08703ef76490c43",
+   "ok": true
+  },
+  {
+   "path": "tests/client-disclosure.test.mjs",
+   "sourceSha256": "9138521294e12eac9ba023794cd4299cb3517a02efbde262fe223996a9a71b38",
+   "deployedSha256After": "9138521294e12eac9ba023794cd4299cb3517a02efbde262fe223996a9a71b38",
+   "ok": true
+  },
+  {
+   "path": "tests/locale.test.mjs",
+   "sourceSha256": "0a19f9123df7dc730fa27f963df9540c5efe7bd672b343b30051284ae45e2125",
+   "deployedSha256After": "0a19f9123df7dc730fa27f963df9540c5efe7bd672b343b30051284ae45e2125",
+   "ok": true
+  },
+  {
+   "path": "tests/pod-spec-face.test.mjs",
+   "sourceSha256": "564ab2484d8bf1153582ac3a8cd50af08986c7b00597adfa4cff30569378805b",
+   "deployedSha256After": "564ab2484d8bf1153582ac3a8cd50af08986c7b00597adfa4cff30569378805b",
+   "ok": true
+  }
+ ],
+ "inventoryAfter": {
+  "ok": true,
+  "require": "all-same",
+  "allSame": true,
+  "batchAllSame": true,
+  "total": 215,
+  "same": 215,
+  "notSame": [],
+  "deploymentOnly": 0,
+  "violations": []
+ },
+ "restoreNote": "cp -a /home/beijong/.dsh/backups/dsh-bots/pod-core-20261010T2016Z-backup-37ad440c/<path> /home/beijong/.dsh/plugins/dsh-bots/<path>（manifest.json.restore 段逐件给出）"
+}

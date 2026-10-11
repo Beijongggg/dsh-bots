@@ -69,7 +69,7 @@ function makeCtx() {
 
 const homes = [];
 function mkHome() {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-sec-"));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-sec-"));
   writeRegistryAtomic(home, { worker: {
     id: "worker", name: "Worker", role: "coder", modelProvider: "", model: "",
     port: 3201, permission: "workspace-write", enabled: true

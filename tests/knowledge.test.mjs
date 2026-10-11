@@ -33,7 +33,7 @@ const test = (name, fn) => results.push([name, fn]);
 // ---------- 夹具 ----------
 const homes = [];
 function mkHome() {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-kb-"));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-kb-"));
   homes.push(home);
   return home;
 }

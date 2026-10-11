@@ -9,7 +9,7 @@ import os from "node:os";
 
 const { internals } = await import("../lib/index.js");
 
-const home = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-reg-"));
+const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-reg-"));
 // exit 钩子清理临时目录（本文件有模块级 + 测试内两处 mkdtemp，数组收集）
 const tmpDirs = [home];
 process.on("exit", () => { for (const dir of tmpDirs) fs.rmSync(dir, { recursive: true, force: true }); });
@@ -26,7 +26,7 @@ test("原子写 + 读回 roundtrip", () => {
 });
 
 test("缺失/空文件 → {}；损坏 JSON → 抛错（apply 侧负责移开重建）", () => {
-  const empty = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-reg-"));
+  const empty = fs.mkdtempSync(path.join(os.tmpdir(), "pod-reg-"));
   tmpDirs.push(empty);
   assert.deepEqual(internals.readRegistry(empty), {});
   fs.mkdirSync(path.join(empty, "bots"), { recursive: true });
@@ -74,7 +74,7 @@ test("uniqueId：原型链名（constructor 等）不再被继承属性误判占
 });
 
 test("管理面守卫：原型链名 id 一律 404，不再伪成功/伪放行", async () => {
-  const guardHome = fs.mkdtempSync(path.join(os.tmpdir(), "dsh-bots-reg-"));
+  const guardHome = fs.mkdtempSync(path.join(os.tmpdir(), "pod-reg-"));
   tmpDirs.push(guardHome);
   const api = new internals.BotsApi({ logger: { warn() {}, info() {} } }, guardHome, null);
   internals.writeRegistryAtomic(guardHome, {
