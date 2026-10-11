@@ -1,0 +1,247 @@
+{
+ "packageType": "deploy-sync-execution",
+ "runId": "pod-core-rework-20261011T015554Z",
+ "batch": "pod-core-rework",
+ "planPath": "artifacts/cutover-preparation/pod-core-rework-20261011T015554Z-plan-1368b124.json",
+ "planSha8": "1368b124",
+ "specSha256": "73d4b4180707ef1629ed57f643230cbc2af96b25f99d6f5a79b42bfc2e7934cb",
+ "commit": "99dc3c0165cf840ecf5fb1f603d6677324c7881f",
+ "dshHome": "/home/beijong/.dsh",
+ "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+ "backupDir": "/home/beijong/.dsh/backups/dsh-bots/pod-core-rework-20261011T015554Z-backup-1368b124",
+ "backupManifestSha8": "c1f78835",
+ "capturedAt": "2026-10-11T01:56:09.541Z",
+ "authorization": "用户 2026-10-11 本会话点名「真机部署，人工判据给我清晰的要求」（出仓库动作逐项授权口径）",
+ "restart": "client 面按请求重打包（页面刷新即生效），无需重启",
+ "written": [
+  "lib/client.js",
+  "tests/client-disclosure.test.mjs",
+  "tests/pod-overlay.test.mjs",
+  "tests/pod-transition.test.mjs"
+ ],
+ "verify": [
+  {
+   "path": "lib/client.js",
+   "sourceSha256": "9e35504a06b8227cfccc0ce6a4ec5948f3bafb475d7ec6beca9a352b7d8fbcc4",
+   "deployedSha256After": "9e35504a06b8227cfccc0ce6a4ec5948f3bafb475d7ec6beca9a352b7d8fbcc4",
+   "ok": true
+  },
+  {
+   "path": "tests/client-disclosure.test.mjs",
+   "sourceSha256": "9715553a1f9ffc48d8f1c97303b7f881f42dda2553bb66e2aec1fe6044298e26",
+   "deployedSha256After": "9715553a1f9ffc48d8f1c97303b7f881f42dda2553bb66e2aec1fe6044298e26",
+   "ok": true
+  },
+  {
+   "path": "tests/pod-overlay.test.mjs",
+   "sourceSha256": "a015ca1d9e8e6455975d2b02f3697660e68283d33d529e20f6f2868985842262",
+   "deployedSha256After": "a015ca1d9e8e6455975d2b02f3697660e68283d33d529e20f6f2868985842262",
+   "ok": true
+  },
+  {
+   "path": "tests/pod-transition.test.mjs",
+   "sourceSha256": "1455a550a1842521e9f60bc6ccd04c830950fac5b003d9e0377a886a75d17f48",
+   "deployedSha256After": "1455a550a1842521e9f60bc6ccd04c830950fac5b003d9e0377a886a75d17f48",
+   "ok": true
+  }
+ ],
+ "inventoryAfter": {
+  "ok": false,
+  "require": "all-same",
+  "allSame": false,
+  "batchAllSame": true,
+  "total": 215,
+  "same": 169,
+  "notSame": [
+   {
+    "path": "lib/bot-autostart.js",
+    "state": "changed"
+   },
+   {
+    "path": "lib/bot-supervisor.js",
+    "state": "changed"
+   },
+   {
+    "path": "lib/index.js",
+    "state": "changed"
+   },
+   {
+    "path": "lib/lock-trace.js",
+    "state": "changed"
+   },
+   {
+    "path": "lib/org/capability-delivery.js",
+    "state": "changed"
+   },
+   {
+    "path": "lib/org/host-env-seam.js",
+    "state": "changed"
+   },
+   {
+    "path": "lib/org/ledger-host.js",
+    "state": "changed"
+   },
+   {
+    "path": "lib/org/mail-relay.js",
+    "state": "changed"
+   },
+   {
+    "path": "lib/org/op-set.js",
+    "state": "changed"
+   },
+   {
+    "path": "lib/org/permissions.js",
+    "state": "changed"
+   },
+   {
+    "path": "lib/org/post-channel.js",
+    "state": "changed"
+   },
+   {
+    "path": "lib/org/role-cards.js",
+    "state": "changed"
+   },
+   {
+    "path": "lib/shared.cjs",
+    "state": "changed"
+   },
+   {
+    "path": "lib/stats.js",
+    "state": "changed"
+   },
+   {
+    "path": "scripts/host-contract-probe.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/anchor-bootstrap.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/api-security.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/bot-health-session-log.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/events.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/fs-hygiene.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/host-contract-gate.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/host-env-seam.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/jsonl.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/knowledge-shared-face.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/knowledge.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/ledger-host.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/locale-runtime.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/locale.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/lock-dir.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/mail-at-least-once.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/mail-notify.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/org-acceptance-coordinates.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/org-mail-client.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/org-mail-shared-face.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/org-vocabulary-face.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/pid-bind.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/pod-spec-face.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/pod-trace.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/registry.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/reply-route.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/route.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/rpc-envelope.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/run.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/spawn-env.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/stats.test.mjs",
+    "state": "changed"
+   },
+   {
+    "path": "tests/watcher.test.mjs",
+    "state": "changed"
+   }
+  ],
+  "deploymentOnly": 0,
+  "violations": [
+   "require=all-same：实测 46 件漂移"
+  ]
+ },
+ "restoreNote": "cp -a /home/beijong/.dsh/backups/dsh-bots/pod-core-rework-20261011T015554Z-backup-1368b124/<path> /home/beijong/.dsh/plugins/dsh-bots/<path>（manifest.json.restore 段逐件给出）"
+}

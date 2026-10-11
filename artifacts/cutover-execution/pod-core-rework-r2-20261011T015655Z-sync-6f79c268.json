@@ -1,0 +1,354 @@
+{
+ "packageType": "deploy-sync-execution",
+ "runId": "pod-core-rework-r2-20261011T015655Z",
+ "batch": "pod-core-rework-r2",
+ "planPath": "artifacts/cutover-preparation/pod-core-rework-r2-20261011T015655Z-plan-82a942bc.json",
+ "planSha8": "82a942bc",
+ "specSha256": "24e54cee65c10ad7547db6654f18f6658da0c1f776d76d602d7d2f2c2f8dde75",
+ "commit": "99dc3c0165cf840ecf5fb1f603d6677324c7881f",
+ "dshHome": "/home/beijong/.dsh",
+ "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+ "backupDir": "/home/beijong/.dsh/backups/dsh-bots/pod-core-rework-r2-20261011T015655Z-backup-82a942bc",
+ "backupManifestSha8": "f7e561c1",
+ "capturedAt": "2026-10-11T01:57:00.480Z",
+ "authorization": "用户 2026-10-11 本会话点名「真机部署，人工判据给我清晰的要求」；r2＝同一授权的补齐执行（首跑 all-same 失败的还原路径＝完成同步，非回滚）",
+ "restart": "client 面按请求重打包（页面刷新即生效），无需重启",
+ "written": [
+  "lib/bot-autostart.js",
+  "lib/bot-supervisor.js",
+  "lib/index.js",
+  "lib/lock-trace.js",
+  "lib/org/capability-delivery.js",
+  "lib/org/host-env-seam.js",
+  "lib/org/ledger-host.js",
+  "lib/org/mail-relay.js",
+  "lib/org/op-set.js",
+  "lib/org/permissions.js",
+  "lib/org/post-channel.js",
+  "lib/org/role-cards.js",
+  "lib/shared.cjs",
+  "lib/stats.js",
+  "scripts/host-contract-probe.mjs",
+  "tests/anchor-bootstrap.test.mjs",
+  "tests/api-security.test.mjs",
+  "tests/bot-health-session-log.test.mjs",
+  "tests/events.test.mjs",
+  "tests/fs-hygiene.test.mjs",
+  "tests/host-contract-gate.test.mjs",
+  "tests/host-env-seam.test.mjs",
+  "tests/jsonl.test.mjs",
+  "tests/knowledge-shared-face.test.mjs",
+  "tests/knowledge.test.mjs",
+  "tests/ledger-host.test.mjs",
+  "tests/locale-runtime.test.mjs",
+  "tests/locale.test.mjs",
+  "tests/lock-dir.test.mjs",
+  "tests/mail-at-least-once.test.mjs",
+  "tests/mail-notify.test.mjs",
+  "tests/org-acceptance-coordinates.test.mjs",
+  "tests/org-mail-client.test.mjs",
+  "tests/org-mail-shared-face.test.mjs",
+  "tests/org-vocabulary-face.test.mjs",
+  "tests/pid-bind.test.mjs",
+  "tests/pod-spec-face.test.mjs",
+  "tests/pod-trace.test.mjs",
+  "tests/registry.test.mjs",
+  "tests/reply-route.test.mjs",
+  "tests/route.test.mjs",
+  "tests/rpc-envelope.test.mjs",
+  "tests/run.mjs",
+  "tests/spawn-env.test.mjs",
+  "tests/stats.test.mjs",
+  "tests/watcher.test.mjs"
+ ],
+ "verify": [
+  {
+   "path": "lib/bot-autostart.js",
+   "sourceSha256": "1d80b2b659a5a4d499b9a45bbfb25074092b7de06788b3a7eaaaf12573471ec4",
+   "deployedSha256After": "1d80b2b659a5a4d499b9a45bbfb25074092b7de06788b3a7eaaaf12573471ec4",
+   "ok": true
+  },
+  {
+   "path": "lib/bot-supervisor.js",
+   "sourceSha256": "18cf7508035071c4be7c28e9365f0f6c62b2135533983a50d902418854930a78",
+   "deployedSha256After": "18cf7508035071c4be7c28e9365f0f6c62b2135533983a50d902418854930a78",
+   "ok": true
+  },
+  {
+   "path": "lib/index.js",
+   "sourceSha256": "afad028a9ad91707146dae7dd084f3002ec0c5eee283d3f5eb533083e1c2156b",
+   "deployedSha256After": "afad028a9ad91707146dae7dd084f3002ec0c5eee283d3f5eb533083e1c2156b",
+   "ok": true
+  },
+  {
+   "path": "lib/lock-trace.js",
+   "sourceSha256": "1272602ff84a1141dfc675fe46ac96662fc82976f6734edddb5f62c0aadd746b",
+   "deployedSha256After": "1272602ff84a1141dfc675fe46ac96662fc82976f6734edddb5f62c0aadd746b",
+   "ok": true
+  },
+  {
+   "path": "lib/org/capability-delivery.js",
+   "sourceSha256": "6fcd109d4c314695b72ab81c44beec175d626a381eb8c34de0c516d7160b8644",
+   "deployedSha256After": "6fcd109d4c314695b72ab81c44beec175d626a381eb8c34de0c516d7160b8644",
+   "ok": true
+  },
+  {
+   "path": "lib/org/host-env-seam.js",
+   "sourceSha256": "f87f622ee4a5741fa34393778416ebad24622ce35247402a6528ce9a49ae68b4",
+   "deployedSha256After": "f87f622ee4a5741fa34393778416ebad24622ce35247402a6528ce9a49ae68b4",
+   "ok": true
+  },
+  {
+   "path": "lib/org/ledger-host.js",
+   "sourceSha256": "d1837ce90d743683966c2809578867aee06bcac6f00f93a553f7d89b8461f9ed",
+   "deployedSha256After": "d1837ce90d743683966c2809578867aee06bcac6f00f93a553f7d89b8461f9ed",
+   "ok": true
+  },
+  {
+   "path": "lib/org/mail-relay.js",
+   "sourceSha256": "4ab8d0a4594ebc38812caab27315c703715c72360a73c30fab4d95fd21ccd536",
+   "deployedSha256After": "4ab8d0a4594ebc38812caab27315c703715c72360a73c30fab4d95fd21ccd536",
+   "ok": true
+  },
+  {
+   "path": "lib/org/op-set.js",
+   "sourceSha256": "e1ba106d306f71e2f84af129cbf1f7f00a688069d97b4a46b4f9e822d4299750",
+   "deployedSha256After": "e1ba106d306f71e2f84af129cbf1f7f00a688069d97b4a46b4f9e822d4299750",
+   "ok": true
+  },
+  {
+   "path": "lib/org/permissions.js",
+   "sourceSha256": "f4483d5da8fd19fd378744793719b6ecb450562ecb30e489f766ad42be781263",
+   "deployedSha256After": "f4483d5da8fd19fd378744793719b6ecb450562ecb30e489f766ad42be781263",
+   "ok": true
+  },
+  {
+   "path": "lib/org/post-channel.js",
+   "sourceSha256": "794c5e03a1ee59ec2a194560ba78122f219fcbc8e0a203d2da5ad248192c4ec2",
+   "deployedSha256After": "794c5e03a1ee59ec2a194560ba78122f219fcbc8e0a203d2da5ad248192c4ec2",
+   "ok": true
+  },
+  {
+   "path": "lib/org/role-cards.js",
+   "sourceSha256": "02e5f766446edf3db9cf2858b84c8bcb6ab080cdb447cab5e6ebe7df69af111e",
+   "deployedSha256After": "02e5f766446edf3db9cf2858b84c8bcb6ab080cdb447cab5e6ebe7df69af111e",
+   "ok": true
+  },
+  {
+   "path": "lib/shared.cjs",
+   "sourceSha256": "5093d8202dcd5455cca65f3ae5fdef0800306ac19808425d19de5ec6d75d608e",
+   "deployedSha256After": "5093d8202dcd5455cca65f3ae5fdef0800306ac19808425d19de5ec6d75d608e",
+   "ok": true
+  },
+  {
+   "path": "lib/stats.js",
+   "sourceSha256": "d4910325d4d1dfcb07ee46e4d0b3b3741b0cf08e200ca9e02c8a21bba7e4caa4",
+   "deployedSha256After": "d4910325d4d1dfcb07ee46e4d0b3b3741b0cf08e200ca9e02c8a21bba7e4caa4",
+   "ok": true
+  },
+  {
+   "path": "scripts/host-contract-probe.mjs",
+   "sourceSha256": "4fe1096fb445f95197a136134f1ee40bbb58ee9d6dcf703b256f1f2aedbaecf7",
+   "deployedSha256After": "4fe1096fb445f95197a136134f1ee40bbb58ee9d6dcf703b256f1f2aedbaecf7",
+   "ok": true
+  },
+  {
+   "path": "tests/anchor-bootstrap.test.mjs",
+   "sourceSha256": "97466cd595a7b2adc84740274b3b23398058e938b083d1d5a353e639298b4131",
+   "deployedSha256After": "97466cd595a7b2adc84740274b3b23398058e938b083d1d5a353e639298b4131",
+   "ok": true
+  },
+  {
+   "path": "tests/api-security.test.mjs",
+   "sourceSha256": "ab5984403af10f39167c45306b5ff557f556401ea226e1008f38b483b0b4f1d1",
+   "deployedSha256After": "ab5984403af10f39167c45306b5ff557f556401ea226e1008f38b483b0b4f1d1",
+   "ok": true
+  },
+  {
+   "path": "tests/bot-health-session-log.test.mjs",
+   "sourceSha256": "b6139fcf4518710e5e09e2a5df8dd5a7a2ec302c39d3aba29adc3cf9e9d6f469",
+   "deployedSha256After": "b6139fcf4518710e5e09e2a5df8dd5a7a2ec302c39d3aba29adc3cf9e9d6f469",
+   "ok": true
+  },
+  {
+   "path": "tests/events.test.mjs",
+   "sourceSha256": "80fa63cf1e43f51f5646955689d17b11d6c8573c2dd59195a466857d0428e552",
+   "deployedSha256After": "80fa63cf1e43f51f5646955689d17b11d6c8573c2dd59195a466857d0428e552",
+   "ok": true
+  },
+  {
+   "path": "tests/fs-hygiene.test.mjs",
+   "sourceSha256": "60312eb5ac20e14ccb74094d37f12b488d249c9ac8a3774c9a5d5fe7cc6a13a9",
+   "deployedSha256After": "60312eb5ac20e14ccb74094d37f12b488d249c9ac8a3774c9a5d5fe7cc6a13a9",
+   "ok": true
+  },
+  {
+   "path": "tests/host-contract-gate.test.mjs",
+   "sourceSha256": "52e64c9f8278e99f8822ff7f474e20859431efab194c0fd7eb9d575442b8ebc0",
+   "deployedSha256After": "52e64c9f8278e99f8822ff7f474e20859431efab194c0fd7eb9d575442b8ebc0",
+   "ok": true
+  },
+  {
+   "path": "tests/host-env-seam.test.mjs",
+   "sourceSha256": "2f459a6c51a4f534a83e791972f31f89dd7d114bd50e0b6f5814ac5737e2f2bb",
+   "deployedSha256After": "2f459a6c51a4f534a83e791972f31f89dd7d114bd50e0b6f5814ac5737e2f2bb",
+   "ok": true
+  },
+  {
+   "path": "tests/jsonl.test.mjs",
+   "sourceSha256": "1e8f36dec9d043d20b4ee941e81d1421b58f568d5c0d6d4148fd9d6ee5aaaad2",
+   "deployedSha256After": "1e8f36dec9d043d20b4ee941e81d1421b58f568d5c0d6d4148fd9d6ee5aaaad2",
+   "ok": true
+  },
+  {
+   "path": "tests/knowledge-shared-face.test.mjs",
+   "sourceSha256": "14ddff635373e000e179abfaf5c302df16231f65439c3ea612ae04df6d0bb2d2",
+   "deployedSha256After": "14ddff635373e000e179abfaf5c302df16231f65439c3ea612ae04df6d0bb2d2",
+   "ok": true
+  },
+  {
+   "path": "tests/knowledge.test.mjs",
+   "sourceSha256": "1a7a6ac7c29084d3f1a9fb326744227e6fbac28acd762fe1e95f176e7e1cbb61",
+   "deployedSha256After": "1a7a6ac7c29084d3f1a9fb326744227e6fbac28acd762fe1e95f176e7e1cbb61",
+   "ok": true
+  },
+  {
+   "path": "tests/ledger-host.test.mjs",
+   "sourceSha256": "58b25379386e0dcc34dafa8a2066b4752be2540b7bc99c5343e577c0191c78d8",
+   "deployedSha256After": "58b25379386e0dcc34dafa8a2066b4752be2540b7bc99c5343e577c0191c78d8",
+   "ok": true
+  },
+  {
+   "path": "tests/locale-runtime.test.mjs",
+   "sourceSha256": "39571aef71bf4abcf3d6d72de7215e93473865dbc2c3865da5feca8a10966829",
+   "deployedSha256After": "39571aef71bf4abcf3d6d72de7215e93473865dbc2c3865da5feca8a10966829",
+   "ok": true
+  },
+  {
+   "path": "tests/locale.test.mjs",
+   "sourceSha256": "c3d44658ed5c11d6e38e23523c18eb63e61ecd07135307568fa79654af5d973a",
+   "deployedSha256After": "c3d44658ed5c11d6e38e23523c18eb63e61ecd07135307568fa79654af5d973a",
+   "ok": true
+  },
+  {
+   "path": "tests/lock-dir.test.mjs",
+   "sourceSha256": "fc6a8671e7a6fc63a14c3bdca275d2d2d9c8d260b5d34aecc379a4d8d44e0035",
+   "deployedSha256After": "fc6a8671e7a6fc63a14c3bdca275d2d2d9c8d260b5d34aecc379a4d8d44e0035",
+   "ok": true
+  },
+  {
+   "path": "tests/mail-at-least-once.test.mjs",
+   "sourceSha256": "77378c8b6e5aba4f88d99a3570a7e9be231afa4ffe59e23a380b45ee2ef7c005",
+   "deployedSha256After": "77378c8b6e5aba4f88d99a3570a7e9be231afa4ffe59e23a380b45ee2ef7c005",
+   "ok": true
+  },
+  {
+   "path": "tests/mail-notify.test.mjs",
+   "sourceSha256": "4e995c380ed4af4fd661406e7f0172d58543cc3f3ad3f2f377700577e19889cf",
+   "deployedSha256After": "4e995c380ed4af4fd661406e7f0172d58543cc3f3ad3f2f377700577e19889cf",
+   "ok": true
+  },
+  {
+   "path": "tests/org-acceptance-coordinates.test.mjs",
+   "sourceSha256": "ebb07f14893c6e3586ec7d3014a8340a8c467e390c0b7ab1b9d00b9dcde484cd",
+   "deployedSha256After": "ebb07f14893c6e3586ec7d3014a8340a8c467e390c0b7ab1b9d00b9dcde484cd",
+   "ok": true
+  },
+  {
+   "path": "tests/org-mail-client.test.mjs",
+   "sourceSha256": "56d3aa51531e3ae6bf6cbcb4e23936a9dc178e6202a38f6a192e2a4dff43b951",
+   "deployedSha256After": "56d3aa51531e3ae6bf6cbcb4e23936a9dc178e6202a38f6a192e2a4dff43b951",
+   "ok": true
+  },
+  {
+   "path": "tests/org-mail-shared-face.test.mjs",
+   "sourceSha256": "92bf5d9769b6c10e685c4712c9126f6ba7d6e79529e0c5d7e73a8f56218a1760",
+   "deployedSha256After": "92bf5d9769b6c10e685c4712c9126f6ba7d6e79529e0c5d7e73a8f56218a1760",
+   "ok": true
+  },
+  {
+   "path": "tests/org-vocabulary-face.test.mjs",
+   "sourceSha256": "82b32156b40ffd18bf8cb3623e6e27a678388385ecbbf56e251c87fa95d6cfb4",
+   "deployedSha256After": "82b32156b40ffd18bf8cb3623e6e27a678388385ecbbf56e251c87fa95d6cfb4",
+   "ok": true
+  },
+  {
+   "path": "tests/pid-bind.test.mjs",
+   "sourceSha256": "54508f4217b7bb643a980dd44eb9ace347a38825abe6757b3f3fe6f7bd1cbe3c",
+   "deployedSha256After": "54508f4217b7bb643a980dd44eb9ace347a38825abe6757b3f3fe6f7bd1cbe3c",
+   "ok": true
+  },
+  {
+   "path": "tests/pod-spec-face.test.mjs",
+   "sourceSha256": "51edb632f872d33acd2bc1f7780274d1558e2e18fb4b74974d44c06a3fa5a917",
+   "deployedSha256After": "51edb632f872d33acd2bc1f7780274d1558e2e18fb4b74974d44c06a3fa5a917",
+   "ok": true
+  },
+  {
+   "path": "tests/pod-trace.test.mjs",
+   "sourceSha256": "9ec6b72547fe3b812abb093ed6f7a1ea10d5a9767567b475d2825907455e45df",
+   "deployedSha256After": "9ec6b72547fe3b812abb093ed6f7a1ea10d5a9767567b475d2825907455e45df",
+   "ok": true
+  },
+  {
+   "path": "tests/registry.test.mjs",
+   "sourceSha256": "346d593a84f61a4e64289de6012b63b7ccb0b9a5da500b91d3aaa70cbdf6a222",
+   "deployedSha256After": "346d593a84f61a4e64289de6012b63b7ccb0b9a5da500b91d3aaa70cbdf6a222",
+   "ok": true
+  },
+  {
+   "path": "tests/reply-route.test.mjs",
+   "sourceSha256": "cad6f813e1b201cefb1e2d2ce34c97e1a6c2e124c1cf4b22af525ce51894c146",
+   "deployedSha256After": "cad6f813e1b201cefb1e2d2ce34c97e1a6c2e124c1cf4b22af525ce51894c146",
+   "ok": true
+  },
+  {
+   "path": "tests/route.test.mjs",
+   "sourceSha256": "b1dd30b9cac88bc158b00c3466133e3dbf65a12cccc6f5514456a128776cb93d",
+   "deployedSha256After": "b1dd30b9cac88bc158b00c3466133e3dbf65a12cccc6f5514456a128776cb93d",
+   "ok": true
+  },
+  {
+   "path": "tests/rpc-envelope.test.mjs",
+   "sourceSha256": "e5fe276abde2c8b7cdebe76265ff3ec69ce46a9f2797156dcb4091145dbc3e6c",
+   "deployedSha256After": "e5fe276abde2c8b7cdebe76265ff3ec69ce46a9f2797156dcb4091145dbc3e6c",
+   "ok": true
+  },
+  {
+   "path": "tests/run.mjs",
+   "sourceSha256": "4e84409affb1e077d46fdbce3d89ea0fffb41a5042ed580cd86d26551228fc08",
+   "deployedSha256After": "4e84409affb1e077d46fdbce3d89ea0fffb41a5042ed580cd86d26551228fc08",
+   "ok": true
+  },
+  {
+   "path": "tests/spawn-env.test.mjs",
+   "sourceSha256": "4af5bf2aef27abbcef17e791a958614f2e416f54cd0210e9cc872c93eb45f54d",
+   "deployedSha256After": "4af5bf2aef27abbcef17e791a958614f2e416f54cd0210e9cc872c93eb45f54d",
+   "ok": true
+  },
+  {
+   "path": "tests/stats.test.mjs",
+   "sourceSha256": "cf7950e3c89b2ccaf69ad21cc52a5cc4f65fb3064dfa7e712286ace8ede7c403",
+   "deployedSha256After": "cf7950e3c89b2ccaf69ad21cc52a5cc4f65fb3064dfa7e712286ace8ede7c403",
+   "ok": true
+  },
+  {
+   "path": "tests/watcher.test.mjs",
+   "sourceSha256": "6a41027324758c1bd681322329e41f551acd1ab169884dcfb46d4f23b0b247b6",
+   "deployedSha256After": "6a41027324758c1bd681322329e41f551acd1ab169884dcfb46d4f23b0b247b6",
+   "ok": true
+  }
+ ],
+ "inventoryAfter": {
+  "ok": true,
+  "require": "all-same",
+  "allSame": true,
+  "batchAllSame": true,
+  "total": 215,
+  "same": 215,
+  "notSame": [],
+  "deploymentOnly": 0,
+  "violations": []
+ },
+ "restoreNote": "cp -a /home/beijong/.dsh/backups/dsh-bots/pod-core-rework-r2-20261011T015655Z-backup-82a942bc/<path> /home/beijong/.dsh/plugins/dsh-bots/<path>（manifest.json.restore 段逐件给出）"
+}

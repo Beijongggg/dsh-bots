@@ -1,0 +1,48 @@
+{
+ "packageType": "deploy-sync-executor",
+ "specSha256": "73d4b4180707ef1629ed57f643230cbc2af96b25f99d6f5a79b42bfc2e7934cb",
+ "runId": "pod-core-rework-20261011T015554Z",
+ "batch": "pod-core-rework",
+ "commit": "99dc3c0165cf840ecf5fb1f603d6677324c7881f",
+ "reason": "pod core 批评审返修批（0efc9e8＋99dc3c0）部署同步：V-P3.1 出场侧过渡补齐、09 痕迹 data-turn-trigger 摘除、podInertStack 清理、过渡令牌单源收敛；人工判据真机走查前置",
+ "authorization": "用户 2026-10-11 本会话点名「真机部署，人工判据给我清晰的要求」（出仓库动作逐项授权口径）",
+ "restart": "client 面按请求重打包（页面刷新即生效），无需重启",
+ "dshHome": "/home/beijong/.dsh",
+ "deployDir": "/home/beijong/.dsh/plugins/dsh-bots",
+ "snapshot": "源字节取自 git archive <commit> -- <paths>（不读工作树）",
+ "inventoryRequire": "all-same",
+ "entries": [
+  {
+   "path": "lib/client.js",
+   "action": "write",
+   "sourceSha256": "9e35504a06b8227cfccc0ce6a4ec5948f3bafb475d7ec6beca9a352b7d8fbcc4",
+   "sourceByteLength": 216205,
+   "deployedSha256Before": "6efaba69a6b4af38d6d1ff9b35fc28f31d0184dbc3c107c5d08703ef76490c43",
+   "changed": true
+  },
+  {
+   "path": "tests/client-disclosure.test.mjs",
+   "action": "write",
+   "sourceSha256": "9715553a1f9ffc48d8f1c97303b7f881f42dda2553bb66e2aec1fe6044298e26",
+   "sourceByteLength": 17979,
+   "deployedSha256Before": "9138521294e12eac9ba023794cd4299cb3517a02efbde262fe223996a9a71b38",
+   "changed": true
+  },
+  {
+   "path": "tests/pod-overlay.test.mjs",
+   "action": "write",
+   "sourceSha256": "a015ca1d9e8e6455975d2b02f3697660e68283d33d529e20f6f2868985842262",
+   "sourceByteLength": 83659,
+   "deployedSha256Before": "34c64a2a5c343270d79dd39576c7d41c8d0c606bc6b89dc1f088e1bc32756ce7",
+   "changed": true
+  },
+  {
+   "path": "tests/pod-transition.test.mjs",
+   "action": "write",
+   "sourceSha256": "1455a550a1842521e9f60bc6ccd04c830950fac5b003d9e0377a886a75d17f48",
+   "sourceByteLength": 40271,
+   "deployedSha256Before": "3f2314cc9080e6fa5ff147048640728d971b78c01d40e550011d9cbeb8447480",
+   "changed": true
+  }
+ ]
+}
