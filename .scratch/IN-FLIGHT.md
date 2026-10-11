@@ -11,6 +11,6 @@
 本表，再看 `git worktree list` 与 `git status`。同票撞面时以本表先登记者为先，
 后来者换隔离工作面并在备注注明。
 
-| 任务 | 会话／工具 | 工作面 | 领取时间 | 备注 |
-|---|---|---|---|---|
-| pod core 批（01–06/10/11）＋12 号票改名扫 | DSH implement-spec（session-dc33ac81）；2026-10-10 起评审返修由 zcode 会话接手（用户点名） | `integration/pod-core`（待并）；搁置件留 `integration/pod`；工作树 `.worktrees/pod-*` | 2026-10-09 14:20 | 2026-10-10 用户裁定 07／08／09（工具行/专用行/turn-trigger）搁置、不并入主树；12 号票已收口（`ed6033a`）；zcode 会话完成两轴评审＋返修两轮（`0efc9e8`＋`99dc3c0`）＋真机部署（all-same 215/215，`EV-20261011-pod-core-rework-deploy`；client 面刷新即生效，host 未重启）；用户 2026-10-11 走查署名「没有问题」——六条人工判据闭合、core 批 64 条判据面全部闭合（`a9e1335`，`EV-20261011-pod-core-human-signoff`）；分支待并（合并/push 待点名）；13／14／15 待逐项点名 |
+| 任务 | 会话／工具 | 工作面 | spec／票面 | 领取时间 | 备注 |
+|---|---|---|---|---|---|
+| retro pod 批候选落地 R1②/R2/R6（用户点名） | zcode retro 会话 | main 工作树（恒真断言门＋观察项）＋追加提交（sessionLog 单源＋字面量门＋布局探针共享） | —（登记者补） | 2026-10-11 | 不动 pod 批票面 Status；只叠加 lint/重构件，不改判据面。**工作面更正（同日，zcode 收口会话）**：`integration/pod-core` 已并回 main（`63c8d37`）并删支，追加提交**改落 main** |
