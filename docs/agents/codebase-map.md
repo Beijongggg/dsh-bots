@@ -26,14 +26,14 @@
 | `native-session-rpc.js` | 进程内直调官方 sessionController 的 RPC 包装 |
 | `bot-supervisor.js` | bot 子进程生命周期与自愈 |
 | `bot-autostart.js` | `dsh web` 启动时拉起 bot |
-| `spawn-env.js` | bot 子进程环境白名单（`DSH_HOME`/`DSH_WEB_URL`/`DSH_BOTS_HOST_URL`/`DSH_TOOLS_MODE` 等经此注入） |
-| `api-security.js` | `/api/bots` 变更面 CSRF 令牌会话；`TOKEN_HEADER` 单源 |
+| `spawn-env.js` | bot 子进程环境白名单（`DSH_HOME`/`DSH_WEB_URL`/`POD_HOST_URL`/`DSH_TOOLS_MODE` 等经此注入；POD_* 名读侧经 `lib/env-aliases.js` 双读回落旧名） |
+| `api-security.js` | `/api/pod` 变更面 CSRF 令牌会话；`TOKEN_HEADER`（`x-pod-token`）单源 |
 | `host-services.js` | 宿主服务适配层（HF-CTX-SERVICES） |
 | `host-faces.js` | 宿主适配面登记表（HF-*，`hostCoordinate`/`readAccess`）；改宿主相关代码先查此表 |
 | `mail-plane.js` | 邮局原语：inbox/outbox 路径、解析、seq 分配 |
 | `knowledge.js` | 团队调研知识底座（v1 纯函数核心） |
 | `stats.js` | 会话统计推导（ContextMeter/StatsLine 数据源） |
-| `trace-projection.js` | L2 工具轨迹投影（pod 06 号票）：`projectTrace` 纯函数（冻结记录形状＋PTC 信封归并＋`counters.gap`）＋`offlineTrace` 离线读盘（复用 `findSessionLogFile`／`readSessionEventsFromFile` 与 mtime/size 结果缓存）；读取面挂 `BotsApi.trace`／`GET /api/bots/:id/trace` |
+| `trace-projection.js` | L2 工具轨迹投影（pod 06 号票）：`projectTrace` 纯函数（冻结记录形状＋PTC 信封归并＋`counters.gap`）＋`offlineTrace` 离线读盘（复用 `findSessionLogFile`／`readSessionEventsFromFile` 与 mtime/size 结果缓存）；读取面挂 `BotsApi.trace`／`GET /api/pod/:id/trace` |
 | `evidence-packager.js`、`sentinel-*.js` | v3 合同的探针与证据包链（冻结批，改动须新 runId） |
 | `shared.cjs` | 宿主 profile patch 构造共用件（`buildPatchYamlShared`） |
 | `session-log-names.cjs` | 会话日志文件名代际发现单源（`sessionLogCandidates` 候选序；retro R2——`stats.js` 与 `scripts/bot-health.cjs` 同源消费，字面量只准在此件） |
@@ -69,7 +69,7 @@
 | `post-channel.js` | bot→host 组织命令通道（幂等键经 `dispatch` 传入） |
 | `host-channel.js` | bot→host 认证通道原语；`BOT_ID_HEADER` 单源 |
 | `host-contract.js` | 宿主契约巡检子进程适配（16 号票）：报告只落临时目录，台账写入归 ledger-host |
-| `host-env-seam.js` | 宿主环境缝判定与报警文案单源：`DSH_BOTS_HOST_URL` 缺失/形状非法即宿主台面响亮（39 号票） |
+| `host-env-seam.js` | 宿主环境缝判定与报警文案单源：`POD_HOST_URL` 缺失/形状非法即宿主台面响亮（39 号票；读侧双读回落旧名） |
 | `mail-relay.js` / `mail-client.js` | host 邮件中继（投递面唯一写者）／bot 侧通道腿 |
 | `mail-shared-face.js` / `knowledge-shared-face.js` | 投递面／记忆共享面直写扫描 |
 | `brief.js` / `brief-gate.js` | 四要素简报契约／命令面前置门 |
@@ -95,7 +95,7 @@
   `api-security` 令牌；任何新的变更端点自动受门，但绕过 `handleApi` 自建路由
   的 bot 侧客户端必须自带令牌（先例：mail 客户端返工）。
 - **身份头单源**：`BOT_ID_HEADER` 只在 `host-channel.js` 定义；不得在别处
-  字面量 `x-dsh-bots-bot-id`（`tests/org-mail-shared-face.test.mjs` 有单源锁）。
+  字面量 `x-pod-bot-id`（`tests/org-mail-shared-face.test.mjs` 有单源锁）。
 - **产出方单源**：`producerOf`（task-ledger.js）是登记门、复核工件、独立性
   门共用的唯一原语；不要用易变的 `owner` 判产出方（16 号票 rv1 blocker 教训）。
 - **拒绝落账走 `reject()`**（task-ledger.js）：幂等键由调用方传入，必须稳定

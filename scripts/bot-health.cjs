@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * bot-health.cjs — dsh-bots 稳定框架第 1 层：bot 健康检测 / 安全修复 / 验证闭环。
+ * bot-health.cjs — Pod 稳定框架第 1 层：bot 健康检测 / 安全修复 / 验证闭环。
  *
- * 本工具对 dsh-bots 的每个 bot 做六项健康检查（会话日志、会话状态、进程注册、
+ * 本工具对 Pod 的每个 bot 做六项健康检查（会话日志、会话状态、进程注册、
  * 邮局、配置、部署一致性），对 FAIL 项按清单执行安全修复，并在修复后自动复检，
  * 形成「检测 → 修复 → 验证」闭环。
  *
@@ -43,7 +43,7 @@ const MAGIC = Buffer.from([0x28, 0xb5, 0x2f, 0xfd]);
 // EV-20261011-retro-pod-impl；lib/stats.js 同源消费，两处不再手抄同步）。
 // LEGACY_NAME 供「会话文件缺失」报文拼路径（单源件导出，正为此消费者）。
 const { sessionLogCandidates, SESSION_LOG_LEGACY_NAME } = require("../lib/session-log-names.cjs");
-// 本脚本所在目录（scripts/）与 dsh-bots 项目根
+// 本脚本所在目录（scripts/）与 Pod 项目根
 const SCRIPT_DIR = __dirname;
 const PROJECT_DIR = path.join(SCRIPT_DIR, "..");
 
@@ -625,7 +625,7 @@ function checkBot(root, botId, entry) {
           rep,
           "WARN",
           "配置一致",
-          `agent-default-model (${adm.provider}/${adm.model}) 与 bots.json (${entry.modelProvider}/${entry.model}) 不一致；用 dsh-bots UI 编辑保存或 stop/start 重脚手架（不自动改）`,
+          `agent-default-model (${adm.provider}/${adm.model}) 与 bots.json (${entry.modelProvider}/${entry.model}) 不一致；用 Pod UI 编辑保存或 stop/start 重脚手架（不自动改）`,
           "d"
         );
       }
@@ -638,9 +638,9 @@ function checkBot(root, botId, entry) {
 /** 部署一致性：插件 lib/{client.js,index.js}、scripts/create-bot.cjs 与项目侧 sha256 比对。 */
 function checkDeployment(root, rep) {
   const pairs = [
-    { name: "lib/client.js", plugin: path.join(root, "plugins", "dsh-bots", "lib", "client.js"), src: path.join(PROJECT_DIR, "lib", "client.js") },
-    { name: "lib/index.js", plugin: path.join(root, "plugins", "dsh-bots", "lib", "index.js"), src: path.join(PROJECT_DIR, "lib", "index.js") },
-    { name: "scripts/create-bot.cjs", plugin: path.join(root, "plugins", "dsh-bots", "scripts", "create-bot.cjs"), src: path.join(SCRIPT_DIR, "create-bot.cjs") },
+    { name: "lib/client.js", plugin: path.join(root, "plugins", "pod", "lib", "client.js"), src: path.join(PROJECT_DIR, "lib", "client.js") },
+    { name: "lib/index.js", plugin: path.join(root, "plugins", "pod", "lib", "index.js"), src: path.join(PROJECT_DIR, "lib", "index.js") },
+    { name: "scripts/create-bot.cjs", plugin: path.join(root, "plugins", "pod", "scripts", "create-bot.cjs"), src: path.join(SCRIPT_DIR, "create-bot.cjs") },
   ];
   for (const pr of pairs) {
     const pe = fs.existsSync(pr.plugin);
@@ -829,7 +829,7 @@ function repairBot(root, botId, args) {
     console.log(`${r.ok ? "OK  " : "FAIL"}  同步 llm-pi-ai  ${r.msg}`);
   }
   if (needDrift) {
-    console.log(`WARN  配置漂移  用 dsh-bots UI 编辑保存或 stop/start 重脚手架（不自动改）`);
+    console.log(`WARN  配置漂移  用 Pod UI 编辑保存或 stop/start 重脚手架（不自动改）`);
   }
 
   // 验证闭环：修复后自动复检

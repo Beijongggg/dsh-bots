@@ -68,7 +68,7 @@ export function assertIsolatedDrillHome(home) {
   const dshHome = resolve(process.env.DSH_HOME ?? join(process.env.HOME ?? "", ".dsh"));
   const protectedRoots = [
     { label: "真实 DSH_HOME", lexical: dshHome },
-    { label: "部署目录", lexical: join(dshHome, "plugins", "dsh-bots") },
+    { label: "部署目录", lexical: join(dshHome, "plugins", "pod") },
     { label: "仓库代码区 lib/", lexical: join(repoRoot, "lib") },
     { label: "仓库代码区 scripts/", lexical: join(repoRoot, "scripts") },
     { label: "仓库代码区 tests/", lexical: join(repoRoot, "tests") }

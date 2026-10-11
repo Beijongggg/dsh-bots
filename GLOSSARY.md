@@ -64,11 +64,12 @@ signal-0 存在性之外校验该值仍相等——host 重启或 pid 被系统�
 ## 逃生阀（env allowlist escape hatch）
 
 spawn env 白名单（`lib/spawn-env.js`）的显式放行通道：宿主设置
-`DSH_BOTS_ENV_EXTRA`（逗号分隔变量名）把基集与 DSH 显式集之外的变量附加进
-bot 子进程环境，缺名安全忽略。附加名同受 KEY/TOKEN/SECRET/PASSWORD 形态与
-NODE_OPTIONS 的绝对拒绝约束——逃生阀不解锁凭据形态。命名与
-`DSH_BOTS_AUTORESTART` 开关族一致；运维用例＝放行 http_proxy/https_proxy/
-no_proxy（dsh 引用 NO_PROXY，代理变量不在基集）。
+`POD_ENV_EXTRA`（逗号分隔变量名；13 号票改名批由 `DSH_BOTS_*` 家族更名，
+读侧经 `lib/env-aliases.js` 双读——新名优先、旧名回落兼容一个窗口）把基集
+与 DSH 显式集之外的变量附加进 bot 子进程环境，缺名安全忽略。附加名同受
+KEY/TOKEN/SECRET/PASSWORD 形态与 NODE_OPTIONS 的绝对拒绝约束——逃生阀不解
+锁凭据形态。命名与 `POD_AUTORESTART` 开关族一致；运维用例＝放行
+http_proxy/https_proxy/no_proxy（dsh 引用 NO_PROXY，代理变量不在基集）。
 
 ## 岗位（role class）与岗位实例（role instance）
 

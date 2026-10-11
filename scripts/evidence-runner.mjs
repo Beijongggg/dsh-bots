@@ -138,7 +138,7 @@ export function validateRunnerOutRoot(outRoot, { profile = "evidence", repoRoot:
   }
   const outAbs = resolve(outRoot);
   const home = resolve(process.env.DSH_HOME ?? join(process.env.HOME ?? "", ".dsh"));
-  const deploy = join(home, "plugins", "dsh-bots");
+  const deploy = join(home, "plugins", "pod");
   const protectedRoots = [
     { label: "DSH_HOME", lexical: home },
     { label: "部署目录", lexical: deploy }
@@ -369,7 +369,7 @@ async function runEvidence(opts) {
 
   // ---- O-6.3：真实运行面运行前快照（只读） ----
   const home = resolve(process.env.DSH_HOME ?? join(process.env.HOME ?? "", ".dsh"));
-  const deployDir = join(home, "plugins", "dsh-bots");
+  const deployDir = join(home, "plugins", "pod");
   const surfaces = [
     { label: "真实 DSH_HOME", path: home },
     { label: "真实部署目录", path: deployDir }
