@@ -255,12 +255,44 @@ export function tautologyLint(repoRoot) {
   return { scanned: files.length, violations };
 }
 
-/** ③门成功行摘要：preflight 主块与 ci-gates 共用单源，防两处格式串漂移（retro3 评审处置）。 */
-export function lintSummary(lint) {
-  return `扫 ${lint.scanned} 个 md；命名扫描 ${lint.namingScanned} 个活文件；知识库扫描 ${lint.knowledgeScanned} 个脚本，登记／废弃调用者 ${lint.knowledgeCallers.length} 个；地图覆盖 ${lint.mapScanned} 个 lib/org 件；恒真断言扫描 ${lint.tautScanned} 个测试件`;
+/**
+ * 第③门 session-log 名域限 lint（retro R2b，EV-20261011-retro-pod-impl）：会话日志
+ * 文件名字面量只准活在单源件 `lib/session-log-names.cjs`（含旧名与版本化
+ * `session.v<N>` 两形）；lib/＋scripts/ 代码件（.js/.mjs/.cjs，含注释）出现即
+ * 违例。pod 批 06 号票先例：同一代际知识点三处事故，返修后仍两处手抄同步。
+ * tests/ 不在扫描面（夹具造名属测试正当面）。模式以字面量正则书写、覆盖裸文与
+ * 转义源码两形（`session.v<数字>` 裸文，与「session＋可选反斜杠＋点号＋v」的
+ * 正则源码形态；`session.value` 一类不误报），其自身转义形态不匹配本文件源码
+ * 文本——改模式后须复跑自扫确认零违例。
+ */
+const SESSION_LOG_NAME_LINT_ALLOW = new Set(["lib/session-log-names.cjs"]);
+const SESSION_LOG_NAME_LINT_RE = /session\\?\.v[\d(\\]|session\\?\.jsonl/;
+
+/** 扫 lib/＋scripts/ 代码件的会话日志文件名字面量；返回 {scanned, violations[]}。 */
+export function sessionLogNameLint(repoRoot) {
+  const violations = [];
+  const files = [
+    ...(existsSync(join(repoRoot, "lib")) ? walkLiveFiles(repoRoot, "lib", []) : []),
+    ...(existsSync(join(repoRoot, "scripts")) ? walkLiveFiles(repoRoot, "scripts", []) : []),
+  ].filter((rel) => /\.(?:js|mjs|cjs)$/.test(rel));
+  for (const rel of files) {
+    if (SESSION_LOG_NAME_LINT_ALLOW.has(rel)) continue;
+    const lines = readFileSync(join(repoRoot, rel), "utf8").split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      if (SESSION_LOG_NAME_LINT_RE.test(lines[i])) {
+        violations.push(`${rel}:${i + 1} 会话日志文件名字面量域限（单源＝lib/session-log-names.cjs）`);
+      }
+    }
+  }
+  return { scanned: files.length, violations };
 }
 
-/** 第③门：状态词表、知识库写者、日志、命名、代码地图覆盖与恒真断言检查共用违例出口，独立于回归和宿主探针。 */
+/** ③门成功行摘要：preflight 主块与 ci-gates 共用单源，防两处格式串漂移（retro3 评审处置）。 */
+export function lintSummary(lint) {
+  return `扫 ${lint.scanned} 个 md；命名扫描 ${lint.namingScanned} 个活文件；知识库扫描 ${lint.knowledgeScanned} 个脚本，登记／废弃调用者 ${lint.knowledgeCallers.length} 个；地图覆盖 ${lint.mapScanned} 个 lib/org 件；恒真断言扫描 ${lint.tautScanned} 个测试件；session-log 名域限 ${lint.sessionNameScanned} 个代码件`;
+}
+
+/** 第③门：状态词表、知识库写者、日志、命名、代码地图覆盖、恒真断言与 session-log 名域限检查共用违例出口，独立于回归和宿主探针。 */
 export function repositoryLint(repoRoot) {
   const status = statusLint(join(repoRoot, ".scratch"));
   const knowledge = scanKnowledgeLayerFace(repoRoot);
@@ -269,6 +301,7 @@ export function repositoryLint(repoRoot) {
   const naming = namingLint(repoRoot);
   const codeMap = codeMapLint(repoRoot);
   const taut = tautologyLint(repoRoot);
+  const sessionName = sessionLogNameLint(repoRoot);
   return {
     scanned: status.scanned,
     namingScanned: naming.scanned,
@@ -276,7 +309,8 @@ export function repositoryLint(repoRoot) {
     knowledgeCallers: writers.callers,
     mapScanned: codeMap.scanned,
     tautScanned: taut.scanned,
-    violations: [...status.violations, ...knowledge.violations, ...writers.violations, ...changelog.violations, ...naming.violations, ...codeMap.violations, ...taut.violations]
+    sessionNameScanned: sessionName.scanned,
+    violations: [...status.violations, ...knowledge.violations, ...writers.violations, ...changelog.violations, ...naming.violations, ...codeMap.violations, ...taut.violations, ...sessionName.violations]
   };
 }
 

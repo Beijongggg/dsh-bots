@@ -304,3 +304,11 @@ PTC 内层真实名挂在信封 `subCalls[].name` 且不别名化；`turn` 是�
   trace 记录形状与响应形状」——摘除反而违约；`counters.gap` 即 R5-②「投影缺口次数」的数据
   供给面，消费者（票 07）搁置中、实害为零。07 复活时若要收敛诊断落点，走票面 amend 而非
   静默改口径。
+
+
+- 2026-10-11 retro R2 单源化（EV-20261011-retro-pod-impl，追加于 core 待并分支）：本票返修引入的
+  `sessionLogCandidates` 此前在 `lib/stats.js` 与 `scripts/bot-health.cjs` 两处手抄（靠注释
+  「必须同步演进」维系）。现收敛为 `lib/session-log-names.cjs` 单源（`lib/shared.cjs` 同款
+  ESM/CJS 共用形态），两消费方原行为不变（`tests/stats.test.mjs`／`tests/bot-health-session-log.test.mjs`
+  原样全绿，其中双实现对拍断言自然同源成立）。配套第③门新增 session-log 名域限 lint：
+  文件名字面量只准出现在单源件（`scripts/preflight.mjs::sessionLogNameLint`）。不改本票判据面。

@@ -16,6 +16,7 @@ import {
   namingLint,
   codeMapLint,
   tautologyLint,
+  sessionLogNameLint,
   repositoryLint,
 } from "../scripts/preflight.mjs";
 
@@ -381,4 +382,55 @@ test("门序（V-A6.5）：宿主契约门挂在冻结面门之后——四道�
   assert.match(source, /spawnSync\(process\.execPath, \[join\(repoRoot, "scripts", "host-contract-probe\.mjs"\)\]/,
     "④ 门须以独立探针脚本子进程执行（不并入测试套件）");
   assert.match(source, /preflight: \$\{pass \? "PASS" : "FAIL"\}/, "四门 AND 单出口");
+});
+
+/**
+ * retro R2b（EV-20261011-retro-pod-impl）：session-log 文件名字面量域限 lint。
+ * pod 批 06 号票先例——文件名代际这一知识点烧三次（离线读面 v4 全盲、交付抽样
+ * 只挑旧名件、bot-health 同盲区），返修后两处手抄靠注释「必须同步演进」维系。
+ * 单源收敛后（lib/session-log-names.cjs），字面量只准活在单源件；lib/＋scripts/
+ * 代码件（含注释）出现即违例。tests/ 不在扫描面（夹具造名属测试正当面）。
+ */
+test("sessionLogNameLint：字面量域限单源件；单源件路径豁免、模块名引用不误报", () => {
+  const root = makeFixture();
+  try {
+    mkdirSync(join(root, "lib"), { recursive: true });
+    mkdirSync(join(root, "scripts"), { recursive: true });
+    // 违例：lib 与 scripts 内的字面量（注释同样计——代际知识必须活在一处）
+    writeFileSync(join(root, "lib", "rogue.js"), `const LEGACY = "session.v4.jsonl.zstd";\n`);
+    writeFileSync(join(root, "scripts", "rogue.cjs"), `// 回落旧名 session.jsonl.zstd\n`);
+    // 违例：正则源码形态（点号被转义）同样被抓；session.value 类近似词不误报
+    writeFileSync(join(root, "lib", "rogue-re.js"), "const RE = /session\\.v(\\d+)\\.jsonl\\.zstd/;\n");
+    writeFileSync(join(root, "lib", "fine.js"), "const s = cfg.session.value;\n");
+    // 豁免：单源件路径本身
+    writeFileSync(join(root, "lib", "session-log-names.cjs"), `const LEGACY = "session.jsonl.zstd";\n`);
+    // 合法：按模块名引用（不含文件名字面量）
+    writeFileSync(join(root, "lib", "stats.js"), `const { sessionLogCandidates } = requireCjs("./session-log-names.cjs");\n`);
+    const r = sessionLogNameLint(root);
+    assert.equal(r.scanned, 6, "lib/＋scripts/ 代码件全扫（js/mjs/cjs）");
+    assert.equal(r.violations.length, 3, "目录序不稳定，用 some() 成员断言（见下）");
+    assert.ok(r.violations.some((v) => /lib\/rogue\.js:1 .*session-log-names/.test(v)));
+    assert.ok(r.violations.some((v) => /scripts\/rogue\.cjs:1 .*session-log-names/.test(v)));
+    assert.ok(r.violations.some((v) => /lib\/rogue-re\.js:1 .*session-log-names/.test(v)));
+    // 清掉违例后零报警（session.value 近似词本来就不报警）
+    writeFileSync(join(root, "lib", "rogue.js"), `const LEGACY = "other.jsonl.zstd";\n`);
+    writeFileSync(join(root, "scripts", "rogue.cjs"), "// 无字面量\n");
+    writeFileSync(join(root, "lib", "rogue-re.js"), "const RE = /other\\.v(\\d+)/;\n");
+    assert.deepEqual(sessionLogNameLint(root).violations, []);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("sessionLogNameLint：汇入 repositoryLint 出口与扫描计数", () => {
+  const root = makeFixture();
+  try {
+    mkdirSync(join(root, "lib"), { recursive: true });
+    writeFileSync(join(root, "lib", "rogue.js"), `const NAME = "session.v10.jsonl.zstd";\n`);
+    const agg = repositoryLint(root);
+    assert.equal(agg.sessionNameScanned, 1);
+    assert.ok(agg.violations.some((v) => v.includes("lib/rogue.js:1")));
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });

@@ -17,10 +17,10 @@
  * 真机走查（进/出、Tab/Escape、常用快捷键、焦点不被 composer 抢）归 11 号票人工清单。
  */
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+
+import { measureBoxes } from "./helpers/headless-layout.mjs";
 
 import {
 	HOST_TRANSITION_TOKENS,
@@ -268,59 +268,28 @@ function declaredBody(css, selector) {
 	return body;
 }
 
-/** 无头浏览器候选（真实布局复算的载体；缺失时该用例打印 SKIP 标记）。 */
-function findHeadlessBrowser() {
-	for (const candidate of ["/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/usr/bin/chromium", "/usr/bin/chromium-browser"]) {
-		if (existsSync(candidate)) return candidate;
-	}
-	return null;
-}
-
 /**
- * 用真实布局引擎复算一段 HTML＋CSS 的几何与计算样式：
- * 页面内注入测量脚本 → `--dump-dom` 回读 `<pre id="pod-pod-metrics">` 的 JSON。
- * 返回 null＝本机无无头浏览器（调用方按跳过协议处置，不得当绿）。
+ * 用真实布局引擎复算 pod 夹具的几何与计算样式：共享探针
+ * `tests/helpers/headless-layout.mjs`（retro R1① 抽取；先例＝04 号票几何域两轮
+ * 返修而四门全绿）＋本文件夹具选择器。返回 null＝本机无无头浏览器
+ * （调用方按跳过协议处置，不得当绿）。
  */
 function measureLayout(title, bodyHtml, css) {
-	const binary = findHeadlessBrowser();
-	if (!binary) return null;
-	const dir = mkdtempSync(join(tmpdir(), "pod-pod-b1-"));
-	try {
-		const html = `<!doctype html><html><head><style>
-body{margin:0}
-${css}
-</style></head><body>${bodyHtml}
-<script>
-const box = (selector) => { const el = document.querySelector(selector); if (!el) return null; const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width }; };
-const pos = (selector) => { const el = document.querySelector(selector); return el ? getComputedStyle(el).position : null; };
-const out = document.createElement("pre");
-out.id = "pod-pod-metrics";
-out.textContent = JSON.stringify({
-  container: box("[data-pod-pod-body-fixture]"),
-  active: box("[data-pod-pod-view-fixture=\\"active\\"]"),
-  inactive: box("[data-pod-pod-view-fixture=\\"inactive\\"]"),
-  seatList: box("[data-pod-pod-seat-fixture]"),
-  shell: box("[data-pod-pod-shell-fixture]"),
-  mainPane: box("[data-pod-pod-main-fixture]"),
-  inactivePosition: pos("[data-pod-pod-view-fixture=\\"inactive\\"]"),
-  viewportWidth: window.innerWidth
-});
-document.body.appendChild(out);
-</script></body></html>`;
-		const file = join(dir, "fixture.html");
-		writeFileSync(file, html);
-		const run = spawnSync(binary, [
-			"--headless=new", "--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage",
-			`--user-data-dir=${join(dir, "profile")}`,
-			"--virtual-time-budget=2000", "--dump-dom", "file://" + file
-		], { encoding: "utf8", timeout: 60_000, env: { ...process.env, HOME: dir } });
-		const dom = run.stdout ?? "";
-		const match = dom.match(/<pre id="pod-pod-metrics">([\s\S]*?)<\/pre>/);
-		assert.ok(match, `${title}：无头浏览器未回读几何（stderr：${(run.stderr ?? "").split("\n").slice(-2).join(" / ")}）`);
-		return JSON.parse(match[1].replace(/&quot;/g, "\"").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">"));
-	} finally {
-		rmSync(dir, { recursive: true, force: true });
-	}
+	return measureBoxes(title, {
+		bodyHtml,
+		css,
+		boxes: {
+			container: "[data-pod-pod-body-fixture]",
+			active: '[data-pod-pod-view-fixture="active"]',
+			inactive: '[data-pod-pod-view-fixture="inactive"]',
+			seatList: "[data-pod-pod-seat-fixture]",
+			shell: "[data-pod-pod-shell-fixture]",
+			mainPane: "[data-pod-pod-main-fixture]"
+		},
+		styles: {
+			inactivePosition: { selector: '[data-pod-pod-view-fixture="inactive"]', prop: "position" }
+		}
+	});
 }
 
 /** 旧样式基座（复核 B1 的**反例**：作者源 display:flex 覆盖 UA `[hidden]{display:none}`）。
