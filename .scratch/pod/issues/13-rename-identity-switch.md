@@ -325,6 +325,10 @@ docs-only、producerKind 本地字面量）待用户追认，见本件 Comments�
 | `execution/pod13-window-20261012T103933Z-sync-66c533a5.json` | `66c533a5864d2617fdb85b8db980547b15593921379d6e6c9e7180239880c6d8` |
 | `execution/pod13-window-20261012T103933Z-readiness-2c14203b.json`（终态就绪核验，ready:true） | `2c14203bb5ffb213369b6ee8c6b8e3bdd9ab711c4a1167d983af5b0d4bdf5b87` |
 | `execution/pod13-window-20261012T103933Z-smoke-ab434c40.json`（终态 smoke 原始输出九探针） | `ab434c4004d2517715f4cf4ac92601887866ab8fccefb5d4fa09c5582b95e1dc` |
+| `preparation/pod13-window-20261012T113326Z-batch.json`（第 4 轮刷新） | `432d8e2b251b74986538fb47f5f5857494e3f070072b6cacebbc7bc37e7e60da` |
+| `preparation/pod13-window-20261012T113326Z-plan-e9473921.json` | `e94739218bb7298c6b6bdf4c738b17b408fb747294ee2499857ed9e8f3354427` |
+| `execution/pod13-window-20261012T113326Z-sync-b5f50e90.json` | `b5f50e90786f76a8da4afd0fb30aa50ac89ded5e69bd15b577c73a8b13afa510` |
+| `execution/pod13-window-20261012T113326Z-readiness-dc79daa3.json`（第 4 轮终态就绪核验，ready:true） | `dc79daa399062584db20330170b2dca0baa1f02de4c689d1776cc63dadcad92f` |
 
 - **第三次部署同步与重启（复审处置批收尾）**：处置批使仓库前进到 `a1ac234` → 按「部署面＝
   仓库面」重刷部署面（`changed 2`、备份 `…103933Z-backup-734b2893`、整面 all-same 223/223）
@@ -332,5 +336,40 @@ docs-only、producerKind 本地字面量）待用户追认，见本件 Comments�
   **76377**）→ 终态就绪核验 **ready:true**（两通道 roleReady、`sourceDigest` 同值、
   宿主契约 15 PASS／0 FAIL／0 SKIP）＋终态 smoke 九探针全绿（席位／台账 lastSeq 180／
   open 5／tasks 9／两席 inbox 200 各 50 条／前端模块图行 `pod`／进程面／bot-health 全 OK）。
+
+### 旧根 retired 清理（2026-10-12，用户点名「1清理」）
+
+- **授权原文**：用户 2026-10-12 会话点名「**1清理**」（＝本节；方案 §6「清理另点名」件、
+  本票「剩余」①）。
+- **前置核验（只读）**：① **无进程持有**——扫 `/proc/*/{fd,cwd,root}` 指向旧根者**零命中**，
+  链进程（host 76304／席 76347／76377）cwd＝`/home/beijong`；② **无活性代码读者**——仓库内
+  `retired-` 引用仅 `lib/data-roots.cjs` 注释与迁移脚本自陈（生成者非读者）＋测试夹具字符串；
+  ③ **retired 侧零独有数据**（逐件 sha256 集合对账）：data 面 783 件中 780 件同值，差异 3 件
+  全部设计内（`bots.json`＝路径重写＋宿主重启写入；`capabilities/issued.jsonl`＝席位重启后
+  每 10 分钟 role 能力续期 +18 行；`started/instances.jsonl`＝三轮重启 +9 行）；workspaces 面
+  9572 件**全同值**；两树「仅 retired 有」＝**0**、「仅新根有」＝**0**。
+- **执行**（逐路径断言防护：名称须精确匹配 retired 形＋非符号链接＋新根须在位，`rm -rf --`）：
+  删除 `bots.retired-2026-10-12T10-23-26-944Z`（3.7M／726 件）＋
+  `bot-workspaces.retired-2026-10-12T10-23-26-944Z`（644M／8461 件），释放 **648M**。
+- **后置核验**：两 retired 路径与旧名 `bots`／`bot-workspaces` 均不在位；live 根 `pod`／
+  `pod-workspaces` 在位；链存活；`bot-health check` 两席＋部署一致性全 OK。
+- **回滚面收窄（如实登记）**：数据面回滚（retired 改名回滚）随本次删除**不再可用**；保留
+  回滚面＝部署备份四批（`backups/pod/`）＋git 提交点＋`backups/dsh-bots/` 历史 21 批。
+
+### 部署面第 4 轮刷新（14 号票残余提交后的红态恢复，2026-10-12）
+
+- **事由**：并行 14 号票会话残余处置提交（`9ca8eb5` relink 新名占位 fail-closed＋`bd86944`
+  记录更正）使 HEAD 前进到 `bd86944` → 部署面（`a1ac234` 快照）落后 → 就绪核验
+  deployment／runtime 两路红（host 报 `ad5d2661…` vs 仓库 `8c611b9d…`）；该会话把
+  「部署同步①＋重启链②」登记为待点名件。
+- **授权口径**：按本窗既点名面承接——用户「本会话执行窗口」选项原文含「按 HEAD 重跑部署
+  同步（写 `~/.dsh/plugins/pod`＋`backups/pod` 两处；就绪核验要求部署面＝当前 HEAD，否则必红）」。
+- **处置与结果**：按 `bd86944` 重刷部署面（runId `pod13-window-20261012T113326Z`、plan
+  `e9473921`、`changed 2`、备份 `…-backup-e9473921`（manifest `53189931`）、整面 all-same
+  **223/223**）→ 重启链（停 76304／76347／76377 → 起 host **84075**＋席 **84110**／**84140**）
+  → 就绪核验 **ready:true**（四路 ok、两通道 roleReady、`sourceDigest 8c611b9d…` 两路同值、
+  宿主契约 15 PASS／0 FAIL／0 SKIP）＋轻 smoke（两席 pid 存活且 `workspace → pod-workspaces`／
+  `_ledger` lastSeq 180／open 5／tasks 9／两席 inbox HTTP 200）。终态记录件
+  `…T113326Z-readiness-dc79daa3.json`（下述哈希账）。
 
 
