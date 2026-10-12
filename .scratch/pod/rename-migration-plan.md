@@ -156,6 +156,16 @@ started 261 行、bot-workspaces 13 目录 644MB、profiles 19、sessions 47、b
   解析落点；漏改则重启后各席位解析失败、插件缺席（邮件／组织面全休眠）。实测
   （隔离夹具，2026-10-12）：自 bot profile 目录 `resolve('dsh-bots')` 命中根级链接，
   无 `pod` 链接时 `MODULE_NOT_FOUND`。
+- **执行回写（2026-10-12 实跑，勿按上表单遍理解）**：本窗实际为**两遍部署同步＋两次重启**
+  ——窗口内修门 d／e 使仓库前进两个提交，而就绪核验要求「部署面＝仓库面」且「宿主加载摘要
+  ＝部署摘要」，故按最终 HEAD 重刷部署面并再重启一次。单遍表语义不变，重述为：
+  停链 →〔部署同步 → 数据迁移 → 起链〕×N（N＝窗口内仓库前进次数）。runId 两批：
+  `pod13-window-20261012T102118Z`（plan `f641b1cc`）／`…T102638Z`（plan `adb02538`）。
+- **报告件命名与哈希入账**：`--report` 件按 README §6.2「版本化路径与自身哈希入账」——
+  时序相位入文件名（`-dryrun`／`-verify-before`／`-verify-after`／`-migrate-report`），
+  哈希值随调用方记录面（票 13「窗口产物哈希账」）登记，禁覆盖旧件。报告内
+  `facesAfter` 为**拷贝复验相（注册表重写前）**快照——重写后态见 `registryRewrite.
+  sha256After`／`changedFields`（重写复验：实改字段集须恰等于清单面，不符即拒）。
 - **报告**（`--report` JSON）：迁移前后路径清单、逐面计数（席位表条目/逐 id、台账
   lastSeq/事件数、inbox/outbox 文件数与行数、capabilities/nonce 计数、started 行数、
   knowledge index 行数/reports 数、workspaces 目录与文件数、backups 计数）、逐件 sha

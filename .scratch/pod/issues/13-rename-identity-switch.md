@@ -294,6 +294,31 @@ docs-only、producerKind 本地字面量）待用户追认，见本件 Comments�
   （`05cd463`／`631f683` 及改名批各提交）；③ 旧根 retired 两件（改名回滚即完整恢复）。
   判据（就绪核验红或席位表 sha 不符）未触发，回滚权在用户。
 - **剩余（另点名）**：旧根 `bots.retired-*`／`bot-workspaces.retired-*` 清理（确认无读者后）；
-  票 15 新 `runId` 增量证据包（②门红解除件，含本窗三个 runId 与提交点坐标）。
+  票 15 新 `runId` 增量证据包（②门红解除件，含本批两枚 deploy `runId`（`…T102118Z`／
+  `…T102638Z`）＋前批 `…T085258Z` 与提交点坐标）。
+
+### 复审处置与窗口产物哈希账（2026-10-12）
+
+- **双轴复审（固定点 `66db71d`，六提交）**：两轴逐条处置见
+  [票 14 Comments「双轴复审与处置」](14-rename-data-plane-migration.md)。本票侧要点：
+  ① 邮件面证据**如实登记为读路径＋通道级**（写路径由 capability 门把守，本窗不伪造 bot
+  身份、不向在役席位注入测试邮件）；② 本批 CHANGELOG **四事件**（`…-fixgate`（A/B）、
+  `…-fixgate-d`、`…-fixgate-e`、`…-window-executed`）＋本处置批事件；
+  ③ 方案 §5 与实跑的两遍差异已回写（「执行回写」注）；④ 就绪核验＋smoke 终态记录件两枚
+  已落（见下表末两行）。
+- **窗口产物哈希账**（README §6.2「版本化路径与自身哈希入账」；禁覆盖旧件）：
+
+| 文件（`artifacts/cutover-*` 相对路径） | sha256 |
+|---|---|
+| `preparation/pod13-window-20261012T102118Z-batch.json` | `967a132fccdb85a0e46eafeb6bade494c58b83a067d1c039567a9620b729af13` |
+| `preparation/pod13-window-20261012T102118Z-plan-f641b1cc.json` | `f641b1cc0dddf020ada44d850fab22dee7d154803c73d2317229871436228854` |
+| `preparation/pod13-window-20261012T102118Z-verify-before.json` | `af1e2e141486027de26cf3de1a53e552986affb10126d2a95d2b62f54edf375a` |
+| `preparation/pod13-window-20261012T102638Z-batch.json` | `14520e32b7d3058c3f6b582bd4f7a4dd49563fe8093a9d8b6b17c3ddad2573fe` |
+| `preparation/pod13-window-20261012T102638Z-plan-adb02538.json` | `adb0253892d84c3525ae1e4785e4b4406746d62b045fa9f1c3e258e8dfefe5dc` |
+| `execution/pod13-window-20261012T102118Z-sync-cf01fae7.json` | `cf01fae78060f3add761fba9e1b4fbecab8d7599780f9494e16835498bdfb0ce` |
+| `execution/pod13-window-20261012T102638Z-sync-b55b7567.json` | `b55b75679676ad6a9a9e4f85b33f84725cf6001ece9175181be745d7fcbd5572` |
+| `execution/pod13-window-20261012T102118Z-migrate-report.json` | `353f6289294f8bb640bd8ef0b52465068a1ed8025e01b7b11d1eeb5981616d0f` |
+| `execution/pod13-window-20261012T102118Z-verify-after.json` | `233e893c02117b4061437d413a839ad0c438a519a9ac0d5a7d5d8a905a0900f5` |
+| `execution/pod14-window-20261012T102221Z-dryrun.json`（14 会话步 0 基线） | `59423807d9d9d78bb84bf72ae45368abeb37a832c8162a917703e30042396f5e` |
 
 

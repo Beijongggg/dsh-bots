@@ -19,7 +19,6 @@ import { spawnSync } from "node:child_process";
 import { dirname, join, relative } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
-import { createHash } from "node:crypto";
 
 const script = fileURLToPath(new URL("../scripts/migrate-pod-data.mjs", import.meta.url));
 
@@ -217,6 +216,12 @@ test("execute 全流程：整表搬注册表＋逐件校验绿＋旧根 retired 
   equal(report.retired.length, 2, "报告记录两 retired 件");
   deepEqual(report.registryRewrite.changes, ["duty-coordinator.workspace", "duty-coordinator.workspaceRoot", "coder.workspace"],
     "报告记录重写字段清单（厂外 custom 不计）");
+  equal(report.registryRewrite.verified, true, "重写后复验绿（实改面＝清单面）");
+  deepEqual(report.registryRewrite.changedFields, ["coder.workspace", "duty-coordinator.workspace", "duty-coordinator.workspaceRoot"],
+    "复验记录实改字段集（按序）");
+  match(report.registryRewrite.sha256Before, /^[0-9a-f]{64}$/, "重写前 sha 入账");
+  match(report.registryRewrite.sha256After, /^[0-9a-f]{64}$/, "重写后 sha 入账");
+  ok(report.registryRewrite.sha256Before !== report.registryRewrite.sha256After, "重写前后 sha 不等");
   rmSync(reportPath, { force: true });
 });
 
@@ -268,8 +273,23 @@ test("--profiles 边界：旧名项非软链＝fail closed 不动（profile 自�
   equal(readFileSync(join(home, "profiles", "plain", "node_modules", "dsh-bots"), "utf8"), plainBefore, "非软链内容零触碰");
   ok(lstatSync(join(home, "profiles", "node_modules", "dsh-bots")).isFile(), "共享锚非软链旧名项不动");
   equal(readlinkSync(join(home, "profiles", "wrong", "node_modules", "pod")), "/somewhere/else", "新名已在他处＝不动");
-  const report = JSON.parse(readFileSync(join(home, "pod", "bots.json"), "utf8"));
-  ok(report !== null);
+  const registry = JSON.parse(readFileSync(join(home, "pod", "bots.json"), "utf8"));
+  deepEqual(Object.keys(registry).sort(), ["coder", "custom", "duty-coordinator"], "fail-closed 路径下注册表席位键集仍原样");
+});
+
+test("注册表重写复验红线：非清单字段含旧根串（整文替换会静默改写）→ 拒且零写入", () => {
+  const home = buildFixtureHome();
+  const file = join(home, "bots", "bots.json");
+  const registry = JSON.parse(readFileSync(file, "utf8"));
+  // coder.note 是 workspace／workspaceRoot 之外的字段，值恰含旧工作区根串——
+  // 旧实现整文 split/join 会静默改写它且不入清单；新复验要求实改面恰等清单面。
+  registry.coder.note = join(home, "bot-workspaces", "coder");
+  writeFileSync(file, JSON.stringify(registry, null, 1) + "\n");
+  const before = snapshotTree(home);
+  const r = runCli(["--dsh-home", home, "--execute"], home);
+  ok(r.status !== 0, "复验红线拒迁");
+  match(`${r.stderr}${r.stdout}`, /重写复验不一致/);
+  deepEqual(snapshotTree(home), before, "拒绝路径零写入（新根清理、旧根原样）");
 });
 
 test("二次 execute 幂等拒绝：旧布局不在位即拒（安全跳过语义＝拒绝而非重搬）", () => {

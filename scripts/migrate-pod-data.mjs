@@ -16,11 +16,13 @@
  *   --profiles        profile patch 重写（name→pod＋workspaceRoot→pod-workspaces）
  *                     与 node_modules 旧名软链改名并重指部署目录（幂等；可单独跑）
  *   --verify-only     只跑逐面校验器出 JSON（迁移前后各跑一次对比用；零写入）
- *   --report <path>   JSON 校验报告落盘（0600）
+ *   --report <path>   JSON 校验报告落盘（0600）；报告件按 README §6.2 版本化路径与
+ *                     自身哈希**入账**（哈希值随记录写在调用方记录面；禁覆盖旧件）
  *
- * 步骤序（--execute）：前置校验 → 真实拷贝（fs.cp recursive，不用硬链——jsonl
- * 追加写会穿透）→ 逐件 sha/计数复验 → --profiles（若旗标）→ 旧根改名
- * `*.retired-<ts>`（只读窗口，不删除，清理另点名）→ 就绪输出。
+ * 步骤序（--execute）：前置校验 → 真实拷贝（`copyTreePreservingDirModes`：fs.cpSync
+ * recursive，不用硬链——jsonl 追加写会穿透；目录 mode 自补）→ 逐件 sha/计数复验 →
+ * 注册表路径字段重写（②′，重写后逐字段复验「实改面＝清单面」）→ --profiles（若旗标）
+ * → 旧根改名 `*.retired-<ts>`（只读窗口，不删除，清理另点名）→ 就绪输出。
  * **失败中止语义（数据根搬迁段：前置校验／拷贝／复验／retire）**：任一步失败 →
  * 已建新根整树删除、旧根不动、exit 1——不留半迁移态（风险①：注册表空表会触发
  * bootstrap 锚点重建，故整表字节级搬运 bots.json 本体，绝不「先清空再重建」）。
@@ -516,15 +518,52 @@ export function rewriteRegistryWorkspaces(registryText, legacyWsRoot, newWsRoot)
   return { text, changes };
 }
 
-/** 迁移后注册表重写（新根内）：workspace／workspaceRoot 指新工作区根。 */
+/** 叶子字段扁平化（`a.b.c` → 值；数组/对象按整体 JSON 串比较）——重写复验的对照面。 */
+function flattenFields(value, prefix = "", out = {}) {
+  if (value === null || typeof value !== "object") {
+    out[prefix] = value;
+    return out;
+  }
+  if (Array.isArray(value)) {
+    out[prefix] = JSON.stringify(value);
+    return out;
+  }
+  for (const [key, inner] of Object.entries(value)) flattenFields(inner, prefix === "" ? key : `${prefix}.${key}`, out);
+  return out;
+}
+
+/** 迁移后注册表重写（新根内）：workspace／workspaceRoot 指新工作区根。
+ *  **重写后复验**（2026-10-12 复审处置）：解析写后文本对照写前——① 实改字段集必须
+ *  **恰等于**清单面（防整文 split/join 在非路径字段上静默改写）；② 每个改动字段的
+ *  新值必落新工作区根。不符即抛（搬迁段失败语义：新根清理、旧根原样、exit 1）。 */
 function rewriteRegistryFile(dshHome) {
   const file = registryPath(dshHome);
   const text = readFileSync(file, "utf8");
   const legacyWsRoot = resolve(join(dshHome, LEGACY_WORKSPACE_ROOT_NAME));
   const newWsRoot = resolve(join(dshHome, WORKSPACE_ROOT_NAME));
   const { text: rewritten, changes } = rewriteRegistryWorkspaces(text, legacyWsRoot, newWsRoot);
-  if (changes.length > 0) writeFileSync(file, rewritten, { mode: 0o600 });
-  return { file, changes, written: changes.length > 0 };
+  if (changes.length === 0) {
+    return { file, changes, written: false, verified: true, changedFields: [], sha256Before: sha256Of(Buffer.from(text)), sha256After: sha256Of(Buffer.from(text)) };
+  }
+  writeFileSync(file, rewritten, { mode: 0o600 });
+  const before = flattenFields(JSON.parse(text));
+  const after = flattenFields(JSON.parse(rewritten));
+  const actualChanged = Object.keys(after).filter((key) => before[key] !== after[key]).sort();
+  const expected = [...changes].sort();
+  if (JSON.stringify(actualChanged) !== JSON.stringify(expected)) {
+    throw new MigrationRefusal(`注册表重写复验不一致（实改面 ≠ 清单面）：实改 ${actualChanged.join("／") || "（无）"}；清单 ${expected.join("／")}`);
+  }
+  const wsPrefix = `${newWsRoot}/`;
+  for (const key of actualChanged) {
+    const value = after[key];
+    if (typeof value !== "string" || (value !== newWsRoot && !value.startsWith(wsPrefix))) {
+      throw new MigrationRefusal(`注册表重写复验不一致（${key} 未落新工作区根）：${String(value)}`);
+    }
+  }
+  return {
+    file, changes, written: true, verified: true, changedFields: actualChanged,
+    sha256Before: sha256Of(Buffer.from(text)), sha256After: sha256Of(Buffer.from(rewritten))
+  };
 }
 
 // ---------------- 计划与执行 ----------------
@@ -534,6 +573,7 @@ function buildPlan(dshHome) {
     { step: "copy", from: join(dshHome, LEGACY_DATA_ROOT_NAME), to: join(dshHome, DATA_ROOT_NAME), how: "fs.cpSync recursive（不用硬链）", registry: join(dshHome, LEGACY_DATA_ROOT_NAME, "bots.json"), note: "整表字节级搬运（风险①：空表即触发 bootstrap 锚点重建，绝不先清空再重建）" },
     { step: "copy", from: join(dshHome, LEGACY_WORKSPACE_ROOT_NAME), to: join(dshHome, WORKSPACE_ROOT_NAME), how: "fs.cpSync recursive（不用硬链）" },
     { step: "verify", what: "两树逐件 sha/byteLength/mode/linkTarget 对账＋八面计数前后等值" },
+    { step: "registry-rewrite", to: join(dshHome, DATA_ROOT_NAME, "bots.json"), what: "workspace／workspaceRoot 定点重写指新工作区根（②′）＋重写后逐字段复验（实改面＝清单面）" },
     { step: "profiles", what: "patch name/workspaceRoot 重写＋node_modules 旧名软链改名并重指部署目录（--profiles 旗标时）" },
     { step: "retire", from: join(dshHome, LEGACY_DATA_ROOT_NAME), to: `${join(dshHome, LEGACY_DATA_ROOT_NAME)}.retired-<ts>` },
     { step: "retire", from: join(dshHome, LEGACY_WORKSPACE_ROOT_NAME), to: `${join(dshHome, LEGACY_WORKSPACE_ROOT_NAME)}.retired-<ts>` },
@@ -654,7 +694,7 @@ async function main(argv = process.argv.slice(2)) {
   let registryResult = { file: null, changes: [], written: false };
   let retired = [];
   try {
-    // ① 真实拷贝（fs.cp recursive；不用硬链——jsonl 追加写会穿透）
+    // ① 真实拷贝（目录 mode 由 helper 自补——见 copyTreePreservingDirModes 注释）
     copyTreePreservingDirModes(join(dshHome, LEGACY_DATA_ROOT_NAME), join(dshHome, DATA_ROOT_NAME));
     copyTreePreservingDirModes(join(dshHome, LEGACY_WORKSPACE_ROOT_NAME), join(dshHome, WORKSPACE_ROOT_NAME));
 
@@ -686,7 +726,7 @@ async function main(argv = process.argv.slice(2)) {
       treeVerify: { data: treeData, workspaces: treeWs },
       registryRewrite: registryResult,
       profiles: profileResult, retired,
-      note: "旧根只读窗口（retired-<ts>）；确认无读者后清理另点名；就绪核验见方案 §5 步骤 5"
+      note: "旧根只读窗口（retired-<ts>）；确认无读者后清理另点名；就绪核验见方案 §5 步骤 5。facesAfter 为拷贝复验相（注册表重写前）快照——重写后态见 registryRewrite.sha256After／changedFields"
     };
     console.log(JSON.stringify(report, null, 2));
     writeReport(reportPath, report);

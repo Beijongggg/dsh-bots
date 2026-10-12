@@ -313,3 +313,46 @@ execute／起链／核验由该会话执行）。
 - **风险②实证（session 分片不搬）**：`bot-health check` 两席「会话状态位于 sessions 作用域」
   OK（新旧前缀双认生效）＋邮局一致 OK——跨根等效性以 bot-health＋就绪核验（两通道
   roleReady 且 `sourceDigest` 同值）留证。
+
+### 双轴复审与处置（2026-10-12，窗口批，固定点 `66db71d`）
+
+- 复审面：`git diff 66db71d...HEAD`（六提交：`8d0911c`／`b119294`／`05cd463`／`5606b0d`／
+  `631f683`／`af38da1`），两轴并行只读子代理；处置批见 `EV-20261012-pod13-window-review-rework`。
+- **Standards 轴：硬违例 2＋判断项 4**：
+  1. **硬**——脚本头部步骤序与 `buildPlan` 未列入 ②′ 注册表重写步（dry-run 计划件即批准面，
+     低估写入集）→ **已修**：头部步骤序＋`buildPlan` 均补 `registry-rewrite` 步。
+  2. **硬**——`--report` 四件无自身哈希入账（README §6.2「版本化路径与自身哈希入账」）→
+     **已修**：约定写入方案 §5（相位入名＋哈希随记录面入账）；票 13 增「窗口产物哈希账」
+     逐件登记全量 sha256。
+  3. 判断——注册表重写「检测按字段、落盘按整文 split/join」：非路径字段含旧根串会被
+     **静默改写**且不入清单 → **已修**：`rewriteRegistryFile` 增重写后复验（实改字段集须
+     **恰等于**清单面＋改动值必落新根，不符即拒）；报告增 `verified`／`changedFields`／
+     `sha256Before|After`；红线用例先红（旧实现放行改写）后绿。
+  4. 判断——边界用例变量名 `report`（实为注册表）＋近恒真断言（③门恒真 lint 未覆盖形）→
+     **已修**：改名 `registry`＋断言换为席位键集等值。
+  5. 判断——同 schema 四后缀命名发散 → **记为有意**：相位入名（`-dryrun`／`-verify-before`／
+     `-verify-after`／`-migrate-report`）；prepare／execute 目录按「预备件／执行件」分置，不改。
+  6. 判断——测试件 `createHash` 死 import＋拷贝调用点注释与 helper 重复 → **已修**。
+- **Spec 轴：缺失 4／越权面 2／可疑 3**：
+  1. 「重写相位逐字段断言」无机器工件＋报告 `facesAfter.registry.sha` 系**预重写**快照、
+     与 `--verify-only` 复算相矛盾且无指针 → **已修**：见 Standards 3；报告 `note` 明示
+     快照相位，重写后态以 `registryRewrite.sha256After` 为准。
+  2. 风险②跨根等效性只有叙述证据 → **处置**：`bot-health check` 原始输出入 smoke 记录件；
+     等效口径＝双认生效＋两通道 roleReady 同摘要，不另造件。
+  3. 步骤 5 就绪核验与 smoke 无工件 → **已补**：`…-readiness-<sha8>.json`＋`…-smoke-<sha8>.json`
+     两件落 `artifacts/cutover-execution/`（终态复跑，读路径零写入）。
+  4. 「CHANGELOG 三事件」措辞与 diff 实有四事件不符 → **已修**（票 13 措辞改「四事件＋
+     本处置批事件」）。
+  5. 方案 §5 单遍步骤序与实跑两遍不符（两次部署同步＋两次重启）→ **已修**：方案 §5 增
+     「执行回写」注（×N 语义＋两批 runId 坐标）。
+  6. 邮件面证据弱（仅读路径 200＋历史一致，无迁移后投递闭环）→ **如实登记为限**：写路径由
+     capability 门把守，本窗**不伪造 bot 身份、不向在役席位注入测试邮件**（避免触发席位
+     实际作业）；证据面＝两席 inbox 读路径 200（迁移件可见）＋通道 connected／delivered／
+     roleReady＋`bot-health` 邮局一致（seq 单调、末条有回复）。真投递闭环随首批真实流量发生
+     （用户可自发一封验证）。
+  7. 整文替换可能在转义形下「changes 非空而字节未变」误报 → **已修**：复验改按解析后实改
+     字段集判定，不再依赖字符串替换命中。
+  8. 目录 mode 修复不保 xattr／属主 → **记为口径外**：验收口径＝sha/byteLength/mode/linkTarget
+     （方案 §3），不扩面。
+- **验证**：迁移件 **14/14**（＋1 红线用例，先红后绿）；全量 `node tests/run.mjs` **94/94**；
+  `ci-gates` ③ **0 违例**（② 7/10 既有预期红，归票 15 新序号包）。
