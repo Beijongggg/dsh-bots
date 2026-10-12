@@ -114,6 +114,11 @@ function buildFixtureHome(prefix = "pod-migrate-") {
   // session 分片（宿主官方面，不搬）
   mkdirSync(join(home, "sessions", "--home-x-bot-workspaces-coder--", "sid-1"), { recursive: true });
   writeFileSync(join(home, "sessions", "--home-x-bot-workspaces-coder--", "sid-1", "session.v4.jsonl.zstd"), "z\n");
+  // 目录权限面（真实运行面 0700）：fs.cpSync 保留文件 mode、**不保留目录 mode**（按 umask 建
+  // 0755）——拷贝段须自补目录 chmod；此形在真实数据面首次 execute 时曾以复验红中止（2026-10-12 窗口）
+  chmodSync(join(home, "bots", "inbox"), 0o700);
+  chmodSync(join(home, "bots", "ledger"), 0o700);
+  chmodSync(join(home, "bot-workspaces"), 0o700);
   return home;
 }
 

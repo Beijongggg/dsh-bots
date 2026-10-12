@@ -31,7 +31,7 @@
  * 退出码：0 绿；1 拒绝／校验失败；2 用法错误。
  */
 import {
-  cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync,
+  chmodSync, cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync,
   readlinkSync, renameSync, rmSync, symlinkSync, writeFileSync
 } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
@@ -87,6 +87,21 @@ export function walkTree(root) {
   };
   visit(root, "");
   return out.sort((a, b) => (a.rel < b.rel ? -1 : a.rel > b.rel ? 1 : 0));
+}
+
+/** 整树拷贝（`fs.cpSync` recursive；不用硬链——jsonl 追加写会穿透硬链）。
+ *  **目录 mode 需自补**：`fs.cpSync` 保留文件权限但**不保留目录权限**（目录按 umask
+ *  建 0755），0700 数据目录会被放宽 ⇒ 复验器逐件 mode 对账红（真实运行面首次 execute
+ *  即以 `mismatch-mode` 中止，2026-10-12 窗口）。chmod 自深向浅（窄权限父目录不挡写入），
+ *  根目录最后。 */
+export function copyTreePreservingDirModes(srcRoot, destRoot) {
+  cpSync(srcRoot, destRoot, { recursive: true, verbatimSymlinks: true });
+  const dirs = walkTree(srcRoot)
+    .filter((e) => e.type === "directory")
+    .sort((a, b) => b.rel.length - a.rel.length);
+  for (const dir of dirs) {
+    chmodSync(dir.rel === "" ? destRoot : join(destRoot, dir.rel), dir.mode & 0o7777);
+  }
 }
 
 /** 拷贝复验器：两树逐件对账（路径集双向＋类型＋sha/byteLength＋mode＋链接目标）。 */
@@ -640,8 +655,8 @@ async function main(argv = process.argv.slice(2)) {
   let retired = [];
   try {
     // ① 真实拷贝（fs.cp recursive；不用硬链——jsonl 追加写会穿透）
-    cpSync(join(dshHome, LEGACY_DATA_ROOT_NAME), join(dshHome, DATA_ROOT_NAME), { recursive: true, verbatimSymlinks: true });
-    cpSync(join(dshHome, LEGACY_WORKSPACE_ROOT_NAME), join(dshHome, WORKSPACE_ROOT_NAME), { recursive: true, verbatimSymlinks: true });
+    copyTreePreservingDirModes(join(dshHome, LEGACY_DATA_ROOT_NAME), join(dshHome, DATA_ROOT_NAME));
+    copyTreePreservingDirModes(join(dshHome, LEGACY_WORKSPACE_ROOT_NAME), join(dshHome, WORKSPACE_ROOT_NAME));
 
     // ② 逐件 sha/计数复验
     const treeData = verifyCopiedTree(join(dshHome, LEGACY_DATA_ROOT_NAME), join(dshHome, DATA_ROOT_NAME));

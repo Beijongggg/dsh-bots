@@ -276,3 +276,23 @@ execute／起链／核验由该会话执行）。
 目录、backups legacy 21／pod 1、sessions 48 分片；`--profiles` 预览 18 动作＝16 份 patch
 重写＋2 条链接改名重指（`web` 自有＋`profiles/node_modules` 共享锚）。该 dry-run 报告为
 迁移前基线证据（迁移后 `--verify-only` 对比由执行方按 §5 步骤 5 承接）。
+
+### 目录权限修门 e（2026-10-12，13 后续会话·窗口内首次 execute 中止后修）
+
+- **失败门名＋观测值**（真实运行面首次 `--execute --profiles`）：脚本自陈
+  `[migrate] 失败中止（新根已清理、旧根原样，不留半迁移态）：复验不一致（新根已清理）：`
+  ＋逐条 `{"kind":"mismatch-mode","rel":"capabilities","src":16832,"dest":16877}`…
+  （0o40700 vs 0o40755）——**按设计中止**，现场保全（新根清理、旧根原样、无半迁移态）。
+- **机理**：`fs.cpSync` 保留**文件** mode（隔离复算：0600 保持）但不保留**目录** mode
+  ——目录按 umask 建 0755（复算：src 700 → dst 755），真实数据面 0700 目录被放宽 ⇒
+  复验器逐件 mode 对账红。夹具此前目录均 0755，该形未被覆盖（真实面首发）。
+- **处置（TDD）**：夹具给 `bots/inbox`／`bots/ledger`／`bot-workspaces` 造 0700
+  （先红：拒因与真实面同形 `mismatch-mode`）→ 新增
+  `copyTreePreservingDirModes(srcRoot, destRoot)`（cpSync ＋ 自深向浅目录 chmod 回源
+  mode，根目录最后）并替换两处拷贝调用 → 迁移件 13/13 绿。
+- **修后真实面重跑**（同授权窗内）：`verified:true`、`faceDiffs:[]`、`treeVerify` 两树
+  逐件对账 ok、`retired` 两件在位（`bots.retired-2026-10-12T10-23-26-944Z`／
+  `bot-workspaces.retired-2026-10-12T10-23-26-944Z`）、`registryRewrite.changes` 四条
+  （两席 workspace／workspaceRoot → `pod-workspaces`）、两处软链 `pod →
+  ~/.dsh/plugins/pod`（独立 ls 复核）。报告：
+  `artifacts/cutover-execution/pod13-window-20261012T102118Z-migrate-report.json`。
