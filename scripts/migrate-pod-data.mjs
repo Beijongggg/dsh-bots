@@ -297,11 +297,15 @@ const legacyRegistryFile = (dshHome) => join(dshHome, LEGACY_DATA_ROOT_NAME, "bo
 const legacyStartedRegistryFile = (dshHome) => join(dshHome, LEGACY_DATA_ROOT_NAME, "started", "instances.jsonl");
 
 /** 在跑检测（读**旧布局**——执行时点新根尚不存在）：instances.jsonl **每个 botId 最新行**＋
- *  注册表内 pid 字段，逐 pid 存活探测（host 行含内——窗口内 host 也必须停）。
- *  修门（2026-10-12，票 14 Comments）：**只认每 botId 最新行**——instances.jsonl 是追加日志，
- *  历史行可达数百，其 pid 会被无关系统进程复用（实测 cupsd 940／cups-browsed 968／
- *  snapfuse 987 复用 2026-09-07 历史行），逐行探测即假阳性、把已停机窗口误判为在跑而拒迁；
- *  口径与 capability 面「实例注册表最新行 pid」一致（lib/org/capability-issue.js）。 */
+ *  注册表 pid 字段，逐 pid 存活探测（host 行含内——窗口内 host 也必须停）。
+ *  修门（2026-10-12）：**instances.jsonl 只认每 botId 最新行**——该件是追加日志，历史行可达
+ *  数百，其 pid 会被无关系统进程复用（实测 cupsd 940／cups-browsed 968／snapfuse 987 复用
+ *  2026-09-07 历史行），逐行探测即假阳性、把已停机窗口误判为在跑而拒迁。**注册表面无需过滤**：
+ *  `bots.json` 是 `{id: bot}` 映射，`Object.entries` 每条即该席唯一现役行、本无历史行；
+ *  两面对照件＝capability 面 `currentInstanceRow`（`lib/org/capability-base.js`，同为
+ *  「每 botId 现行行」读法）。原始观测（ps／grep 输出）与放宽取舍见
+ *  `.scratch/pod/issues/14-rename-data-plane-migration.md`「修门与授权留档（2026-10-12）」节；
+ *  本修门提交 `edef328`。 */
 export function findLiveInstancePids(dshHome) {
   const candidates = [];
   try {

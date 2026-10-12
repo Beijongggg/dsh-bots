@@ -155,3 +155,45 @@ execute、旧根 `*.retired-*` 清理（另点名）待授权；窗口手册见�
   （② 7/10 既有预期红，归票 15 新序号包）。
 - **窗口未执行项**（待点名）：停链（含 host）→`--execute --profiles`→起链→就绪核验；
   停链会终止实施会话所在宿主进程（host pid 2295），故先落档后执行。
+
+#### 证据块（原始观测，2026-10-12 17:38–17:5x 实测）
+
+修门事由的**可复核原始件**（评审返修：原记录只有叙述复述，指针自指；本块为持久证据）：
+
+```
+# 1) 复用者真身（kill(pid,0) 报活的三个历史 pid 现被谁占用）
+$ for p in 940 968 987; do printf 'pid %s: ' "$p"; tr '\0' ' ' < /proc/$p/cmdline; echo; done
+pid 940: cupsd -f -s /var/snap/cups/common/etc/cups/cups-files.conf -c /var/snap/cups/common/etc/cups/cupsd.conf
+pid 968: cups-browsed -c /var/snap/cups/common/etc/cups/cups-browsed.conf
+pid 987: snapfuse /var/lib/snapd/snaps/cups_1262.snap /snap/cups/1262 -o ro,nodev,allow_other,suid
+
+# 2) 这三 pid 的出处＝旧根实例登记的历史行（文件共 271 行；行号可 grep 复算）
+$ grep -nE '"pid":(940|968|987),' ~/.dsh/bots/started/instances.jsonl
+105:{"botId":"host","pid":940,"startedAt":"2026-09-07T03:22:07.287Z",...}
+106:{"botId":"lead","pid":968,"startedAt":"2026-09-07T03:22:09.578Z",...}
+115:{"botId":"host","pid":987,"startedAt":"2026-09-07T08:10:57.450Z",...}
+
+# 3) 旧口径红态（TDD 先红时脚本自陈的拒因，pid 为测试夹具活 pid）
+[migrate] 拒绝：检测到在跑进程 pid=26996（botId=host，来源 instances.jsonl）——先执行停机窗口（方案 §5）
+
+# 4) 修后真实数据只读复算（本仓 cwd 下）
+$ node --input-type=module -e 'import { findLiveInstancePids } from "./scripts/migrate-pod-data.mjs"; console.log(findLiveInstancePids("/home/beijong/.dsh"))'
+→ 5 项：host 2295／duty-coordinator 2327／implementer 2351（instances.jsonl 最新行）
+        ＋ duty-coordinator 2327／implementer 2351（registry pid 字段）；cups*／snapfuse 假阳性 0
+```
+
+上述 1) 的观测是**时点性**的（pid 复用者随 snap 生命周期变化；940 曾一度消失），故此处
+存原始输出为持久件；2) 的历史行在窗口迁移后随旧根 retired 仍可读（只读窗口保留）。
+证据指针：本文件本节（含原始输出）＋修门实现提交 `edef328`＋`lib/org/capability-base.js:275`
+（capability 面最新行口径对照件）。
+
+- **放宽取舍（显式记录）**：新口径为**有限 fail-open**——当某 bot 最新行 pid 已死、更早行
+  pid 仍活时放行（新用例 1 即此形）。理由：同 bot 的历史行 pid 只可能因**复用**而报活，
+  该 bot 的现役实例只可能是最新行；capability 面另有代际＋nonce 兜底，迁移面没有，故以
+  「同 bot 只认最新行」为唯一依据属有意取舍，非疏漏。反例用例锁反向（最新行活必拒）。
+- **留界（不追改）**：①「每 botId 最新行」读法现为**第三份同形实现**
+  （`lib/sentinel-runner.js:177`、`lib/org/capability-base.js:278`、本脚本）：若出现第四份
+  或该读法需改口径，按 `lib/data-roots.cjs` 单源先例收敛（不在本批做，避免跨 lib/scripts
+  收敛面在窗口前扩大）。②`tests/pod-data-migration.test.mjs` 自带本地 `deadPid()`
+  （`tests/helpers/dead-pid-fixture.mjs` 有同名助手，违 tests/README.md「夹具复用」）——
+  **前位提交遗产，本 diff 未加剧**，不追改。

@@ -238,5 +238,14 @@ docs-only、producerKind 本地字面量）待用户追认，见本件 Comments�
 - **验证**：`TMPDIR=/dev/shm node --test tests/pod-data-migration.test.mjs` **12/12**；
   `TMPDIR=/dev/shm node tests/run.mjs` **94/94**；`node scripts/ci-gates.mjs` ③ **0 违例** ✅
   （② 7/10 既有预期红，归票 15 新序号包）。
+- **双轴复审与处置（固定点 `c6feb9f`，提交 `edef328`）**：Spec 轴 **CLEAN**（含独立复核：
+  窗口未跑＝`~/.dsh/pod*` 两根本不在位、宿主/bot pid 未变、库外脚本零 `export DSH_BOTS_*`、
+  12/12 复跑）；Standards 轴 2 硬违例＋4 判断项，逐条处置——①docstring「与 capability 面同口径」
+  措辞含混（注册表面按 botId 单条、无需过滤）→**已修**（脚本＋方案 §5 同步精确化）；
+  ②证据指针自指（「见票 Comments」无原始件）→**已修**：票 14 新增**证据块**（ps／grep 原始
+  输出＋红态拒因＋修后只读复算，持久件）；③新门有限 fail-open→票 14 显式登记为有意取舍；
+  ④「每 botId 最新行」第三份同形实现→留界（触发＝第四份或需改口径时按单源先例收敛）；
+  ⑤测试夹具 `deadPid()` 与 helpers 重复＝前位遗产未加剧→不追改；⑥库外脚本注释「双读」断言
+  经复核为真（`lib/env-aliases.js` readEnvValue）。
 
 
