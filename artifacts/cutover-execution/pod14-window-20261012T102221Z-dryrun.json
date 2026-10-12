@@ -1,0 +1,275 @@
+{
+  "schema": "pod-data-migration-report/1",
+  "at": "2026-10-12T10:22:21.854Z",
+  "dshHome": "/home/beijong/.dsh",
+  "mode": "dry-run",
+  "verified": false,
+  "preflightViolations": [],
+  "plan": [
+    {
+      "step": "copy",
+      "from": "/home/beijong/.dsh/bots",
+      "to": "/home/beijong/.dsh/pod",
+      "how": "fs.cpSync recursive（不用硬链）",
+      "registry": "/home/beijong/.dsh/bots/bots.json",
+      "note": "整表字节级搬运（风险①：空表即触发 bootstrap 锚点重建，绝不先清空再重建）"
+    },
+    {
+      "step": "copy",
+      "from": "/home/beijong/.dsh/bot-workspaces",
+      "to": "/home/beijong/.dsh/pod-workspaces",
+      "how": "fs.cpSync recursive（不用硬链）"
+    },
+    {
+      "step": "verify",
+      "what": "两树逐件 sha/byteLength/mode/linkTarget 对账＋八面计数前后等值"
+    },
+    {
+      "step": "profiles",
+      "what": "patch name/workspaceRoot 重写＋node_modules 旧名软链改名并重指部署目录（--profiles 旗标时）"
+    },
+    {
+      "step": "retire",
+      "from": "/home/beijong/.dsh/bots",
+      "to": "/home/beijong/.dsh/bots.retired-<ts>"
+    },
+    {
+      "step": "retire",
+      "from": "/home/beijong/.dsh/bot-workspaces",
+      "to": "/home/beijong/.dsh/bot-workspaces.retired-<ts>"
+    },
+    {
+      "step": "untouched",
+      "what": "sessions/ 分片、backups/ 既有批、session-backups/、profiles/ 家族根不搬"
+    }
+  ],
+  "faces": {
+    "basis": "legacy",
+    "dataRoot": "/home/beijong/.dsh/bots",
+    "workspaceRoot": "/home/beijong/.dsh/bot-workspaces",
+    "registry": {
+      "present": true,
+      "sha256": "a48198c3d428c3950db849a8610808725934bac08317f501c1c19545f18ced69",
+      "entries": 2,
+      "ids": [
+        "duty-coordinator",
+        "implementer"
+      ]
+    },
+    "ledger": {
+      "present": true,
+      "events": 180,
+      "lastSeq": 180,
+      "eventsSha256": "7a7c89bcfdeec2c8f7d316985bf6bc82d43d970b11fd1bb5e611793451c2563f"
+    },
+    "inbox": {
+      "present": true,
+      "files": 297,
+      "jsonlLines": 143
+    },
+    "outbox": {
+      "present": true,
+      "files": 142,
+      "jsonlLines": 142
+    },
+    "knowledge": {
+      "present": true,
+      "indexLines": 11,
+      "reports": 11,
+      "hasTemplate": true
+    },
+    "capabilities": {
+      "present": true,
+      "hasSecret": true,
+      "hasIssuedAudit": true,
+      "nonceFiles": 84
+    },
+    "started": {
+      "present": true,
+      "lines": 271
+    },
+    "workspaces": {
+      "present": true,
+      "dirs": 13,
+      "files": 0
+    },
+    "backups": {
+      "legacyBatches": 21,
+      "podBatches": 1
+    },
+    "sessions": {
+      "shards": 48
+    },
+    "sessionBackups": {
+      "entries": 2
+    }
+  },
+  "note": "dry-run 零写入；执行须 --execute（授权窗口内逐项点名）",
+  "profilesPreview": {
+    "ok": true,
+    "scanned": 18,
+    "changed": 18,
+    "actions": [
+      {
+        "profile": "bot-mt2bqvh2",
+        "target": "cordis.patch.yml",
+        "changes": [
+          "name: 旧插件名 → 'pod'"
+        ],
+        "wrote": false
+      },
+      {
+        "profile": "duty-coordinator",
+        "target": "cordis.patch.yml",
+        "changes": [
+          "workspaceRoot: bot-workspaces → pod-workspaces",
+          "name: 旧插件名 → 'pod'"
+        ],
+        "wrote": false
+      },
+      {
+        "profile": "exp17-bare-code",
+        "target": "cordis.patch.yml",
+        "changes": [
+          "workspaceRoot: bot-workspaces → pod-workspaces",
+          "name: 旧插件名 → 'pod'"
+        ],
+        "wrote": false
+      },
+      {
+        "profile": "exp17-bare-duty",
+        "target": "cordis.patch.yml",
+        "changes": [
+          "workspaceRoot: bot-workspaces → pod-workspaces",
+          "name: 旧插件名 → 'pod'"
+        ],
+        "wrote": false
+      },
+      {
+        "profile": "exp17-bare-research",
+        "target": "cordis.patch.yml",
+        "changes": [
+          "workspaceRoot: bot-workspaces → pod-workspaces",
+          "name: 旧插件名 → 'pod'"
+        ],
+        "wrote": false
+      },
+      {
+        "profile": "exp17v2-bare-code",
+        "target": "cordis.patch.yml",
+        "changes": [
+          "workspaceRoot: bot-workspaces → pod-workspaces",
+          "name: 旧插件名 → 'pod'"
+        ],
+        "wrote": false
+      },
+      {
+        "profile": "exp17v2-bare-duty",
+        "target": "cordis.patch.yml",
+        "changes": [
+          "workspaceRoot: bot-workspaces → pod-workspaces",
+          "name: 旧插件名 → 'pod'"
+        ],
+        "wrote": false
+      },
+      {
+        "profile": "exp17v2-bare-research",
+        "target": "cordis.patch.yml",
+        "changes": [
+          "workspaceRoot: bot-workspaces → pod-workspaces",
+          "name: 旧插件名 → 'pod'"
+        ],
+        "wrote": false
+      },
+      {
+        "profile": "exp17v2-smoke",
+        "target": "cordis.patch.yml",
+        "changes": [
+          "workspaceRoot: bot-workspaces → pod-workspaces",
+          "name: 旧插件名 → 'pod'"
+        ],
+        "wrote": false
+      },
+      {
+        "profile": "exp17v3-bare-code",
+        "target": "cordis.patch.yml",
+        "changes": [
+          "workspaceRoot: bot-workspaces → pod-workspaces",
+          "name: 旧插件名 → 'pod'"
+        ],
+        "wrote": false
+      },
+      {
+        "profile": "exp17v3-bare-duty",
+        "target": "cordis.patch.yml",
+        "changes": [
+          "workspaceRoot: bot-workspaces → pod-workspaces",
+          "name: 旧插件名 → 'pod'"
+        ],
+        "wrote": false
+      },
+      {
+        "profile": "exp17v3-bare-research",
+        "target": "cordis.patch.yml",
+        "changes": [
+          "workspaceRoot: bot-workspaces → pod-workspaces",
+          "name: 旧插件名 → 'pod'"
+        ],
+        "wrote": false
+      },
+      {
+        "profile": "implementer",
+        "target": "cordis.patch.yml",
+        "changes": [
+          "workspaceRoot: bot-workspaces → pod-workspaces",
+          "name: 旧插件名 → 'pod'"
+        ],
+        "wrote": false
+      },
+      {
+        "profile": "ui-bot",
+        "target": "cordis.patch.yml",
+        "changes": [
+          "workspaceRoot: bot-workspaces → pod-workspaces",
+          "name: 旧插件名 → 'pod'"
+        ],
+        "wrote": false
+      },
+      {
+        "profile": "web",
+        "target": "cordis.patch.yml",
+        "changes": [
+          "name: 旧插件名 → 'pod'"
+        ],
+        "wrote": false
+      },
+      {
+        "profile": "web",
+        "target": "node_modules/dsh-bots → pod",
+        "changes": [
+          "软链改名保形（dsh-bots → pod）",
+          "重指部署目录（/home/beijong/.dsh/plugins/dsh-bots → /home/beijong/.dsh/plugins/pod）"
+        ],
+        "wrote": false
+      },
+      {
+        "profile": "x",
+        "target": "cordis.patch.yml",
+        "changes": [
+          "workspaceRoot: bot-workspaces → pod-workspaces",
+          "name: 旧插件名 → 'pod'"
+        ],
+        "wrote": false
+      },
+      {
+        "profile": "profiles/node_modules（共享锚）",
+        "target": "node_modules/dsh-bots → pod",
+        "changes": [
+          "软链改名保形（dsh-bots → pod）",
+          "重指部署目录（/home/beijong/.dsh/plugins/dsh-bots → /home/beijong/.dsh/plugins/pod）"
+        ],
+        "wrote": false
+      }
+    ]
+  }
+}

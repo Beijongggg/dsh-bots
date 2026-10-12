@@ -235,3 +235,44 @@ dry-run 零写入）：链接动作现为两条（此前仅 web 一条）＋18 �
 全量回归与 ③ 门见本批提交（EV-20261012-pod14-window-fixgate-d）。**与并行会话**：本修门
 （票 13「13 后续」会话）与票 14 窗口会话（修门 A/B）同工作树并行；A/B 语义未动，仅补
 未覆盖的第二个链接位置，窗口执行口径以本节为准。
+
+### 修门 A/B 实施记录与执行面让行（2026-10-12，/implement 14 会话）
+
+**修门 A/B（TDD，提交 `8d0911c`；EV 落档 `b119294`／EV-20261012-pod14-window-fixgate）**：
+
+- A（软链口径，窗口前阻塞件）：`--profiles` 原「改名保目标」会让 patch 行 `name: 'pod'`
+  解析到**旧部署目录** `plugins/dsh-bots`（四同名绑定：patch name＝node_modules 条目名
+  ＝package.json.name）→ 改名同时**重指 `<dshHome>/plugins/pod`**；新名已在本位但指他处＝
+  不动待人工确认；旧名项非软链＝fail closed（两反例用例锁）。`<id>/node_modules` 单形
+  枚举的第二个链接位置（`profiles/node_modules` 根级共享锚）由 13 后续会话修门 d
+  （`05cd463`）补齐——两批并集即全量链接面（运行面实测恰两条）。
+- B（注册表路径字段，窗口前阻塞件）：整表字节级搬运保留存量 `workspace`／`workspaceRoot`
+  旧工作区根值，而 `bot.workspace` 被宿主序列化输出（`lib/index.js::serializeBot`）与权限
+  判定（`lib/org/permissions.js::isBotWritablePath`）消费——不重写则重启后仍指已迁走的旧根。
+  处置＝execute 步骤 **②′**（拷贝复验后、retire 前）按字符串**定点替换**重写（不做反序列化
+  重落盘的有损路径）；厂外自定义 workspace 不误改（负例夹具）；报告增 `registryRewrite` 段。
+- 方案文档同步：§3 面 #1／#8b（新增行）／#10、§5 脚本契约（步骤序＋报告段）、风险①处置。
+- 验证：迁移件 **13/13**（新用例先红后绿：注册表重写断言红态 actual 旧根、软链目标断言红态
+  旧部署目录）；全量 `node tests/run.mjs` **94/94**；`ci-gates` ①94/94 ✅・③ **0 违例** ✅
+  （② 7/10 既有预期红，归票 15 新序号包）。
+
+**授权原文（本会话 18:0x AskUserQuestion）**：执行窗口＝「先修两处口子，再完整执行窗口
+（推荐）」；起链方式＝「restart-safe 走 systemd（推荐）」。
+
+**执行面让行（18:23，判定记录）**：本会话随后发现 13 后续会话于 18:21 落
+`artifacts/cutover-preparation/pod13-window-20261012T102118Z-batch.json`——其
+`authorization` 段记载用户同窗裁定「本会话执行窗口（推荐）……同一裁定**排除并行
+/implement 14 会话再执行**」；且执行已在途（18:22 `backups/pod/pod13-window-20261012T102118Z-backup-f641b1cc`
+建成、sync 记录 `artifacts/cutover-execution/pod13-window-20261012T102118Z-sync-cf01fae7.json`
+落盘、链 host 2295＋bots 2327／2351 已停）。**判定：执行面让行给 13 后续会话**（后位用户
+裁定优先；两会话并发同一运行面＝高危）。本会话不再触碰窗口步骤 1–5（停链／部署同步／迁移
+execute／起链／核验由该会话执行）。
+
+**本会话已执行且保留的窗口内动作（step 0，只读零写，18:22）**：
+`node scripts/migrate-pod-data.mjs --dsh-home ~/.dsh --profiles --report artifacts/cutover-execution/pod14-window-20261012T102221Z-dryrun.json`
+——preflight **零违例**；迁移前面计：注册表 2 席（`duty-coordinator`／`implementer`，sha
+`a48198c3…`）、ledger 180 事件／lastSeq 180、inbox 297 文件、outbox 142、knowledge 11 行
+＋11 报告、capabilities `secret`＋`issued.jsonl`＋nonces 84、started 271 行、workspaces 13
+目录、backups legacy 21／pod 1、sessions 48 分片；`--profiles` 预览 18 动作＝16 份 patch
+重写＋2 条链接改名重指（`web` 自有＋`profiles/node_modules` 共享锚）。该 dry-run 报告为
+迁移前基线证据（迁移后 `--verify-only` 对比由执行方按 §5 步骤 5 承接）。
