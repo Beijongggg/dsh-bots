@@ -1,6 +1,6 @@
 # 团队组织形式 v2（org-v2）规格
 
-Status: ready-for-agent
+Status: resolved（2026-10-12 收口：实现批 `.scratch/org-v2-build` 47 票全 resolved；B 组放大验收沿 17 号票 2026-10-06 用户终裁「接受不通过为验收结论」；判据正文与附录 A 语义零改动，仅 Status 行——修订依据 EV-20261012-org-v2-spec-status-close）
 
 - **来源**：wayfinder 图 `.scratch/org-v2/map.md` 的 destination 即本规格；
   16 票全闭、frontier 收空后由 `/to-spec` 成文（`Status: resolved`
