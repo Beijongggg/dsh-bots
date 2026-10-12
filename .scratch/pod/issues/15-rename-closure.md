@@ -200,9 +200,45 @@ EV-20261011-pod-rename-batch-close 事件）。**Status 维持 `ready-for-agent`
   ①「票面未记 PROJECT_UNDERSTANDING 改动」→ 已补（本条上方落档段）；②「移交①前置条件
   表述过时」→ 已改（见下）；③「②门自指式、闭包完备性依赖上游复核」→ 记观察不改（本批
   10/10→11/11 更正即该机制的实证）。
-- **移交备注（遗留项）**：① 全窗关闭的许可收缩（env 回落形＋migration-face 形、
-  role-cards 之外残留复核）——前置条件均已就位（部署同步／重启链／数据迁移／retired 清理
-  ／仓库外脚本五件全数完成），待办＝收缩动作与窗关闭复核本身，另记（另点名）；② 架构
-  派生件 17 件＋`preview/*.png` 13 张重出（仓内无生成器）留待运行面切换窗口或外部生成器；
-  ③ spec.md §D3／§E1／V-P4.1 坐标修订归 Lead 收口（既定安排）；④ 仓库外两脚本实值核对已随
-  票 13 窗口完成（`~/.dsh/dsh-web.sh`／`restart-split.sh` 新名 export），本票未再触碰。
+- **移交备注（遗留项）**：① **全窗关闭的许可收缩已由 2026-10-12「点名」批执行**（见下节；
+  原列前置五件已全数就位）；② 架构派生件 17 件＋`preview/*.png` 13 张重出（仓内无生成器）
+  留待运行面切换窗口或外部生成器；③ spec.md §D3／§E1／V-P4.1 坐标修订归 Lead 收口（既定
+  安排）；④ 仓库外两脚本实值核对已随票 13 窗口完成（`~/.dsh/dsh-web.sh`／`restart-split.sh`
+  新名 export），本票未再触碰。
+
+### 全窗关闭许可收缩（2026-10-12，用户点名「点名」执行；仓库内面）
+
+- **授权依据原文**：用户 2026-10-12 会话回复「**点名**」——承接 /ask-matt 路由建议中
+  「其次：点名『全窗关闭许可收缩』（唯一仓库内可动件）」一项（对应本票移交备注①与
+  13/14 号票沿线登记的窗关闭件）。
+- **收缩变化（四轴）**：
+  1. **env 回落形全闭**：`lib/env-aliases.js` 收缩为单点读——`readEnvValue` 仅按精确名
+     直读，`legacyEnvName`／`POD_ENV_PREFIX` 导出删除（API 面收缩）；`tests/pod-rename-env.test.mjs`
+     改写为闭窗语义 4 用例（旧名负例改**构造形** `["DSH","BOTS",suffix].join("_")`，代码面零旧名
+     字面量；形状测试锁定幸存导出＝单成员）。
+  2. **migration-face 退役**：`scripts/migrate-pod-data.mjs`＋`tests/pod-data-migration.test.mjs`
+     **整件删除**——迁移已执行（票 14 窗口）、旧根 retired 已清理（票 13 点名「1清理」）、
+     工作面使命完成；全仓复核确认零悬空引用。
+  3. **许可面收缩**：`tests/pod-spec-face.test.mjs` `IDENTITY_ALLOW_TOKENS` 4 条目→**1**
+     （只余 `lib/org/role-cards.js` 退役段名历史提及）；`IDENTITY_ALLOW_SHAPES` 3 类→**1**
+     （只余 `retired-section`；`env-name`／`migration-face` 两形删除）；对应用例改名
+     「V-P1.4/V-P1.5 **15 号票全窗关闭**：代码面旧名残留只余退役段名历史提及（其余清零）」，
+     断言「许可面只余一类」＋「bare／hyphen／env 类许可清零」＋六目录面全零。
+  4. **注释与活文档按现状改写**：`lib/spawn-env.js`／`bot-autostart.js`／`bot-supervisor.js`／
+     `org/host-env-seam.js`／`index.js` 五处注释、`GLOSSARY.md` 逃生阀节、`codebase-map.md`
+     两行、`scripts/host-contract-probe.mjs` 注释、`PROJECT_UNDERSTANDING.md` 部署链（目标态→
+     **现役态**）＋宿主自检行、`README.md` 架构派生件注记（留待专门窗口）、`tests/pod-data-roots.test.mjs`
+     标题措辞（retired 窗口已清理）。
+- **验证（实际计数）**：全量 `node tests/run.mjs` **93/93**（计数 94→93＝迁移测试件退役，其余零回落）；
+  `preflight` 四门 **①93/93 ✅ ②冻结面（0011 包）11/11 ✅ ③0 违例（命名扫描 219 活文件；
+  恒真断言扫描 101 件；session-log 名域限 95 件）✅ ④15 PASS／0 FAIL／0 SKIP ✅；PASS**；
+  `codeFaceOldNameScan()` 直跑：**hits＝0／staleAllow＝0／unusedShapes＝[]**，whitelisted
+  ＝role-cards 两枚（colon）——「全码面旧名残留只余退役段名历史提及」口径成立。
+- **冻结面纪律**：0011 包 `sourceManifest` 11 件**零触碰**（②门 11/11 佐证）——本批不触发
+  新 runId 重采集；数据面语义（`lib/data-roots.cjs`）未动。
+- **残留登记（另记，不改本批范围）**：① **部署面**仍载旧版 `env-aliases.js`（双读实现）与
+  已删迁移两件——下次部署同步窗口随行清理（部署面动作须点名）；② `lib/data-roots.cjs` 注释
+  中「retired 只读窗口」措辞微旧——该件在 0011 冻结面内，随下次因实质原因触碰时同批改写；
+  ③ shared-face 旧形容错与 bot-health 分片双认窗口**按设计仍开**（`~/.dsh/sessions/` 存量
+  20 个旧前缀分片未搬，读面须双认；非本批范围）；④ spec 附录 A `V-P8.5` 的「迁移前后逐件校验」
+  落点随脚本退役转为史实（证据＝窗口产物），坐标修订归 Lead 一并记。

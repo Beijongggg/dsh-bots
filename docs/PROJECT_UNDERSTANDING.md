@@ -127,13 +127,14 @@
   `dsh.client = { platform: "web", inject: [...], external: [...] }` 声明。
 - 官方 UI 包源码位置：`/usr/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-client-ui-*/lib/client.js`
   （未压缩、带注释；`dsh-client-ui-primitives` 打在 dsh-web-frontend dist 内）。
-- 部署链（改名批后目标态）：`project/dsh-bots` →（拷贝）→ `~/.dsh/plugins/pod` →
-  （软链）→ `~/.dsh/profiles/<profile>/node_modules/pod`；数据根 `$DSH_HOME/pod`
-  （注册表／信箱／知识库／台账／能力，单源 `lib/data-roots.cjs`），工作区根
-  `pod-workspaces`（`pod-workspaces-<id>--` 分片）。改完必须拷贝到 plugins 目录才生效；
+- 部署链（改名批后**现役态**，2026-10-12 运行面窗口执行）：`project/dsh-bots` →（拷贝）→
+  `~/.dsh/plugins/pod` →（软链）→ `~/.dsh/profiles/<profile>/node_modules/pod`；
+  数据根 `$DSH_HOME/pod`（注册表／信箱／知识库／台账／能力，单源 `lib/data-roots.cjs`），
+  工作区根 `pod-workspaces`（`pod-workspaces-<id>--` 分片）。部署同步／数据迁移 execute／
+  重启链均已执行、旧名布局与 `bots.retired-*` 已清理（残留处置记录见
+  [13](../.scratch/pod/issues/13-rename-identity-switch.md)／[14 号票](../.scratch/pod/issues/14-rename-data-plane-migration.md)；
+  方案 `.scratch/pod/rename-migration-plan.md`）。改完必须拷贝到 plugins 目录才生效；
   客户端 bundle 有 500ms 轮询 HMR（改 client.js 后刷新页面即可拿到新 rev）。
-  **运行面切换待授权窗口**（`~/.dsh` 实际目录仍为旧名布局，部署同步／数据迁移
-  execute／重启链各属逐项点名件，见 `.scratch/pod/rename-migration-plan.md`）。
 - **生效条件不对称（实证）**：宿主对插件 client.js 是**按请求从磁盘 serve**
   （`cache-control: no-cache`，浏览器每次重新验证）——客户端改动的生效条件＝
   **页面刷新**，与宿主启动时间无关；服务端（lib/index.js）改动的生效条件才是
@@ -195,7 +196,7 @@
   侧能力）。触发＝下一个部署同步窗口开工时先与用户对齐授权形态再执行。
 - **手工启动宿主 ⇒ 组织通道静默休眠（2026-10-07 观察）**：**已实施（39 号票，同日转立项）**
   ——宿主启动自检 `POD_HOST_URL`（13 号票改名批由 `DSH_BOTS_HOST_URL` 更名；
-  env 双读过渡窗口内旧名仍兼容回落）：缺失或形状非法即 `ctx.logger.warn` 在宿主台面响亮，同一判定
+  15 号票全窗关闭后只读新名、旧名不再回落）：缺失或形状非法即 `ctx.logger.warn` 在宿主台面响亮，同一判定
   产物随就绪面 `_ledger/readiness.hostEnv` 暴露（诊断位，不作门），根因不必再从 `channels` 空／
   `gen:null` 反推。**仍留界**：自检**只报不修**——不自动补齐 origin、不动 `dsh web` 启动路径
   （后者属宿主侧、非本仓面），故手工启动宿主后组织面照旧休眠，须人工走重启链。触发＝再次出现

@@ -1,74 +1,73 @@
 /**
- * pod 改名批 13 号票「B 组 env 双读」的机械面（规格附录 A V-P8.3 预留坐标）：
- * `POD_*` 优先、`DSH_BOTS_*` 回落，兼容一个窗口（规格 §F5）。
+ * pod 改名批 13 号票「B 组 env」的机械面（规格附录 A V-P8.3 预留坐标）；15 号票
+ * **全窗关闭**后改写为闭窗语义：
+ *   ① 单点读（lib/env-aliases.js）：只读新名——旧名不再回落；
+ *   ② 形状：env-aliases 幸存导出＝`readEnvValue` 单一成员（`legacyEnvName`／
+ *      `POD_ENV_PREFIX` 随窗删除——API 面收缩按形状测试锁定，grep 只作辅助）；
+ *   ③ 真实读点闭窗语义：`buildSpawnEnv` 逃生阀只设旧名不再放行、宿主环境缝
+ *      只设旧名判 `missing`（缺省行为与窗内新名路径不变）。
  *
- * 断言三层：
- *   ① helper 单元（lib/env-aliases.js）：新名优先（含显式空串）、旧名回落、
- *      双缺即 undefined、非 POD_ 前缀名原样直读（映射规则唯一：`POD_X` ↔
- *      `DSH_BOTS_X`，新增 POD_* 名自动获得回落）；
- *   ② 单源常量行为：`buildSpawnEnv` 逃生阀（ENV_EXTRA_VAR）与宿主环境缝
- *      （checkHostEnvSeam）在只设旧名时仍工作（回落语义落到真实读点）；
- *   ③ 缺省行为不变：双名皆缺时与旧实现同值（不凭空产出、不误回落）。
- *
- * 本件内的 `DSH_BOTS_*` 字面量是**双读回落测试夹具**（兼容窗口的故意残留，
- * pod-spec-face 的 `IDENTITY_ALLOW_TOKENS` 逐条登记）；全窗关闭（票 15）时
- * 本件与该许可同批收缩。
+ * 负例中的旧名以**构造形**给出（分段 join）——全窗关闭后代码面不留旧名字面记号
+ * （pod-spec-face 扫描零许可）：日后若有人把字面旧名写回任一代码面，扫描门即红；
+ * 本件曾持 11 个旧名夹具记号（兼容窗口故意残留），已随本批离场。
+ * 窗口期的双读行为（新名优先、旧名回落）见 git 历史与 13 号票提交记录。
  */
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { buildSpawnEnv } from "../lib/spawn-env.js";
 import { checkHostEnvSeam, HOST_URL_SEAM_VAR } from "../lib/org/host-env-seam.js";
-import { readEnvValue, legacyEnvName, POD_ENV_PREFIX } from "../lib/env-aliases.js";
+import { readEnvValue } from "../lib/env-aliases.js";
 
-/** 逃生阀名（对外运维合同；spawn-env 未导出常量，测试以字面名锁定——本仓惯例）。 */
+/** 旧名构造形（负例专用；不落字面记号）。 */
+const legacyName = (suffix) => ["DSH", "BOTS", suffix].join("_");
+
+/** 逃生阀新名（对外运维合同；spawn-env 未导出常量，测试以字面名锁定——本仓惯例）。 */
 const ENV_EXTRA_VAR = "POD_ENV_EXTRA";
 
-test("V-P8.3 env 双读·helper 单元：POD_* 优先、DSH_BOTS_* 回落、双缺 undefined", () => {
-  // 新名优先：双名都设时取新名（即使新名为显式空串——显式设置即优先）
-  assert.equal(readEnvValue({ POD_HOST_URL: "http://n:1", DSH_BOTS_HOST_URL: "http://o:2" }, "POD_HOST_URL"), "http://n:1");
-  assert.equal(readEnvValue({ POD_HOST_URL: "", DSH_BOTS_HOST_URL: "http://o:2" }, "POD_HOST_URL"), "");
-  // 回落：只设旧名时取旧名
-  assert.equal(readEnvValue({ DSH_BOTS_HOST_URL: "http://o:2" }, "POD_HOST_URL"), "http://o:2");
-  // 双缺：undefined（缺省行为不变）
+test("V-P8.3 env 窗关闭·单点读：readEnvValue 只读新名；旧名不再回落（构造形负例）", () => {
+  const oldHostUrl = legacyName("HOST_URL");
+  // 只设旧名 → undefined（回落已随全窗关闭）
+  assert.equal(readEnvValue({ [oldHostUrl]: "http://o:2" }, "POD_HOST_URL"), undefined);
+  // 新名取值（含显式空串——显式设置即取值，空串原样返回）
+  assert.equal(readEnvValue({ POD_HOST_URL: "http://n:1", [oldHostUrl]: "http://o:2" }, "POD_HOST_URL"), "http://n:1");
+  assert.equal(readEnvValue({ POD_HOST_URL: "" }, "POD_HOST_URL"), "");
+  // 缺名／缺 env → undefined（缺省行为不变）
   assert.equal(readEnvValue({}, "POD_HOST_URL"), undefined);
-  assert.equal(readEnvValue({ DSH_BOTS_OTHER: "x" }, "POD_HOST_URL"), undefined);
-  // 显式 undefined 的新名键不算「在位」——等同未设，照常回落
-  assert.equal(readEnvValue({ POD_HOST_URL: undefined, DSH_BOTS_HOST_URL: "http://o:2" }, "POD_HOST_URL"), "http://o:2");
-});
-
-test("V-P8.3 env 双读·映射规则唯一：POD_X ↔ DSH_BOTS_X（非 POD_ 前缀名直读）", () => {
-  assert.equal(POD_ENV_PREFIX, "POD_");
-  assert.equal(legacyEnvName("POD_HOST_URL"), "DSH_BOTS_HOST_URL");
-  assert.equal(legacyEnvName("POD_TURN_TIMEOUT_MS"), "DSH_BOTS_TURN_TIMEOUT_MS");
-  // 非 POD_ 前缀名（DSH_HOME／DSH_WEB_URL 等宿主自有名）无回落语义
-  assert.equal(legacyEnvName("DSH_HOME"), "DSH_HOME");
+  assert.equal(readEnvValue(undefined, "POD_HOST_URL"), undefined);
+  // 非 POD_ 前缀名直读（DSH_HOME 等宿主自有名不受改名批影响）
   assert.equal(readEnvValue({ DSH_HOME: "/dsh" }, "DSH_HOME"), "/dsh");
   assert.equal(readEnvValue({}, "DSH_HOME"), undefined);
 });
 
-test("V-P8.3 env 双读·buildSpawnEnv 逃生阀：只设旧名时回落仍放行（真实读点回落语义）", () => {
+test("V-P8.3 env 窗关闭·形状：env-aliases 幸存导出＝readEnvValue 单一成员（legacy 映射面已删）", async () => {
+  // 动态 import 取运行时命名空间（export-face 门禁静态 `import * as` 形；形状测试按需取整面）
+  const namespace = await import("../lib/env-aliases.js");
+  assert.deepEqual(Object.keys(namespace).sort(), ["readEnvValue"],
+    "API 面收缩：env-aliases 只余读侧单点成员（legacyEnvName／POD_ENV_PREFIX 随窗删除）");
+});
+
+test("V-P8.3 env 窗关闭·buildSpawnEnv 逃生阀：只设旧名不再放行（真实读点闭窗语义）", () => {
   const base = { PATH: "/usr/bin" };
-  // 新名优先
+  // 新名在位 → 放行
   const viaNew = buildSpawnEnv({ ...base, [ENV_EXTRA_VAR]: "FOO", FOO: "new" });
   assert.equal(viaNew.FOO, "new");
-  // 只设旧名 → 回落
-  const viaLegacy = buildSpawnEnv({ ...base, DSH_BOTS_ENV_EXTRA: "BAR", BAR: "legacy" });
-  assert.equal(viaLegacy.BAR, "legacy");
+  // 只设旧名 → 不再放行（窗关闭）
+  const viaLegacy = buildSpawnEnv({ ...base, [legacyName("ENV_EXTRA")]: "BAR", BAR: "legacy" });
+  assert.equal(viaLegacy.BAR, undefined);
   // 双缺 → 逃生阀不生效
   const none = buildSpawnEnv({ ...base, BAZ: "quiet" });
   assert.equal(none.BAZ, undefined);
 });
 
-test("V-P8.3 env 双读·宿主环境缝：只设旧名时缝判定仍 ok（真实读点回落语义）", () => {
+test("V-P8.3 env 窗关闭·宿主环境缝：只设旧名＝missing（真实读点闭窗语义）", () => {
   const origin = "http://127.0.0.1:3080";
-  // 新名在位
+  // 新名在位 → ok（判定产物的 var 字段＝对外合同名）
   assert.equal(checkHostEnvSeam({ [HOST_URL_SEAM_VAR]: origin }).state, "ok");
   assert.equal(checkHostEnvSeam({ [HOST_URL_SEAM_VAR]: origin }).var, HOST_URL_SEAM_VAR);
-  // 只设旧名 → 回落判定 ok（旧名仅作读侧兼容，判定产物的 var 字段仍是新名＝对外合同名）
-  const legacyVerdict = checkHostEnvSeam({ DSH_BOTS_HOST_URL: origin });
-  assert.equal(legacyVerdict.state, "ok");
-  assert.equal(legacyVerdict.var, HOST_URL_SEAM_VAR);
+  // 只设旧名 → missing（窗关闭后旧名不再作环境缝）
+  const legacyVerdict = checkHostEnvSeam({ [legacyName("HOST_URL")]: origin });
+  assert.equal(legacyVerdict.state, "missing");
   // 双缺 → missing（缺省行为不变）
   assert.equal(checkHostEnvSeam({}).state, "missing");
 });

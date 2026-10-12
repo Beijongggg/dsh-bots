@@ -579,43 +579,27 @@ export function oldNameHits(files = POD_BATCH_SURFACES) {
 export const SCAN_ROOTS = Object.freeze(["lib", "tests", "scripts"]);
 export const SCAN_SKIP_FILES = Object.freeze(["tests/pod-spec-face.test.mjs"]);
 
-/** 文件级许可：完整记号，一条一记号（反向验真：必须真出现，防陈旧掩体）。 */
+/** 文件级许可：完整记号，一条一记号（反向验真：必须真出现，防陈旧掩体）。
+ *  **15 号票全窗关闭后只余一条**：env 回落夹具（`tests/pod-rename-env.test.mjs` 旧名
+ *  离场、夹具改构造形）与迁移工作面两件（随旧根 retired 清理完成退役）均已同批收缩。 */
 export const IDENTITY_ALLOW_TOKENS = Object.freeze({
   // 03 号票退役两段的**历史提及**（注释）；活性面已无该段名（retired-section 形）
-  "lib/org/role-cards.js": Object.freeze(["dsh-bots:review", "dsh-bots:review-gate"]),
-  // 13 号票 env 双读的**回落测试夹具**（POD_* 优先、旧名回落兼容一个窗口；票 15 全窗关闭时同批收缩）
-  "tests/pod-rename-env.test.mjs": Object.freeze([
-    "DSH_BOTS_HOST_URL", "DSH_BOTS_ENV_EXTRA", "DSH_BOTS_TURN_TIMEOUT_MS", "DSH_BOTS_X", "DSH_BOTS_OTHER"
-  ]),
-  // 14 号票数据面迁移的**旧插件名工作面**（存量 patch name 行是数据＋node_modules
-  // 旧名软链保目标改名；脚本/夹具必须认识旧名才能改写它——退役随旧根清理窗口关闭，
-  // 与旧根 retired 清理同批收缩归票 15）
-  "scripts/migrate-pod-data.mjs": Object.freeze(["dsh-bots"]),
-  "tests/pod-data-migration.test.mjs": Object.freeze(["dsh-bots"])
+  "lib/org/role-cards.js": Object.freeze(["dsh-bots:review", "dsh-bots:review-gate"])
 });
 
 /**
- * 跨文件同形许可（13 号票身份切换后收缩到两类；其余三形已随改名无命中而删除）：
+ * 跨文件同形许可（15 号票全窗关闭后只余一类）：
  *   - `retired-section`：`dsh-bots:review|review-gate`——03 号票退役段名的**历史提及**
- *     （role-cards.js 注释，冻结历史，不随改名回写）；
- *   - `env-name`：`DSH_BOTS_*`——env 双读回落（POD_* 优先）兼容窗口内的**故意残留**，
- *     只许出现在 `tests/pod-rename-env.test.mjs` 夹具（文件级许可逐条登记）；
- *     全窗关闭（票 15）时本形与该件条目同批删除。
- * 14 号票增形：`migration-face`——数据面迁移工作面的旧插件名裸形（跨文件形＋
- * V-P1.4 落点反向锁；随旧根 retired 清理窗口关闭，票 15 同批收缩）。
- * 已删形（原票 13 身份面）：`identity-bare`／`hyphen-ns`／`ipc-or-section`——
- * 四同名、wire 头、IPC 类型、提示段名已随 13 号票全部换新名（再出现即 `hits` 红）。
+ *     （role-cards.js 注释，冻结历史，不随改名回写）。
+ * 已删形：`env-name`（env 双读回落兼容窗口的故意残留——窗已关，夹具改构造形）与
+ * `migration-face`（数据面迁移工作面的旧插件名裸形——旧根 retired 已清理，脚本与其
+ * 夹具退役）随票 15 全窗关闭同批删除；原票 13 身份面三形（`identity-bare`／
+ * `hyphen-ns`／`ipc-or-section`）已随 13 号票换新名时删除（再出现即 `hits` 红）。
  * 部署目录（路径片段）不进形许可——一律走文件级许可逐条登记。
  */
 export const IDENTITY_ALLOW_SHAPES = Object.freeze([
   // 03 号票退役的提示段名（只应出现在「已退役」历史提及里）
-  Object.freeze({ id: "retired-section", re: /^dsh-bots:review(?:-gate)?$/u }),
-  Object.freeze({ id: "env-name", re: /^DSH_BOTS_[A-Z0-9_]+$/u }),
-  // 14 号票数据面迁移的旧插件名（裸形；存量 patch name 行是数据＋node_modules 旧名
-  // 软链保目标改名——脚本/夹具必须认识旧名才能改写它）。形许可是跨文件的，落点由
-  // V-P1.4 反向锁钉死在迁移工作面两件（scripts/migrate-pod-data.mjs ＋其夹具）；
-  // 随旧根 retired 清理窗口关闭，票 15 同批收缩。
-  Object.freeze({ id: "migration-face", re: /^dsh-bots$/u })
+  Object.freeze({ id: "retired-section", re: /^dsh-bots:review(?:-gate)?$/u })
 ]);
 
 /**
@@ -1001,37 +985,25 @@ test("V-P8.4 四同名一致：patch 行 name＝插件目录段＝package.json.n
   }
 });
 
-test("V-P1.4/V-P1.5 13 号票身份切换：代码面旧名残留 ⊆ 退役段名＋env 回落测试（其余清零）", () => {
+test("V-P1.4/V-P1.5 15 号票全窗关闭：代码面旧名残留只余退役段名历史提及（其余清零）", () => {
   const { hits, whitelisted, scanned, staleAllow, unusedShapes } = codeFaceOldNameScan();
   assert.ok(scanned > 40, `扫描面须覆盖 lib／tests／scripts（实扫 ${String(scanned)} 件）`);
-  assert.ok(whitelisted.length > 0, "退役历史与双读回落测试的许可残留须被识别为一类，不是空集");
-  // 身份切换后剩余许可只许三类：
-  //   ① role-cards.js 注释里的**退役段名历史提及**（03 号票退役，冻结历史）；
-  //   ② tests/pod-rename-env.test.mjs 的 **env 双读回落夹具**（POD_* 优先、
-  //      DSH_BOTS_* 回落兼容一个窗口，票 15 全窗关闭时同批收缩）；
-  //   ③ 14 号票**数据面迁移的旧插件名工作面**（scripts/migrate-pod-data.mjs ＋其夹具：
-  //      存量 patch name 行是数据＋node_modules 旧名软链保目标改名——脚本必须认识
-  //      旧名才能改写它；随旧根 retired 清理窗口关闭，票 15 同批收缩）。
+  assert.ok(whitelisted.length > 0, "退役历史提及的许可残留须被识别为一类，不是空集");
+  // 全窗关闭（15 号票）后许可面只许一类：
+  //   ① role-cards.js 注释里的**退役段名历史提及**（03 号票退役，冻结历史，无关闭窗口）。
+  // 已随本批离场：② env 双读回落夹具（窗已关；测试件改构造形后零命中）与
+  // ③ 数据面迁移旧插件名工作面（`scripts/migrate-pod-data.mjs` ＋夹具随迁移完成、
+  //    旧根 retired 清理执行而整件退役删除）。
   const retired = whitelisted.filter((entry) => entry.file === "lib/org/role-cards.js");
-  const envFallback = whitelisted.filter((entry) => entry.file === "tests/pod-rename-env.test.mjs");
-  const migrationFace = whitelisted.filter((entry) =>
-    entry.file === "scripts/migrate-pod-data.mjs" || entry.file === "tests/pod-data-migration.test.mjs");
   assert.ok(retired.length > 0 && retired.every((entry) => entry.kind === "colon"),
     "role-cards 退役段名历史提及（retired-section 形许可）");
-  assert.ok(envFallback.length > 0 && envFallback.every((entry) => entry.kind === "env"),
-    "env 双读回落测试夹具（兼容窗口内故意残留）");
-  assert.ok(migrationFace.length > 0 && migrationFace.every((entry) => entry.kind === "bare"),
-    "数据面迁移旧插件名工作面（迁移窗口内故意残留；14 号票）");
-  // 形许可跨文件：裸形记号的落点必须钉死在迁移工作面两件（不许他处借形存活）。
-  const bareWhitelisted = whitelisted.filter((entry) => entry.kind === "bare");
-  assert.deepEqual(
-    [...new Set(bareWhitelisted.map((entry) => entry.file))].sort(),
-    ["scripts/migrate-pod-data.mjs", "tests/pod-data-migration.test.mjs"],
-    "bare 形许可只许落迁移工作面两件（migration-face 形；他处出现即红）");
-  assert.equal(whitelisted.length, retired.length + envFallback.length + migrationFace.length,
-    "许可面只许上述三类（其余文件条目已随身份切换删除）");
+  assert.equal(whitelisted.length, retired.length,
+    "许可面只许退役段名一类（env 回落夹具与迁移工作面已随全窗关闭离场）");
+  // 旧名活性形（bare／hyphen／env）在许可面清零——再出现即 hits 红，无借形存活面。
+  const activeShapes = whitelisted.filter((entry) => entry.kind === "bare" || entry.kind === "hyphen" || entry.kind === "env");
+  assert.deepEqual(activeShapes, [], "bare／hyphen／env 类许可已清零（全窗关闭后旧名记号无许可存活面）");
   const detail = hits.map((h) => `${h.file}:${h.kind}:${h.token}`).join("、");
-  assert.deepEqual(hits, [], `白名单外旧名残留＝「应改未改」（身份切换后代码面应清零）：${detail}`);
+  assert.deepEqual(hits, [], `白名单外旧名残留＝「应改未改」（全窗关闭后代码面应清零）：${detail}`);
   assert.deepEqual(staleAllow, [], `身份面白名单陈旧（许可记号已不存在，须同批删除）：${staleAllow.join("、")}`);
   assert.deepEqual(unusedShapes, [], `身份面许可形未被命中（陈旧形，须同批删除）：${unusedShapes.join("、")}`);
   // 本票已换新的非身份面：这些文件是「旧类名／旧 id 前缀」的密集落点，须为零命中且不得在册
@@ -1041,12 +1013,10 @@ test("V-P1.4/V-P1.5 13 号票身份切换：代码面旧名残留 ⊆ 退役段�
     assert.equal(OLD_IDENTIFIER_SHAPE.test(readTextOrEmpty(join(REPO_ROOT, rel))), false,
       `${rel} 不得再带旧标识符形（旧类名／旧 id／旧 data-*）`);
   }
-  // 13 号票身份切换后：bare／hyphen／colon（活性）／env（lib 面）记号清零——
-  // 全码面只许 env 回落测试夹具、退役段名与迁移工作面三类残留（上方三类断言已锁）；
-  // 此处反向验证 lib／scripts 面旧名记号（env 类含）全零（迁移工作面两件除外）。
-  for (const [root, kind] of [["lib/", "env"], ["lib/", "bare"], ["scripts/", "bare"]]) {
-    const remaining = whitelisted.filter((entry) => entry.file.startsWith(root) && entry.kind === kind
-      && !migrationFace.some((m) => m.file === entry.file));
+  // 全窗关闭后：lib／scripts／tests 面旧名记号（bare／hyphen／env 类）全零——
+  // 唯一豁免＝role-cards 退役段名（colon 类，历史提及）；迁移工作面两件已整件删除。
+  for (const [root, kind] of [["lib/", "env"], ["lib/", "bare"], ["scripts/", "bare"], ["scripts/", "env"], ["tests/", "bare"], ["tests/", "env"]]) {
+    const remaining = whitelisted.filter((entry) => entry.file.startsWith(root) && entry.kind === kind);
     assert.equal(remaining.length, 0, `${root} 面不得再留 ${kind} 类旧名记号`);
   }
 });

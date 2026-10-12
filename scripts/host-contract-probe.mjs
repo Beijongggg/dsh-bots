@@ -14,7 +14,7 @@
  *   - SKIP：本机探测不到该面的载体（如未安装宿主、无会话日志）——**分列计数
  *     且可见**（打印原因与探测坐标），汇总行形如 `N PASS / M FAIL / K SKIP`。
  *   仅「本机未安装该宿主」的开发机/CI 场景允许 SKIP 且不阻断；**bot 运行面与
- *     部署面上 SKIP 视同 FAIL**（--face=deploy 或 POD_PROBE_FACE=deploy；env 名读侧经 lib/env-aliases.js 双读，旧名回落兼容一个窗口）。
+ *     部署面上 SKIP 视同 FAIL**（--face=deploy 或 POD_PROBE_FACE=deploy；env 名读侧经 lib/env-aliases.js，15 号票全窗关闭后只读新名）。
  *
  * 版本探测仅作诊断字段（V-A6.4）：报告头部打印宿主版本号以便归因，**不参与
  * 任何 PASS/FAIL 判定**——门只由行为/形状断言把守。

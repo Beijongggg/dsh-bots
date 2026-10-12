@@ -21,7 +21,7 @@ const REPO_ROOT = fileURLToPath(new URL("..", import.meta.url));
 
 const HOME = "/tmp/nonexistent-dsh-home";
 
-test("V-P8.5 roots 单源：名常量钉根名（14 号票切名后＝pod 族；旧名 retired 只读窗口见迁移方案）", () => {
+test("V-P8.5 roots 单源：名常量钉根名（14 号票切名后＝pod 族；旧名 retired 窗口已清理，见迁移方案）", () => {
   equal(d.DATA_ROOT_NAME, "pod");
   equal(d.WORKSPACE_ROOT_NAME, "pod-workspaces");
   equal(d.PROFILE_ROOT_NAME, "profiles");

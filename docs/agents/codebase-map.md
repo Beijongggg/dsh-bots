@@ -26,7 +26,7 @@
 | `native-session-rpc.js` | 进程内直调官方 sessionController 的 RPC 包装 |
 | `bot-supervisor.js` | bot 子进程生命周期与自愈 |
 | `bot-autostart.js` | `dsh web` 启动时拉起 bot |
-| `spawn-env.js` | bot 子进程环境白名单（`DSH_HOME`/`DSH_WEB_URL`/`POD_HOST_URL`/`DSH_TOOLS_MODE` 等经此注入；POD_* 名读侧经 `lib/env-aliases.js` 双读回落旧名） |
+| `spawn-env.js` | bot 子进程环境白名单（`DSH_HOME`/`DSH_WEB_URL`/`POD_HOST_URL`/`DSH_TOOLS_MODE` 等经此注入；POD_* 名读侧经 `lib/env-aliases.js` 单点读——15 号票全窗关闭后只读新名） |
 | `api-security.js` | `/api/pod` 变更面 CSRF 令牌会话；`TOKEN_HEADER`（`x-pod-token`）单源 |
 | `host-services.js` | 宿主服务适配层（HF-CTX-SERVICES） |
 | `host-faces.js` | 宿主适配面登记表（HF-*，`hostCoordinate`/`readAccess`）；改宿主相关代码先查此表 |
@@ -70,7 +70,7 @@
 | `post-channel.js` | bot→host 组织命令通道（幂等键经 `dispatch` 传入） |
 | `host-channel.js` | bot→host 认证通道原语；`BOT_ID_HEADER` 单源 |
 | `host-contract.js` | 宿主契约巡检子进程适配（16 号票）：报告只落临时目录，台账写入归 ledger-host |
-| `host-env-seam.js` | 宿主环境缝判定与报警文案单源：`POD_HOST_URL` 缺失/形状非法即宿主台面响亮（39 号票；读侧双读回落旧名） |
+| `host-env-seam.js` | 宿主环境缝判定与报警文案单源：`POD_HOST_URL` 缺失/形状非法即宿主台面响亮（39 号票；读侧经 `lib/env-aliases.js` 单点读——全窗关闭后只读新名） |
 | `mail-relay.js` / `mail-client.js` | host 邮件中继（投递面唯一写者）／bot 侧通道腿 |
 | `mail-shared-face.js` / `knowledge-shared-face.js` | 投递面／记忆共享面直写扫描 |
 | `brief.js` / `brief-gate.js` | 四要素简报契约／命令面前置门 |
