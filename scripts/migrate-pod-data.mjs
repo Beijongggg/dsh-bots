@@ -14,7 +14,7 @@
  *   --dsh-home <dir>  运行面根（缺省＝readEnvValue(env,"DSH_HOME") 回落 ~/.dsh）
  *   --execute         显式执行门；**缺省 dry-run**（只打计划，零写入）
  *   --profiles        profile patch 重写（name→pod＋workspaceRoot→pod-workspaces）
- *                     与 node_modules 旧名软链保目标改名（幂等；可单独跑）
+ *                     与 node_modules 旧名软链改名并重指部署目录（幂等；可单独跑）
  *   --verify-only     只跑逐面校验器出 JSON（迁移前后各跑一次对比用；零写入）
  *   --report <path>   JSON 校验报告落盘（0600）
  *
@@ -32,7 +32,7 @@
  */
 import {
   cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync,
-  readlinkSync, renameSync, rmSync, writeFileSync
+  readlinkSync, renameSync, rmSync, symlinkSync, writeFileSync
 } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { createHash } from "node:crypto";
@@ -45,10 +45,10 @@ import dRoots from "../lib/data-roots.cjs";
 const {
   DATA_ROOT_NAME, WORKSPACE_ROOT_NAME, PROFILE_ROOT_NAME,
   LEGACY_DATA_ROOT_NAME, LEGACY_WORKSPACE_ROOT_NAME,
-  workspaceDirFor, profileRoot, profileDirFor
+  workspaceDirFor, profileRoot, profileDirFor, registryPath
 } = dRoots;
 
-/** 旧插件模块名（profile node_modules 链接改名面；存量链接是数据，本脚本保目标改名）。
+/** 旧插件模块名（profile node_modules 链接改名面；存量链接是数据，本脚本改其名并重指部署目录）。
  *  旧名经 tests/pod-spec-face.test.mjs IDENTITY_ALLOW_TOKENS 逐条登记（迁移窗口残留）。 */
 const LEGACY_PLUGIN_MODULE_NAME = "dsh-bots";
 const PLUGIN_MODULE_NAME = "pod";
@@ -386,11 +386,12 @@ export function rewritePatchText(text) {
   return { text: lines.join("\n"), changes };
 }
 
-/** --profiles 步骤：逐 profile 重写 cordis.patch.yml＋旧名软链保目标改名（幂等）。 */
+/** --profiles 步骤：逐 profile 重写 cordis.patch.yml＋旧名软链改名为新名并**重指部署目录**。 */
 export function rewriteProfiles(dshHome, { dryRun = true } = {}) {
   const actions = [];
   let scanned = 0;
   let changed = 0;
+  const deployTarget = join(dshHome, "plugins", PLUGIN_MODULE_NAME);
   let entries = [];
   try {
     entries = readdirSync(profileRoot(dshHome), { withFileTypes: true });
@@ -412,32 +413,86 @@ export function rewriteProfiles(dshHome, { dryRun = true } = {}) {
         if (!dryRun) writeFileSync(patchPath, text, { mode: 0o600 });
       }
     }
-    // ② node_modules 旧名软链 → 新名（保目标；非软链旧名目录＝fail closed 不动）。
-    //    判存用 lstat（链接可能悬空——目标指向未部署的新插件目录，existsSync 会跟随而漏判）。
+    // ② node_modules 旧名软链 → 新名＋重指部署目录（四同名绑定：patch 行 name＝条目名＝
+    //    package.json.name；存量链接目标是**旧部署目录** plugins/dsh-bots——保目标改名会让
+    //    'pod' 解析到旧代码，故重指 plugins/pod；部署同步为窗口内先行步，目标可暂缺）。
+    //    判存用 lstat（链接可能悬空）；非软链旧名项＝fail closed 不动（人工处置点）。
     const nmDir = join(dir, "node_modules");
     const legacyLink = join(nmDir, LEGACY_PLUGIN_MODULE_NAME);
     const newLink = join(nmDir, PLUGIN_MODULE_NAME);
     let legacyIsLink = false;
     let newIsPresent = false;
+    let newTarget = null;
     try {
       legacyIsLink = lstatSync(legacyLink).isSymbolicLink();
     } catch { /* 不存在 */ }
     try {
       newIsPresent = lstatSync(newLink).isSymbolicLink();
+      if (newIsPresent) newTarget = readlinkSync(newLink);
     } catch { /* 不存在 */ }
+    if ((legacyIsLink || newIsPresent) && newIsPresent && newTarget !== deployTarget) {
+      actions.push({ profile: entry.name, target: `node_modules/${PLUGIN_MODULE_NAME}`, changes: [`新名链接已在他处（${String(newTarget)}）——不动待人工确认`], wrote: false });
+      continue;
+    }
     if (legacyIsLink) {
-      if (newIsPresent) {
-        actions.push({ profile: entry.name, target: `node_modules/${PLUGIN_MODULE_NAME}`, changes: ["新名软链已在位，旧名链接保留待人工确认（不并行删）"], wrote: false });
-      } else {
-        changed += 1;
-        actions.push({ profile: entry.name, target: `node_modules/${LEGACY_PLUGIN_MODULE_NAME} → ${PLUGIN_MODULE_NAME}`, changes: [`软链改名保目标（${readlinkSync(legacyLink)}）`], wrote: !dryRun });
-        if (!dryRun) renameSync(legacyLink, newLink);
+      const changes = [
+        `软链改名保形（${LEGACY_PLUGIN_MODULE_NAME} → ${PLUGIN_MODULE_NAME}）`,
+        `重指部署目录（${readlinkSync(legacyLink)} → ${deployTarget}）`
+      ];
+      changed += 1;
+      actions.push({ profile: entry.name, target: `node_modules/${LEGACY_PLUGIN_MODULE_NAME} → ${PLUGIN_MODULE_NAME}`, changes, wrote: !dryRun });
+      if (!dryRun) {
+        renameSync(legacyLink, newLink);
+        if (lstatSync(newLink).isSymbolicLink() && readlinkSync(newLink) !== deployTarget) {
+          rmSync(newLink, { force: true });
+          symlinkSync(deployTarget, newLink);
+        }
       }
     } else if (linkEntryExists(nmDir, LEGACY_PLUGIN_MODULE_NAME)) {
       actions.push({ profile: entry.name, target: `node_modules/${LEGACY_PLUGIN_MODULE_NAME}`, changes: ["旧名项不是软链——fail closed 不动，须人工处置"], wrote: false });
     }
   }
   return { ok: true, scanned, changed, actions };
+}
+
+// ---------------- 注册表路径字段重写（workspace／workspaceRoot） ----------------
+
+/** 注册表 JSON 内的 workspace 字段重写（纯函数；幂等；preserve 格式——只替换路径串）。
+ *  事由：整表字节级搬运保留存量字段值，而 `bot.workspace` 被宿主序列化输出
+ *  （serializeBot）与权限判定（isBotWritablePath）消费——不重写则重启后仍指旧根
+ *  （旧根随迁 retired，路径失效）。厂外自定义 workspace（不落在旧工作区根下）不误改。 */
+export function rewriteRegistryWorkspaces(registryText, legacyWsRoot, newWsRoot) {
+  const prefix = legacyWsRoot.endsWith("/") ? legacyWsRoot : `${legacyWsRoot}/`;
+  const parsed = JSON.parse(registryText);
+  const changes = [];
+  const replacements = [];
+  for (const [botId, bot] of Object.entries(parsed ?? {})) {
+    if (bot === null || typeof bot !== "object" || Array.isArray(bot)) continue;
+    for (const field of ["workspace", "workspaceRoot"]) {
+      const value = bot[field];
+      if (typeof value === "string" && (value === legacyWsRoot || value.startsWith(prefix))) {
+        const next = `${newWsRoot}${value.slice(legacyWsRoot.length)}`;
+        bot[field] = next;
+        changes.push(`${botId}.${field}`);
+        replacements.push([JSON.stringify(value), JSON.stringify(next)]);
+      }
+    }
+  }
+  if (changes.length === 0) return { text: registryText, changes: [] };
+  let text = registryText;
+  for (const [from, to] of replacements) text = text.split(from).join(to);
+  return { text, changes };
+}
+
+/** 迁移后注册表重写（新根内）：workspace／workspaceRoot 指新工作区根。 */
+function rewriteRegistryFile(dshHome) {
+  const file = registryPath(dshHome);
+  const text = readFileSync(file, "utf8");
+  const legacyWsRoot = resolve(join(dshHome, LEGACY_WORKSPACE_ROOT_NAME));
+  const newWsRoot = resolve(join(dshHome, WORKSPACE_ROOT_NAME));
+  const { text: rewritten, changes } = rewriteRegistryWorkspaces(text, legacyWsRoot, newWsRoot);
+  if (changes.length > 0) writeFileSync(file, rewritten, { mode: 0o600 });
+  return { file, changes, written: changes.length > 0 };
 }
 
 // ---------------- 计划与执行 ----------------
@@ -447,7 +502,7 @@ function buildPlan(dshHome) {
     { step: "copy", from: join(dshHome, LEGACY_DATA_ROOT_NAME), to: join(dshHome, DATA_ROOT_NAME), how: "fs.cpSync recursive（不用硬链）", registry: join(dshHome, LEGACY_DATA_ROOT_NAME, "bots.json"), note: "整表字节级搬运（风险①：空表即触发 bootstrap 锚点重建，绝不先清空再重建）" },
     { step: "copy", from: join(dshHome, LEGACY_WORKSPACE_ROOT_NAME), to: join(dshHome, WORKSPACE_ROOT_NAME), how: "fs.cpSync recursive（不用硬链）" },
     { step: "verify", what: "两树逐件 sha/byteLength/mode/linkTarget 对账＋八面计数前后等值" },
-    { step: "profiles", what: "patch name/workspaceRoot 重写＋node_modules 旧名软链保目标改名（--profiles 旗标时）" },
+    { step: "profiles", what: "patch name/workspaceRoot 重写＋node_modules 旧名软链改名并重指部署目录（--profiles 旗标时）" },
     { step: "retire", from: join(dshHome, LEGACY_DATA_ROOT_NAME), to: `${join(dshHome, LEGACY_DATA_ROOT_NAME)}.retired-<ts>` },
     { step: "retire", from: join(dshHome, LEGACY_WORKSPACE_ROOT_NAME), to: `${join(dshHome, LEGACY_WORKSPACE_ROOT_NAME)}.retired-<ts>` },
     { step: "untouched", what: "sessions/ 分片、backups/ 既有批、session-backups/、profiles/ 家族根不搬" }
@@ -564,6 +619,7 @@ async function main(argv = process.argv.slice(2)) {
 
   const facesBefore = snapshotFaces(dshHome, { legacy: true });
   let profileResult = { ok: true, scanned: 0, changed: 0, actions: [] };
+  let registryResult = { file: null, changes: [], written: false };
   let retired = [];
   try {
     // ① 真实拷贝（fs.cp recursive；不用硬链——jsonl 追加写会穿透）
@@ -582,6 +638,10 @@ async function main(argv = process.argv.slice(2)) {
       throw new MigrationRefusal(`复验不一致（新根已清理）：${detail.join("；")}`);
     }
 
+    // ②′ 注册表路径字段重写（新根内；workspace／workspaceRoot 指新工作区根——
+    //     整表搬运保留的存量值会被宿主序列化输出与权限判定消费，不重写则重启后指旧根）
+    registryResult = rewriteRegistryFile(dshHome);
+
     // ③ --profiles（失败同样不 retire）
     if (profiles) profileResult = rewriteProfiles(dshHome, { dryRun: false });
 
@@ -592,6 +652,7 @@ async function main(argv = process.argv.slice(2)) {
       schema: REPORT_SCHEMA, at: new Date().toISOString(), dshHome, mode: "execute",
       verified: true, facesBefore, facesAfter, faceDiffs: [],
       treeVerify: { data: treeData, workspaces: treeWs },
+      registryRewrite: registryResult,
       profiles: profileResult, retired,
       note: "旧根只读窗口（retired-<ts>）；确认无读者后清理另点名；就绪核验见方案 §5 步骤 5"
     };

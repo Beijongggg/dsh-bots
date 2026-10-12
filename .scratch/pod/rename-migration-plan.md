@@ -51,7 +51,7 @@ started 261 行、bot-workspaces 13 目录 644MB、profiles 19、sessions 47、b
 
 | # | 面 | 旧路径 | 新路径 | 搬迁方式 | 校验口径 |
 |---|---|---|---|---|---|
-| 1 | 注册表 | `bots/bots.json`（＋`bots.json.corrupt-*` 移开件随树） | `pod/bots.json` | 整树字节级拷贝（**fs.cp recursive**，不用硬链——jsonl 追加写会穿透硬链）＋sha256 逐件复验 | sha 相等＋条目数相等＋逐 id 键集相等 |
+| 1 | 注册表 | `bots/bots.json`（＋`bots.json.corrupt-*` 移开件随树） | `pod/bots.json` | 整树字节级拷贝（**fs.cp recursive**，不用硬链——jsonl 追加写会穿透硬链）＋sha256 逐件复验；**拷贝复验绿后**按 #8b 重写路径字段（键集与新旧同值判定以重写后为准） | 拷贝相位 sha 相等＋条目数相等＋逐 id 键集相等；重写相位逐字段断言指新根、非路径字段原样 |
 | 2 | 收件箱 | `bots/inbox/<id>/`（messages.jsonl＋.seq.lock＋receipts/） | `pod/inbox/<id>/` | 同上 | 逐文件 sha 相等＋文件数相等 |
 | 3 | 发件箱 | `bots/outbox/<id>/<ts>.jsonl` | `pod/outbox/<id>/` | 同上 | 同上 |
 | 4 | 知识库 | `bots/knowledge/`（index.jsonl＋reports/＋REPORT_TEMPLATE.md） | `pod/knowledge/` | 同上 | index 行数＋reports 文件数＋逐件 sha |
@@ -59,8 +59,9 @@ started 261 行、bot-workspaces 13 目录 644MB、profiles 19、sessions 47、b
 | 6 | 能力/nonce | `bots/capabilities/`（＋`nonces/` 单次消费文件） | `pod/capabilities/` | 同上 | 文件计数（secret／issued.jsonl／nonces）＋sha |
 | 7 | 实例登记 | `bots/started/instances.jsonl` | `pod/started/instances.jsonl` | 同上 | 行数相等＋逐行 sha |
 | 8 | 工作区 | `bot-workspaces/<botId>/`（13 目录 644MB） | `pod-workspaces/<botId>/` | 同上（整树含 `.dsh-bot-session.json`／`.dsh-bot-heal.json`／eval 件） | 目录数＋逐文件 sha/byteLength |
+| 8b | 注册表路径字段 | `bots/bots.json` 各席 `workspace`／`workspaceRoot` 指旧工作区根 | 同表字段重写指 `pod-workspaces` | **execute 步骤 ②′**（拷贝复验后、retire 前）：`bot.workspace` 被宿主序列化输出（`serializeBot`）与权限判定（`isBotWritablePath`）消费——整表搬运保留的存量值不重写则重启后仍指已迁走的旧根；厂外自定义 workspace 不误改 | 重写后逐字段断言指新根、非路径字段原样；报告 `registryRewrite.changes` 列清单 |
 | 9 | profile patch | `profiles/<id>/cordis.patch.yml`（`name: 'dsh-bots'` 行＋`workspaceRoot:` 旧绝对路径） | 同路径内容重写 | **`--profiles` 步骤**（非拷贝）：patch 行 name→`pod`、workspaceRoot→`pod-workspaces` 新路径 | 重写后逐份断言无 `dsh-bots` 名行、workspaceRoot 指新根 |
-| 10 | profile 链接 | `profiles/<id>/node_modules/dsh-bots`（2 处手工软链） | `profiles/<id>/node_modules/pod` | 链接改名**保目标**（rename，target 原样） | 链接存在且 target 未变 |
+| 10 | profile 链接 | `profiles/<id>/node_modules/dsh-bots`（2 处手工软链） | `profiles/<id>/node_modules/pod` | 链接改名＋**重指部署目录**（`→ <dshHome>/plugins/pod`）：存量链接目标是旧部署目录 `plugins/dsh-bots`——保目标改名会让 patch 行 `name: 'pod'` 解析到旧代码（四同名绑定：patch name＝条目名＝package.json.name）。部署同步为窗口内先行步，目标可暂缺（lstat 判存不跟随悬空链） | 链接存在且 target＝`<dshHome>/plugins/pod` |
 | 11 | session 分片 | `sessions/<shard>/<sessionId>/` | **不动** | 旧分片静止只读；新分片由重启后的宿主按新 cwd 自建 | 失配处置＝既有兜底扫描＋bot-health 双认（§4 风险②） |
 | 12 | 部署备份 | `backups/dsh-bots/<runId>-backup-<sha8>/` ×13 | **不动** | 历史回滚证据，角色冻结 | 只读计数（迁移报告记数） |
 | 13 | 新批备份 | — | `backups/pod/` | 票 13 部署同步面（`deploy-sync.mjs` 已改写 `backups/pod`） | 票 13 面自校验 |
@@ -75,8 +76,9 @@ started 261 行、bot-workspaces 13 目录 644MB、profiles 19、sessions 47、b
 `bots.json.corrupt-<ts>` 后按空表处理，同样重建。**「先清空再重建」不是迁移。**
 
 处置（三条缺一不可）：
-1. **整表搬 `bots.json` 本体**——字节级 copy＋sha 复验（§3 面 #1），不清空、不重建、
-   不经任何「读出再写入」的有损路径；
+1. **整表搬 `bots.json` 本体**——字节级 copy＋sha 复验（§3 面 #1），不清空、不重建；
+   路径字段重写（#8b／②′）为**定点字符串替换**（只换目标路径串，格式与其余字段
+   字节原样），不做全表反序列化重落盘的有损路径；
 2. **运行手册排序**：「新代码首次启动」排在「数据就位」**之后**——停机窗口内
    旧代码先停，数据搬迁＋校验全绿后才允许新代码起链；
 3. **半迁移态禁止**：脚本步骤幂等＋前置校验失败即拒（§6 失败中止语义）——
@@ -117,8 +119,13 @@ started 261 行、bot-workspaces 13 目录 644MB、profiles 19、sessions 47、b
 - 参数：`--dsh-home <dir>`（缺省＝`readEnvValue(env,"DSH_HOME")` 回落 `~/.dsh`）、
   `--execute`（显式门，缺省 dry-run 零写入）、`--profiles`（patch 重写＋软链改名步骤）、
   `--verify-only`（只跑 §3 校验器，不搬迁）、`--report <path>`（JSON 校验报告落盘）。
-- 步骤序（--execute）：**前置校验 → 真实拷贝 → 逐件 sha/计数复验 → 旧根改名
-  `*.retired-<ts>` → 就绪输出**。
+- 步骤序（--execute）：**前置校验 → 真实拷贝 → 逐件 sha/计数复验 → 注册表路径字段
+  重写（②′）→ --profiles（若旗标）→ 旧根改名 `*.retired-<ts>` → 就绪输出**。
+- 注册表路径字段重写（②′；2026-10-12 窗口修门）：workspace／workspaceRoot 指新工作区根。
+  事由：整表搬运保留存量字段值，而 `bot.workspace` 被宿主序列化输出与权限判定消费
+  （`lib/index.js::serializeBot`／`lib/org/permissions.js::isBotWritablePath`）——不重写则
+  重启后仍指已迁走的旧根。厂外自定义值（不落在旧工作区根下）不误改；失败语义同数据根
+  搬迁段（在 retire 前，失败则新根清理、旧根原样）。
 - **前置校验（失败即拒，exit 1，零写入）**：
   1. 旧布局在位：`<home>/bots/bots.json` 存在且为对象表、`<home>/bot-workspaces/` 存在；
   2. 新根不在位：`<home>/pod` 或 `<home>/pod-workspaces` 已存在 → 拒
@@ -137,10 +144,15 @@ started 261 行、bot-workspaces 13 目录 644MB、profiles 19、sessions 47、b
   exit 非 0——不留半迁移态；旧根改名是**最后一步**，之前任何失败均不影响旧布局。
   注记（评审返修）：`--profiles` 步不在新根清理面——已重写 patch／已改名软链不自动
   回滚（旧布局仍现役可继续服务），重写幂等，重跑 `--execute --profiles` 即续完未竟改动。
+  **软链重指（2026-10-12 窗口修门）**：软链改名同时**重指部署目录** `plugins/pod`
+  ——存量链接目标是旧部署目录 `plugins/dsh-bots`，保目标改名会让 patch 行 `name: 'pod'`
+  解析到旧代码（四同名绑定；`host-runtime-map` 解析锚节同口径）。新名链接已在位且
+  已指部署目录＝幂等零改动；新名已在位但指他处＝不动待人工确认（不悄然改写），
+  旧名项非软链＝fail closed 不动（人工处置点）；反例用例锁两侧。
 - **报告**（`--report` JSON）：迁移前后路径清单、逐面计数（席位表条目/逐 id、台账
   lastSeq/事件数、inbox/outbox 文件数与行数、capabilities/nonce 计数、started 行数、
   knowledge index 行数/reports 数、workspaces 目录与文件数、backups 计数）、逐件 sha
-  对账结果、profiles 步骤逐份改动清单。
+  对账结果、`registryRewrite`（注册表路径字段重写清单）、profiles 步骤逐份改动清单。
 
 ## 6. 旧路径只读窗口与清理
 

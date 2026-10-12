@@ -33,17 +33,24 @@ function deadPid() {
 function buildFixtureHome(prefix = "pod-migrate-") {
   const home = mkdtempSync(join(tmpdir(), prefix));
   const dead = deadPid();
-  // 注册表 2 席（锚点＋自建，自建带 pid 字段——在跑检测的读面）
+  // 注册表 2 席（锚点＋自建，自建带 pid 字段——在跑检测的读面）。
+  // 席位 3 席：workspace 字段指旧工作区根（迁移重写面）＋一台自定义 workspace
+  // 的席位（厂外路径照抄不误改——重写的负例夹具）。
   mkdirSync(join(home, "bots"), { recursive: true });
   writeFileSync(join(home, "bots", "bots.json"), JSON.stringify({
     "duty-coordinator": {
       id: "duty-coordinator", bootstrapAnchor: true, port: 3101,
       permission: "read-only", readOnly: true, enabled: true,
-      workspace: join(home, "bot-workspaces", "duty-coordinator")
+      workspace: join(home, "bot-workspaces", "duty-coordinator"),
+      workspaceRoot: join(home, "bot-workspaces", "duty-coordinator")
     },
     "coder": {
       id: "coder", port: 3102, permission: "workspace-write", enabled: true,
       pid: dead, workspace: join(home, "bot-workspaces", "coder")
+    },
+    "custom": {
+      id: "custom", port: 3103, permission: "workspace-write", enabled: true,
+      workspace: "/srv/elsewhere/custom"
     }
   }, null, 2) + "\n");
   // 邮局：inbox（messages＋receipts）＋outbox
@@ -54,6 +61,7 @@ function buildFixtureHome(prefix = "pod-migrate-") {
   mkdirSync(join(home, "bots", "capabilities", "nonces"), { recursive: true });
   mkdirSync(join(home, "bots", "started"), { recursive: true });
   mkdirSync(join(home, "bot-workspaces", "coder", "eval"), { recursive: true });
+  mkdirSync(join(home, "bot-workspaces", "duty-coordinator"), { recursive: true });
   writeFileSync(join(home, "bots", "inbox", "coder", "messages.jsonl"),
     JSON.stringify({ seq: 1, from: "user", text: "a", at: "2026-01-01T00:00:00.000Z" }) + "\n" +
     JSON.stringify({ seq: 2, from: "user", text: "b", at: "2026-01-01T00:00:01.000Z" }) + "\n");
@@ -94,7 +102,7 @@ function buildFixtureHome(prefix = "pod-migrate-") {
       "      name: 'dsh-bots'",
       ""
     ].join("\n"));
-  // node_modules 旧名软链（保目标改名面）
+  // node_modules 旧名软链（改名＋重指部署目录面）
   mkdirSync(join(home, "profiles", "coder", "node_modules"), { recursive: true });
   symlinkSync("../pod-target", join(home, "profiles", "coder", "node_modules", "dsh-bots"));
   // 部署备份（回滚点；只读面，不搬）
@@ -148,14 +156,25 @@ test("dry-run 缺省：只打计划零写入（不建新根、不改旧根、不
 test("execute 全流程：整表搬注册表＋逐件校验绿＋旧根 retired 只读窗口＋报告落盘", () => {
   const home = buildFixtureHome();
   const reportPath = join(home, "..", `report-${Date.now()}.json`);
-  const oldRegistrySha = createHash("sha256").update(readFileSync(join(home, "bots", "bots.json"))).digest("hex");
+  const oldRegistry = JSON.parse(readFileSync(join(home, "bots", "bots.json"), "utf8"));
+  ok(oldRegistry["duty-coordinator"].workspace.startsWith(join(home, "bot-workspaces")),
+    "夹具前置：注册表 workspace 字段指旧工作区根（迁移重写面）");
   const r = runCli(["--dsh-home", home, "--execute", "--report", reportPath], home);
   equal(r.status, 0, `execute 退出码 0，实际 ${r.status}：\n${r.stdout}${r.stderr}`);
-  // 注册表整表字节级（sha 相等＋条目等值）
-  const newRegistrySha = createHash("sha256").update(readFileSync(join(home, "pod", "bots.json"))).digest("hex");
-  equal(newRegistrySha, oldRegistrySha, "席位表 sha 相等（字节级搬运）");
-  const oldReg = JSON.parse(readFileSync(join(home, "pod", "bots.json"), "utf8"));
-  deepEqual(Object.keys(oldReg).sort(), ["coder", "duty-coordinator"], "席位逐 id 在案");
+  // 注册表：整表搬运＋目标字段重写（workspace/workspaceRoot 指新根；厂外值不动）
+  const newRegistry = JSON.parse(readFileSync(join(home, "pod", "bots.json"), "utf8"));
+  deepEqual(Object.keys(newRegistry).sort(), ["coder", "custom", "duty-coordinator"], "席位逐 id 在案");
+  equal(newRegistry["duty-coordinator"].workspace, join(home, "pod-workspaces", "duty-coordinator"),
+    "workspace 字段重写指新工作区根");
+  equal(newRegistry["duty-coordinator"].workspaceRoot, join(home, "pod-workspaces", "duty-coordinator"),
+    "workspaceRoot 字段重写指新工作区根");
+  equal(newRegistry.coder.workspace, join(home, "pod-workspaces", "coder"), "第二席同样重写");
+  equal(newRegistry.custom.workspace, "/srv/elsewhere/custom", "厂外自定义 workspace 照抄不误改（重写负例）");
+  for (const field of ["name", "role", "port", "enabled", "bootstrapAnchor"]) {
+    deepEqual(newRegistry["duty-coordinator"][field], oldRegistry["duty-coordinator"][field], `非路径字段 ${field} 原样`);
+  }
+  ok(!readFileSync(join(home, "pod", "bots.json"), "utf8").includes(`${join(home, "bot-workspaces")}`),
+    "新注册表不残留旧工作区根字样（路径字段全重写）");
   // 逐面在位
   ok(existsSync(join(home, "pod", "inbox", "coder", "messages.jsonl")), "inbox 搬入");
   ok(existsSync(join(home, "pod", "inbox", "coder", "receipts", "m1.json")), "receipts 搬入");
@@ -180,7 +199,7 @@ test("execute 全流程：整表搬注册表＋逐件校验绿＋旧根 retired 
   const report = JSON.parse(readFileSync(reportPath, "utf8"));
   equal(report.schema, "pod-data-migration-report/1");
   equal(report.verified, true, "校验绿");
-  equal(report.facesAfter.registry.entries, 2, "报告席位计数");
+  equal(report.facesAfter.registry.entries, 3, "报告席位计数");
   equal(report.facesAfter.ledger.events, 3, "报告台账事件数");
   equal(report.facesAfter.ledger.lastSeq, 3, "报告台账 lastSeq");
   equal(report.facesAfter.started.lines, 2, "报告 started 行数");
@@ -188,10 +207,12 @@ test("execute 全流程：整表搬注册表＋逐件校验绿＋旧根 retired 
   equal(report.facesBefore.backups.legacyBatches, 1, "报告回滚点计数（backups/dsh-bots）");
   deepEqual(report.faceDiffs, [], "前后逐面校验零差异");
   equal(report.retired.length, 2, "报告记录两 retired 件");
+  deepEqual(report.registryRewrite.changes, ["duty-coordinator.workspace", "duty-coordinator.workspaceRoot", "coder.workspace"],
+    "报告记录重写字段清单（厂外 custom 不计）");
   rmSync(reportPath, { force: true });
 });
 
-test("execute --profiles：patch 行 name→pod＋workspaceRoot→pod-workspaces＋软链保目标改名；幂等二跑零改动", () => {
+test("execute --profiles：patch 行 name→pod＋workspaceRoot→pod-workspaces＋软链重指部署目录；幂等二跑零改动", () => {
   const home = buildFixtureHome();
   const r = runCli(["--dsh-home", home, "--execute", "--profiles"], home);
   equal(r.status, 0, `退出码 0：\n${r.stdout}${r.stderr}`);
@@ -199,11 +220,14 @@ test("execute --profiles：patch 行 name→pod＋workspaceRoot→pod-workspaces
   match(patch, /name: 'pod'/, "patch name 行切新插件名");
   ok(!patch.includes("dsh-bots"), "patch 不残留旧插件名");
   match(patch, /workspaceRoot: '[^']*pod-workspaces\/coder'/, "workspaceRoot 切新工作区根");
+  // 软链重指部署目录（四同名绑定：patch name＝node_modules 条目名＝package.json name；
+  // 目标＝新部署目录 plugins/pod——存量链接指旧部署目录 plugins/dsh-bots，保目标改名
+  // 会让 'pod' 解析到旧代码，故重指；部署同步（授权件）先行）。
   const newLink = join(home, "profiles", "coder", "node_modules", "pod");
   ok(lstatSync(newLink).isSymbolicLink(), "node_modules/pod 软链在位（lstat 判存，目标可悬空）");
-  equal(readlinkSync(newLink), "../pod-target", "软链目标原样保留");
+  equal(readlinkSync(newLink), join(home, "plugins", "pod"), "软链目标重指部署目录 plugins/pod");
   ok(!existsSync(join(home, "profiles", "coder", "node_modules", "dsh-bots")), "旧名软链移除");
-  // 幂等：二跑 --profiles 零改动（patch 已新形、软链已在位）
+  // 幂等：二跑 --profiles 零改动（patch 已新形、软链已在位且指向部署目录）
   const before = snapshotTree(home);
   const r2 = runCli(["--dsh-home", home, "--profiles", "--report", join(home, "..", "r2-migrate.json")], home);
   equal(r2.status, 0, `二跑退出码 0：\n${r2.stdout}${r2.stderr}`);
@@ -211,6 +235,24 @@ test("execute --profiles：patch 行 name→pod＋workspaceRoot→pod-workspaces
   const rep2 = JSON.parse(readFileSync(join(home, "..", "r2-migrate.json"), "utf8"));
   equal(rep2.profilesPreview.changed, 0, "二跑（dry-run）patch 改动数 0（幂等）");
   rmSync(join(home, "..", "r2-migrate.json"), { force: true });
+});
+
+test("--profiles 边界：旧名项非软链＝fail closed 不动；新名链接已指他处＝不动待人工确认", () => {
+  const home = buildFixtureHome();
+  // profile#1：旧名项是普通文件（非软链）——fail closed，零写入
+  mkdirSync(join(home, "profiles", "plain", "node_modules"), { recursive: true });
+  writeFileSync(join(home, "profiles", "plain", "node_modules", "dsh-bots"), "not-a-link\n");
+  // profile#2：新名链接已在位但指他处——不动（不并行改）
+  mkdirSync(join(home, "profiles", "wrong", "node_modules"), { recursive: true });
+  symlinkSync("/somewhere/else", join(home, "profiles", "wrong", "node_modules", "pod"));
+  const plainBefore = readFileSync(join(home, "profiles", "plain", "node_modules", "dsh-bots"), "utf8");
+  const r = runCli(["--dsh-home", home, "--execute", "--profiles"], home);
+  equal(r.status, 0, `退出码 0：\n${r.stdout}${r.stderr}`);
+  ok(lstatSync(join(home, "profiles", "plain", "node_modules", "dsh-bots")).isFile(), "非软链旧名项不动");
+  equal(readFileSync(join(home, "profiles", "plain", "node_modules", "dsh-bots"), "utf8"), plainBefore, "非软链内容零触碰");
+  equal(readlinkSync(join(home, "profiles", "wrong", "node_modules", "pod")), "/somewhere/else", "新名已在他处＝不动");
+  const report = JSON.parse(readFileSync(join(home, "pod", "bots.json"), "utf8"));
+  ok(report !== null);
 });
 
 test("二次 execute 幂等拒绝：旧布局不在位即拒（安全跳过语义＝拒绝而非重搬）", () => {
@@ -293,7 +335,7 @@ test("--verify-only：迁移后走新根出逐面计数 JSON；两面全缺 → 
   const rep = JSON.parse(readFileSync(reportPath, "utf8"));
   equal(rep.mode, "verify-only");
   equal(rep.basis, "new", "迁移后基面＝新根");
-  equal(rep.faces.registry.entries, 2);
+  equal(rep.faces.registry.entries, 3);
   equal(rep.faces.ledger.lastSeq, 3);
   equal(rep.faces.inbox.files, 2, "inbox 计数（messages.jsonl＋receipts/m1.json）");
   rmSync(reportPath, { force: true });
