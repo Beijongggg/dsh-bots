@@ -238,16 +238,35 @@ dry-run 零写入）：链接动作现为两条（此前仅 web 一条）＋**16
 （票 13「13 后续」会话）与票 14 窗口会话（修门 A/B）同工作树并行；A/B 语义未动，仅补
 未覆盖的第二个链接位置，窗口执行口径以本节为准。
 
-### 记录更正（2026-10-12，/implement 14 收尾会话）
+### 残余处置（2026-10-12，/implement 14 收尾会话；提交 `9ca8eb5`＋本件）
 
-- **「18 份 patch 重写」系笔误**（三处：本节 dry-run 复算段、`EV-20261012-pod14-window-fixgate-d`
-  验证行、`EV-20261012-pod13-window-executed` 范围／变化行）：迁移报告实测
-  `profiles.changed=18`＝**16 份 patch 重写＋2 处软链重指**（动作总数；`patch actions: 16`／
-  `link actions: 2`，逐条见 `artifacts/cutover-execution/pod13-window-20261012T102118Z-migrate-report.json`）。
-  后两处为**冻结事件正文不可回改**（README §6.2「更正写新事件」），更正记录随本批提交事件承接；
+来源＝本会话对「窗口批」做的双轴评审（固定点 `edef328`，两轴并行只读子代理）中、执行方
+复审批（`a1ac234`／`d63e3dc`）未覆盖的残余项；执行方返修覆盖度已逐条核对（其处置见上节）。
+
+- **记录更正（三处计数）**：「18 份 patch 重写」系笔误（本节 dry-run 复算段、
+  `EV-20261012-pod14-window-fixgate-d` 验证行、`EV-20261012-pod13-window-executed`
+  范围／变化行）——迁移报告实测 `profiles.changed=18`＝**16 份 patch 重写＋2 处软链重指**
+  （动作总数；`patch actions: 16`／`link actions: 2`，逐条见
+  `artifacts/cutover-execution/pod13-window-20261012T102118Z-migrate-report.json`）。
+  已落更正事件 `EV-20261012-pod14-record-correction`（README §6.2「更正写新事件」；
+  原事件正文不夹带回改）。
 - **「修前该形必红」措辞**（修门 d 节）：共享锚 fail-closed 断言系防护性新增（修前恒绿），
-  修前红者为**正向断言**（无 `node_modules/pod` 产出）——已就地上改正；
-- 本节为运行面窗口后处置记录，运行面零写入。
+  修前红者为**正向断言**（无 `node_modules/pod` 产出）——已就地上改正。
+- **`relinkLegacyPluginLink` 新名占位 fail-closed**（TDD）：新名处为**非软链**（普通文件／
+  目录占位）时原实现 `renameSync` 会**静默覆盖**占位文件／目录形抛 EISDIR 中止整段——
+  补同一 fail-closed 分支（不动不覆盖，人工处置点）。先红拒因＝
+  `EISDIR: illegal operation on a directory, rename '…/node_modules/dsh-bots' -> '…/node_modules/pod'`；
+  修后迁移件 **15/15**（＋1 用例：`clobber` 文件＋`dirtrap` 目录两危险形；正常软链路径不受
+  占位判定影响）。
+- **部署面落后（后果登记；另项授权）**：本批改动含部署面成员两件
+  （`scripts/migrate-pod-data.mjs`／`tests/pod-data-migration.test.mjs`）→ 只读复算
+  `org-cutover-check --dsh-home ~/.dsh --host-url http://127.0.0.1:3080` 由 `ready:true` 转
+  **`ready:false`**（`deployment.ok:false`＝恰上述两件 changed；`runtime.ok:false`＝
+  「宿主加载的代码摘要与仓库不符，须完成重启链」）——属「仓库前进→部署面待刷新」的既有
+  模式（`d63e3dc` 第三次部署同型先例）。**恢复绿态＝部署同步刷新（授权件①）＋重启链
+  （授权件②），逐项点名后执行**；本会话按用户 18:21「本窗口执行方唯一」裁定未做运行面写入。
+- 验证：迁移件 **15/15**（新用例先红后绿）；全量 94/94；`ci-gates` ③ 0 违例（② 7/10 既有
+  预期红，归票 15 新序号包）；本节全程运行面零写入。
 
 ### 修门 A/B 实施记录与执行面让行（2026-10-12，/implement 14 会话）
 
