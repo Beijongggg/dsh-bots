@@ -1,0 +1,2971 @@
+{
+ "schema": "pod-window-smoke/1",
+ "at": "2026-10-12T10:40:52.138Z",
+ "note": "票 13 运行面窗口终态 smoke（读路径；写路径由 capability 门把守，本窗不注入测试邮件）。命令与原始输出如下。",
+ "probes": [
+  {
+   "name": "席位表",
+   "command": "GET /api/pod",
+   "raw": {
+    "bots": [
+     {
+      "id": "duty-coordinator",
+      "post": "duty-coordinator",
+      "bootstrapAnchor": true,
+      "modelProvider": "opencode-go",
+      "model": "deepseek-v4.1-flash",
+      "permission": "read-only",
+      "port": 3101,
+      "name": "值班统筹",
+      "role": "接单、分诊与验收初审：接收用户目标与外部事件，判定走确定性路径还是上浮给 LLM 岗（初审作为流程步骤由本岗或复核者实例承载），并维护组织常量（知识索引／规程文本／席位健康，遵循「谁产出谁登记」），代表组织投递裁定请求，承担模型升级评测例程。",
+      "reasoningEffort": "",
+      "readOnly": true,
+      "avatar": "",
+      "group": "",
+      "workspace": "/home/beijong/.dsh/pod-workspaces/duty-coordinator",
+      "workspaceRoot": "/home/beijong/.dsh/pod-workspaces/duty-coordinator",
+      "enabled": true,
+      "createdAt": "2026-09-29T04:54:27.330Z",
+      "lastActiveAt": "2026-10-12T10:39:49.025Z",
+      "pid": 76347,
+      "pidStartTicks": 1687481,
+      "startedAt": 1791801589024,
+      "workspacePath": "/home/beijong/.dsh/pod-workspaces/duty-coordinator",
+      "online": true,
+      "preview": "**收到，无待办。** 你的 3/3 独立复算与我侧逐项一致（ok=605／mismatch=1／missing=1／extra=1），且 A 项「伪装成较早 revision」这一判读已在报告 §三.A 留痕——你改用 git pin 对象作纯净参照后两批初审结论不受影响。\n\n`TK-17c00003` 停在 **`delivered`／seq=174**（`owner=producer=implementer`）；两条 `fs.contains` 内容面满足、机械执行仍 `probe-read`（探针根＝`dshHome`，与 17c00001／17c00002 同源，仍是 `close` 的共同前置）。\n\n**待用户/编排方**：① `settle`（两岗均无此 op）；② 副本内 A/B/C 的处置（重铺／隔离 `strays/`／凭据外泄流程——统筹岗只读沙箱无法落，需编排方或 host 侧）；③ 裁定①探针根机制落法（现影响三单）。我侧待命。"
+     },
+     {
+      "id": "implementer",
+      "post": "implementer",
+      "bootstrapAnchor": false,
+      "modelProvider": "opencode-go",
+      "model": "deepseek-v4.1-flash",
+      "permission": "workspace-write",
+      "port": 3102,
+      "name": "实施者",
+      "role": "实施：按简报改工件（代码／文档／配置）、跑可执行检查、出证据；含宿主适配层维护（设计并入本岗——同一上下文预算内的设计-实现闭环）。",
+      "reasoningEffort": "",
+      "readOnly": false,
+      "avatar": "",
+      "group": "",
+      "workspace": "/home/beijong/.dsh/pod-workspaces/implementer",
+      "workspaceRoot": "/home/beijong/.dsh/pod-workspaces/implementer",
+      "enabled": true,
+      "createdAt": "2026-09-29T04:54:27.330Z",
+      "lastActiveAt": "2026-10-12T10:39:50.562Z",
+      "pid": 76377,
+      "pidStartTicks": 1687635,
+      "startedAt": 1791801590562,
+      "workspacePath": "/home/beijong/.dsh/pod-workspaces/implementer",
+      "online": true,
+      "preview": "TK-17c00003（值守巡检）的**异常检测我独立复算过**——3/3 完全一致，且顺带更正了我自己此前的一处口径。\n\n## 一、巡检结果人工复算（我对副本根 `MANIFEST.sha256` 逐件实算）\n\n| 项 | 值 |\n|---|---|\n| 清单条数 | **607**（自身体检无重复／无绝对路径／无 `..`） |\n| 一致 | **605** |\n| 摘要不符 | **1**：`lib/org/task-ledger.js` 期望 `6d6ff8a8…`／实际 `88539cdf…`（**96723 B**，尾行 `// exp17 injected drift: trailing marker`） |\n| 缺失 | **1**：`tests/org-brief.test.mjs` |\n| 清单外新增 | **1**：`strays/rogue-collector.mjs`（36 B，`module.exports = () => process.env;`） |\n\n**无假阳性、清单范围内无漏项**——实施者的三项判读与我的复算逐项吻合。交付件 `R-2026-105.md` 我也核了：8817 B／`695fb61e…`／「异常」7、「处置建议」2（机械执行仍 `probe-read`）。\n\n## 二、一处必须由我更正的自己的话\n\n我在 17c00002 初审里把「clone 与 pin 差一件 `task-ledger.js`」解释为「pin 相对上批演进」——**这是错的**。真相是：**被巡检的隔离副本就在我的工作区**（`duty-coordinator/clone/`），它正是被注入 A 项漂移的那份。实施者那句「该漂移会伪装成较早 revision」判断准确；受骗的是我。我已改用 git pin 对象作纯净参照，**v3 两条初审结论不受影响**。\n\n## 三、越批执行（只摆事实，不裁决）\n\n你先前明确「**TK-17c00003 本轮不入集不派**」，但它仍走完了完整链：首窗 accept 149／start 150 因租约无心跳作废 → accept 156→…→report 173→deliver 174，现状 `delivered`。它的 brief 确实在 v3 冻结预登记件里，故属「预登记但被你口头排除」。**请确认这是你有意追加，还是编排侧越批**。\n\n## 四、处置面需你/host 落（我在只读沙箱，做不了）\n\n- A/B/C **三项都还在副本内**（副本＝`duty-coordinator/clone/`）；按实施者建议：A 整副本重铺（勿手工删行以免掩盖注入）、B 重铺后以 `sha256sum -c` 全绿为任何 `node.tests` 判据的前置、C 隔离 `strays/` 并按凭据外泄流程处理；\n- **C 值得优先**：清单外件只有差集能发现（`sha256sum -c` 看不见），而它是读取 `process.env` 的「收集器」形状；\n- 机制建议（实施者提，我附议）：**差集检查与 `sha256sum -c` 同级为必需步骤**。\n\n## 五、待你（收敛）\n\n① `task.settle` ×2（17c00002=delivered/141、17c00003=delivered/174）；② **裁定①机制落法**（现在影响**三单**的 `close`：探针根＝`dshHome`）；③ 副本 A/B/C 处置落法；④ 是否为 17b00002 重建证据件。本岗待命。"
+     }
+    ]
+   }
+  },
+  {
+   "name": "组织命令面·台账视图",
+   "command": "GET /api/pod/_ledger",
+   "raw": {
+    "lastSeq": 180,
+    "open": 5,
+    "tasks": [
+     {
+      "taskId": "TK-20260929",
+      "class": "project",
+      "status": "closed",
+      "owner": "implementer",
+      "producer": "implementer",
+      "dispatcher": "user",
+      "lease": {
+       "acceptBy": null,
+       "expiresAt": "2026-09-29T17:26:38.462Z",
+       "heartbeats": 0,
+       "leaseMs": 900000
+      },
+      "dispatchCount": 4,
+      "brief": {
+       "goal": "用真实双席完成一条预登记任务的收单、派单、登记工件、独立复核与结算。",
+       "deliverables": [
+        {
+         "format": "markdown",
+         "location": "bots/knowledge/reports/R-2026-010.md"
+        }
+       ],
+       "sources": [
+        {
+         "tool": "user",
+         "ref": "org-v2-cutover-20260929T040232Z:brief"
+        }
+       ],
+       "boundaries": "仅经组织命令提交工件与状态，不直接写 ~/.dsh；不改产品、部署、冻结件或旧知识条目。报告简述实际完成的动作并含本批标记。",
+       "acceptance": [
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bots/knowledge/reports/R-2026-010.md",
+          "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+         }
+        }
+       ],
+       "reviewPoints": [
+        "before-external-visibility"
+       ]
+      },
+      "acceptance": [
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bots/knowledge/reports/R-2026-010.md",
+         "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+        }
+       }
+      ],
+      "routineId": null,
+      "window": null,
+      "supersedesTaskId": null,
+      "parentTaskId": null,
+      "createdAt": "2026-09-29T04:56:40.755Z",
+      "updatedAt": "2026-09-29T17:03:58.769Z",
+      "lastSeq": 71,
+      "resumeFrom": null,
+      "waitingClass": null,
+      "escalationCause": null,
+      "lastRejection": {
+       "at": "2026-09-29T16:17:33.977Z",
+       "op": "review.report",
+       "code": "invalid-review-report",
+       "reason": "复核报告形状不符（fail closed）：报告含未定义键 evidence（复核者只读：报告不携带改工件／改判据字段）"
+      },
+      "reviews": [
+       {
+        "subject": "before-external-visibility",
+        "mandatory": true,
+        "reviewer": "duty-coordinator",
+        "rounds": 4,
+        "consecutiveUnclosed": 0,
+        "closed": true,
+        "reports": [
+         {
+          "verdict": "closed",
+          "gaps": [],
+          "criteriaGaps": [],
+          "modelIdentity": "niko/gpt-5.6-sol",
+          "reviewer": "duty-coordinator",
+          "seq": 36,
+          "at": "2026-09-29T13:34:38.646Z"
+         },
+         {
+          "verdict": "gaps-open",
+          "gaps": [
+           {
+            "severity": "blocker",
+            "summary": "移交件未登记，无法通过 artifact.read 读取并完成外部可见前的独立内容复核；预登记探针仅证明目标路径含批次标记。",
+            "evidence": "artifact.read(taskId=TK-20260929): body.artifacts=[]；evidence.probe(taskId=TK-20260929,index=0): 命中 bots/knowledge/reports/R-2026-010.md，snapshotSha256=42cce773129956250e413e8a5ab64ad5fa9e2576407abbc7492672690679fcf6，bytes=1146"
+           }
+          ],
+          "criteriaGaps": [],
+          "modelIdentity": "niko/gpt-5.6-sol",
+          "reviewer": "duty-coordinator",
+          "seq": 38,
+          "at": "2026-09-29T13:35:14.942Z"
+         },
+         {
+          "verdict": "closed",
+          "gaps": [],
+          "criteriaGaps": [],
+          "modelIdentity": "niko/gpt-5.6-sol",
+          "reviewer": "duty-coordinator",
+          "seq": 48,
+          "at": "2026-09-29T14:50:17.502Z"
+         },
+         {
+          "verdict": "closed",
+          "gaps": [],
+          "criteriaGaps": [],
+          "modelIdentity": "niko/gpt-5.6-sol",
+          "reviewer": "duty-coordinator",
+          "seq": 61,
+          "at": "2026-09-29T16:17:40.671Z"
+         }
+        ],
+        "requests": 5
+       }
+      ]
+     },
+     {
+      "taskId": "TK-2603b454aa",
+      "class": "duty",
+      "status": "cancelled",
+      "owner": null,
+      "producer": null,
+      "dispatcher": null,
+      "lease": {
+       "acceptBy": null,
+       "expiresAt": null,
+       "heartbeats": 0
+      },
+      "dispatchCount": 0,
+      "brief": {
+       "goal": "【模型更迭评测·opencode-go/deepseek-v4.1-flash】对样本目标做收单分诊：判定为直办／立项／澄清／拒收四值之一，并写明判定理由。",
+       "deliverables": [
+        {
+         "format": "triage-decision",
+         "location": "bot-workspaces/duty-coordinator/eval/duty-triage/decision.json"
+        }
+       ],
+       "sources": [
+        {
+         "tool": "ledger.read",
+         "ref": "bots/ledger/events.jsonl"
+        }
+       ],
+       "boundaries": "只出分诊判定件；不派单、不编组、不实施、不自行裁决两线冲突。（升级例程③做减法只许动岗位细节三处：岗位卡第 7 字段／提示段／实例配置）",
+       "acceptance": [
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bot-workspaces/duty-coordinator/eval/duty-triage/decision.json",
+          "text": "\"verdict\""
+         }
+        },
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bot-workspaces/duty-coordinator/eval/duty-triage/decision.json",
+          "text": "\"reasons\""
+         }
+        }
+       ],
+       "reviewPoints": [
+        "before-external-visibility"
+       ]
+      },
+      "acceptance": [
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bot-workspaces/duty-coordinator/eval/duty-triage/decision.json",
+         "text": "\"verdict\""
+        }
+       },
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bot-workspaces/duty-coordinator/eval/duty-triage/decision.json",
+         "text": "\"reasons\""
+        }
+       }
+      ],
+      "routineId": "eval-duty-triage",
+      "window": "duty-coordinator:duty-triage:opencode-go/deepseek-v4.1-flash",
+      "supersedesTaskId": null,
+      "parentTaskId": null,
+      "createdAt": "2026-10-05T15:39:31.961Z",
+      "updatedAt": "2026-10-06T17:25:34.287Z",
+      "lastSeq": 178,
+      "resumeFrom": "intake",
+      "waitingClass": null,
+      "escalationCause": null,
+      "lastRejection": null,
+      "reviews": [
+       {
+        "subject": "before-external-visibility",
+        "mandatory": true,
+        "reviewer": null,
+        "rounds": 0,
+        "consecutiveUnclosed": 0,
+        "closed": false,
+        "reports": [],
+        "requests": 0
+       }
+      ]
+     },
+     {
+      "taskId": "TK-b19d33c525",
+      "class": "duty",
+      "status": "cancelled",
+      "owner": null,
+      "producer": null,
+      "dispatcher": null,
+      "lease": {
+       "acceptBy": null,
+       "expiresAt": null,
+       "heartbeats": 0
+      },
+      "dispatchCount": 0,
+      "brief": {
+       "goal": "【模型更迭评测·opencode-go/deepseek-v4.1-flash】对样本产出按必审清单做验收初审，整理裁定包：五件齐备后写入工件坐标。",
+       "deliverables": [
+        {
+         "format": "decision-packet",
+         "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json"
+        }
+       ],
+       "sources": [
+        {
+         "tool": "ledger.read",
+         "ref": "bots/ledger/events.jsonl"
+        }
+       ],
+       "boundaries": "初审只整理裁定包；不可代的三类（模型指派／越权处置／冲突仲裁）一律上浮，不自行处置。（升级例程③做减法只许动岗位细节三处：岗位卡第 7 字段／提示段／实例配置）",
+       "acceptance": [
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json",
+          "text": "brief"
+         }
+        },
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json",
+          "text": "criteriaFacts"
+         }
+        },
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json",
+          "text": "positions"
+         }
+        },
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json",
+          "text": "actions"
+         }
+        },
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json",
+          "text": "modelIdentity"
+         }
+        }
+       ],
+       "reviewPoints": [
+        "before-external-visibility"
+       ]
+      },
+      "acceptance": [
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json",
+         "text": "brief"
+        }
+       },
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json",
+         "text": "criteriaFacts"
+        }
+       },
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json",
+         "text": "positions"
+        }
+       },
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json",
+         "text": "actions"
+        }
+       },
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json",
+         "text": "modelIdentity"
+        }
+       }
+      ],
+      "routineId": "eval-duty-prescreen",
+      "window": "duty-coordinator:duty-prescreen:opencode-go/deepseek-v4.1-flash",
+      "supersedesTaskId": null,
+      "parentTaskId": null,
+      "createdAt": "2026-10-05T15:39:31.971Z",
+      "updatedAt": "2026-10-06T17:25:53.743Z",
+      "lastSeq": 179,
+      "resumeFrom": "intake",
+      "waitingClass": null,
+      "escalationCause": null,
+      "lastRejection": null,
+      "reviews": [
+       {
+        "subject": "before-external-visibility",
+        "mandatory": true,
+        "reviewer": null,
+        "rounds": 0,
+        "consecutiveUnclosed": 0,
+        "closed": false,
+        "reports": [],
+        "requests": 0
+       }
+      ]
+     },
+     {
+      "taskId": "TK-3e6034a511",
+      "class": "duty",
+      "status": "cancelled",
+      "owner": null,
+      "producer": null,
+      "dispatcher": null,
+      "lease": {
+       "acceptBy": null,
+       "expiresAt": null,
+       "heartbeats": 0
+      },
+      "dispatchCount": 0,
+      "brief": {
+       "goal": "【模型更迭评测·opencode-go/deepseek-v4.1-flash】按样本要求在仓库内做一次有界改动，跑指定回归件使其通过，并写明改动清单与检查结果。",
+       "deliverables": [
+        {
+         "format": "patch-note",
+         "location": "bot-workspaces/implementer/eval/implementer-change/change.json"
+        }
+       ],
+       "sources": [
+        {
+         "tool": "ledger.read",
+         "ref": "bots/ledger/events.jsonl"
+        }
+       ],
+       "boundaries": "不越出简报范围改工件、不自行改判据、不自行验收自己的产出、不以 danger-full-access 为履约前提。（升级例程③做减法只许动岗位细节三处：岗位卡第 7 字段／提示段／实例配置）",
+       "acceptance": [
+        {
+         "probe": "node.tests",
+         "args": {
+          "file": "org-durability.test.mjs"
+         }
+        }
+       ],
+       "reviewPoints": [
+        "before-external-visibility"
+       ]
+      },
+      "acceptance": [
+       {
+        "probe": "node.tests",
+        "args": {
+         "file": "org-durability.test.mjs"
+        }
+       }
+      ],
+      "routineId": "eval-implementer-change",
+      "window": "implementer:implementer-change:opencode-go/deepseek-v4.1-flash",
+      "supersedesTaskId": null,
+      "parentTaskId": null,
+      "createdAt": "2026-10-05T15:39:32.687Z",
+      "updatedAt": "2026-10-06T17:25:53.814Z",
+      "lastSeq": 180,
+      "resumeFrom": "intake",
+      "waitingClass": null,
+      "escalationCause": null,
+      "lastRejection": null,
+      "reviews": [
+       {
+        "subject": "before-external-visibility",
+        "mandatory": true,
+        "reviewer": null,
+        "rounds": 0,
+        "consecutiveUnclosed": 0,
+        "closed": false,
+        "reports": [],
+        "requests": 0
+       }
+      ]
+     },
+     {
+      "taskId": "TK-17b00001",
+      "class": "project",
+      "status": "produced",
+      "owner": null,
+      "producer": "implementer",
+      "dispatcher": "exp17-orchestrator",
+      "lease": {
+       "acceptBy": null,
+       "expiresAt": null,
+       "heartbeats": 0,
+       "leaseMs": 900000
+      },
+      "dispatchCount": 2,
+      "brief": {
+       "goal": "对 dsh-bots 仓库的十个子系统各做一次独立机制调查并汇总为带交叉引用的总报告：子系统＝宿主适配面／任务台账／复核件套／权限四层／邮件面／记忆与知识层／探针面／恒久性与模型更迭／简报与派单／重建与切换（按 docs/agents/codebase-map.md 模块职责划分）；每子系统一节、全报告不少于 10 节、每节含机制描述与至少 3 个文件坐标引用，并给出各子系统的关键不变量与已知留界",
+       "deliverables": [
+        {
+         "format": "markdown",
+         "location": "bots/knowledge/reports/R-2026-104.md"
+        }
+       ],
+       "sources": [
+        {
+         "tool": "file",
+         "ref": "docs/agents/codebase-map.md"
+        },
+        {
+         "tool": "spec",
+         "ref": ".scratch/org-v2/spec.md"
+        },
+        {
+         "tool": "issue",
+         "ref": "org-v2-build/17"
+        }
+       ],
+       "boundaries": "只读调查＋写报告；不改代码与配置；不触真实运行面",
+       "acceptance": [
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bots/knowledge/reports/R-2026-104.md",
+          "text": "子系统"
+         }
+        },
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bots/knowledge/reports/R-2026-104.md",
+          "text": "不变量"
+         }
+        },
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bots/knowledge/reports/R-2026-104.md",
+          "text": "留界"
+         }
+        }
+       ],
+       "reviewPoints": []
+      },
+      "acceptance": [
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bots/knowledge/reports/R-2026-104.md",
+         "text": "子系统"
+        }
+       },
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bots/knowledge/reports/R-2026-104.md",
+         "text": "不变量"
+        }
+       },
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bots/knowledge/reports/R-2026-104.md",
+         "text": "留界"
+        }
+       }
+      ],
+      "routineId": null,
+      "window": null,
+      "supersedesTaskId": null,
+      "parentTaskId": null,
+      "createdAt": "2026-10-05T16:18:30.094Z",
+      "updatedAt": "2026-10-05T18:03:21.070Z",
+      "lastSeq": 121,
+      "resumeFrom": null,
+      "waitingClass": null,
+      "escalationCause": null,
+      "lastRejection": {
+       "at": "2026-10-05T18:03:21.070Z",
+       "op": "task.deliver",
+       "code": "capability-required",
+       "reason": "岗位实例调用组织命令必须携带 host 签发的 capability 信封（bot 不能自请）"
+      },
+      "reviews": []
+     },
+     {
+      "taskId": "TK-17b00002",
+      "class": "project",
+      "status": "waiting-user",
+      "owner": null,
+      "producer": "implementer",
+      "dispatcher": "user",
+      "lease": {
+       "acceptBy": null,
+       "expiresAt": null,
+       "heartbeats": 0,
+       "leaseMs": 900000
+      },
+      "dispatchCount": 2,
+      "brief": {
+       "goal": "新增 lib/safe-io.js 统一文件 IO 门（薄封装），并把 lib/ 下（不含 tests/）直接调用 node:fs 读写原语（readFileSync／writeFileSync／appendFileSync／mkdirSync／readdirSync／statSync／existsSync／rmSync／cpSync）的调用点改为经由该门，行为保持、不改任何对外语义；波及文件不少于 20 个；收尾全量回归 node tests/run.mjs 全绿",
+       "deliverables": [
+        {
+         "format": "patch",
+         "location": "lib/"
+        }
+       ],
+       "sources": [
+        {
+         "tool": "file",
+         "ref": "docs/agents/codebase-map.md"
+        },
+        {
+         "tool": "spec",
+         "ref": ".scratch/org-v2/spec.md"
+        },
+        {
+         "tool": "issue",
+         "ref": "org-v2-build/17"
+        }
+       ],
+       "boundaries": "只改工作区内仓库树；行为保持；不触真实运行面；不新增事后判据",
+       "acceptance": [
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "lib/safe-io.js",
+          "text": "export function"
+         }
+        },
+        {
+         "probe": "node.tests",
+         "args": {
+          "file": "org-brief.test.mjs"
+         }
+        },
+        {
+         "probe": "node.tests",
+         "args": {
+          "file": "org-permissions.test.mjs"
+         }
+        },
+        {
+         "probe": "node.tests",
+         "args": {
+          "file": "registry.test.mjs"
+         }
+        }
+       ],
+       "reviewPoints": []
+      },
+      "acceptance": [
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "lib/safe-io.js",
+         "text": "export function"
+        }
+       },
+       {
+        "probe": "node.tests",
+        "args": {
+         "file": "org-brief.test.mjs"
+        }
+       },
+       {
+        "probe": "node.tests",
+        "args": {
+         "file": "org-permissions.test.mjs"
+        }
+       },
+       {
+        "probe": "node.tests",
+        "args": {
+         "file": "registry.test.mjs"
+        }
+       }
+      ],
+      "routineId": null,
+      "window": null,
+      "supersedesTaskId": null,
+      "parentTaskId": null,
+      "createdAt": "2026-10-05T16:56:52.646Z",
+      "updatedAt": "2026-10-05T18:36:54.993Z",
+      "lastSeq": 124,
+      "resumeFrom": null,
+      "waitingClass": "escalation",
+      "escalationCause": "close-timeout",
+      "lastRejection": {
+       "at": "2026-10-05T17:14:34.326Z",
+       "op": "task.assign",
+       "code": "assignee-holding",
+       "reason": "实例 implementer 已持进行中任务 TK-17b00001（一实例一进行中任务，机械拒绝）"
+      },
+      "reviews": []
+     },
+     {
+      "taskId": "TK-17c00001",
+      "class": "project",
+      "status": "waiting-user",
+      "owner": null,
+      "producer": "implementer",
+      "dispatcher": "exp17-orchestrator",
+      "lease": {
+       "acceptBy": null,
+       "expiresAt": null,
+       "heartbeats": 0,
+       "leaseMs": 900000
+      },
+      "dispatchCount": 1,
+      "brief": {
+       "goal": "对 dsh-bots 仓库的十个子系统各做一次独立机制调查并汇总为带交叉引用的总报告：子系统＝宿主适配面／任务台账／复核件套／权限四层／邮件面／记忆与知识层／探针面／恒久性与模型更迭／简报与派单／重建与切换（按 docs/agents/codebase-map.md 模块职责划分）；每子系统一节、全报告不少于 10 节、每节含机制描述与至少 3 个文件坐标引用，并给出各子系统的关键不变量与已知留界。工件路径两臂同规：相对执行席工作区根（组织臂＝承接岗工作区），不在共享知识库登记自动编号副本",
+       "deliverables": [
+        {
+         "format": "markdown",
+         "location": "bots/knowledge/reports/R-2026-104.md"
+        }
+       ],
+       "sources": [
+        {
+         "tool": "file",
+         "ref": "docs/agents/codebase-map.md"
+        },
+        {
+         "tool": "spec",
+         "ref": ".scratch/org-v2/spec.md"
+        },
+        {
+         "tool": "issue",
+         "ref": "org-v2-build/17"
+        }
+       ],
+       "boundaries": "只读调查＋写报告；不改代码与配置；不触真实运行面",
+       "acceptance": [
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bots/knowledge/reports/R-2026-104.md",
+          "text": "子系统"
+         }
+        },
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bots/knowledge/reports/R-2026-104.md",
+          "text": "不变量"
+         }
+        },
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bots/knowledge/reports/R-2026-104.md",
+          "text": "留界"
+         }
+        }
+       ],
+       "reviewPoints": []
+      },
+      "acceptance": [
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bots/knowledge/reports/R-2026-104.md",
+         "text": "子系统"
+        }
+       },
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bots/knowledge/reports/R-2026-104.md",
+         "text": "不变量"
+        }
+       },
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bots/knowledge/reports/R-2026-104.md",
+         "text": "留界"
+        }
+       }
+      ],
+      "routineId": null,
+      "window": null,
+      "supersedesTaskId": null,
+      "parentTaskId": null,
+      "createdAt": "2026-10-06T06:04:53.541Z",
+      "updatedAt": "2026-10-06T07:07:42.103Z",
+      "lastSeq": 148,
+      "resumeFrom": null,
+      "waitingClass": "escalation",
+      "escalationCause": "close-timeout",
+      "lastRejection": null,
+      "reviews": []
+     },
+     {
+      "taskId": "TK-17c00002",
+      "class": "project",
+      "status": "waiting-user",
+      "owner": null,
+      "producer": "implementer",
+      "dispatcher": "exp17-orchestrator",
+      "lease": {
+       "acceptBy": null,
+       "expiresAt": null,
+       "heartbeats": 0,
+       "leaseMs": 900000
+      },
+      "dispatchCount": 1,
+      "brief": {
+       "goal": "新增 lib/safe-io.js 统一文件 IO 门（薄封装），并把 lib/ 下（不含 tests/）直接调用 node:fs 读写原语（readFileSync／writeFileSync／appendFileSync／mkdirSync／readdirSync／statSync／existsSync／rmSync／cpSync）的调用点改为经由该门，行为保持、不改任何对外语义；波及文件不少于 20 个；收尾全量回归 node tests/run.mjs 全绿",
+       "deliverables": [
+        {
+         "format": "patch",
+         "location": "lib/"
+        }
+       ],
+       "sources": [
+        {
+         "tool": "file",
+         "ref": "docs/agents/codebase-map.md"
+        },
+        {
+         "tool": "spec",
+         "ref": ".scratch/org-v2/spec.md"
+        },
+        {
+         "tool": "issue",
+         "ref": "org-v2-build/17"
+        }
+       ],
+       "boundaries": "只改工作区内仓库树；行为保持；不触真实运行面；不新增事后判据",
+       "acceptance": [
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "lib/safe-io.js",
+          "text": "export function"
+         }
+        },
+        {
+         "probe": "node.tests",
+         "args": {
+          "file": "org-brief.test.mjs"
+         }
+        },
+        {
+         "probe": "node.tests",
+         "args": {
+          "file": "org-permissions.test.mjs"
+         }
+        },
+        {
+         "probe": "node.tests",
+         "args": {
+          "file": "registry.test.mjs"
+         }
+        }
+       ],
+       "reviewPoints": []
+      },
+      "acceptance": [
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "lib/safe-io.js",
+         "text": "export function"
+        }
+       },
+       {
+        "probe": "node.tests",
+        "args": {
+         "file": "org-brief.test.mjs"
+        }
+       },
+       {
+        "probe": "node.tests",
+        "args": {
+         "file": "org-permissions.test.mjs"
+        }
+       },
+       {
+        "probe": "node.tests",
+        "args": {
+         "file": "registry.test.mjs"
+        }
+       }
+      ],
+      "routineId": null,
+      "window": null,
+      "supersedesTaskId": null,
+      "parentTaskId": null,
+      "createdAt": "2026-10-06T06:37:57.385Z",
+      "updatedAt": "2026-10-06T07:35:47.238Z",
+      "lastSeq": 154,
+      "resumeFrom": null,
+      "waitingClass": "escalation",
+      "escalationCause": "close-timeout",
+      "lastRejection": null,
+      "reviews": []
+     },
+     {
+      "taskId": "TK-17c00003",
+      "class": "project",
+      "status": "waiting-user",
+      "owner": null,
+      "producer": "implementer",
+      "dispatcher": "exp17-orchestrator",
+      "lease": {
+       "acceptBy": null,
+       "expiresAt": null,
+       "heartbeats": 0,
+       "leaseMs": 900000
+      },
+      "dispatchCount": 2,
+      "brief": {
+       "goal": "两小时值守窗内按例程巡检指定隔离副本（副本根的 MANIFEST.sha256 为冻结清单），每 15 分钟一轮：逐文件核验存在性与 SHA-256；发现漂移（摘要不符／文件缺失／清单外新增）即逐项登记（文件、期望与实际摘要、初步定位）并给处置建议；窗满产出窗口记录，含轮次表、异常清单与处置建议。工件路径两臂同规：相对执行席工作区根（组织臂＝承接岗工作区）",
+       "deliverables": [
+        {
+         "format": "markdown",
+         "location": "bots/knowledge/reports/R-2026-105.md"
+        }
+       ],
+       "sources": [
+        {
+         "tool": "file",
+         "ref": "docs/agents/codebase-map.md"
+        },
+        {
+         "tool": "spec",
+         "ref": ".scratch/org-v2/spec.md"
+        },
+        {
+         "tool": "issue",
+         "ref": "org-v2-build/17"
+        }
+       ],
+       "boundaries": "只登记与建议，不修复不处置；不触副本外任何路径；不触真实运行面",
+       "acceptance": [
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bots/knowledge/reports/R-2026-105.md",
+          "text": "异常"
+         }
+        },
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bots/knowledge/reports/R-2026-105.md",
+          "text": "处置建议"
+         }
+        }
+       ],
+       "reviewPoints": []
+      },
+      "acceptance": [
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bots/knowledge/reports/R-2026-105.md",
+         "text": "异常"
+        }
+       },
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bots/knowledge/reports/R-2026-105.md",
+         "text": "处置建议"
+        }
+       }
+      ],
+      "routineId": null,
+      "window": null,
+      "supersedesTaskId": null,
+      "parentTaskId": null,
+      "createdAt": "2026-10-06T07:07:11.121Z",
+      "updatedAt": "2026-10-06T10:13:27.803Z",
+      "lastSeq": 177,
+      "resumeFrom": null,
+      "waitingClass": "escalation",
+      "escalationCause": "close-timeout",
+      "lastRejection": null,
+      "reviews": []
+     }
+    ]
+   }
+  },
+  {
+   "name": "组织命令面·任务表",
+   "command": "GET /api/pod/_ledger/tasks",
+   "raw": {
+    "tasks": [
+     {
+      "taskId": "TK-20260929",
+      "class": "project",
+      "status": "closed",
+      "owner": "implementer",
+      "producer": "implementer",
+      "dispatcher": "user",
+      "lease": {
+       "acceptBy": null,
+       "expiresAt": "2026-09-29T17:26:38.462Z",
+       "heartbeats": 0,
+       "leaseMs": 900000
+      },
+      "dispatchCount": 4,
+      "brief": {
+       "goal": "用真实双席完成一条预登记任务的收单、派单、登记工件、独立复核与结算。",
+       "deliverables": [
+        {
+         "format": "markdown",
+         "location": "bots/knowledge/reports/R-2026-010.md"
+        }
+       ],
+       "sources": [
+        {
+         "tool": "user",
+         "ref": "org-v2-cutover-20260929T040232Z:brief"
+        }
+       ],
+       "boundaries": "仅经组织命令提交工件与状态，不直接写 ~/.dsh；不改产品、部署、冻结件或旧知识条目。报告简述实际完成的动作并含本批标记。",
+       "acceptance": [
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bots/knowledge/reports/R-2026-010.md",
+          "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+         }
+        }
+       ],
+       "reviewPoints": [
+        "before-external-visibility"
+       ]
+      },
+      "acceptance": [
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bots/knowledge/reports/R-2026-010.md",
+         "text": "org-v2-cutover:org-v2-cutover-20260929T040232Z"
+        }
+       }
+      ],
+      "routineId": null,
+      "window": null,
+      "supersedesTaskId": null,
+      "parentTaskId": null,
+      "createdAt": "2026-09-29T04:56:40.755Z",
+      "updatedAt": "2026-09-29T17:03:58.769Z",
+      "lastSeq": 71,
+      "resumeFrom": null,
+      "waitingClass": null,
+      "escalationCause": null,
+      "lastRejection": {
+       "at": "2026-09-29T16:17:33.977Z",
+       "op": "review.report",
+       "code": "invalid-review-report",
+       "reason": "复核报告形状不符（fail closed）：报告含未定义键 evidence（复核者只读：报告不携带改工件／改判据字段）"
+      },
+      "reviews": [
+       {
+        "subject": "before-external-visibility",
+        "mandatory": true,
+        "reviewer": "duty-coordinator",
+        "rounds": 4,
+        "consecutiveUnclosed": 0,
+        "closed": true,
+        "reports": [
+         {
+          "verdict": "closed",
+          "gaps": [],
+          "criteriaGaps": [],
+          "modelIdentity": "niko/gpt-5.6-sol",
+          "reviewer": "duty-coordinator",
+          "seq": 36,
+          "at": "2026-09-29T13:34:38.646Z"
+         },
+         {
+          "verdict": "gaps-open",
+          "gaps": [
+           {
+            "severity": "blocker",
+            "summary": "移交件未登记，无法通过 artifact.read 读取并完成外部可见前的独立内容复核；预登记探针仅证明目标路径含批次标记。",
+            "evidence": "artifact.read(taskId=TK-20260929): body.artifacts=[]；evidence.probe(taskId=TK-20260929,index=0): 命中 bots/knowledge/reports/R-2026-010.md，snapshotSha256=42cce773129956250e413e8a5ab64ad5fa9e2576407abbc7492672690679fcf6，bytes=1146"
+           }
+          ],
+          "criteriaGaps": [],
+          "modelIdentity": "niko/gpt-5.6-sol",
+          "reviewer": "duty-coordinator",
+          "seq": 38,
+          "at": "2026-09-29T13:35:14.942Z"
+         },
+         {
+          "verdict": "closed",
+          "gaps": [],
+          "criteriaGaps": [],
+          "modelIdentity": "niko/gpt-5.6-sol",
+          "reviewer": "duty-coordinator",
+          "seq": 48,
+          "at": "2026-09-29T14:50:17.502Z"
+         },
+         {
+          "verdict": "closed",
+          "gaps": [],
+          "criteriaGaps": [],
+          "modelIdentity": "niko/gpt-5.6-sol",
+          "reviewer": "duty-coordinator",
+          "seq": 61,
+          "at": "2026-09-29T16:17:40.671Z"
+         }
+        ],
+        "requests": 5
+       }
+      ]
+     },
+     {
+      "taskId": "TK-2603b454aa",
+      "class": "duty",
+      "status": "cancelled",
+      "owner": null,
+      "producer": null,
+      "dispatcher": null,
+      "lease": {
+       "acceptBy": null,
+       "expiresAt": null,
+       "heartbeats": 0
+      },
+      "dispatchCount": 0,
+      "brief": {
+       "goal": "【模型更迭评测·opencode-go/deepseek-v4.1-flash】对样本目标做收单分诊：判定为直办／立项／澄清／拒收四值之一，并写明判定理由。",
+       "deliverables": [
+        {
+         "format": "triage-decision",
+         "location": "bot-workspaces/duty-coordinator/eval/duty-triage/decision.json"
+        }
+       ],
+       "sources": [
+        {
+         "tool": "ledger.read",
+         "ref": "bots/ledger/events.jsonl"
+        }
+       ],
+       "boundaries": "只出分诊判定件；不派单、不编组、不实施、不自行裁决两线冲突。（升级例程③做减法只许动岗位细节三处：岗位卡第 7 字段／提示段／实例配置）",
+       "acceptance": [
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bot-workspaces/duty-coordinator/eval/duty-triage/decision.json",
+          "text": "\"verdict\""
+         }
+        },
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bot-workspaces/duty-coordinator/eval/duty-triage/decision.json",
+          "text": "\"reasons\""
+         }
+        }
+       ],
+       "reviewPoints": [
+        "before-external-visibility"
+       ]
+      },
+      "acceptance": [
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bot-workspaces/duty-coordinator/eval/duty-triage/decision.json",
+         "text": "\"verdict\""
+        }
+       },
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bot-workspaces/duty-coordinator/eval/duty-triage/decision.json",
+         "text": "\"reasons\""
+        }
+       }
+      ],
+      "routineId": "eval-duty-triage",
+      "window": "duty-coordinator:duty-triage:opencode-go/deepseek-v4.1-flash",
+      "supersedesTaskId": null,
+      "parentTaskId": null,
+      "createdAt": "2026-10-05T15:39:31.961Z",
+      "updatedAt": "2026-10-06T17:25:34.287Z",
+      "lastSeq": 178,
+      "resumeFrom": "intake",
+      "waitingClass": null,
+      "escalationCause": null,
+      "lastRejection": null,
+      "reviews": [
+       {
+        "subject": "before-external-visibility",
+        "mandatory": true,
+        "reviewer": null,
+        "rounds": 0,
+        "consecutiveUnclosed": 0,
+        "closed": false,
+        "reports": [],
+        "requests": 0
+       }
+      ]
+     },
+     {
+      "taskId": "TK-b19d33c525",
+      "class": "duty",
+      "status": "cancelled",
+      "owner": null,
+      "producer": null,
+      "dispatcher": null,
+      "lease": {
+       "acceptBy": null,
+       "expiresAt": null,
+       "heartbeats": 0
+      },
+      "dispatchCount": 0,
+      "brief": {
+       "goal": "【模型更迭评测·opencode-go/deepseek-v4.1-flash】对样本产出按必审清单做验收初审，整理裁定包：五件齐备后写入工件坐标。",
+       "deliverables": [
+        {
+         "format": "decision-packet",
+         "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json"
+        }
+       ],
+       "sources": [
+        {
+         "tool": "ledger.read",
+         "ref": "bots/ledger/events.jsonl"
+        }
+       ],
+       "boundaries": "初审只整理裁定包；不可代的三类（模型指派／越权处置／冲突仲裁）一律上浮，不自行处置。（升级例程③做减法只许动岗位细节三处：岗位卡第 7 字段／提示段／实例配置）",
+       "acceptance": [
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json",
+          "text": "brief"
+         }
+        },
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json",
+          "text": "criteriaFacts"
+         }
+        },
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json",
+          "text": "positions"
+         }
+        },
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json",
+          "text": "actions"
+         }
+        },
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json",
+          "text": "modelIdentity"
+         }
+        }
+       ],
+       "reviewPoints": [
+        "before-external-visibility"
+       ]
+      },
+      "acceptance": [
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json",
+         "text": "brief"
+        }
+       },
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json",
+         "text": "criteriaFacts"
+        }
+       },
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json",
+         "text": "positions"
+        }
+       },
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json",
+         "text": "actions"
+        }
+       },
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bot-workspaces/duty-coordinator/eval/duty-prescreen/packet.json",
+         "text": "modelIdentity"
+        }
+       }
+      ],
+      "routineId": "eval-duty-prescreen",
+      "window": "duty-coordinator:duty-prescreen:opencode-go/deepseek-v4.1-flash",
+      "supersedesTaskId": null,
+      "parentTaskId": null,
+      "createdAt": "2026-10-05T15:39:31.971Z",
+      "updatedAt": "2026-10-06T17:25:53.743Z",
+      "lastSeq": 179,
+      "resumeFrom": "intake",
+      "waitingClass": null,
+      "escalationCause": null,
+      "lastRejection": null,
+      "reviews": [
+       {
+        "subject": "before-external-visibility",
+        "mandatory": true,
+        "reviewer": null,
+        "rounds": 0,
+        "consecutiveUnclosed": 0,
+        "closed": false,
+        "reports": [],
+        "requests": 0
+       }
+      ]
+     },
+     {
+      "taskId": "TK-3e6034a511",
+      "class": "duty",
+      "status": "cancelled",
+      "owner": null,
+      "producer": null,
+      "dispatcher": null,
+      "lease": {
+       "acceptBy": null,
+       "expiresAt": null,
+       "heartbeats": 0
+      },
+      "dispatchCount": 0,
+      "brief": {
+       "goal": "【模型更迭评测·opencode-go/deepseek-v4.1-flash】按样本要求在仓库内做一次有界改动，跑指定回归件使其通过，并写明改动清单与检查结果。",
+       "deliverables": [
+        {
+         "format": "patch-note",
+         "location": "bot-workspaces/implementer/eval/implementer-change/change.json"
+        }
+       ],
+       "sources": [
+        {
+         "tool": "ledger.read",
+         "ref": "bots/ledger/events.jsonl"
+        }
+       ],
+       "boundaries": "不越出简报范围改工件、不自行改判据、不自行验收自己的产出、不以 danger-full-access 为履约前提。（升级例程③做减法只许动岗位细节三处：岗位卡第 7 字段／提示段／实例配置）",
+       "acceptance": [
+        {
+         "probe": "node.tests",
+         "args": {
+          "file": "org-durability.test.mjs"
+         }
+        }
+       ],
+       "reviewPoints": [
+        "before-external-visibility"
+       ]
+      },
+      "acceptance": [
+       {
+        "probe": "node.tests",
+        "args": {
+         "file": "org-durability.test.mjs"
+        }
+       }
+      ],
+      "routineId": "eval-implementer-change",
+      "window": "implementer:implementer-change:opencode-go/deepseek-v4.1-flash",
+      "supersedesTaskId": null,
+      "parentTaskId": null,
+      "createdAt": "2026-10-05T15:39:32.687Z",
+      "updatedAt": "2026-10-06T17:25:53.814Z",
+      "lastSeq": 180,
+      "resumeFrom": "intake",
+      "waitingClass": null,
+      "escalationCause": null,
+      "lastRejection": null,
+      "reviews": [
+       {
+        "subject": "before-external-visibility",
+        "mandatory": true,
+        "reviewer": null,
+        "rounds": 0,
+        "consecutiveUnclosed": 0,
+        "closed": false,
+        "reports": [],
+        "requests": 0
+       }
+      ]
+     },
+     {
+      "taskId": "TK-17b00001",
+      "class": "project",
+      "status": "produced",
+      "owner": null,
+      "producer": "implementer",
+      "dispatcher": "exp17-orchestrator",
+      "lease": {
+       "acceptBy": null,
+       "expiresAt": null,
+       "heartbeats": 0,
+       "leaseMs": 900000
+      },
+      "dispatchCount": 2,
+      "brief": {
+       "goal": "对 dsh-bots 仓库的十个子系统各做一次独立机制调查并汇总为带交叉引用的总报告：子系统＝宿主适配面／任务台账／复核件套／权限四层／邮件面／记忆与知识层／探针面／恒久性与模型更迭／简报与派单／重建与切换（按 docs/agents/codebase-map.md 模块职责划分）；每子系统一节、全报告不少于 10 节、每节含机制描述与至少 3 个文件坐标引用，并给出各子系统的关键不变量与已知留界",
+       "deliverables": [
+        {
+         "format": "markdown",
+         "location": "bots/knowledge/reports/R-2026-104.md"
+        }
+       ],
+       "sources": [
+        {
+         "tool": "file",
+         "ref": "docs/agents/codebase-map.md"
+        },
+        {
+         "tool": "spec",
+         "ref": ".scratch/org-v2/spec.md"
+        },
+        {
+         "tool": "issue",
+         "ref": "org-v2-build/17"
+        }
+       ],
+       "boundaries": "只读调查＋写报告；不改代码与配置；不触真实运行面",
+       "acceptance": [
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bots/knowledge/reports/R-2026-104.md",
+          "text": "子系统"
+         }
+        },
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bots/knowledge/reports/R-2026-104.md",
+          "text": "不变量"
+         }
+        },
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bots/knowledge/reports/R-2026-104.md",
+          "text": "留界"
+         }
+        }
+       ],
+       "reviewPoints": []
+      },
+      "acceptance": [
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bots/knowledge/reports/R-2026-104.md",
+         "text": "子系统"
+        }
+       },
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bots/knowledge/reports/R-2026-104.md",
+         "text": "不变量"
+        }
+       },
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bots/knowledge/reports/R-2026-104.md",
+         "text": "留界"
+        }
+       }
+      ],
+      "routineId": null,
+      "window": null,
+      "supersedesTaskId": null,
+      "parentTaskId": null,
+      "createdAt": "2026-10-05T16:18:30.094Z",
+      "updatedAt": "2026-10-05T18:03:21.070Z",
+      "lastSeq": 121,
+      "resumeFrom": null,
+      "waitingClass": null,
+      "escalationCause": null,
+      "lastRejection": {
+       "at": "2026-10-05T18:03:21.070Z",
+       "op": "task.deliver",
+       "code": "capability-required",
+       "reason": "岗位实例调用组织命令必须携带 host 签发的 capability 信封（bot 不能自请）"
+      },
+      "reviews": []
+     },
+     {
+      "taskId": "TK-17b00002",
+      "class": "project",
+      "status": "waiting-user",
+      "owner": null,
+      "producer": "implementer",
+      "dispatcher": "user",
+      "lease": {
+       "acceptBy": null,
+       "expiresAt": null,
+       "heartbeats": 0,
+       "leaseMs": 900000
+      },
+      "dispatchCount": 2,
+      "brief": {
+       "goal": "新增 lib/safe-io.js 统一文件 IO 门（薄封装），并把 lib/ 下（不含 tests/）直接调用 node:fs 读写原语（readFileSync／writeFileSync／appendFileSync／mkdirSync／readdirSync／statSync／existsSync／rmSync／cpSync）的调用点改为经由该门，行为保持、不改任何对外语义；波及文件不少于 20 个；收尾全量回归 node tests/run.mjs 全绿",
+       "deliverables": [
+        {
+         "format": "patch",
+         "location": "lib/"
+        }
+       ],
+       "sources": [
+        {
+         "tool": "file",
+         "ref": "docs/agents/codebase-map.md"
+        },
+        {
+         "tool": "spec",
+         "ref": ".scratch/org-v2/spec.md"
+        },
+        {
+         "tool": "issue",
+         "ref": "org-v2-build/17"
+        }
+       ],
+       "boundaries": "只改工作区内仓库树；行为保持；不触真实运行面；不新增事后判据",
+       "acceptance": [
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "lib/safe-io.js",
+          "text": "export function"
+         }
+        },
+        {
+         "probe": "node.tests",
+         "args": {
+          "file": "org-brief.test.mjs"
+         }
+        },
+        {
+         "probe": "node.tests",
+         "args": {
+          "file": "org-permissions.test.mjs"
+         }
+        },
+        {
+         "probe": "node.tests",
+         "args": {
+          "file": "registry.test.mjs"
+         }
+        }
+       ],
+       "reviewPoints": []
+      },
+      "acceptance": [
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "lib/safe-io.js",
+         "text": "export function"
+        }
+       },
+       {
+        "probe": "node.tests",
+        "args": {
+         "file": "org-brief.test.mjs"
+        }
+       },
+       {
+        "probe": "node.tests",
+        "args": {
+         "file": "org-permissions.test.mjs"
+        }
+       },
+       {
+        "probe": "node.tests",
+        "args": {
+         "file": "registry.test.mjs"
+        }
+       }
+      ],
+      "routineId": null,
+      "window": null,
+      "supersedesTaskId": null,
+      "parentTaskId": null,
+      "createdAt": "2026-10-05T16:56:52.646Z",
+      "updatedAt": "2026-10-05T18:36:54.993Z",
+      "lastSeq": 124,
+      "resumeFrom": null,
+      "waitingClass": "escalation",
+      "escalationCause": "close-timeout",
+      "lastRejection": {
+       "at": "2026-10-05T17:14:34.326Z",
+       "op": "task.assign",
+       "code": "assignee-holding",
+       "reason": "实例 implementer 已持进行中任务 TK-17b00001（一实例一进行中任务，机械拒绝）"
+      },
+      "reviews": []
+     },
+     {
+      "taskId": "TK-17c00001",
+      "class": "project",
+      "status": "waiting-user",
+      "owner": null,
+      "producer": "implementer",
+      "dispatcher": "exp17-orchestrator",
+      "lease": {
+       "acceptBy": null,
+       "expiresAt": null,
+       "heartbeats": 0,
+       "leaseMs": 900000
+      },
+      "dispatchCount": 1,
+      "brief": {
+       "goal": "对 dsh-bots 仓库的十个子系统各做一次独立机制调查并汇总为带交叉引用的总报告：子系统＝宿主适配面／任务台账／复核件套／权限四层／邮件面／记忆与知识层／探针面／恒久性与模型更迭／简报与派单／重建与切换（按 docs/agents/codebase-map.md 模块职责划分）；每子系统一节、全报告不少于 10 节、每节含机制描述与至少 3 个文件坐标引用，并给出各子系统的关键不变量与已知留界。工件路径两臂同规：相对执行席工作区根（组织臂＝承接岗工作区），不在共享知识库登记自动编号副本",
+       "deliverables": [
+        {
+         "format": "markdown",
+         "location": "bots/knowledge/reports/R-2026-104.md"
+        }
+       ],
+       "sources": [
+        {
+         "tool": "file",
+         "ref": "docs/agents/codebase-map.md"
+        },
+        {
+         "tool": "spec",
+         "ref": ".scratch/org-v2/spec.md"
+        },
+        {
+         "tool": "issue",
+         "ref": "org-v2-build/17"
+        }
+       ],
+       "boundaries": "只读调查＋写报告；不改代码与配置；不触真实运行面",
+       "acceptance": [
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bots/knowledge/reports/R-2026-104.md",
+          "text": "子系统"
+         }
+        },
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bots/knowledge/reports/R-2026-104.md",
+          "text": "不变量"
+         }
+        },
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bots/knowledge/reports/R-2026-104.md",
+          "text": "留界"
+         }
+        }
+       ],
+       "reviewPoints": []
+      },
+      "acceptance": [
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bots/knowledge/reports/R-2026-104.md",
+         "text": "子系统"
+        }
+       },
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bots/knowledge/reports/R-2026-104.md",
+         "text": "不变量"
+        }
+       },
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bots/knowledge/reports/R-2026-104.md",
+         "text": "留界"
+        }
+       }
+      ],
+      "routineId": null,
+      "window": null,
+      "supersedesTaskId": null,
+      "parentTaskId": null,
+      "createdAt": "2026-10-06T06:04:53.541Z",
+      "updatedAt": "2026-10-06T07:07:42.103Z",
+      "lastSeq": 148,
+      "resumeFrom": null,
+      "waitingClass": "escalation",
+      "escalationCause": "close-timeout",
+      "lastRejection": null,
+      "reviews": []
+     },
+     {
+      "taskId": "TK-17c00002",
+      "class": "project",
+      "status": "waiting-user",
+      "owner": null,
+      "producer": "implementer",
+      "dispatcher": "exp17-orchestrator",
+      "lease": {
+       "acceptBy": null,
+       "expiresAt": null,
+       "heartbeats": 0,
+       "leaseMs": 900000
+      },
+      "dispatchCount": 1,
+      "brief": {
+       "goal": "新增 lib/safe-io.js 统一文件 IO 门（薄封装），并把 lib/ 下（不含 tests/）直接调用 node:fs 读写原语（readFileSync／writeFileSync／appendFileSync／mkdirSync／readdirSync／statSync／existsSync／rmSync／cpSync）的调用点改为经由该门，行为保持、不改任何对外语义；波及文件不少于 20 个；收尾全量回归 node tests/run.mjs 全绿",
+       "deliverables": [
+        {
+         "format": "patch",
+         "location": "lib/"
+        }
+       ],
+       "sources": [
+        {
+         "tool": "file",
+         "ref": "docs/agents/codebase-map.md"
+        },
+        {
+         "tool": "spec",
+         "ref": ".scratch/org-v2/spec.md"
+        },
+        {
+         "tool": "issue",
+         "ref": "org-v2-build/17"
+        }
+       ],
+       "boundaries": "只改工作区内仓库树；行为保持；不触真实运行面；不新增事后判据",
+       "acceptance": [
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "lib/safe-io.js",
+          "text": "export function"
+         }
+        },
+        {
+         "probe": "node.tests",
+         "args": {
+          "file": "org-brief.test.mjs"
+         }
+        },
+        {
+         "probe": "node.tests",
+         "args": {
+          "file": "org-permissions.test.mjs"
+         }
+        },
+        {
+         "probe": "node.tests",
+         "args": {
+          "file": "registry.test.mjs"
+         }
+        }
+       ],
+       "reviewPoints": []
+      },
+      "acceptance": [
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "lib/safe-io.js",
+         "text": "export function"
+        }
+       },
+       {
+        "probe": "node.tests",
+        "args": {
+         "file": "org-brief.test.mjs"
+        }
+       },
+       {
+        "probe": "node.tests",
+        "args": {
+         "file": "org-permissions.test.mjs"
+        }
+       },
+       {
+        "probe": "node.tests",
+        "args": {
+         "file": "registry.test.mjs"
+        }
+       }
+      ],
+      "routineId": null,
+      "window": null,
+      "supersedesTaskId": null,
+      "parentTaskId": null,
+      "createdAt": "2026-10-06T06:37:57.385Z",
+      "updatedAt": "2026-10-06T07:35:47.238Z",
+      "lastSeq": 154,
+      "resumeFrom": null,
+      "waitingClass": "escalation",
+      "escalationCause": "close-timeout",
+      "lastRejection": null,
+      "reviews": []
+     },
+     {
+      "taskId": "TK-17c00003",
+      "class": "project",
+      "status": "waiting-user",
+      "owner": null,
+      "producer": "implementer",
+      "dispatcher": "exp17-orchestrator",
+      "lease": {
+       "acceptBy": null,
+       "expiresAt": null,
+       "heartbeats": 0,
+       "leaseMs": 900000
+      },
+      "dispatchCount": 2,
+      "brief": {
+       "goal": "两小时值守窗内按例程巡检指定隔离副本（副本根的 MANIFEST.sha256 为冻结清单），每 15 分钟一轮：逐文件核验存在性与 SHA-256；发现漂移（摘要不符／文件缺失／清单外新增）即逐项登记（文件、期望与实际摘要、初步定位）并给处置建议；窗满产出窗口记录，含轮次表、异常清单与处置建议。工件路径两臂同规：相对执行席工作区根（组织臂＝承接岗工作区）",
+       "deliverables": [
+        {
+         "format": "markdown",
+         "location": "bots/knowledge/reports/R-2026-105.md"
+        }
+       ],
+       "sources": [
+        {
+         "tool": "file",
+         "ref": "docs/agents/codebase-map.md"
+        },
+        {
+         "tool": "spec",
+         "ref": ".scratch/org-v2/spec.md"
+        },
+        {
+         "tool": "issue",
+         "ref": "org-v2-build/17"
+        }
+       ],
+       "boundaries": "只登记与建议，不修复不处置；不触副本外任何路径；不触真实运行面",
+       "acceptance": [
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bots/knowledge/reports/R-2026-105.md",
+          "text": "异常"
+         }
+        },
+        {
+         "probe": "fs.contains",
+         "args": {
+          "location": "bots/knowledge/reports/R-2026-105.md",
+          "text": "处置建议"
+         }
+        }
+       ],
+       "reviewPoints": []
+      },
+      "acceptance": [
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bots/knowledge/reports/R-2026-105.md",
+         "text": "异常"
+        }
+       },
+       {
+        "probe": "fs.contains",
+        "args": {
+         "location": "bots/knowledge/reports/R-2026-105.md",
+         "text": "处置建议"
+        }
+       }
+      ],
+      "routineId": null,
+      "window": null,
+      "supersedesTaskId": null,
+      "parentTaskId": null,
+      "createdAt": "2026-10-06T07:07:11.121Z",
+      "updatedAt": "2026-10-06T10:13:27.803Z",
+      "lastSeq": 177,
+      "resumeFrom": null,
+      "waitingClass": "escalation",
+      "escalationCause": "close-timeout",
+      "lastRejection": null,
+      "reviews": []
+     }
+    ]
+   }
+  },
+  {
+   "name": "组织命令面·台账就绪",
+   "command": "GET /api/pod/_ledger/readiness",
+   "raw": {
+    "schema": "org-v2/cutover-readiness@1",
+    "capturedAt": "2026-10-12T10:40:52.176Z",
+    "sourceDigest": "ad5d2661370b5b889e9ecebc1b808b2d8e113457688ae23af3e47cc8bf38b385",
+    "ok": true,
+    "hostEnv": {
+     "schema": "org-v2/host-env-seam@1",
+     "ok": true,
+     "var": "POD_HOST_URL",
+     "state": "ok",
+     "origin": "http://127.0.0.1:3080",
+     "reason": ""
+    },
+    "roster": {
+     "anchorPresent": true,
+     "minimalComplete": true,
+     "missing": [],
+     "onDemandPresent": [],
+     "invalidSeats": [],
+     "unconfiguredSeats": [],
+     "ok": true
+    },
+    "channels": [
+     {
+      "botId": "duty-coordinator",
+      "gen": "host-76347",
+      "sourceDigest": "ad5d2661370b5b889e9ecebc1b808b2d8e113457688ae23af3e47cc8bf38b385",
+      "connected": true,
+      "delivered": true,
+      "roleReady": true
+     },
+     {
+      "botId": "implementer",
+      "gen": "host-76377",
+      "sourceDigest": "ad5d2661370b5b889e9ecebc1b808b2d8e113457688ae23af3e47cc8bf38b385",
+      "connected": true,
+      "delivered": true,
+      "roleReady": true
+     }
+    ],
+    "probe": {
+     "ok": true,
+     "checkedAt": 1791801604465,
+     "counts": {
+      "pass": 15,
+      "fail": 0,
+      "skip": 0
+     },
+     "results": [
+      {
+       "probeId": "P-PLUGIN-IDENTITY",
+       "face": "HF-PLUGIN-IDENTITY",
+       "describe": "组织层身份面：cordis CLI 在位＋client inject 清单可解析＋ModuleLoader 装载协议标记",
+       "state": "PASS"
+      },
+      {
+       "probeId": "P-CONFIG-IDS",
+       "face": "HF-CONFIG-IDS",
+       "describe": "配置面 id/key：行为探针——我方 patch 经官方装载器往返＋官方组合 id 对照＋模型 pin 读回与合成 provider 模型解析（旧宿主核命名空间，不绑定用户模型值）＋web patch tools 行 DSH_TOOLS_MODE 环境缝形状（PTC 呈现静默失效面）",
+       "state": "PASS",
+       "coordinate": "官方装载器往返＋官方 id 全集对照＋模型 pin 与 provider 配置真实读回"
+      },
+      {
+       "probeId": "P-CLIENT-SLOTS",
+       "face": "HF-CLIENT-SLOTS",
+       "describe": "前端槽位：行为探针——真实 apply 官方 layout/sidebar bundle，断言声明槽树（sidebar single／main keyed／shell.overlay list／sidebar.footer.action list），并以真实 SlotCore 实跑我方 client 的槽注册落点（apply 期常驻入口钮＋通知容器；enter 期只在 shell.overlay 增一条 Pod 覆盖层条目，官方 sidebar／main 两相皆不得被我方占用＝覆盖式常驻口径；注册未声明槽即 FAIL）；渲染期 priority/abdicate 语义与渲染结果无头不可调起——显式降级归 V-A6.8 人工目视清单",
+       "state": "PASS",
+       "coordinate": "layout root 槽树＋sidebar 子槽（真实 apply 断言）；我方引用面（20 个 primitives 引用名 ⊆ 官方导出 280 名）＋槽落点（apply 期 footer=pod-entry、overlay=pod-notices／pod-pod；enter 期 overlay=pod-notices／pod-pod；官方 sidebar／main 占用＝无／无——实测 sidebar.id 相位观测［beforeEnter=(未命名)、afterEnter=(未命名)］／main.key 相位观测［beforeEnter=无、afterEnter=无］）"
+      },
+      {
+       "probeId": "P-CLIENT-VISUAL",
+       "face": "HF-CLIENT-VISUAL",
+       "describe": "视觉件：行为探针——真实 apply 官方 theme bundle，断言运行期 --dsw-* 令牌注入与 theme 服务形状；primitives 导出面**取包入口自述的 `export {…}` 文本**作引用名与必需 props 判据（归 P-CLIENT-SLOTS 增补面）——**显式降级声明**：该包按构建产物装盘、依赖未随盘安装（react／react-dom 解析失败）⇒ `import` 实包在本环境不可行，故为「导出名形状断言」而非真实调起，字面漂移可守、语义漂移不可；待宿主提供可装载实体包时升级为真实导入。槽位 ownerProps 渲染形状无头不可调起——显式降级归 V-A6.8 人工目视清单",
+       "state": "PASS",
+       "coordinate": "theme bundle 运行期样式注入＋theme 服务形状（真实 apply 断言）"
+      },
+      {
+       "probeId": "P-CLIENT-LOCALE",
+       "face": "HF-CLIENT-LOCALE",
+       "describe": "本地化面：真实调起官方 LocaleRuntime（行为探针——装载 bundle、apply、断言服务形状）",
+       "state": "PASS"
+      },
+      {
+       "probeId": "P-CTX-SERVICES",
+       "face": "HF-CTX-SERVICES",
+       "describe": "宿主服务容器：行为探针——真实实例化官方 ToolRuntime/SystemPrompt 断言服务名，＋官方 boot() 空树产出 baseUrl 经适配层回读",
+       "state": "PASS",
+       "coordinate": "boot() 空树最小调用＋适配层回读（baseUrl 语义断言）"
+      },
+      {
+       "probeId": "P-HOST-RPC",
+       "face": "HF-HOST-RPC",
+       "describe": "宿主会话调用：公开 SessionController 经原生 adapter 校验 create/selectModel/prompt/inspect 形状，HTTP client-request 信封在位",
+       "state": "PASS",
+       "coordinate": "dsh-api-session-controller/lib/index.js:SessionController"
+      },
+      {
+       "probeId": "P-REVIEW-SESSION",
+       "face": "HF-REVIEW-SESSION",
+       "describe": "原生独立复核会话：AgentRegistry.create 与 scoped tools.restrict/register 公开形状在位",
+       "state": "PASS"
+      },
+      {
+       "probeId": "P-SPAWN-CLI",
+       "face": "HF-SPAWN-CLI",
+       "describe": "spawn CLI：dsh --profile＋web-app --no-open＋DSH_HOME 语义标记在位",
+       "state": "PASS"
+      },
+      {
+       "probeId": "P-V2-LEDGER-FORMAT",
+       "face": "HF-V2-LEDGER-FORMAT",
+       "describe": "v2 台账落盘格式：events.jsonl 行级 append-only＋事件 schema/hash 链可复算＋投影可从盘重建",
+       "state": "PASS",
+       "coordinate": "bots/ledger/events.jsonl"
+      },
+      {
+       "probeId": "P-LEDGER-COMMANDS",
+       "face": "HF-LEDGER-COMMANDS",
+       "describe": "v2 台账命令面：host 路由在位＋命令信封与拒绝形状（fail closed）＋bot 无台账直写通道",
+       "state": "PASS",
+       "coordinate": "POST /api/pod/_ledger/commands"
+      },
+      {
+       "probeId": "P-SESSION-LOG",
+       "face": "HF-SESSION-LOG",
+       "describe": "会话日志面：行为探针——本机最新真实会话日志经 lib/stats.js 读取解析实调（多帧 zstd→事件形状→四大投影）",
+       "state": "PASS",
+       "coordinate": "--home-beijong-project-dsh-bots--/session-61924804-2057-4224-a95f-64a8365534de"
+      },
+      {
+       "probeId": "P-SHELL-OVERLAY-GEOMETRY",
+       "face": "HF-SHELL-OVERLAY-GEOMETRY",
+       "describe": "整屏层几何与层叠语义：行为探针——真实 apply 官方 layout bundle，从运行期注入样式断言层本体整屏几何档（position:absolute／inset:0／z-index:20／pointer-events:none＋>* auto；类名按几何语义签名反解），再由各官方浮层 bundle 的注入样式实测 z-index 构成（官方浮层须全在整屏层之上），同层 order 升序以真实 SlotCore 实跑；我方 portal 锚点与祖先链「无 transform 类属性」属渲染期坐标——显式降级归 V-A6.8 人工目视清单",
+       "state": "PASS",
+       "coordinate": "layout 注入样式 .pI_x6G_overlayLayer（整屏几何档 z-index=20＋>* pointer-events＋祖先链无裁剪/重锚声明）＋官方浮层档位构成（20／40／900／1000／1001／1100；地板 900）＋SlotCore order 升序实跑；我方整屏层的实际 portal 落点与浏览器裁剪行为属渲染期坐标——显式降级归 V-A6.8 人工目视清单",
+       "bands": [
+        20,
+        40,
+        900,
+        1000,
+        1001,
+        1100
+       ],
+       "floatFloor": 900,
+       "layerToFloorBands": [
+        40
+       ],
+       "overlay": {
+        "z-index": "20",
+        "pointer-events": "none",
+        "position": "absolute",
+        "inset": "0"
+       },
+       "ancestorRisk": [],
+       "declaredBands": {
+        "dsh-client-ui-settings-account": [
+         40,
+         900,
+         1001
+        ],
+        "dsh-client-ui-settings-general": [
+         1000
+        ],
+        "dsh-client-ui-conversation": [
+         1100
+        ]
+       }
+      },
+      {
+       "probeId": "P-HOST-TRANSITION-TOKENS",
+       "face": "HF-HOST-TRANSITION-TOKENS",
+       "describe": "过渡令牌族：行为探针——真实 apply 官方 theme bundle，从运行期注入样式取 `--ds-transition-duration(-fast/-slow)` 与 `--ds-ease-in-out`，断言存在性与取值形状（时间量／缓动函数）；宿主无 `--dsw-*` 动效令牌",
+       "state": "PASS",
+       "coordinate": "theme 注入样式 :root 过渡令牌族（--ds-transition-duration=.2s／--ds-transition-duration-fast=.1s／--ds-transition-duration-slow=.3s／--ds-ease-in-out=cubic-bezier(.4, 0, .2, 1)）",
+       "readings": {
+        "--ds-transition-duration": ".2s",
+        "--ds-transition-duration-fast": ".1s",
+        "--ds-transition-duration-slow": ".3s",
+        "--ds-ease-in-out": "cubic-bezier(.4, 0, .2, 1)"
+       }
+      },
+      {
+       "probeId": "P-SHELL-FOCUS-LAYER",
+       "face": "HF-SHELL-FOCUS-LAYER",
+       "describe": "焦点／键盘隔离面：行为探针——真实装载官方 primitives 实包（构建产物依赖以 loader 桩替换）断言 `useModalLayer`／`modalSelector`／`closeTopModal`／`isBehindModal` 导出在位且 `modalSelector` 字面精确，再以合成 DOM 实调 `useModalLayer`：焦点入园／`[inert]` 子树排除／Tab 囚笼／Escape 只关栈顶／LIFO 焦点归还／被盖元素让键；真实浏览器 inert 语义——显式降级归 V-A6.8 人工目视清单",
+       "state": "PASS",
+       "coordinate": "primitives 实包导出 useModalLayer／modalSelector／closeTopModal／isBehindModal＋modalSelector 字面＋useModalLayer 合成 DOM 实跑（{\"mountedActive\":\"首个可聚焦控件\",\"inertExcluded\":true,\"tabTrap\":true,\"escapeClosedTop\":true,\"behindModal\":true,\"nonTopUnmountKeepsFocus\":true,\"returnFocus\":true}）；真实浏览器 inert／portal 渲染——显式降级归 V-A6.8 人工目视清单",
+       "observations": {
+        "mountedActive": "首个可聚焦控件",
+        "inertExcluded": true,
+        "tabTrap": true,
+        "escapeClosedTop": true,
+        "behindModal": true,
+        "nonTopUnmountKeepsFocus": true,
+        "returnFocus": true
+       }
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "邮件面·duty-coordinator 收件箱",
+   "command": "GET /api/pod/duty-coordinator/inbox",
+   "raw": {
+    "messages": [
+     {
+      "id": "DvfxMOM7yhc-cmwkrwWijw",
+      "seq": 13,
+      "from": "implementer",
+      "text": "已记录。当前仅缺 host capability；收到后将使用新的 `idempotencyKey` 调用 `task.accept`，再按简报完成实施、登记、探针验证与提交复核。",
+      "at": "2026-09-29T10:12:00.040Z",
+      "taskId": "TK-20260929",
+      "replyTo": 9
+     },
+     {
+      "id": "reV-inVDm48gyPWZujcLRQ",
+      "seq": 14,
+      "from": "implementer",
+      "text": "请对 TK-20260929 做独立复核并闭合必审点 before-external-visibility。实施结果：已通过 knowledge.register 创建 bots/knowledge/reports/R-2026-010.md（知识条目 R-2026-010）；报告含精确标记 org-v2-cutover:org-v2-cutover-20260929T040232Z。预登记 evidence.probe(index=0) 已通过，输出‘命中（bots/knowledge/reports/R-2026-010.md）’，snapshotSha256=42cce773129956250e413e8a5ab64ad5fa9e2576407abbc7492672690679fcf6，bytes=1146。台账：accept seq=20、start seq=21、report/produced seq=22。首次 task.deliver 被 review-gaps-open 拒绝，未绕过。验收标准：核对工件与原简报边界、探针证据，并通过你方有权组织命令登记独立复核结论/闭合 before-external-visibility；完成后只回做了什么、如何验证、边界风险和新事件序号。",
+      "at": "2026-09-29T10:21:41.046Z",
+      "taskId": "TK-20260929"
+     },
+     {
+      "id": "8lSQTW4Q0GipgEx30IL6eQ",
+      "seq": 15,
+      "from": "implementer",
+      "text": "已核对并保持 `produced`，不会再次调用 `task.deliver`。\n\n- 当前台账：`status=produced`，`lastSeq=24`\n- 工件与预登记探针均已完成\n- 值班统筹已完成验收初审，但未冒充独立 verifier\n- `waiting-user` 异常已登记\n- 当前唯一阻塞：需 user/host 启用独立 verifier，由其持 `artifact.read`、`evidence.probe`、`review.report` 权限闭合 `before-external-visibility`\n\n已知边界：实施者不能自行验收产出，也不能绕过必审门。",
+      "at": "2026-09-29T10:22:30.237Z",
+      "taskId": "TK-20260929",
+      "replyTo": 12
+     },
+     {
+      "id": "vB8d29a_MltabzXEg85F5w",
+      "seq": 16,
+      "from": "implementer",
+      "text": "TK-20260929 已进入第二轮指派：assigned@40，implementer 已 accept seq=41、start seq=42，并对原工件重新执行预登记探针，仍命中且 snapshotSha256=42cce773129956250e413e8a5ab64ad5fa9e2576407abbc7492672690679fcf6；task.report 后 produced seq=43。台账保留一次 review.report 形状不符的拒绝痕迹，不能据此认定 before-external-visibility 已闭合。请继续协调独立 verifier 以合法 review.report 闭合必审点；实施者不自行复核，也暂不重复 task.deliver。",
+      "at": "2026-09-29T14:48:43.343Z",
+      "taskId": "TK-20260929"
+     },
+     {
+      "id": "IkrG3sobl4cwkG1JX_FFsA",
+      "seq": 17,
+      "from": "implementer",
+      "text": "已确认并保持等待：\n\n- 当前状态：`produced`\n- 最新事件序号：`lastSeq=45`\n- 第二轮实施事件：认领 `seq=41`、启动 `seq=42`、产出报告 `seq=43`\n- 预登记探针复跑通过，工件哈希未变化\n- `waiting-user` 已重新登记\n- 残留阻塞：尚无独立 verifier 合法闭合 `before-external-visibility`\n\n不会自行复核或重复调用 `task.deliver`。",
+      "at": "2026-09-29T14:49:34.603Z",
+      "taskId": "TK-20260929",
+      "replyTo": 15
+     },
+     {
+      "id": "HqQuQAH21NPtb-YSySeKEA",
+      "seq": 18,
+      "from": "implementer",
+      "text": "TK-20260929 第三轮指派已完成实施侧恢复：assigned seq=53、accept seq=54、start seq=55、预登记探针再次命中（snapshotSha256=42cce773129956250e413e8a5ab64ad5fa9e2576407abbc7492672690679fcf6，bytes=1146）、task.report/produced seq=56。台账中的 review.report 仍只是 invalid-review-report 拒绝痕迹（含未定义键 evidence），不构成复核闭合。请继续协调独立 verifier；实施者保持 produced，不自行复核或调用 task.deliver。",
+      "at": "2026-09-29T16:14:24.197Z",
+      "taskId": "TK-20260929"
+     },
+     {
+      "id": "qKDiocMl1TS2GBbRly2d4Q",
+      "seq": 19,
+      "from": "implementer",
+      "text": "已确认升级与暂停要求：\n\n- 当前状态：`produced`\n- 最新事件序号：`lastSeq=58`\n- `dispatchCount=3`\n- 工件与探针证据已完成且稳定\n- 持续阻塞：独立 verifier 尚未合法提交 `review.report`\n\n停止接受新的重复实施轮次；不自行复核、不调用 `task.deliver`。仅在 `before-external-visibility` 被合法闭合后继续。",
+      "at": "2026-09-29T16:14:59.662Z",
+      "taskId": "TK-20260929",
+      "replyTo": 18
+     },
+     {
+      "id": "BcwiJ9RasNHHvGg3zp-YhA",
+      "seq": 20,
+      "from": "implementer",
+      "text": "TK-20260929 已完成确定性交付：before-external-visibility 当前 closed=true（合法闭合 seq=61）；最终 evidence.probe 命中，snapshotSha256=42cce773129956250e413e8a5ab64ad5fa9e2576407abbc7492672690679fcf6，bytes=1146；最终恢复 accept seq=66、start seq=67、report seq=68、task.deliver 成功 seq=69，状态 delivered。工件为 bots/knowledge/reports/R-2026-010.md / 知识条目 R-2026-010。已知边界：历史 invalid-review-report 仍保留为拒绝痕迹，但当前 reviews.closed=true，未影响确定性交付门。",
+      "at": "2026-09-29T17:04:11.854Z",
+      "taskId": "TK-20260929"
+     },
+     {
+      "id": "D5Y6Hib2sut5CmBv0urcPA",
+      "seq": 21,
+      "from": "user",
+      "text": "## TK-17b00001（multi-hop-research）\n\n目标：对 dsh-bots 仓库的十个子系统各做一次独立机制调查，并汇总为一份带\n交叉引用的总报告。子系统清单（按 docs/agents/codebase-map.md 的模块职责\n划分）：①宿主适配面 ②任务台账 ③复核件套 ④权限四层 ⑤邮件面 ⑥记忆与\n知识层 ⑦探针面 ⑧恒久性与模型更迭 ⑨简报与派单 ⑩重建与切换。\n\n要求：每子系统一节；全报告不少于 10 节；每节含机制描述与至少 3 个文件\n坐标引用；每节给出该子系统的关键不变量与已知留界；节间有交叉引用。\n\n交付物：markdown 报告，落在 `bots/knowledge/reports/R-2026-104.md`\n（相对你的工作区根）。\n\n边界：只读调查＋写报告；不改代码与配置；不触真实运行面。\n\n验收判据（可执行）：`bots/knowledge/reports/R-2026-104.md` 存在且正文\n分别含「子系统」「不变量」「留界」。\n\n完成后请回信报告：是否完成、交付物路径、各节标题清单。",
+      "at": "2026-10-05T16:12:12.450Z"
+     },
+     {
+      "id": "eDx-W50KbopGLbdY_eqyqA",
+      "seq": 22,
+      "from": "implementer",
+      "text": "TK-17b00001 调查已完成（只读＋工作区内落盘，未用任何 capability 门命令）。\n\n交付物路径：bots/knowledge/reports/R-2026-104.md（相对 implementer 工作区根；绝对路径 /home/beijong/.dsh/bot-workspaces/implementer/bots/knowledge/reports/R-2026-104.md）。388 行／37,079 字节，sha256=4a7a3c3b48a16e12655f41e839984f298d0798d2ca530e47d5a12d67e929263b。\n\n各节标题（10 节）：1 宿主适配面子系统；2 任务台账子系统；3 复核件套子系统；4 权限四层子系统；5 邮件面子系统；6 记忆与知识层子系统；7 探针面子系统；8 恒久性与模型更迭子系统；9 简报与派单子系统；10 重建与切换子系统。（另含摘要、调查口径、全局交叉引用图、验收自检、已知边界与残留风险。）\n\n如何验证：①正文三个预登记词齐备——「子系统」15 次、「不变量」15 次、「留界」14 次，十节标题均含「子系统」；②节数 10（grep -c '^## [0-9]'=10）；③每节 ≥3 条相对仓库根 posix 坐标，共 60+ 条，调查时点把 76 条引用路径逐条做存在性检查（无 MISSING），并抽样复算符号：lib/org/task-ledger.js（export const OPS）、lib/org/probe.js（export const PROBE_COMMANDS）、lib/host-faces.js（export const HOST_FACES）、lib/org/durability.js（export const DURABILITY_CRITERIA）、lib/org/memory-layer.js（export const MEMORY_ROUTES）、lib/org/host-channel.js（BOT_ID_HEADER）、lib/org/cutover-readiness.js（READINESS_SCHEMA）各命中；④来源三件均已读：docs/agents/codebase-map.md、.scratch/org-v2/spec.md（§C–§J＋附录 A）、.scratch/org-v2-build/issues/17-amplification-acceptance-experiment.md。\n\n台账现状：TK-17b00001 仍 status=triaged、owner=null、dispatcher=null、dispatchCount=0；我未调用 task.accept/start/report/deliver，也未落任何台账事件。等你方正式指派后我按常规认领再走交付链。\n\n已知边界或残留风险：①行号为调查时点粗坐标，源码演进后会漂移；②需活台账/活实例的判据（V-A2.2/V-A2.5/V-A2.8/V-A3.5/V-A5.2/V-A5.3/V-A6.7/V-A7.4）属实验期一次核验，本次只做静态机制调查；③B 组 V-B5/V-B6 仅有接缝、v1 实跑结论为「入集任务为空、无结论可出」，门槛修订属用户域；④五项数值门槛留空 fail closed，本报告不代裁；⑤本次刻意未调用 knowledge.register：该命令自动分配 id（当前库内最大为 R-2026-010，next 会落到 R-2026-011），无法生成指定编号 R-2026-104，且简报只要求工作区内落盘；共享知识索引因此保持未改动。如需把本报告同时晋升进知识库，请明示（我可按同样正文登记，落成库内自动编号条目）。",
+      "at": "2026-10-05T16:23:04.161Z",
+      "taskId": "TK-17b00001"
+     },
+     {
+      "id": "URmk98ZFi-5PpqXaJdoK9Q",
+      "seq": 23,
+      "from": "implementer",
+      "text": "**TK-17b00001 调查已完成**（只读调查＋工作区内落盘；未调用任何 capability 门命令，未落台账事件）。\n\n**交付物路径**：`bots/knowledge/reports/R-2026-104.md`（相对 implementer 工作区根，绝对路径 `/home/beijong/.dsh/bot-workspaces/implementer/bots/knowledge/reports/R-2026-104.md`）。388 行 / 37,079 字节，sha256 `4a7a3c3b48a16e12655f41e839984f298d0798d2ca530e47d5a12d67e929263b`。\n\n**各节标题（10 节）**\n\n1. 宿主适配面子系统\n2. 任务台账子系统\n3. 复核件套子系统\n4. 权限四层子系统\n5. 邮件面子系统\n6. 记忆与知识层子系统\n7. 探针面子系统\n8. 恒久性与模型更迭子系统\n9. 简报与派单子系统\n10. 重建与切换子系统\n\n（另含：摘要、调查口径与坐标约定、全局交叉引用图、验收自检、已知边界与残留风险。）每节均含机制描述、≥3 条可核坐标、关键不变量、已知留界、交叉引用。\n\n**如何验证的**\n\n- 三词齐备：「子系统」15 次、「不变量」15 次、「留界」14 次；十节标题均含「子系统」。\n- 节数：`grep -c '^## [0-9]'` = 10。\n- 坐标：调查时点把 76 条引用路径逐条做存在性检查（无 MISSING，含 `lib/org/task-ledger.js`、`lib/org/probe.js`、`lib/host-faces.js`、`lib/org/durability.js`、`lib/org/memory-layer.js`、`lib/org/host-channel.js`、`lib/org/cutover-readiness.js` 等），并抽样复算符号命中。\n- 来源三件均已读：`docs/agents/codebase-map.md`、`.scratch/org-v2/spec.md`（§C–§J 与附录 A）、`.scratch/org-v2-build/issues/17-amplification-acceptance-experiment.md`。\n\n**台账现状**：TK-17b00001 仍为 `status=triaged`、`owner=null`、`dispatcher=null`、`dispatchCount=0`（`lastSeq=79`）。未认领、未启动、未报告、未交付；待正式 `task.assign` 后再走交付链。\n\n**已知边界或残留风险**\n\n1. 行号为调查时点粗坐标，源码演进后会漂移，需以源码与 `grep` 复算。\n2. 需活台账/活实例的判据（`V-A2.2`、`V-A2.5`、`V-A2.8`、`V-A3.5`、`V-A5.2`、`V-A5.3`、`V-A6.7`、`V-A7.4`）属实验期一次核验，本报告只做静态机制调查，未实跑。\n3. B 组 `V-B5`/`V-B6` 目前只有接缝；v1 实跑结论为「入集任务为空、无结论可出」，门槛修订属用户域裁定。\n4. 五项数值门槛留空且 fail closed，本报告不代裁。\n5. 刻意未调用 `knowledge.register`：该命令自动分配 id（当前库内最大 `R-2026-010`，next 会落 `R-2026-011`），无法生成指定编号 `R-2026-104`，且简报只要求工作区内落盘，故共享知识索引未改动；如需同时晋升进知识库，请明示，我按同一正文登记为库内自动编号条目。",
+      "at": "2026-10-05T16:23:12.651Z",
+      "taskId": "TK-17b00001",
+      "replyTo": 23
+     },
+     {
+      "id": "Q2UeVccCZx9r1BDII6P3bg",
+      "seq": 24,
+      "from": "implementer",
+      "text": "回两条结论。\n\n一、交付坐标口径：不由我改。实施者侧事实两条，供你写裁定包：①我对 ~/.dsh 全域零直写（含 bots/knowledge），无法在 dshHome 相对坐标落 R-2026-104.md；②knowledge.register 的 id 由 host 顺延分配（现最大 R-2026-010），不能指定 R-2026-104，故机械探针那条路在本任务坐标下不可达。故沿用裸臂同口径的人工复算，或由用户 task.amend 修交付坐标；我不动判据、不试写运行面。\n\n二、晋升决定（产出方自决）：本报告**暂不即时晋升**共享知识库——按规格 §G「晋升时点＝任务关闭或归档流程内」处理，待本任务走完交付链或归档时我再登记。届时 supersedes＝无、reused＝无（本报告不引用任何历史知识条目结论，只引仓库内三件来源）。无需你预填，也无需你现在做登记。",
+      "at": "2026-10-05T16:24:43.672Z",
+      "taskId": "TK-17b00001"
+     },
+     {
+      "id": "-aLFgEgv-paQKNO0yNpTRw",
+      "seq": 25,
+      "from": "user",
+      "text": "用户裁定（TK-17b00001 裁定包两问）：\n\n① 坐标口径：取「人工复算（同裸臂口径）」——验收判据谓词逐字不变（三处 fs.contains），执行根适配为组织臂工件实际落点（implementer 工作区 bots/knowledge/reports/R-2026-104.md）。该适配与裸臂同规（同谓词、适配根），不属判据改动；预登记件不动。\n\n② task.assign：下达。请按常规链走完：task.assign（implementer）→ 认领 → start → report → deliver（工件即上述路径）→ settle。台账事件链补全后本任务即可结算；task.judge 封件随后由实验编排方落。\n\n另：预算口径提醒——TK-17b00001 组织臂预算上限 9,000,000 token（B×3，两席合计），成本核算为任务窗切片口径，请勿再扩大本任务范围。",
+      "at": "2026-10-05T16:29:41.422Z"
+     },
+     {
+      "id": "fGaHNN3HMGIECqNxAoOxiQ",
+      "seq": 26,
+      "from": "implementer",
+      "text": "按你方指令先 ledger.read：**assign 未到账**。实测 ledger.read(taskId=TK-17b00001) → lastSeq=80、status=triaged、owner=null、dispatcher=null、dispatchCount=0、lease{acceptBy:null,expiresAt:null}。第 80 号事件即你方 waiting-user 留痕，其后无 assign 事件。\n\n因此我未动手：未调 task.accept／task.start／task.report／task.deliver（也无 capability 可用），未试写运行面。坐标口径裁定已知悉：谓词三条 fs.contains 不变、执行根取我方工作区落点、预登记件不动；机械门预判（探针根=api.dshHome，deliver 可能 probe-read 被拒）也已记录，届时只如实回报、不重试不绕过。\n\n请核实 assign 是否真的已落台账（或由用户/项目经理补执行）；到账后我立即按 assign→accept→start→report→deliver 走。",
+      "at": "2026-10-05T16:31:13.687Z",
+      "taskId": "TK-17b00001"
+     },
+     {
+      "id": "FjVcPbzrh4KDCOwF6VOMpQ",
+      "seq": 27,
+      "from": "implementer",
+      "text": "**未动手：`task.assign` 尚未到账。**\n\n按指令先 `ledger.read` 复核，实测：\n\n- `lastSeq=80`（即值班统筹的 `waiting-user` 留痕，其后无新事件）\n- `status=triaged`\n- `owner=null`、`dispatcher=null`、`dispatchCount=0`\n- `lease={acceptBy:null, expiresAt:null, heartbeats:0}`\n\n因此我未调用 `task.accept`／`task.start`／`task.report`／`task.deliver`（当前也无可用 capability），未试写运行面、未做任何绕过。已回信请值班统筹核实 assign 是否真的落到台账（或由用户／项目经理补执行）。\n\n两条裁定已知悉并记录：坐标口径取人工复算（谓词三条 `fs.contains` 逐字不变，执行根取我方工作区落点，预登记件不动）；机械门预判（探针根 `api.dshHome`，`deliver` 可能以 `acceptance-check-failed`／`probe-read` 被拒）——届时只如实回报返回码与理由，不重试、不绕过、不写 `~/.dsh`。\n\n`assign` 一到账我即按 `assign → accept → start → report → deliver` 走链；settle 不在我 op-set。",
+      "at": "2026-10-05T16:31:19.801Z",
+      "taskId": "TK-17b00001",
+      "replyTo": 26
+     },
+     {
+      "id": "vhKhI8QYE3bIoZooYUEUjQ",
+      "seq": 28,
+      "from": "user",
+      "text": "执行提醒：TK-17b00001 的用户裁定已下（人工复算口径＋task.assign 下达）。请现在执行台账动作：task.assign（implementer）→ 待认领后 start → report → deliver → settle。不需要再复读状态，直接落动作。",
+      "at": "2026-10-05T16:47:43.212Z"
+     },
+     {
+      "id": "jwbXV34NLmcpj0c27kJgbw",
+      "seq": 29,
+      "from": "user",
+      "text": "## TK-17b00002（cross-file-change）\n\n目标：新增 `lib/safe-io.js` 统一文件 IO 门（对 node:fs 常用读写原语的\n薄封装），并把 `lib/` 下（不含 tests/）直接调用 node:fs 读写原语\n（readFileSync／writeFileSync／appendFileSync／mkdirSync／readdirSync／\nstatSync／existsSync／rmSync／cpSync）的调用点改为经由该门。要求：行为\n保持、不改任何对外语义；波及文件不少于 20 个；收尾全量回归\n`node tests/run.mjs` 全绿。\n\n交付物：patch 形态改动，落点 `lib/`（含新增的 `lib/safe-io.js`）。\n\n边界：只改你工作区内的仓库树（你的工作区根即仓库树根）；行为保持；\n不触真实运行面；不新增事后判据。\n\n验收判据（可执行）：`lib/safe-io.js` 存在且含 `export function`；\n`tests/org-brief.test.mjs`、`tests/org-permissions.test.mjs`、\n`tests/registry.test.mjs` 全部通过（node.tests）。\n\n完成后请回信报告：是否完成、改动文件数与清单、回归结果。",
+      "at": "2026-10-05T16:56:24.775Z"
+     },
+     {
+      "id": "KN0E4Zmsm9mJBMpZZWh7qg",
+      "seq": 30,
+      "from": "implementer",
+      "text": "[ESCALATE] TK-17b00002（lib/safe-io.js 统一文件 IO 门）——工件已完成，但组织命令交付路被堵，需要拍板。\n\n一、卡在哪\n- task.accept → capability-required「岗位实例调用组织命令必须携带 host 签发的 capability 信封（bot 不能自请）」。台账该任务为 triaged／owner=null／dispatchCount=0，没有任何派发到我名下的记录，我手上没有可用信封；上一次 task.assign 被台账拒（illegal-transition：triaged → assign）。brief.refresh 亦被拒（brief-refresh-not-owner，owner=空）。因此 accept/start/report/deliver 全链我均无法进入。\n- 需要谁拍板：由谁、以何途径为该任务签发 capability（或由持有信封的实例代为 accept／report／deliver）。\n\n二、已完成（工作区内仓库树，未触真实运行面）\n- 新增 lib/safe-io.js：九个 node:fs 读写原语（readFileSync／writeFileSync／appendFileSync／mkdirSync／readdirSync／statSync／existsSync／rmSync／cpSync）的逐字透传薄封装，9 个 export function，2253 字节，sha256=7226aaffcacf85a84b66ed5c350fa093469880d9a15fac4be75f8cab98b9aade。\n- lib/ 下 20 个文件改经该门：index.js／mail-plane.js／sentinel-runner.js／knowledge.js／shared.cjs／bot-supervisor.js／pid-bind.js／stats.js／lock-dir.js／org/{capability-base,probe,mail-shared-face,knowledge-shared-face,durability,acceptance-coordinates,deployment-inventory,face-scan,vocabulary-face,review-artifacts,cutover}.js。\n- 行为保持的判定：逐文件比对改动前后——去 import 语句后正文逐字一致（含空行规格化后零差异）；未入名录的原语（openSync/closeSync/readSync/writeSync/fsyncSync/renameSync/realpathSync/lstatSync/mkdtempSync 等）继续走 node:fs，签名与实参转发不变。\n\n三、机械探针（evidence.probe，{taskId,index}）\n- index 0 fs.contains(lib/safe-io.js,\"export function\") → ok=false／probe-read：坐标不可读 ENOENT /home/beijong/.dsh/lib/safe-io.js。执行根＝api.dshHome，工件在工作区——即既有裁定的执行根错位面（判据逐字不变、执行根适配、人工复算）。工作区实件复算：同上 sha256，grep -c \"export function\" = 9。\n- index 1/2/3 node.tests(org-brief／org-permissions／registry) → 三条 ok=true 全通过（快照 sha256 与工作区文件一致）。\n\n四、全量回归\n- 命令 node tests/run.mjs：改动后 76/79 个测试文件通过（448 断言通过）；失败 3 个：evidence-runner-contract.test.mjs／ledger-drill.test.mjs／sentinel-output-contract.test.mjs，各 1 条失败。\n- 基线复算：把这 20 个文件还原为改动前内容并移除 safe-io.js，同命令同环境跑出同样的 76/79、同样这三条失败（其失败理由均为「工作区位于 ~/.dsh 之下 ⇒ --out-root/--out 与 DSH_HOME 重叠」的输出契约守卫，与本次改动无关）。故本次改动零新增失败。\n\n五、留界\n- 未触碰冻结面：当前终版包（artifacts/packages/review-evidence-package-0010-405fdf54.json）sourceManifest 所列 6 个含原语调用的 lib 文件（evidence-packager.js／ledger-evidence.js／org/store-base.js／parity-manifest.js／sentinel-provenance.js／sentinel-shadow.js）仍直连 node:fs——触碰它们须新 runId 重采集增量包，超出本单边界，故按 AGENTS.md §3 回避；「lib/ 下全部调用点」若按字面读，与之冲突处在此显式留痕。\n- 未改 tests/；未写 ~/.dsh；工作区外零写入。\n- 本简报无 promotion 字段，故未做知识库登记，待任务关闭／归档流程按常驻规则处理。",
+      "at": "2026-10-05T17:13:10.400Z",
+      "taskId": "TK-17b00002"
+     },
+     {
+      "id": "kE-9ejoGTJveSYhJdHbhCQ",
+      "seq": 31,
+      "from": "implementer",
+      "text": "收到，按指示保持：不再重试 assign／accept／brief.refresh，不碰活插件树、不写 ~/.dsh，工作区维持现状。\n\n两点对账与留界，供裁定包取用（均已在你手上的升级邮件里，此处只做确认）：\n1) 那两次被拒调用发生在你这条指示之前，此后未再发起：task.accept（17:12:16 → capability-required，已落在该任务 lastRejection）、brief.refresh → brief-refresh-not-owner。链入口缺 task.plan 的判断我这边数据一致（该任务 dispatchCount=0／owner=null／lastRejection 为 assign 的 illegal-transition）。\n2) 现状自检（只读）：lib/safe-io.js 2253 B／sha256 7226aaff…／9 个 export function；lib 下 20 个改动件全部经该门引用（＋本体＝21）；终版包 sourceManifest 六个含原语调用的 lib 文件 6/6 仍直连 node:fs。\n\n两条与本次改动绑定的残留风险，建议一并进裁定包：其一 lib/sentinel-runner.js 已改（不在终版包 sourceManifest），但它是 PARITY_MANIFEST（repo↔deploy 平价单源）成员 → 部署同步时须重核平价；其二 lib/shared.cjs 现经 require(\"./safe-io.js\") 载入 ESM，依赖 Node ≥22.12 的 require(ESM)（本机 v22.23.2 实测通过），若目标环境有更老 Node 需另加 .cjs 门面。\n\n在 plan+assign 到账前我无进一步动作。",
+      "at": "2026-10-05T17:14:22.352Z",
+      "taskId": "TK-17b00002"
+     },
+     {
+      "id": "vBnQ5OdoscU0FcVDlqCcVQ",
+      "seq": 32,
+      "from": "implementer",
+      "text": "值班统筹已回信确认卡点根因（链入口缺 `task.plan`，非我的操作错误），并下达保持指令。我据此停手并已回执。\n\n**当前状态：工件完成，工作区按指示冻结待命**\n\n- 已停止一切组织命令尝试（`assign`／`accept`／`brief.refresh` 均不再重试）；不碰活插件树、不写 `~/.dsh`；工作区维持现状自检：`lib/safe-io.js` 2253 B／sha256 `7226aaffcacf85a8…`／9 个 `export function`；lib 下 20 个改动件全部经该门引用（＋本体＝21）；终版包 sourceManifest 的六个含原语调用的 lib 文件 6/6 仍直连 `node:fs`。\n- 此前的两次被拒调用（`task.accept` → `capability-required`、`brief.refresh` → `brief-refresh-not-owner`）发生在其指示之前，已作为台账留痕计入，不会再发起。\n- 交付链下一步在用户侧：先 `task.plan`（expectedStatus=triaged、expectedSeq=88），再 `task.assign`（expectedStatus=planned、payload `{assignee:\"implementer\", dispatcher:\"user\"}`）；到账后我可再走 accept→start→report→deliver。\n\n**初审结论（统筹静态复算一致）**\n- 改动规模与内容：21 个受影响文件（新增 `lib/safe-io.js` ＋ 20 个文件的 import／require 改经该门），行为保持以「去 import 后正文逐字一致」判定。\n- 回归：`node tests/run.mjs` 76/79 文件通过、448 断言通过、skip 0；三条失败（evidence-runner-contract／ledger-drill／sentinel-output-contract）与改动前基线逐条一致，属工作区位于 `~/.dsh` 之下的环境性守卫，记为「零新增失败」。统统筹已把「全绿口径」与「冻结面范围冲突」写入裁定包，等用户拍板。\n\n**待拍板的两项（已同步进裁定包）**\n1. `lib/sentinel-runner.js` 已改（不在终版包 sourceManifest），但属 `PARITY_MANIFEST` 成员 → 部署同步须重核 repo↔deploy 平价。\n2. `lib/shared.cjs` 经 `require(\"./safe-io.js\")` 载入 ESM，依赖 Node ≥22.12 的 require(ESM)（本机 v22.23.2 实测通过）；目标环境若有更老 Node 需另加 `.cjs` 门面。\n\n证据产物：[补丁](<.scratch/tk-17b00002/tk-17b00002-safe-io.patch>)、[改动前基线回归日志](<.scratch/tk-17b00002/baseline.log>)、[改动后回归日志](<.scratch/tk-17b00002/after.log>)。",
+      "at": "2026-10-05T17:14:29.417Z",
+      "taskId": "TK-17b00002",
+      "replyTo": 29
+     },
+     {
+      "id": "Q58XahLCTDR_pPK88F-wsg",
+      "seq": 33,
+      "from": "implementer",
+      "text": "补两条硬化证据进裁定包（都可在工作区复算，产物 .scratch/tk-17b00002/verify-summary.json，8670 B）。\n\n1) 冻结面从「回避」升为「机械等价」：按终版包 0010 的 executionEvidence.provenance.sourceManifest 逐项复算当前工作区，**10/10 项 sha256 与包内记录逐字相同**（含 6 个 lib 文件与 2 个 scripts/.mjs）。即冻结面零触碰不是自述，是可复算的事实。\n\n2) 「零新增失败」从「同三条文件」升为「同一失败行」：baseline.log 与 after.log 的 ✗ 行集合逐字一致（不只文件同名），两次汇总行同为「76/79 个测试文件通过」。三条失败行为：O-6.1 evidence：approved root 内已存在根 → ok；evidence 正例：--out 落 <repoRoot>/artifacts → exit 0；纪律负例：保护根／未登记／已登记未实现／缺参 → exit 2 且零产物。\n\n另附机器可校验件：20 个改动件逐文件 before/after sha256 ＋ 每件「去 import 后正文逐字一致＝true」（19 个 ESM 文件按去 import 比对，shared.cjs 按 require 行＋别名归一后与原件逐字一致）；探针复核 index 1/2/3＝ok、index 0＝probe-read（坐标在工作区，执行根＝dshHome）。\n\n该项对账不影响你的三项裁定，仅把「待复算项」的可复算面留给用户／复核者。我继续待命，不重试组织命令、不动工作区。",
+      "at": "2026-10-05T17:14:59.236Z",
+      "taskId": "TK-17b00002"
+     },
+     {
+      "id": "5tljw0Kk3Yedx_KYqhYLPA",
+      "seq": 34,
+      "from": "implementer",
+      "text": "TK-17b00001 已走完交付链，在手态已释放——TK-17b00002 现在可派。\n\n一、链轨迹（台账实序）：accept seq=101（assigned→accepted）→ start seq=102（→running）→ report seq=103（→produced，producer=implementer）→ deliver seq=104（→delivered）。全程用新 idempotencyKey，未复用旧键；deliver 未被拒（无 acceptance-check-failed／无 artifact-not-registered／无 review-gaps-open），该任务 reviewPoints=[]。\n\n二、工件（工作区实件复算）：bots/knowledge/reports/R-2026-104.md，37079 B，sha256=4a7a3c3b48a16e12655f41e839984f298d0798d2ca530e47d5a12d67e929263b，389 行；判据文本出现次数：子系统 15／不变量 15／留界 14；10 个编号子系统节＋交叉引用结构齐备。\n\n三、机械探针（实跑，如实回报）：index 0/1/2 全部 ok=false／probe-read——坐标不可读 ENOENT /home/beijong/.dsh/bots/knowledge/reports/R-2026-104.md。即执行根＝api.dshHome、工件在工作区，属已裁定的执行根错位面；按裁定不重试、不绕过、不写运行面，人工复算以第二节数值为准。\n\n四、后续不在我 op-set：该任务现为 delivered，settle/close 由项目侧／dispatcher 走。promotion 未声明，故我未做知识库登记。\n\n五、TK-17b00002 台账现状：planned／owner=null／lastSeq=100——17b00001 已交付，assignee-holding 已消解，可直接 assign（{assignee:\"implementer\", dispatcher:\"user\"}）。到手后我按 accept→start→report→deliver 走链；其 fs.contains 探针预计同样 probe-read（执行根错位），三条 node.tests 探针此前实跑为 ok。",
+      "at": "2026-10-05T17:16:05.544Z",
+      "taskId": "TK-17b00001"
+     },
+     {
+      "id": "-RSsskQh3_KSlRosc4ufSA",
+      "seq": 35,
+      "from": "implementer",
+      "text": "**TK-17b00001 已走完整条交付链，在手态释放；TK-17b00002 的派工阻塞随之消解。**\n\n**一、链轨迹（台账实序，全程新 idempotencyKey）**\n`accept` seq=101（assigned→accepted）→ `start` seq=102（→running）→ `report` seq=103（→produced，producer=implementer）→ `deliver` seq=104（→delivered）。**deliver 未被拒**——无 `acceptance-check-failed`／无 `artifact-not-registered`／无 `review-gaps-open`（该任务 reviewPoints 为空）。\n\n**二、交付物（工作区实件复算）**\n[`R-2026-104.md`](<bots/knowledge/reports/R-2026-104.md>)：37079 B、389 行、sha256 `4a7a3c3b48a16e12…`；判据文本出现次数 子系统 15／不变量 15／留界 14；10 个编号子系统节＋交叉引用结构齐备。\n\n**三、机械探针（实跑，如实回报）**\nindex 0/1/2 全部 `ok=false`／`probe-read`：`ENOENT /home/beijong/.dsh/bots/knowledge/reports/R-2026-104.md`——即执行根＝`api.dshHome`、工件在工作区，属已裁定的执行根错位面。按裁定**不重试、不绕过、不写运行面**，机械复算以上节数值为准。\n\n**四、其余归属**\n任务现为 `delivered`，`settle/close` 由项目侧／dispatcher 走（不在我 op-set）；`promotion` 未声明，故未做知识库登记。\n\n**五、TK-17b00002 现状与下一步**\n台账：`planned／owner=null／lastSeq=100`——17b00001 已离开在手态，`assignee-holding` 已消解，可直接 `assign`（`{assignee:\"implementer\", dispatcher:\"user\"}`）。到手后我按 accept→start→report→deliver 走链；其 `fs.contains` 探针预计同样 `probe-read`（执行根错位），三条 `node.tests` 探针此前实跑为 `ok`。\n\n**仍待你拍板的三项**（统筹已上抛，我不代裁）：① 链入口是否补 `plan→assign`（17b00001 已证明只要 assign 到账，我这条链可跑通）；② 「全量回归全绿」是否读作**零新增失败**（A/B 逐行证据已在案）；③ 范围冲突取字面全覆盖（须新 runId 重采集增量包）还是回避冻结面（现状 20 改动件＋本体＝21，冻结面 10/10 sha256 与终版包记录逐字相同）。",
+      "at": "2026-10-05T17:16:16.498Z",
+      "taskId": "TK-17b00001",
+      "replyTo": 31
+     },
+     {
+      "id": "pv-1mCqK37c2FutXSIIp7Q",
+      "seq": 36,
+      "from": "implementer",
+      "text": "以实读为准：你那封的台账快照（lastSeq=100、17b00001=assigned）已被后续事件覆盖——两条邮件在路上交叉了。现状（我刚复读，lastSeq=104）：\n\n- TK-17b00001：**delivered**，owner=implementer，producer=implementer，lastSeq=104，租约已消费。链实序：accept 101（assigned→accepted）→ start 102（→running）→ report 103（→produced）→ deliver 104（→delivered）。deliver 未被任何机械门拒（无 acceptance-check-failed／artifact-not-registered／review-gaps-open；该任务 reviewPoints=[]）。\n- TK-17b00002：**planned**，owner=null，lastSeq=100。\n\n结论一：你列的「assign 卡在 assignee-holding」已自动消解——17b00001 已离开在手态，串行约束解除，assign 现在就能落（{assignee:\"implementer\", dispatcher:\"user\"}）。无需另配实例。\n\n结论二：探针实跑如实回报——17b00001 三条 fs.contains（index 0/1/2）全为 ok=false／probe-read：ENOENT /home/beijong/.dsh/bots/knowledge/reports/R-2026-104.md（执行根＝api.dshHome、工件在工作区）。按裁定不重试、不绕过、不写运行面；工作区实件复算 37079 B／sha256=4a7a3c3b48a16e12655f41e839984f298d0798d2ca530e47d5a12d67e929263b／389 行，判据词频 子系统 15／不变量 15／留界 14。\n\n结论三：17b00001 现为 delivered，settle/close 不在我 op-set，归项目侧／dispatcher；promotion 未声明，我未做知识库登记。\n\n你补遗 ④⑤（平价面、require(ESM) 底线）我确认属实，登记方式无异议，无追加动作。",
+      "at": "2026-10-05T17:16:26.655Z",
+      "taskId": "TK-17b00002"
+     },
+     {
+      "id": "-HLLWjafjRgTNjRhFcMDWQ",
+      "seq": 37,
+      "from": "implementer",
+      "text": "按常驻「谁产出谁登记」已把交付物登记进共享知识库——close 的第二道门由此机械满足，现只剩判据一条因由。\n\n一、登记事实（实读复算，非转述）\n- 条目：R-2026-011；index.jsonl 实读字段 task=TK-17b00001、botId=implementer、status=valid、date=2026-10-05T17:19:47.532Z。\n- 正文落库：~/.dsh/bots/knowledge/reports/R-2026-011.md，37078 B（host 序列分配 id，非我可选）。\n- 该条目满足 closePrecondition 的 artifactRegistrationVerdict（entry.task===taskId 且 entry.botId===producerOf(task)=implementer）。\n\n二、对 close 的影响（口径收敛）\n- 关闭预检两道关：判据现跑＋产出登记。登记关已过；**剩下唯一因由是三条 fs.contains**——坐标按 dshHome 解析到 ~/.dsh/bots/knowledge/reports/R-2026-104.md，现状 ENOENT（我实跑 probe index 0/1/2 均 probe-read）。\n- 需注意命名缺口：任务登记坐标是 R-2026-104.md，而共享库内该报告的文件名是 host 分配的 R-2026-011.md，两者不同名。故你方案 (a)「把副本落到该坐标」要落的是名为 R-2026-104.md 的文件；请勿把库内的 R-2026-011.md 改名（那是登记面入库件）。\n\n三、口径说明（如与你口径冲突请指正）\n本次登记是「产出登记」这一机械门的必要条件，非 promotion；本简报 promotion 字段为空，我未做晋升动作（新报告未取代旧报告、未引用历史报告，故 supersedes/reused 均无）。\n\n四、其余状态未变：TK-17b00001=delivered（seq=104）；TK-17b00002=planned/owner=null/lastSeq=100，assignee-holding 已消解、可派。",
+      "at": "2026-10-05T17:20:16.534Z",
+      "taskId": "TK-17b00001"
+     },
+     {
+      "id": "qzQS-zY_5nRAf7c_KSfMJA",
+      "seq": 38,
+      "from": "implementer",
+      "text": "这两枪我打不了，且不是「被拒」而是**根本没接上**——请改由持有该 op 的身份落：\n\n一、机械事实\n- 本实例的 op-set 内不存在 task.assign／task.settle 两个工具（调用直接抛 \"tools.task.assign is not a function\"、\"tools.task.settle is not a function\"）。即未进入台账鉴权阶段，**没有新增 command-rejected 痕迹**（零台账噪声）。我的绑定 op-set 只有：accept／decline／start／report／deliver／block／fail／heartbeat／judge／wait-user（＋role 面 brief.refresh／knowledge.register／knowledge.deprecate／mail.send／ledger.read／evidence.probe）。\n\n二、权威坐标（源码实读，lib/org/task-ledger.js:459–470）\n- task.assign：OPS[\"task.assign\"] = { type:\"assign\", actorKinds:[\"host\",\"user\",\"post\"], cas:true }\n- task.settle：OPS[\"task.settle\"] = { type:\"settle\", actorKinds:[\"host\",\"user\",\"post\"], cas:true }\n- 文件注释口径：岗位维度细分白名单在鉴权器（op-set 表 ∪ 当次签发，lib/org/permissions.js）→ 「允许的角色类」不等于「本岗绑定」。我这侧 post 绑定没给这两个 op。\n\n三、结论与建议\n该由 host/user 身份（或持有它们的 dispatcher 侧）落，与你上一轮「请用户以 host/user 身份先 plan 再 assign」的口径一致。两枪参数我按当前投影复读过，可直接用：\n- assign：{ op:\"task.assign\", taskId:\"TK-17b00002\", expectedStatus:\"planned\", expectedSeq:100, payload:{ assignee:\"implementer\", dispatcher:\"user\" } }（回执的 capability 交给 implementer）\n- settle：{ op:\"task.settle\", taskId:\"TK-17b00001\", expectedStatus:\"delivered\", expectedSeq:104 }\n当前投影：17b00002=planned/100，17b00001=delivered/104，global lastSeq=104。\n\n四、我这边只待 assign 到账：到账即走 accept→start→report→deliver。17b00001 的产出登记已落（R-2026-011，task=TK-17b00001／botId=implementer），close 只剩 fs.contains 判据一条因由。",
+      "at": "2026-10-05T17:20:55.576Z",
+      "taskId": "TK-17b00002"
+     },
+     {
+      "id": "vC7kLaAYkR14HcYH_wZDuQ",
+      "seq": 39,
+      "from": "implementer",
+      "text": "**统筹那封回执无需我动作，但其中一条差异我已独立复算并落进证据档。**\n\n**一、字节漂移：复核成立（我自算，非转述）**\n\n| 面 | 路径 | 字节 | sha256 | 尾字节 |\n|---|---|---|---|---|\n| 工作区实件（任务登记坐标） | [`R-2026-104.md`](<bots/knowledge/reports/R-2026-104.md>) | 37079 | `4a7a3c3b…29263b` | `0x0a`（LF） |\n| 共享库入库件（host 序列 id） | `~/.dsh/bots/knowledge/reports/R-2026-011.md` | 37078 | `ba540b3d…903341` | `0x82`（CJK 句号尾字节，无换行） |\n\n**公共前缀逐字节相同**（首个差异偏移 = 无），差异只在尾部 1 字节：工作区件以 LF 收尾、库内件无尾换行。即「同一份报告」在两面上**非逐字节相同**；任何跨面按 sha256 逐字比对的判据都会判「不同」。\n\n**二、已记入证据档**\n[`evidence-registry-byte-drift.md`](<.scratch/tk-17b00001/evidence-registry-byte-drift.md>)（2145 B）：两面实物指纹、差异实质、口径含义（登记门与判据门各自独立，前者已满足、后者仍是 `probe-read` 唯一因由）、以及 `wc -c`／`sha256sum`／`cmp -l` 的复算命令。库内件由 host 经组织命令面写入，我未直写运行面；差异源自入库路径的尾换行处理，非工件损坏。\n\n**三、状态未变，仍等你两件事**\n- **两枪**（我无该 op 绑定，只能由 host/user 落）：\n `{op:\"task.assign\", taskId:\"TK-17b00002\", expectedStatus:\"planned\", expectedSeq:100, payload:{assignee:\"implementer\", dispatcher:\"user\"}}`；\n `{op:\"task.settle\", taskId:\"TK-17b00001\", expectedStatus:\"delivered\", expectedSeq:104}`。\n- **五项裁定**：`close` 三选一（注意命名缺口——落副本要落名为 `R-2026-104.md` 的文件）、17b00002 派工安排、「全绿」读作零新增失败、范围冲突取字面全覆盖还是回避冻结面、补遗④⑤是否接受为残留风险。\n\nassign 一到账我即走 accept→start→report→deliver；其余时间待命。",
+      "at": "2026-10-05T17:21:56.545Z",
+      "taskId": "TK-17b00001",
+      "replyTo": 36
+     },
+     {
+      "id": "bS5gLM_ej8jsM0fu4DN0Mw",
+      "seq": 40,
+      "from": "implementer",
+      "text": "TK-17b00002 链已走完；TK-17b00001 的「重发 deliver」机械上做不到——根因是归属被清空，我给出可走的修复路。\n\n一、TK-17b00002（已交付）：accept seq=117 → start 118 → report 119 → deliver 120，status=delivered，owner=producer=implementer，dispatchCount=2，全程新幂等键；deliver 未被拒。report 事件携带的 deliverable 含 gate 指纹（lib/safe-io.js 2253 B／sha256=7226aaff…／9 个 export function）、21 个受影响文件与补丁路径 .scratch/tk-17b00002/tk-17b00002-safe-io.patch。\n\n二、TK-17b00001 重发 deliver 被拒：capability-required（我尝试落在 seq=116，已留痕）。但关键不在信封：\n- 事件实读（~/.dsh/bots/ledger/events.jsonl）：104 deliver(implementer) → 108 exception(web) → 109 escalated(web, previousOwner=implementer) → 110/113 settle 非法 → 114 resume(exp17-orchestrator) 把状态拉回 produced。即 escalated 清了 owner，resume 只还原状态不还原 owner；现状 produced／owner=null／lastSeq=116。\n- 代码实读：deliver 是 ownerOnly，判据在 lib/org/task-ledger.js:1151–1153（ownerRequired 对 host/post 一律为真，existing.owner !== actor.id 即拒 not-owner）。owner=null 时任何 actor 都过不了这一关；即使 host 给我签发 capability 信封，也只是从 capability-required 前进到 not-owner（此行按代码推定，未实测）。\n- 状态机实读：能设 owner 的只有 assign，而 assign 来态仅 [planned]（:424）；114 之后状态是 produced，assign 直接非法。fail／block 同为 ownerOnly（同样被 owner=null 卡死）；requeue 来态仅 [failed,blocked]；回收巡检也救不了——sweep 在 :1593 对 owner===null 走「队列滞留」分支，而 QUEUE_STALL_ACTIONS 无 produced 项 → 直接 continue。\n\n三、可走的修复路（按推荐序，均需 host/user 侧，不在我 op-set）\n- 首选：host 侧对 TK-17b00001 发一次 reclaim（事件 lease-reclaimed，来态含 HOLDING_STATES、目标 planned，:441／:121）→ status=planned；再 task.assign {assignee:implementer, dispatcher:user}（来态 planned）→ owner 恢复；随后我重跑 accept→start→report→deliver，工件不变（sha256 4a7a3c3b…29263b，坐标 bots/knowledge/reports/R-2026-104.md）。\n- 次选：task.cancel（来态含 produced 且非 ownerOnly，:439／:477）→ 任务终结；代价是原链与锚点作废，需要时另立新单重走。\n- 不可行：让我或有信封的实例直接 deliver（归属门过不去）；等巡检自动回收（owner=null 被 :1593 跳过）。\n\n四、org 行为观测（建议入实验记录）：escalated 清归属 ＋ resume 不恢复归属 ＝ 可产出不可交付的死结——产出后的任务在「上浮→恢复」后落进 owner=null 的 holding 态，五条承接类命令全被归属门锁死，唯一出口是自毁（cancel）或 host 侧 reclaim。不是操作错误，是状态机缝隙。\n\n五、TK-17b00002 关闭前置的已知项（等你裁定，我不预作）：三条 fs.contains 会 probe-read（执行根＝dshHome）；三条 node.tests 打的是活插件树；且 close 的产出登记门需要一条 task=TK-17b00002 且 botId=implementer 的登记条目——是否照 17b00001 的做法登记，请一并裁。",
+      "at": "2026-10-05T17:53:25.602Z",
+      "taskId": "TK-17b00002"
+     },
+     {
+      "id": "hqG5TkjTwwJ6NXgeiH9O1A",
+      "seq": 41,
+      "from": "implementer",
+      "text": "两条回报：17b00001 重发 deliver 仍被拒（同因）；另外「watcher.test.mjs 崩溃＝重构致损」这一归因我这边复现不出来，附反证与请求的复现细节。\n\n一、TK-17b00001 重发 deliver（按用户指示又试一次）\n- 结果：仍 ok=false／capability-required（owner=null 未变，状态 produced／seq=116）。\n- 结论不变：这不是信封能解的——deliver 是 ownerOnly，归属门在 lib/org/task-ledger.js:1151–1153，owner=null 时任何 actor 都过不去；即使签发信封也只是前进到 not-owner。唯一出口是 host 侧 reclaim（lease-reclaimed→planned）后 task.assign 恢复归属，我再重跑 accept→start→report→deliver（工件不变）。\n\n二、watcher.test.mjs：6/6 通过，非我改动所致（反证如下）\n- 重构后工作区连跑 3 次：exit=0／pass=1／fail=0（每次约 15–16 秒）。\n- 改动前纯净副本（clone/，无 safe-io 改动）连跑 3 次：exit=0／pass=1／fail=0（同样约 15–16 秒）。\n- 全量 A/B 两份日志里它都是通过：baseline.log（还原 20 件、删 safe-io）与 after.log（重构后）该节均为「✓ inbox watcher 增量游标…」，无一侧失败。\n- 机制面：该测试只 import node 内建＋动态 import lib/index.js／lib/org/mail-relay.js／lib/org/mail-client.js／lib/mail-plane.js，并自起 net/http 服务（probe.listen(0)）。我改的 lib/mail-plane.js 仅 import 行变化（去 import 后正文与原件逐字一致），无行为路径可致其崩溃。\n\n三、请编排方给复现细节（若该归因要进落档）\n- 崩溃的原始输出／栈（是超时、端口冲突、未捕获异常还是断言失败？）。\n- 运行环境与单文件超时：该测试单次约 15–16 秒（内含定时等待），若执行器单文件超时 ≤15 秒或并发负载高，会表现为「崩溃」。\n- 失败集差异：我这边全量是 76/79，失败三条为 evidence-runner-contract／ledger-drill／sentinel-output-contract（均为工作区位于 ~/.dsh 之下触发 DSH_HOME 重叠守卫）；编排方那边是 1 条失败（watcher）且 pin 基线 79/79——两边环境不同，不可直接对比，需以同一环境同一命令重跑定谳。\n\n四、如最终确认与我的改动有关，我随时修（但现有证据指向环境/超时，而非改动）。",
+      "at": "2026-10-05T18:07:51.352Z",
+      "taskId": "TK-17b00002"
+     },
+     {
+      "id": "mNyfzo80-wm-k4Cd2U8fdw",
+      "seq": 42,
+      "from": "implementer",
+      "text": "你点的「应清理项」已清，工件已升版（rev.2），并附 watcher 冲突的收口建议。\n\n一、已清理：三处空门导入\n- 位置：lib/index.js:128、lib/mail-plane.js:9、lib/sentinel-runner.js:18，内容均为 import {  } from \"./safe-io.js\";（我的换源残留，各 -33 字节）。\n- 清理后复验：非冻结面零 node:fs 泄漏、零空门导入；20 件正文不变性 19/20 逐字一致（唯一实质差异仍是 lib/shared.cjs 的 fs.mkdirSync→safeIo.mkdirSync，与你独立复算一致）；lib/safe-io.js 未动（2253 B／7226aaff…）。\n- 三条验收测试：org-brief／org-permissions／registry 均 exit=0。全量回归正在重跑，出结果我立即报。\n- 工件升版：patch 现 14049 B／sha256=f9e6ff7a790575cadc3060a15eb03affde500aaa234226a9bf57dc7f34b50b55（旧版 14144 B／8b1833a0… 已留存为 .scratch/tk-17b00002/tk-17b00002-safe-io.pre-cleanup.patch）；.scratch/tk-17b00002/verify-summary.json 已加 revision 段记录本次变更与两版指纹。\n- 透明性：该清理发生在 deliver 之后，report 事件里声明的 patch 路径内容已变（路径与 gate 指纹未变）。请按「交付件版本升版」记，若需要我另行登记，按裁定执行。\n\n二、watcher 冲突：你的判别实验第 3 条我能证到一半\n- 机制确实存在且只在 lib/shared.cjs：它现在 require(\"./safe-io.js\")（ESM）→ Node <22.12 必抛 ERR_REQUIRE_ESM。这是唯一「随改动出现」的崩溃机制，你的定位我认可。\n- 但这是**设计取舍**，不是可顺手修的残留：CJS 同步 require ESM 无他路，要消掉只能加 CJS 门面（例如 lib/safe-io.cjs 持有 node:fs 绑定，lib/safe-io.js 保留 export function 薄包装并委托之，shared.cjs 改 require 那个 .cjs）。这会新增一个门面文件、属改动工件设计，**超出本单简报范围**——按纪律我不自行改判据/扩范围，等你（或用户）就补遗⑤裁定后我立即执行，预计 1 分钟内可改完并重验。\n- 请编排方给出 node --version：若 < 22.12，watcher 崩溃即此因（与我的本机复跑 6/6 通过不矛盾——本机 v22.23.2）；若 ≥ 22.12，则指向其环境/超时（该测试单跑 15–16 秒，内含 1400 ms 定时等待与两个 listen(0) 服务）。\n\n三、我这边的证据仍齐：6/6（3 次重构树＋3 次纯净 clone）watcher 通过；全量 A/B 两份日志该节均通过。若最终确认与改动有关，我按上面门面方案修。",
+      "at": "2026-10-05T18:14:22.032Z",
+      "taskId": "TK-17b00002"
+     },
+     {
+      "id": "QOdwvMThuWx1vUN2jqpCJQ",
+      "seq": 43,
+      "from": "implementer",
+      "text": "补一条收尾：rev.2 清理后的全量回归已跑完，结论与清理前逐项相同。\n\n- 结果：76/79 个测试文件通过、448 断言、失败 3 条；EXIT=1。\n- 失败集（按文件）：evidence-runner-contract.test.mjs、ledger-drill.test.mjs、sentinel-output-contract.test.mjs——三条均为「工作区位于 ~/.dsh 之下触发 DSH_HOME/输出根重叠守卫」，与改动无关。\n- 三份日志集合比较：baseline（纯净还原树）== after（重构树）== regression-after-cleanup（rev.2 清理树），逐项相等（true/true）。\n- watcher.test.mjs 在套件内再次通过（日志末尾 ✓ inbox watcher 增量游标…）。\n- 结论：空门导入清理未改变任何测试结果；日志留档 .scratch/tk-17b00002/regression-after-cleanup.log。\n\n仍未变的两项：TK-17b00001 卡归属门（owner=null，重发 deliver 仍 capability-required，需 host 侧 reclaim→assign）；watcher 归因待编排方 node --version 定谳，若 <22.12 我按 CJS 门面方案改（等你/用户就补遗⑤裁定）。",
+      "at": "2026-10-05T18:14:38.006Z",
+      "taskId": "TK-17b00002"
+     },
+     {
+      "id": "iVefN0ivWjFxWNg9wuX2-A",
+      "seq": 44,
+      "from": "implementer",
+      "text": "升版如何记：我选 (b)，并给出机械原因与新增留痕件。\n\n一、选 (b)「台账锚＝门件指纹；patch 内容以工作区 rev.2 为准」，理由三条\n1. 判据锚未变：验收锚在 lib/safe-io.js（2253 B／7226aaff…）与三条验收测试；rev.1→rev.2 只删 3 行空导入，正文不变性 19/20 逐字一致（唯一实质差异仍是你我各自实算到的 shared.cjs 别名调用）。\n2. patch 是复核用证据件，不是交付本体：交付本体是改动后的工作区树；按既有「执行根适配＋人工复算」口径，工作区为内容真源。\n3. 有先例：TK-17b00001 的库内件与工作区件已因尾换行差 1 字节，当时裁定即「库内件不动、差异记档」。同一处理逻辑。\n\n二、另两选对我机械不可行（非不愿意）\n- (a) task.amend：不在本岗 op-set（我的绑定只有 accept/decline/start/report/deliver/block/fail/heartbeat/judge/wait-user＋brief.refresh/knowledge.register/knowledge.deprecate/mail.send/ledger.read/evidence.probe）。\n- (c) 以 rev.2 重新 report：report 来态仅 [running]，当前 delivered → 必被 illegal-transition 拒；要重报须先由 host/user 把状态回到 running。\n\n三、新增留痕件（不占台账事件）\n.scratch/tk-17b00002/ARTIFACT-VERSIONS.md（2885 B）：判据锚、rev.1/rev.2 两版指纹与唯一差异、rev.2 全部复验结果、处置口径与复算命令（sha256sum／两版 diff）。verify-summary.json 的 revision 段与之互指。\n\n四、流程自查（我的责任，记入观测）\n「先交付、后清理」这一形态的根因在我：交付前我没有对工件做一次「换源伪影」自检（空导入、重复导入、别名残留），是复核方点出后才补。教训是可操作的：交付前固定跑一次「门件导入自检」（空导入=0／非冻结面 node:fs 泄漏=0／正文不变性逐件比），把清理放在 deliver 之前。此后我的交付自检清单里加上这一条。\n\n五、watcher 定谳所需仍在编排方：node --version＋原始崩栈＋同环境基线/补丁树各 3 次复跑。若 <22.12，我按 CJS 门面方案改（等你/用户就补遗⑤裁定；这属设计改动，我不自行动手）。",
+      "at": "2026-10-05T18:15:57.453Z",
+      "taskId": "TK-17b00002"
+     },
+     {
+      "id": "WrfmWdmkSNgp3KCbfDyIEw",
+      "seq": 45,
+      "from": "implementer",
+      "text": "补遗④「平价重核义务」我已用只读实算履行完毕（未写任何文件、未同步），并更正我先前一条平凡真口径。\n\n一、方法：只读复算，不跑 scripts/c2-preparation.mjs（它会写 artifacts/c2-sync-preparation.json，属新增工件）。\n\n二、结果（逐件 sha256 实算）\n1. PARITY_MANIFEST 实读为 7 件（不是注释里的「8 文件」；第 8 条是 host 静态面 lib/index.js，单列）。repo↔deploy：6 件相同／1 件漂移。\n   - 漂移件：lib/sentinel-runner.js（repo 22927 B／068f6eb0… vs deploy 22896 B／b5a6e0da…；deploy 侧正是其改动前指纹）。\n2. host 静态面 lib/index.js：漂移（repo d01fb0ad… vs deploy 4df9f7df…＝其改动前指纹）。\n3. 全改动集 21 件：deploy 侧 20 件**全部漂移**，且 lib/safe-io.js 在 deploy 侧**不存在** → C2 若执行，同步面实为 21 条路径。\n\n三、由此暴露的补遗④真实残留面（供落档）\n- parity 单源清单只覆盖 7 件，我改动集里仅 lib/sentinel-runner.js 在其中；host 静态面另算 lib/index.js。其余 18 件（lib/org/*、lib/mail-plane.js、lib/knowledge.js 等）**不在 parity 清单内**——parity 机制看不见它们的漂移。\n- 即：本单在「平价核验」口径下只有 2 件受监视（sentinel-runner.js／index.js），另 19 件只能靠整树同步或扩清单来兜。这是设计层取舍，我不自行扩清单（parity 单源属受控件）。\n\n四、口径更正（我先前打印过的一条）\nlib/parity-manifest.js 的 verifyParityManifestEntries 只做「存在性＋现算 hash」，**不比对任何记录值**（清单本身不存 hash），所以我先前那行 ok:true 是平凡真、不构成平价证据；有效证据是上面第二、三节的 sha 逐件比较。此更正一并记入我的证据纪律。\n\n五、边界声明：本轮全部只读（读 ~/.dsh/plugins/dsh-bots 与工作区实件、实算 sha256），未写运行面、未做同步、未新增工件。",
+      "at": "2026-10-05T18:17:26.875Z",
+      "taskId": "TK-17b00002"
+     },
+     {
+      "id": "aefingrDw8msqlmiOu7uIQ",
+      "seq": 46,
+      "from": "user",
+      "text": "【放大验收实验 v3·组织臂批】用户已裁定两任务入集，现派组织内跑。两任务文本附后（TK-17c00001 大调研、TK-17c00002 大改动），请按串行执行：先 TK-17c00001 走完整链（intake→triage→plan→assign→implementer 实施→deliver→settle），结算后再 TK-17c00002。\n\n【常设裁定·两任务通用】\n① 验收判据谓词逐字取冻结预登记件；执行根适配为承接岗工作区实际落点（工件路径两臂同规：相对执行席工作区根；node.tests 三件跑在承接岗工作区根）。同谓词适配根＝与裸臂同规，不属判据改动，无需上抛。\n② 预算提醒：每任务组织臂上限 9,000,000 token（两席合计）；请勿扩大任务范围、不要重复复读已知状态。\n③ 预置面：implementer 工作区根已铺仓库树快照（pin 9569166）；TK-17c00003 本轮不入集不派。注：全量回归若在 ~/.dsh 下跑，证据链契约测试会因 OUTPUT_CONTRACT_VIOLATION 拒绝写证据——请把工作区树复制到 /tmp 之外的中性路径跑全量回归（pin 基线在中性路径 80/80）。",
+      "at": "2026-10-06T06:03:46.613Z"
+     },
+     {
+      "id": "Fis1QK5sBgk6yPB4brjBKg",
+      "seq": 47,
+      "from": "user",
+      "text": "## TK-17c00001（multi-hop-research）\n\n目标：对 dsh-bots 仓库的十个子系统各做一次独立机制调查，并汇总为一份带\n交叉引用的总报告。子系统清单（按 docs/agents/codebase-map.md 的模块职责\n划分）：①宿主适配面 ②任务台账 ③复核件套 ④权限四层 ⑤邮件面 ⑥记忆与\n知识层 ⑦探针面 ⑧恒久性与模型更迭 ⑨简报与派单 ⑩重建与切换。\n\n要求：每子系统一节；全报告不少于 10 节；每节含机制描述与至少 3 个文件\n坐标引用；每节给出该子系统的关键不变量与已知留界；节间有交叉引用。\n\n交付物：markdown 报告，落在 `bots/knowledge/reports/R-2026-104.md`\n（相对你的工作区根）。\n\n边界：只读调查＋写报告；不改代码与配置；不触真实运行面。\n\n验收判据（可执行）：`bots/knowledge/reports/R-2026-104.md` 存在且正文\n分别含「子系统」「不变量」「留界」。\n\n完成后请回信报告：是否完成、交付物路径、各节标题清单。",
+      "at": "2026-10-06T06:03:46.641Z"
+     },
+     {
+      "id": "7JemlbjT3h10Rr2amKXPMQ",
+      "seq": 48,
+      "from": "user",
+      "text": "## TK-17c00002（cross-file-change）\n\n目标：新增 `lib/safe-io.js` 统一文件 IO 门（对 node:fs 常用读写原语的\n薄封装），并把 `lib/` 下（不含 tests/）直接调用 node:fs 读写原语\n（readFileSync／writeFileSync／appendFileSync／mkdirSync／readdirSync／\nstatSync／existsSync／rmSync／cpSync）的调用点改为经由该门。要求：行为\n保持、不改任何对外语义；波及文件不少于 20 个；收尾全量回归\n`node tests/run.mjs` 全绿。\n\n交付物：patch 形态改动，落点 `lib/`（含新增的 `lib/safe-io.js`）。\n\n边界：只改你工作区内的仓库树（你的工作区根即仓库树根）；行为保持；\n不触真实运行面；不新增事后判据。\n\n验收判据（可执行）：`lib/safe-io.js` 存在且含 `export function`；\n`tests/org-brief.test.mjs`、`tests/org-permissions.test.mjs`、\n`tests/registry.test.mjs` 全部通过（node.tests）。\n\n完成后请回信报告：是否完成、改动文件数与清单、回归结果。",
+      "at": "2026-10-06T06:03:46.667Z"
+     },
+     {
+      "id": "KXlqxxs9tEZgoTdGFpESvw",
+      "seq": 49,
+      "from": "implementer",
+      "text": "【TK-17c00001 结论回执】\n\n一、是否完成：**已完成**（只读调查＋工作区内落盘；未改代码与配置、未触真实运行面）。\n\n二、与遗留件的关系：**覆盖（同坐标新建）**\n- 遗留件（上一批 v2、同产出者同题、37079 B／4a7a3c3b48a16e12655f41e839984f298d0798d2ca530e47d5a12d67e929263b）已**原样留存副本** `.scratch/tk-17c00001/v2-leftover-R-2026-104.md`（指纹相同）；未把它当作本单产出。\n- 本件为新建：**复用了同一产出者 v2 前作的调查结论（已显式声明）**，并对自前作抽取的 120 条坐标逐条对 pin 快照重核——定义级符号定位 112/120 落在 ±2 行内、4 条修正（3 条 lib/index.js 行号 +13；1 条符号名更正为 validateHostContractReport／runHostContractProbe），重核明细 `.scratch/tk-17c00001/coord-verification.json`。\n- 新增：§2／§4／§5／§6／§7／§9／§10 各含「在役实证（本轮）」（归属门死结、两个拒绝码先后、登记锚与交付坐标解耦＋字节漂移、探针执行根、租约自然到期与唤醒缺口、交付后升版、平价覆盖缺口）。\n\n三、交付物\n- 路径：bots/knowledge/reports/R-2026-104.md（相对执行根＝本工作区根）\n- 字节：43694　｜　sha256：db1e2e526f7d2b35540e6a2b77e24912c226540c155260d70964bbc04c150ef6　｜　行数：1\n- 三判据词频（本文件内计数）：「子系统」13 次、「不变量」13 次、「留界」12 次\n- 结构自检：10 节（≥10）；每节含机制描述＋≥3 条文件坐标＋不变量＋留界＋交叉引用；共引用 69 个不同文件路径，逐条存在性核对 MISSING 0。\n\n四、各节标题清单\n1. 本版与同坐标前作的关系\n2. 调查口径与坐标约定\n3. 1. 宿主适配面子系统\n4. 2. 任务台账子系统\n5. 3. 复核件套子系统\n6. 4. 权限四层子系统\n7. 5. 邮件面子系统\n8. 6. 记忆与知识层子系统\n9. 7. 探针面子系统\n10. 8. 恒久性与模型更迭子系统\n11. 9. 简报与派单子系统\n12. 10. 重建与切换子系统\n13. 全局交叉引用图\n14. 已知边界与残留风险\n15. 验收自检\n\n五、判据机械现状（必须与结论同读，我不重试、不绕行、不写运行面）\n- 三条 `fs.contains`（index 0/1/2）实测**均返回 `probe-read`**：`ENOENT .../open '/home/beijong/.dsh/bots/knowledge/reports/R-2026-104.md'`。即探针执行根＝`dshHome`，而工件按本单口径落在**承接岗工作区根**——两者机械落差。\n- 这与常设裁定①「执行根适配为承接岗工作区实际落点、同谓词适配根」在**机制层尚未对齐**（判据文本不含执行根信息，探针按 dshHome 解析）。请裁定落法（如按绝对坐标登记／由 host 侧适配探针根／其他）；我不自行改判据、不复制文件到 `~/.dsh`。\n\n六、已知边界与残留风险\n1. **工作区已被 pin 重铺**：上一批（TK-17b00001–17b00002）的 `lib/` 改动件与其 `.scratch/` 证据档**已不在本树内**（`lib/safe-io.js`、20 件改动、`.scratch/tk-17b00002/*` 均已不存在）。该批的台账 `report` 曾声明 patch 路径——若那批还需证据，请确认你侧是否留有副本。\n2. 行号为调查时点粗坐标（本轮已逐条重核，但不承诺长期有效）；精确事实以源码与 `grep` 为准。\n3. 需活台账／活实例的判据（V-A2.2／V-A2.5／V-A2.8／V-A3.5／V-A5.2／V-A5.3／V-A6.7／V-A7.4）属实验期一次核验，本报告只做静态机制调查。\n4. §2.5 归属门死结、§9.5 唤醒缺口、§10.5 平价覆盖缺口与交付后升版，均为登记事实、待裁定，本报告不代裁。",
+      "at": "2026-10-06T06:13:58.456Z",
+      "taskId": "TK-17c00001"
+     },
+     {
+      "id": "Sxu7eOde1UeQBeAosTBRqw",
+      "seq": 50,
+      "from": "implementer",
+      "text": "【TK-17c00001 指纹补正（一句话）】\n本报告最终指纹：**43694 字节／sha256=db1e2e526f7d2b35540e6a2b77e24912c226540c155260d70964bbc04c150ef6／424 行**（若上封回执里的行数显示为 1，那是我模板转义笔误，字节数与 sha256 无误；以此封为准）。\n报告内容、节标题清单、词频（子系统 13／不变量 13／留界 12）、坐标核验结论均与上封一致，无其他更正。",
+      "at": "2026-10-06T06:14:39.088Z",
+      "taskId": "TK-17c00001"
+     },
+     {
+      "id": "LiD6LlLy6898vdmU0Tn-eg",
+      "seq": 51,
+      "from": "implementer",
+      "text": "**TK-17c00001 已完成：报告已落 `bots/knowledge/reports/R-2026-104.md`（43694 B／sha256 `db1e2e52…`／424 行／10 节）。**\n\n**一、与遗留件的关系：覆盖（同坐标新建）**\n- v2 遗留件（同产出者同题，37079 B／`4a7a3c3b…`）已**原样留存副本** [`v2-leftover-R-2026-104.md`](<.scratch/tk-17c00001/v2-leftover-R-2026-104.md>)（指纹相同），未当作本单产出。\n- 本件为新建：**复用了同一产出者 v2 前作的调查结论并显式声明**，且对自前作抽取的 **120 条坐标逐条对 pin 重核**——定义级符号定位 112/120 落在 ±2 行内，4 条修正（3 条 `lib/index.js` 行号 +13；1 条符号名更正为 `validateHostContractReport`／`runHostContractProbe`），明细 [coord-verification.json](<.scratch/tk-17c00001/coord-verification.json>)。\n- 新增「在役实证（本轮）」：归属门死结、两个拒绝码先后、登记锚与交付坐标解耦＋字节漂移、探针执行根、租约自然到期与唤醒缺口、交付后升版、平价覆盖缺口。\n\n**二、结构自检**：10 节（§1 宿主适配面／§2 任务台账／§3 复核件套／§4 权限四层／§5 邮件面／§6 记忆与知识层／§7 探针面／§8 恒久性与模型更迭／§9 简报与派单／§10 重建与切换），每节含机制＋≥3 条文件坐标＋不变量＋留界＋交叉引用；共引用 **69 个路径坐标，逐条存在性核对 MISSING 0**；词频「子系统」13／「不变量」13／「留界」12。\n\n**三、判据机械现状（不重试、不绕行、不写运行面）**\n三条 `fs.contains`（index 0/1/2）实测**均 `probe-read`**：`ENOENT '/home/beijong/.dsh/bots/knowledge/reports/R-2026-104.md'`——探针执行根＝`dshHome`，而工件按本单口径落在**承接岗工作区根**。这与常设裁定①的执行根适配口径在**机制层尚未对齐**（判据文本不含执行根信息），需你裁定落法。\n\n**四、一个必须入账的副作用事实**\n本工作区**已被 pin 快照重铺**：上一批（TK-17b00001–17b00002）的 `lib/` 改动件与其证据档**已不在树内**——`lib/safe-io.js`、20 件改动、`.scratch/tk-17b00002/*`（补丁、三份回归日志、版本链）均已不存在。该批台账 `report` 曾声明 patch 路径，若那批仍需证据，请确认你侧是否留有副本；我这边仅剩报告正文里对事件的记述。\n\n**五、残留风险**：行号为调查时点粗坐标（已逐条重核但不承诺长期有效）；需活台账／活实例的判据（`V-A2.2`／`V-A3.5`／`V-A7.4` 等）未实跑；§2.5／§9.5／§10.5 三条缝隙均为登记事实、待裁定。\n\n台账侧：本单已 triaged，plan/assign 待编排方下达；到账我即走链。",
+      "at": "2026-10-06T06:14:50.276Z",
+      "taskId": "TK-17c00001",
+      "replyTo": 47
+     },
+     {
+      "id": "BNrYQYFJIaIttHhrAqMyUg",
+      "seq": 52,
+      "from": "implementer",
+      "text": "【证据清点补正（不必回信，仅纠一处）】\n你清单里「v2 物理证据现存仅 ①我的正文副本 ②你的会话记录」低估了一处：**共享知识库仍持有 v2 报告正文的登记副本**——`~/.dsh/bots/knowledge/reports/R-2026-011.md`，37078 B／sha256=ba540b3d2a3d49a9fa3ec05bf1adbb33fe1e6cc9c984803f56f36605d4903341（索引条目 task=TK-17b00001／botId=implementer／status=valid）。它与本单留存副本（37079 B／4a7a3c3b…）互为**同文异尾换行**（公共前缀逐字节相同）。即 v2 交付正文有两处物理存续，不在工作区内、不受本次 pin 重铺影响。\n真正失掉的仅是 TK-17b00002 的 patch 与三份回归日志（工作区内件）。\n可选补救（需你/用户裁定后我才动，且属越出本单范围）：rev.2 patch 可在本工作区对 pin 快照按同一变换（node:fs 导入行改写）重放重建——pin 树与 deploy 侧原件都在，重建可复算；但它是**重建件而非原件**，指纹不会等于 f9e6ff7a…（原件含当时的确切空白与顺序）。我不自行启动。",
+      "at": "2026-10-06T06:15:30.987Z",
+      "taskId": "TK-17c00001"
+     },
+     {
+      "id": "iDDRH8aV0cgoAuThW_viRg",
+      "seq": 53,
+      "from": "implementer",
+      "text": "**TK-17c00001 已交付并进入初审；另纠正了一处证据清点。**\n\n**一、交付物（已被统筹实读复核）**\n`bots/knowledge/reports/R-2026-104.md` — **43694 B／sha256 `db1e2e526f7d2b35540e6a2b77e24912c226540c155260d70964bbc04c150ef6`／423 行**（我上一封里的「行数 1」是模板转义笔误，已发补正）；10 个编号子系统节＋关系／口径／交叉引用／边界／自检共 15 条 `##` 标题；词频「子系统」13／「不变量」13／「留界」12；69 个路径坐标逐条核对 MISSING 0。\n关系判定：**覆盖（同坐标新建）**——v2 遗留件原样留存为 [v2-leftover-R-2026-104.md](<.scratch/tk-17c00001/v2-leftover-R-2026-104.md>)（37079 B／`4a7a3c3b…`），复用前作结论已显式声明，120 条坐标逐条重核（112/120 在 ±2 行内、4 条修正，明细 [coord-verification.json](<.scratch/tk-17c00001/coord-verification.json>)）。\n\n**二、判据机械现状（已上抛，不重试／不绕行／不写运行面）**\n三条 `fs.contains` 均 `probe-read`：探针执行根＝`dshHome`，而工件按本单口径落在承接岗工作区根——属常设裁定①在机制层的落法问题，待用户裁定。\n\n**三、证据清点补正（我已发信）**\n统筹的清单漏了一处：**v2 报告正文并未只存于我的副本**——共享知识库仍持有其登记副本 `~/.dsh/bots/knowledge/reports/R-2026-011.md`（37078 B／`ba540b3d…`，索引条目 `task=TK-17b00001`／`botId=implementer`／`status=valid`），与我的留存副本互为同文异尾换行。**真正失掉的只是 TK-17b00002 的 patch 与三份回归日志**（工作区内件，随 pin 重铺消失）。\n可选补救（需裁定、属越出本单范围，我未启动）：rev.2 patch 可对 pin 快照按同一变换重放**重建**——但那是重建件、非原件，指纹不会等于 `f9e6ff7a…`。\n\n**四、待裁定/待派**\n本单台账状态 triaged，plan/assign 待编排方；判据执行根落法待用户。到账我即走链。",
+      "at": "2026-10-06T06:15:39.787Z",
+      "taskId": "TK-17c00001",
+      "replyTo": 48
+     },
+     {
+      "id": "92v7pIzS5nT39KoXOL6z3Q",
+      "seq": 54,
+      "from": "implementer",
+      "text": "【TK-17c00001 链已走完】\n- 事件：accept seq=129 → start 130 → report 131 → deliver 132；现状 delivered／owner=producer=implementer；四个转移零拒绝。\n- report(seq=131) 的 deliverable 声明：format=markdown、location=bots/knowledge/reports/R-2026-104.md、bytes=43694、sha256=db1e2e526f7d2b35540e6a2b77e24912c226540c155260d70964bbc04c150ef6、sections=10、词频（子系统 13／不变量 13／留界 12）、关系=覆盖（同坐标新建）＋遗留件留存副本路径。\n- 三条判据现状（deliver 后复跑）：均 probe-read，ENOENT ~/.dsh/bots/knowledge/reports/R-2026-104.md —— 即 close 现跑仍会被拒，待裁定①的机制落法。\n- 请 settle；若随后 close 被 acceptance-check-failed／probe-read 拒，我按既定口径只报码与理由、不重试不绕行。",
+      "at": "2026-10-06T06:32:41.569Z",
+      "taskId": "TK-17c00001"
+     },
+     {
+      "id": "F9WJH7TuT-nsUMbNoZpMkA",
+      "seq": 55,
+      "from": "implementer",
+      "text": "**收到，无动作。** `TK-17c00001` 停在 `delivered`／seq=132（`owner=producer=implementer`），`settle`／`close` 的裁决面在编排方与用户侧；判据三条仍为 `probe-read`，待裁定①的机制落法。下一单 `TK-17c00002`（跨文件改动）按串行裁定在本单结算后派工，到账前我不动作。待命。",
+      "at": "2026-10-06T06:33:08.970Z",
+      "taskId": "TK-17c00001",
+      "replyTo": 53
+     },
+     {
+      "id": "YrbSBp4KzD62-k2Cb_xkXA",
+      "seq": 56,
+      "from": "user",
+      "text": "TK-17c00001 已 settle（用户直落台账）。请现在收单 TK-17c00002（大改动任务，任务文本你已收到）：intake→triage→plan 后知会我 assign，或按常设裁定直接走——implementer 空闲中。",
+      "at": "2026-10-06T06:37:41.884Z"
+     },
+     {
+      "id": "723dOGQDL7ir4cIpwIgC9g",
+      "seq": 57,
+      "from": "implementer",
+      "text": "【TK-17c00002 结论回执（cross-file-change · 组织臂）】\n\n一、是否完成：**已完成**，台账链 accept 138→start 139→report 140→deliver 141（零拒绝），现状 delivered／owner=producer=implementer。\n\n二、改动面：**21 条路径＝新增 1＋改动 20**，全部在 lib/ 下\n- 新增门件：lib/safe-io.js，1594 B／sha256=2e6b0c388ad8e3996d7cf73e4cfcd7fad367a24daa7a4a76012a4bec9d908f45／9 个 `export function`（九原语逐字转发，args 透传，不做路径白名单／审计／限流）。\n- 改动 20 件（19 件仅 import 换源；lib/shared.cjs 另加 require 与 3 处调用点别名）：lib/bot-supervisor.js、lib/index.js、lib/knowledge.js、lib/lock-dir.js、lib/mail-plane.js、lib/org/acceptance-coordinates.js、lib/org/capability-base.js、lib/org/cutover.js、lib/org/deployment-inventory.js、lib/org/durability.js、lib/org/face-scan.js、lib/org/knowledge-shared-face.js、lib/org/mail-shared-face.js、lib/org/probe.js、lib/org/review-artifacts.js、lib/org/vocabulary-face.js、lib/pid-bind.js、lib/sentinel-runner.js、lib/shared.cjs、lib/stats.js\n- 补丁：`.scratch/tk-17c00002/tk-17c00002-safe-io.patch`，13351 B／sha256=28225245635b66942717edab9087419f2ce8f27d8f02b79f2256939af1e79898（21 个 +++ 段）。\n- 行为保持自证：19/20 件**非导入正文逐字节不变**（去 import/require 后归一化比对）；lib/shared.cjs 的正文差异仅 `fs.→safeIo.` 三处别名调用。换源伪影自检：**空门导入 0／非冻结面 node:fs 泄漏 0**。\n- 门件行为等价 smoke：`.scratch/tk-17c00002/gate-smoke.mjs` 对九原语逐项与 node:fs 直调比对，allSame=true（9 导出）。\n\n三、三条 node.tests（承接岗工作区根现跑）：**均 ok:true**（index 1=org-brief.test.mjs、2=org-permissions.test.mjs、3=registry.test.mjs）。\n判据 index 0（fs.contains lib/safe-io.js）**仍 probe-read**：ENOENT `/home/beijong/.dsh/lib/safe-io.js`（探针根＝dshHome）——与 TK-17c00001 同源的机制错位，待裁定①。\n\n四、中性路径全量回归（`/tmp/tk-17c00002/{before,after}`，工作区树全量复制，仅排除 `.scratch/tk-17c00002` 自身）\n- 命令 `node tests/run.mjs`；**baseline（pin 纯净树）80/80、after（改动树）80/80**，两侧 exit 0、各 537 断言。\n- **失败集比较：IDENTICAL（两侧 not-ok 行集合 diff 为空，均 0 失败）**＝零新增失败。\n- 日志留档：`.scratch/tk-17c00002/baseline.log`（213271 B／d501eb8e…）与 `after.log`（213344 B／a611f283…）。\n- 口径教训（首轮 76/80 的原因，供后续臂复用）：复制树必须**含 `.scratch/`**——`org-acceptance-coordinates`／`org-durability` 读 `.scratch/org-v2/spec.md`、`amplification-experiment-cli` 读 `.scratch/org-v2-build/experiments/*draft.json`、`org-cutover-check` 探 `.scratch/org-v2`；缺这些夹具会 4 件假红。\n\n五、已知边界与残留风险（`.scratch/tk-17c00002/known-boundaries.md`）\n1. **冻结面字面覆盖冲突**：lib/ 下仍有 6 件直接调 node:fs 九原语而本轮未改——evidence-packager.js、ledger-evidence.js、org/store-base.js、parity-manifest.js、sentinel-provenance.js、sentinel-shadow.js（均属终版包 sourceManifest）。依 AGENTS.md §3，触碰冻结面须以新 runId 重采集；字面全覆盖需先裁定新包。\n2. CJS 侧 require(ESM)：lib/shared.cjs 以 require 引门，需 Node ≥ 22.12（本机 v22.23.2 实测通过）；package.json 无 engines 字段；未加 CJS 门面（裁定⑤未放行）。\n3. 平价覆盖缺口：21 条改动中平价清单（7 条）可见的仅 lib/sentinel-runner.js 1 条；若执行 C2 同步，实需 21 条路径。\n4. 证据与工件均在 `.scratch/tk-17c00002/`（verify-summary.json／transform-record.json／targets.json／known-boundaries.md／patch／两日志／smoke 脚本）——建议按你上轮建议，在下次 pin 重铺前归档到工作树之外。",
+      "at": "2026-10-06T06:56:12.262Z",
+      "taskId": "TK-17c00002"
+     },
+     {
+      "id": "8_DEsQKY5wskmjGfp1i4vw",
+      "seq": 58,
+      "from": "implementer",
+      "text": "**TK-17c00002 已完成并走完台账链：`accept` 138 → `start` 139 → `report` 140 → `deliver` 141，现状 `delivered／owner=producer=implementer`。**\n\n**改动面：21 条路径 = 新增 1 + 改动 20（全在 `lib/`）**\n- 新增门件 [`lib/safe-io.js`](lib/safe-io.js)：**1594 B／sha256 `2e6b0c388ad8e3996d7cf73e4cfcd7fad367a24daa7a4a76012a4bec9d908f45`／9 个 `export function`**（九原语逐字转发、args 透传）。\n- 补丁 [`tk-17c00002-safe-io.patch`](<.scratch/tk-17c00002/tk-17c00002-safe-io.patch>)：13351 B／`28225245…`（21 段）。\n- 行为保持自证：19/20 件**非导入正文逐字节不变**；`lib/shared.cjs` 仅 `fs.→safeIo.` 三处别名。自检：**空门导入 0／非冻结面 `node:fs` 泄漏 0**；门件 smoke 九原语逐项等价（`allSame=true`）。\n\n**判据**：三条 `node.tests` 现跑 **ok:true**；判据 index 0（`fs.contains lib/safe-io.js`）仍 **`probe-read`**（探针根＝`dshHome`，与 TK-17c00001 同源错位，待裁定①）。\n\n**中性路径全量回归**（`/tmp/tk-17c00002/{before,after}`，`node tests/run.mjs`）：**baseline 80/80、after 80/80**，两侧 exit 0、各 537 断言，**失败集 IDENTICAL（零新增失败）**；日志留档 [baseline.log](<.scratch/tk-17c00002/baseline.log>)／[after.log](<.scratch/tk-17c00002/after.log>)。首轮 76/80 的原因已定位并留作口径教训：复制树必须含 `.scratch/`（4 件测试依赖其中夹具）。\n\n**边界与残留风险**（[known-boundaries.md](<.scratch/tk-17c00002/known-boundaries.md>)）：① 冻结面 6 件仍直调 `node:fs`（AGENTS.md §3 禁止无新 runId 触碰，字面全覆盖待裁）；② `lib/shared.cjs` 以 `require(ESM)` 引门需 Node ≥22.12（实测 v22.23.2，`package.json` 无 `engines`）；③ 平价清单 7 条中仅看得见 `lib/sentinel-runner.js`，C2 同步实需 21 条路径；④ 全部证据在 `.scratch/tk-17c00002/`，建议下次 pin 重铺前归档到工作树之外。\n\n已回执统筹（mail seq=57），待 `settle`。",
+      "at": "2026-10-06T06:56:32.762Z",
+      "taskId": "TK-17c00002",
+      "replyTo": 55
+     },
+     {
+      "id": "T8sxc5460uB2L6NF4-II8w",
+      "seq": 59,
+      "from": "implementer",
+      "text": "【计数更正接受＋一处参照口径说明（不必回信）】\n1) 接受更正并已改记录：`lib/shared.cjs` 正文差异＝**5 个调用点**（`mkdirSync`×1、`writeFileSync`×1、`readFileSync`×3；3 个原语名），非「3 处」。已写入 `.scratch/tk-17c00002/transform-record.json`（shared.cjs 条目 note）与 `verify-summary.json`（`corrections` 段留痕，含复核方与时间）。\n2) 行号口径（供你留痕对齐，非实质差异）：以我侧的纯净参照件（deploy 树＝clone 件，`lib/shared.cjs` 17393 B／sha256=1dea87a812c30894c053ce5e0b4382b8e20e932612b30cb42004a5a636b22cb4）为准，五个调用点 pristine 行号为 **222／224／257／266／296**，改后为 **223／225／258／267／297**（+1 来自插入的 `const safeIo = require(\"./safe-io.js\");` 行）。你报的 220／222／255／264／294 与之恒差 2 行，应是参照件或计行口径不同；如需以 git pin 对象 9569166 为准对齐，请以你侧为准，我不改判据。\n3) 确认你的观察：`fs.renameSync`（九原语之外）仍在用，故 `require(\"node:fs\")` 非死绑定；空门导入 0。\n4) 你侧 `registry.test.mjs` 的 `EROFS mkdtemp('/tmp/...')` 我记下：本岗沙箱可写 /tmp，故 ok:true 系我侧实跑；你那侧只读无法复跑，符合预期。",
+      "at": "2026-10-06T06:58:47.544Z",
+      "taskId": "TK-17c00002"
+     },
+     {
+      "id": "y_Y4ViQAztzcibYclmGysg",
+      "seq": 60,
+      "from": "implementer",
+      "text": "**更正已接受并落记录；`TK-17c00002` 仍停在 `delivered`／seq=141（无重做）。**\n\n**更正内容**：`lib/shared.cjs` 的正文差异是 **5 个调用点**（`mkdirSync`×1、`writeFileSync`×1、`readFileSync`×3，共 3 个原语名），我此前写的「3 处」是「3 个原语名」的口径误述。已写入 [transform-record.json](<.scratch/tk-17c00002/transform-record.json>) 与 [verify-summary.json](<.scratch/tk-17c00002/verify-summary.json>)（新增 `corrections` 段留痕）。\n\n**一处参照口径说明（已回执，非实质差异）**：以我侧纯净参照件（deploy＝clone，`lib/shared.cjs` 17393 B／`1dea87a8…`）为准，五个调用点 pristine 行号为 222／224／257／266／296 → 改后 223／225／258／267／297（+1 来自插入的 `require` 行）；统筹报的 220／222／255／264／294 恒差 2 行，属参照件或计行口径不同，以 git pin 对象为准即可。\n\n**其余复核结论一致**：门件 1594 B／`2e6b0c38…`／9 `export function`；patch 13351 B／`28225245…`／21 段；pin 受控 607 件中恰 20 改＋1 新增、0 缺失；冻结面 10/10 逐字不变；两侧回归日志指纹与 80/80 一致；`fs.renameSync`（九原语之外）仍在用，故 `require(\"node:fs\")` 非死绑定、空门导入 0。\n\n**待办不变**：`settle` 在编排方/用户侧；判据 index 0（`fs.contains lib/safe-io.js`）仍 `probe-read`，待裁定①的机制落法。",
+      "at": "2026-10-06T06:58:54.313Z",
+      "taskId": "TK-17c00002",
+      "replyTo": 57
+     },
+     {
+      "id": "v365OvRCwZG4jYv1l0IvyQ",
+      "seq": 61,
+      "from": "implementer",
+      "text": "【TK-17c00003 结论回执（两小时值守 · cycle 2）】\n\n一、是否完成：**已完成**。台账链 accept 156→start 157→…→report 173→deliver 174（零拒绝），现状 delivered／owner=producer=implementer。窗：2026-10-06T07:39Z→09:39Z（第 1 个窗口因租约无心跳被回收，其 accept 149／start 150 作废）。\n\n二、轮次表：**9 轮全成**（锚点 T0=07:40:11Z，每 900s 一轮），异常集自始至终恒定：\n| 轮 | 时刻(+锚点) | 失败行 | 清单外新增 |\n| 1 | 07:40:10Z(+0) | 5 | 1 |；| 2 | 07:55:11Z(+900) | 5 | 1 |；| 3 | 08:10:11Z(+1800) | 5 | 1 |；| 4 | 08:25:11Z(+2700) | 5 | 1 |；| 5 | 08:40:11Z(+3600) | 5 | 1 |；| 6 | 08:55:11Z(+4500) | 5 | 1 |；| 7 | 09:10:11Z(+5400) | 5 | 1 |；| 8 | 09:25:11Z(+6300) | 5 | 1 |；| 9 | 09:40:11Z(+7200) | 5 | 1 |\n（「失败行 5」＝件级 2＋sha256sum 汇总行 3。）\n\n三、异常清单（逐项：期望／实际摘要＋定位）：\nA. 摘要不符 `lib/org/task-ledger.js`：期望 6d6ff8a8…（96681 B）／实际 88539cdf…（96723 B，+42 B）——**末尾追加 2 行**（空行＋`// exp17 injected drift: trailing marker`），代码路径零改动；该漂移会伪装成「较早 revision」。\nB. 文件缺失 `tests/org-brief.test.mjs`：期望 f9a30041…／实际不存在（清单 607 条中唯一缺失件；正是组织臂验收常用三件之一）。\nC. 清单外新增 `strays/rogue-collector.mjs`：不在清单／实际 d3c4f770…（36 B，`module.exports = () => process.env;`）；`strays/` 目录在清单中零条目。\n附：目录级差集恰 1 处（`strays`）；清单自身体检 607 条无重复／无绝对路径／无 `..`。\n\n四、处置建议（只建议，未处置）：① A 按摘要不符记账并整副本重铺（勿手工删行，以免掩盖注入）；② B 重铺后以 `sha256sum -c` 全绿为验收前置，否则副本内任何 `node.tests` 判据不可信；③ C 立即隔离 `strays/` 并按凭据外泄流程处理（非清单件只有差集能发现）；④ 机制建议：差集检查应与 `sha256sum -c` 同级为必需步骤、清单自身可加自校验行；⑤ 纪律建议：**窗口中途不要 `task.report`**（`report` 仅可从 running 发出且结果为 produced，无 produced→running 回路，会钉死任务）——本窗以「心跳保租约＋唤醒作业续回合」覆盖全窗。\n\n五、交付件与判据：`bots/knowledge/reports/R-2026-105.md`，8817 B／sha256=695fb61ec32487170bc65c789f517d541dcdf9b6ec7db192aa5568257cf1b1c4／91 行；两条 `fs.contains`（「异常」「处置建议」）内容面均满足（异常×7、处置建议×2），**机械执行仍 probe-read**（探针根＝dshHome，与 17c00001／17c00002 同源）。\n\n六、覆盖与证据：单回合预算 3600s＜窗长 7200s，故分两回合（07:39→08:28 心跳 7 次；08:40→09:40 心跳 8 次，共 **15 次** seq 158–172），两回合间由预铺 `sleep 3600` 唤醒作业衔接，租约全程未过期；**零写入证明**：窗末实测 `clone/` 内 mtime 晚于 07:35Z 的文件数＝0。原始证据 `.scratch/tk-17c00003/c2-round-1..9.txt`／`c2-loop.log`／`round-1-analysis.md`。\n\n七、边界与残留风险：静态快照式巡检（不做原子替换竞态检测）；未做任何处置，A/B/C 仍在副本内；清单外文件不产生摘要信号；A 项定位所用的参照件（工作区同坐标件）属副本外路径，本窗**只读**使用。",
+      "at": "2026-10-06T09:41:27.724Z",
+      "taskId": "TK-17c00003"
+     },
+     {
+      "id": "g-y92KrDPlyxKMLNgULFDQ",
+      "seq": 62,
+      "from": "implementer",
+      "text": "**收到，无待办。** 你的 3/3 独立复算与我侧逐项一致（ok=605／mismatch=1／missing=1／extra=1），且 A 项「伪装成较早 revision」这一判读已在报告 §三.A 留痕——你改用 git pin 对象作纯净参照后两批初审结论不受影响。\n\n`TK-17c00003` 停在 **`delivered`／seq=174**（`owner=producer=implementer`）；两条 `fs.contains` 内容面满足、机械执行仍 `probe-read`（探针根＝`dshHome`，与 17c00001／17c00002 同源，仍是 `close` 的共同前置）。\n\n**待用户/编排方**：① `settle`（两岗均无此 op）；② 副本内 A/B/C 的处置（重铺／隔离 `strays/`／凭据外泄流程——统筹岗只读沙箱无法落，需编排方或 host 侧）；③ 裁定①探针根机制落法（现影响三单）。我侧待命。",
+      "at": "2026-10-06T09:42:23.452Z",
+      "taskId": "TK-17c00003",
+      "replyTo": 62
+     }
+    ]
+   }
+  },
+  {
+   "name": "邮件面·implementer 收件箱",
+   "command": "GET /api/pod/implementer/inbox",
+   "raw": {
+    "messages": [
+     {
+      "id": "swkY8y_TVYFWrWSZbvbtww",
+      "seq": 14,
+      "from": "user",
+      "text": "TK-20260929",
+      "at": "2026-09-29T14:46:56.987Z"
+     },
+     {
+      "id": "D_WlImIKjhxBgS4o-e9OFg",
+      "seq": 15,
+      "from": "duty-coordinator",
+      "text": "已核验第二轮时序和探针复跑结果。台账在复跑后为 produced；invalid-review-report 仅是拒绝痕迹，不能闭合必审点。实时名单仍只有 implementer，已重新登记 waiting-user。请继续保持 produced，不要自行复核或重复 task.deliver，等待独立 verifier。",
+      "at": "2026-09-29T14:48:59.725Z",
+      "taskId": "TK-20260929"
+     },
+     {
+      "id": "iECGFYyAbUyrTrshX4jzOg",
+      "seq": 16,
+      "from": "duty-coordinator",
+      "text": "已核验并记录第二轮进展：\n\n- 第二轮指派：`seq=40`\n- `task.accept`：`seq=41`\n- `task.start`：`seq=42`\n- `task.report / produced`：`seq=43`\n- 预登记探针再次命中\n- 工件哈希保持为 `42cce773129956250e413e8a5ab64ad5fa9e2576407abbc7492672690679fcf6`\n- 当前任务状态：`produced`\n\n现存 `review.report` 仅为 `invalid-review-report` 拒绝记录，不能视为闭合必审点。实时名单仍只有实施者，已重新登记 `waiting-user`：\n\n- 新事件序号：`seq=45`\n\n实施者已被要求保持 `produced`，不自行复核、不重复 `task.deliver`。仍需 user/host 启用独立 `verifier`，并签发包含 `artifact.read`、`evidence.probe`、`review.report` 的复核帽。",
+      "at": "2026-09-29T14:49:05.243Z",
+      "taskId": "TK-20260929",
+      "replyTo": 16
+     },
+     {
+      "id": "gKIQ-MclMqhoJy_VQEE6Ew",
+      "seq": 17,
+      "from": "user",
+      "text": "TK-20260929",
+      "at": "2026-09-29T16:12:58.421Z"
+     },
+     {
+      "id": "BaEVMgkm2oL-fBjBn6WsrQ",
+      "seq": 18,
+      "from": "duty-coordinator",
+      "text": "第三轮结果已核验。相同阻塞已持续三轮，现已向用户显式升级，并登记 waiting-user。请保持 produced，停止重复接受新的实施轮次，不自行复核、不调用 task.deliver；仅在独立 verifier 合法提交 review.report 并闭合 before-external-visibility 后再继续。",
+      "at": "2026-09-29T16:14:38.437Z",
+      "taskId": "TK-20260929"
+     },
+     {
+      "id": "aQSiSDfxtd-yylxBnPme-Q",
+      "seq": 19,
+      "from": "duty-coordinator",
+      "text": "相同阻塞已连续三轮未收敛，现正式升级给用户处理。\n\n### 第三轮核验结果\n\n- 指派：`seq=53`\n- 认领：`seq=54`\n- 启动：`seq=55`\n- 产出：`seq=56`\n- 预登记探针再次通过\n- 工件哈希未变化\n- 当前状态：`produced`\n- `dispatchCount=3`\n\n现有 `review.report` 仍只是 `invalid-review-report` 拒绝痕迹，原因是报告含未定义键 `evidence`，不构成 `before-external-visibility` 闭合。\n\n已再次登记 `waiting-user`：\n\n- 最新事件：`seq=58`\n\n**需要用户拍板并执行：**\n\n1. 停止继续把任务重复指派给实施者；\n2. 启用独立 `verifier`；\n3. 由 host 签发包含 `artifact.read`、`evidence.probe`、`review.report` 的复核帽；\n4. 由该 verifier 提交符合固定形状的 `review.report`。\n\n实施者已被要求保持 `produced`，不得自行复核或调用 `task.deliver`。",
+      "at": "2026-09-29T16:14:44.198Z",
+      "taskId": "TK-20260929",
+      "replyTo": 18
+     },
+     {
+      "id": "7baNbcDC1Exm5RCgbBlluA",
+      "seq": 20,
+      "from": "user",
+      "text": "TK-20260929",
+      "at": "2026-09-29T16:17:43.769Z"
+     },
+     {
+      "id": "6cV5ClTAS5XC3bzEMhJevw",
+      "seq": 21,
+      "from": "user",
+      "text": "TK-20260929",
+      "at": "2026-09-29T17:01:38.495Z"
+     },
+     {
+      "id": "Yvw3Np7aNL6gpw5GndHsVA",
+      "seq": 22,
+      "from": "user",
+      "text": "TK-20260929",
+      "at": "2026-09-29T17:03:33.680Z"
+     },
+     {
+      "id": "c0ObwBSmOhV65oeXInTalw",
+      "seq": 23,
+      "from": "duty-coordinator",
+      "text": "【请承接实施：TK-17b00001（multi-hop-research·多跳研究）】\n\n目标：对 dsh-bots 仓库的十个子系统各做一次独立机制调查，并汇总为一份带交叉引用的总报告。子系统清单（按 docs/agents/codebase-map.md 的模块职责划分）：①宿主适配面 ②任务台账 ③复核件套 ④权限四层 ⑤邮件面 ⑥记忆与知识层 ⑦探针面 ⑧恒久性与模型更迭 ⑨简报与派单 ⑩重建与切换。\n\n产出物：markdown 报告，落在 `bots/knowledge/reports/R-2026-104.md`（相对你的工作区根），即 <你的工作区根>/bots/knowledge/reports/R-2026-104.md。\n\n来源约束（以你的工作区内仓库树为基准）：docs/agents/codebase-map.md；.scratch/org-v2/spec.md（§C–§J 与附录 A）；.scratch/org-v2-build/issues/17-amplification-acceptance-experiment.md。\n\n每节最低要求：\n1) 子系统机制描述（如何运转、关键入口模块与命令面）；\n2) 至少 3 个文件坐标引用（相对仓库根的 posix 路径，逐条可核）；\n3) 该子系统的关键「不变量」；\n4) 该子系统的已知「留界」（未覆盖／未实现／待裁定之处）；\n5) 与其它子系统的交叉引用（至少指向另一节）。\n全报告不少于 10 节；正文必须分别出现「子系统」「不变量」「留界」三个词（这是预登记验收判据）。\n\n边界：只读调查＋写报告；不改代码与配置；不触真实运行面（~/.dsh 下的 bots/ledger、注册表、部署目录一律只读）。\n\n台账现状：TK-17b00001 已由值班统筹收单并立项（status=triaged，owner=null）。本任务属只读调查＋工作区内落盘，不依赖任务域 capability，请直接开工；正式 task.assign 由用户执行，到账后你可按常规认领。若你判断必须先有台账指派方可动手，请立即回信说明。\n\n回信只写结论：是否完成 / 交付物路径 / 各节标题清单 / 如何验证的（用了哪些文件坐标） / 已知边界或残留风险。",
+      "at": "2026-10-05T16:18:46.344Z",
+      "taskId": "TK-17b00001"
+     },
+     {
+      "id": "DYyGpFpZQgtBl98n3ZoW9A",
+      "seq": 24,
+      "from": "duty-coordinator",
+      "text": "## 完成情况（组织臂）\n\n**是否完成：已完成。** 工件已产出并通过本岗验收初审（独立复算，非转述）。\n\n**交付物路径**：`bots/knowledge/reports/R-2026-104.md`\n（相对 implementer 工作区根；绝对路径 <code>/home/beijong/.dsh/bot-workspaces/implementer/bots/knowledge/reports/R-2026-104.md</code>，388 行／37,079 字节／`sha256=4a7a3c3b…29263b`）\n\n## 各节标题清单\n\n报告含 **10 个编号节**，另加 4 个框架节：\n\n| # | 节标题 |\n|---|---|\n| 1 | 宿主适配面子系统 |\n| 2 | 任务台账子系统 |\n| 3 | 复核件套子系统 |\n| 4 | 权限四层子系统 |\n| 5 | 邮件面子系统 |\n| 6 | 记忆与知识层子系统 |\n| 7 | 探针面子系统 |\n| 8 | 恒久性与模型更迭子系统 |\n| 9 | 简报与派单子系统 |\n| 10 | 重建与切换子系统 |\n\n框架节：`摘要`、`调查口径与坐标约定`、`全局交叉引用图`、`验收自检`、`已知边界与残留风险`。每节内部五段式：机制描述／文件坐标／关键不变量／已知留界／交叉引用。\n\n## 本岗初审（我复算过的）\n\n- 工件实读：字节数、行数、sha256 与实施者报告**逐字一致**。\n- 三个预登记词命中：「子系统」15 次、「不变量」15 次、「留界」14 次。\n- 节数 10（`^## [0-9]` 计数＝10），十节标题均含「子系统」。\n- 每节坐标数：13／12／8／17／14／10／11／10／11／14，**均 ≥3**；全文 73 个唯一路径令牌，除 `org/mail-relay.js`（它是报告正文引用的 `MAIL_WRITER_MODULES` 白名单**字面值**，非坐标）外**全部存在**，关键符号抽验（`lib/host-faces.js`、`lib/org/task-ledger.js`、`lib/org/probe.js`、`lib/org/durability.js`、`lib/org/memory-layer.js`、`lib/org/cutover-readiness.js`、`lib/org/review-kit.js`、`lib/client.js`）均在位。\n- 交叉引用（`见 §N` 类）23 处，非空转。\n- 边界遵守：未改代码／配置，**未调用 `knowledge.register`**，共享知识库与 `~/.dsh` 下注册表、部署目录零写入；唯一写入＝工件本身。\n\n## 组织臂动作与未闭合项\n\n1. **收单**：`task.intake` 按预登记件逐字落台账（brief 四要素＋三条 `fs.contains` 判据与冻结件一致）。\n2. **分诊**：判定 **立项**（`task.triage`）。\n3. **派工**：简报派给实施者（mail seq=23）→ 实施者只读调查＋落盘（未用任何 capability 门命令）。\n4. **初审**：即上文。\n\n台账现状：`TK-17b00001` 仍 `status=triaged`、`owner=null`、`dispatcher=null`、`dispatchCount=0`；实施者未认领、未落任何台账事件。**本岗 op-set 无 `task.assign`，不代签**——需你或项目经理执行 `task.assign` 后，实施者方可走正规交付链。\n\n**一处需你拍板的口径（我不自行改判据）**：组织臂机械探针 `fs.contains` 按 **dshHome 相对坐标**解析（`lib/org/probe.js:206`），而本任务的交付坐标按简报是**工作区相对**；两条口径不重合——工作区内的 R-2026-104.md 台账探针读不到，而 `~/.dsh/bots/knowledge/reports/` 的 id 由 host 顺序生成（现存 R-2026-001…010，下一条＝R-2026-011，**无法指定 R-2026-104**）。故本任务的通过判定宜沿用裸臂同样的**人工复算**口径，或由你 `task.amend` 修正交付坐标。若机械走 `task.deliver`，会落在 `probe-read`。\n\n**残留风险**（报告自述＋我的补充）：①行号为调查时点粗坐标，源码演进后漂移；②需活台账／活实例的判据（`V-A2.2` 等 8 条）本次只做静态调查，未实跑；③B 组 `V-B5`／`V-B6` 只有接缝，门槛修订属你域；④五项数值门槛留空 fail closed，报告未代裁；⑤如你希望报告**同时晋升进共享知识库**，可明示——那条路会落成库内自动编号（现为 R-2026-011），带 `supersedes`／`reused` 由产出方自决，我不预填。\n\n另：上一批 **TK-20260929** 已 `closed`（复核闭合 seq=61 → 交付 seq=69），无需再做动作。",
+      "at": "2026-10-05T16:24:15.993Z",
+      "taskId": "TK-17b00001",
+      "replyTo": 22
+     },
+     {
+      "id": "mXlGrAIohz7ptUjqjGlWVQ",
+      "seq": 25,
+      "from": "duty-coordinator",
+      "text": "已按本岗职责把这次无法自行处置的两线问题**归一为裁定包投递**（冲突上抛，不自行裁决），并在台账落 `waiting-user` 事实：**seq=80**。\n\n## 裁定包 — TK-17b00001\n\n**① brief（预登记件逐字）**\n目标：dsh-bots 十子系统各一次独立机制调查＋汇总总报告（每节机制／≥3 坐标／不变量／留界＋交叉引用，全文 ≥10 节）；交付物：`bots/knowledge/reports/R-2026-104.md`（工作区相对）；来源：`docs/agents/codebase-map.md`、`.scratch/org-v2/spec.md`、`org-v2-build/17`；边界：只读调查＋写报告，不改代码配置，不触真实运行面。\n\n**② criteriaFacts（机械事实）**\n- 判据：三条 `fs.contains`（依次含「子系统」「不变量」「留界」），**逐字取自冻结预登记件**，组织侧未改。\n- 探针实现：`lib/org/probe.js` 中 `fs.contains` 以 `resolve(ctx.dshHome, args.location)` 定基（第 202–210 行），越出 dshHome 即 `probe-path` → 该判据在本任务坐标下指向 `~/.dsh/bots/knowledge/reports/R-2026-104.md`。\n- 位置事实：工件实际在 `/home/beijong/.dsh/bot-workspaces/implementer/bots/knowledge/reports/R-2026-104.md`（388 行／37,079 B／`sha256=4a7a3c3b…29263b`），本岗已独立复算通过三词与每节坐标。\n- id 事实：`knowledge.register` 的 id 由 host 顺延（`lib/knowledge.js` `nextReportId`，现库内最大 R-2026-010 → 下一条 R-2026-011），**无指定 id 入口**。\n- 复核事实：本任务 `reviewPoints` 为空集，无未闭合必审点，交付门只受探针把守。\n- 台账：`lastSeq=79`（+本次异常 80）、`status=triaged`、`owner=null`、`dispatcher=null`、`dispatchCount=0`，无任何认领／交付事件。\n\n**③ positions（各方立场，不改判据是共同底线）**\n- 值班统筹：不动判据、不代签 `task.assign`、不试写运行面；建议沿用裸臂同口径的**人工复算**，或由你 `task.amend` 修交付坐标。\n- 产出方（implementer）：对 `~/.dsh` 全域零直写（含 `bots/knowledge`）；`knowledge.register` 不能指定 R-2026-104；结论同「沿用人工复算或由用户 amend 坐标」；晋升时点＝**任务关闭或归档流程内**，届时 `supersedes＝无`、`reused＝无`。\n\n**④ actions（已做与卡点）**\n已做：收单（intake）→ 立项（triage）→ 派工（mail seq=23）→ 只读调查＋工作区落盘 → 本岗初审复算 → 本次 `waiting-user` 留痕（seq=80）。\n卡点：**机械探针坐标不可达** ＋ **无 `task.assign`**；两者都只在你手上。\n\n**⑤ modelIdentity**：`opencode-go/deepseek-v4.1-flash`（本岗实例模型）。\n\n## 需要你拍两件\n\n1. **坐标口径**：取「人工复算（同裸臂）」还是「`task.amend` 修交付坐标」？（若取后者，改的是坐标而非判据，须你显式下；我不代改。）\n2. **是否下达 `task.assign`**：下达后实施者按常规认领；若你只认人工复算口径，则本任务可停在此处等归档，不必走交付链。\n\n晋升进共享知识库一事按产出方自决时点处理（关闭／归档时登记为库内自动编号条目），现在不需要任何动作。",
+      "at": "2026-10-05T16:25:11.949Z",
+      "taskId": "TK-17b00001",
+      "replyTo": 24
+     },
+     {
+      "id": "O7_ELZNJY0zkC9RCAwhSGg",
+      "seq": 26,
+      "from": "duty-coordinator",
+      "text": "【TK-17b00001：用户裁定已下，请按常规链走】\n\n用户裁定（两条）：\n① 坐标口径：取「人工复算（同裸臂口径）」——验收判据谓词逐字不变（三条 fs.contains），执行根适配为组织臂工件实际落点（即你的工作区 bots/knowledge/reports/R-2026-104.md）。预登记件不动。\n② task.assign 已下达给 implementer。\n\n请先 ledger.read 确认 assign 事件到账再动手（截至本信，台账仍是 status=triaged、owner=null、lastSeq=80；到账则按常规走）：assign → 认领（task.accept）→ task.start → task.report → task.deliver。settle 由有权席位（项目经理／用户）执行，不在你 op-set。\n\n预算口径：组织臂上限 9,000,000 token（两席合计，任务窗切片口径），不要扩大本任务范围。\n\n机械门预判（照实告知，便于你识别失败模式，不是让你绕过）：交付门的三条判据由台账本体机械执行，探针根＝api.dshHome（~/.dsh）、cwd＝插件目录（lib/index.js:2274 `probeCtx: { dshHome: api.dshHome, cwd: join(PLUGIN_DIR, \"..\") }`；lib/org/probe.js 的 fs.contains 用 `resolve(ctx.dshHome, args.location)`）。因此工作区里的 R-2026-104.md 不会被该探针读到，deliver 很可能返回 `acceptance-check-failed`（probe-read）。\n\n若 deliver 被拒：如实回报（含返回码与理由），不要重试、不要绕过、不要尝试写 ~/.dsh 运行面；该判据已由用户的人工复算口径覆盖。",
+      "at": "2026-10-05T16:31:00.207Z",
+      "taskId": "TK-17b00001"
+     },
+     {
+      "id": "MgfBegYtNrjL2-hpR1dcXQ",
+      "seq": 27,
+      "from": "duty-coordinator",
+      "text": "实施者的核对与我的独立复读一致，**assign 仍未落账**：\n\n- `lastSeq=80`（第 80 号＝我这边的 `waiting-user` 留痕）\n- `status=triaged`、`owner=null`、`dispatcher=null`、`dispatchCount=0`\n- `lease{acceptBy:null, expiresAt:null}` — 无租约，未进入挂钩状态\n\n双方行为都符合纪律：实施者不越权认领、不试写运行面；本岗不代签 `task.assign`。\n\n**球在你手上**：请以 user／host 身份在执行面下达 `task.assign`（接收方 `implementer`）。事件一到账，实施者即走 `accept → start → report → deliver`；`deliver` 若被机械门拒（`acceptance-check-failed`／`probe-read`），他会如实回报码与理由，然后就按你已裁的人工复算口径判本任务，不再重试、不绕过。\n\n本轮无新增动作（只做了一次台账复读确认），预算与范围未扩大。",
+      "at": "2026-10-05T16:31:25.028Z",
+      "taskId": "TK-17b00001",
+      "replyTo": 26
+     },
+     {
+      "id": "EWgnfQsA188v9v1DwWPg_g",
+      "seq": 28,
+      "from": "duty-coordinator",
+      "text": "【请承接实施：TK-17b00002（cross-file-change·跨文件代码改动）】\n\n目标（预登记件逐字）：新增 `lib/safe-io.js` 统一文件 IO 门（薄封装），并把 `lib/` 下（不含 tests/）直接调用 node:fs 读写原语（readFileSync／writeFileSync／appendFileSync／mkdirSync／readdirSync／statSync／existsSync／rmSync／cpSync）的调用点改为经由该门，行为保持、不改任何对外语义；波及文件不少于 20 个；收尾全量回归 `node tests/run.mjs` 全绿。\n\n交付物：patch 形态改动，落点 `lib/`（含新增的 `lib/safe-io.js`），改的是你工作区内的仓库树（你的工作区根即仓库树根）。\n\n边界：只改你工作区内的仓库树；行为保持；不触真实运行面；不新增事后判据。\n\n验收判据（预登记件逐字）：\n1) `lib/safe-io.js` 存在且含 `export function`；\n2) `tests/org-brief.test.mjs`、`tests/org-permissions.test.mjs`、`tests/registry.test.mjs` 全部通过（node.tests）。\n\n台账：TK-17b00002 已由值班统筹收单并立项（intake seq=87、triage seq=88，status=triaged，owner=null）。正式 task.assign 待用户下达；本任务属工作区内仓库树改动，不依赖任务域 capability，可直接开工。\n\n机械门预判（照实告知，不构成绕过理由）：交付门判据由台账本体机械执行——`fs.contains` 按 `api.dshHome`（~/.dsh）解析；`node.tests` 在**活插件树快照**上跑（cwd＝`~/.dsh/plugins/dsh-bots`；lib/index.js:2274 `probeCtx: { dshHome: api.dshHome, cwd: join(PLUGIN_DIR, \"..\") }`）。因此你工作区里的 `lib/safe-io.js` 与改动不会被机械探针看到；本批用户裁定＝判据谓词逐字不变、执行根适配为组织臂工件实际落点、人工复算判决。**不要**为了让机械门通过去改活插件树或写 ~/.dsh。若你仍尝试 deliver 被拒，如实回报返回码与理由，不重试、不绕过。\n\n预算口径：沿用同批口径——组织臂上限 9,000,000 token（B×3，两席合计，任务窗切片）；若用户对本任务另设上限我再转达。请勿扩大任务范围。\n\n回信只写结论：是否完成 / 改动文件数与清单 / 回归结果（命令、退出码、fail／skip 计数）/ 已知边界或残留风险。",
+      "at": "2026-10-05T16:57:04.635Z",
+      "taskId": "TK-17b00002"
+     },
+     {
+      "id": "flajqSqfwMM_0-EZ6BhFIA",
+      "seq": 29,
+      "from": "duty-coordinator",
+      "text": "【TK-17b00002：阻塞已升级用户；链入口缺口＝缺 task.plan，不是你操作错误】\n\n实测状态机（lib/org/task-ledger.js 的 ALLOWED_FROM）：plan 来态=[triaged]、assign 来态=[planned]、accept=[assigned]、start=[accepted]、report=[running]、deliver=[produced]、settle=[delivered]。你直连 assign 得 illegal-transition（triaged→assign）与状态机一致。\n\ntask.plan 不在本岗 op-set、也不在你 op-set（属项目侧域）。我已请用户以 host/user 身份先 plan（expectedStatus=triaged、expectedSeq=88）再 assign（expectedStatus=planned、payload {assignee:\"implementer\", dispatcher:\"user\"}）。\n\n在 plan+assign 到账前：不要重试 assign／accept／brief.refresh；不要为了让机械门通过去碰活插件树或写 ~/.dsh；保持工作区现状即可。\n\n你的证据我已做初审（静态复算）：lib/safe-io.js 2253 B／sha256=7226aaffcacf85a84b66ed5c350fa093469880d9a15fac4be75f8cab98b9aade／9 个 export function，与我读到的实件一致；lib/ 下 21 个文件引用 safe-io（＝20 个改动＋本体）；六个冻结面包内文件未动、仍直连 node:fs。三条环境性失败我未能复跑（本岗沙箱只读，测试需写临时/输出目录），按你的 A/B 还原证据记为「零新增失败」，并把「全绿口径」与「冻结面范围冲突」一并写进裁定包，等用户拍板。",
+      "at": "2026-10-05T17:14:08.541Z",
+      "taskId": "TK-17b00002"
+     },
+     {
+      "id": "kwhbg0yRb-eT_xAfzRyK7w",
+      "seq": 30,
+      "from": "duty-coordinator",
+      "text": "实施者已完成改动并升级卡点。我已做静态验收初审，并把无法自行裁决的三项归成裁定包（台账已落 `waiting-user`，**seq=93**）。\n\n## 一、初审（我实测复算的部分）\n\n- `lib/safe-io.js`：**2253 B**，`sha256=7226aaffcacf85a84b66ed5c350fa093469880d9a15fac4be75f8cab98b9aade`，`grep -c 'export function' = 9`（九个原语逐字透传）——与产出方所报逐字一致。\n- 波及面：`lib/` 下 **21 个文件**引用 `safe-io`（＝20 个改动文件＋`safe-io.js` 本体），满足「不少于 20 个」。\n- 冻结面：其点名的 6 个文件（`evidence-packager.js`／`ledger-evidence.js`／`org/store-base.js`／`parity-manifest.js`／`sentinel-provenance.js`／`sentinel-shadow.js`）确认**未接门、仍直连 `node:fs`**，与其留界陈述相符。\n- **我未能复跑**全量回归：本岗沙箱只读，`node tests/run.mjs` 需要写临时／输出目录（实测连 `/tmp` 都拒写），故「76/79、三条失败为环境性」采信产出方的 A/B 还原证据，标注为**待复算项**。其失败机理我已静态核对：三条都在「输出根与 `DSH_HOME`／仓库代码区重叠」的守卫上（`tests/evidence-runner-contract.test.mjs`、`tests/sentinel-output-contract.test.mjs`、`tests/ledger-drill.test.mjs`），而产出方工作区位于 `~/.dsh` 之下，触发面与其解释一致。\n\n## 二、卡点根因（不是操作错误，是状态机）\n\n台账 `ALLOWED_FROM`（`lib/org/task-ledger.js`）：`plan:[triaged]` → `assign:[planned]` → `accept:[assigned]` → `start:[accepted]` → `report:[running]` → `deliver:[produced]` → `settle:[delivered]`。\n\n实施者直连 `assign` 得到 `illegal-transition（triaged→assign）`是**正确拒绝**——缺的是 **`task.plan`**。该 op 不在本岗 op-set、也不在实施者 op-set（属项目侧域），且 `accept/start/report/deliver` 全是 `ownerOnly`（只能承接方本人持当期 capability 执行）。\n\n**两个任务都停在同一个缝上**：`TK-17b00001`（`lastSeq=80`）、`TK-17b00002`（`lastSeq=88`，＋本次异常 93），均 `triaged`、`owner=null`。请以 host/user 身份按序补：\n\n```\n① { op:\"task.plan\",   taskId:\"TK-17b00002\", expectedStatus:\"triaged\", expectedSeq:88, payload:{} }\n② { op:\"task.assign\", taskId:\"TK-17b00002\", expectedStatus:\"planned\",  payload:{assignee:\"implementer\", dispatcher:\"user\"} }\n（assign 回执携带承接方第一张任务 capability，需交付给 implementer）\n```\n`TK-17b00001` 同法（`expectedStatus:\"triaged\"`, `expectedSeq:80`）后接 `assign`。\n\n## 三、裁定包（三项，我不自行裁决）\n\n1. **链入口**：是否按上表补 `plan → assign`？（若你另有通路——例如直接由 host 以 user 身份落 assign——请明示，我不改状态机。）\n2. **「全量回归全绿」口径**：简报写「全绿」，实测 76/79，三条为环境性守卫失败（工作区位于 `~/.dsh` 之下），产出方 A/B 证明零新增失败。建议沿用本批已裁的「人工复算＋执行根适配」口径，把判据读作**零新增失败**；我不代改判据，请裁定。\n3. **范围冲突（两线冲突，必须上抛）**：「把 `lib/` 下直接调用 `node:fs` 的调用点改经该门」字面义（全覆盖）与「当前终版面包 `sourceManifest` 的 6 个文件不得触碰（须新 runId 重采集增量包）」冲突。产出方按 AGENTS.md §3 选择回避并显式留痕。**取哪条？** 取字面全覆盖即等于把本单扩成「重采集＋增量包」，超出你给的预算与范围。\n\n## 四、本岗本轮账面\n\n台账只新增：`intake seq=87`、`triage seq=88`、`waiting-user seq=93`；投递给实施者两封（seq=28 派工、seq=29 阻塞回应）。零工件写入、零运行面写入、未扩大任务范围。",
+      "at": "2026-10-05T17:14:19.609Z",
+      "taskId": "TK-17b00002",
+      "replyTo": 30
+     },
+     {
+      "id": "mRtYMg9O2kqrD081tbI-8A",
+      "seq": 31,
+      "from": "duty-coordinator",
+      "text": "【急：TK-17b00001 的 task.assign 已到账——请在租约内认领】\n\n台账实测：status=assigned、owner=implementer、dispatcher=exp17-orchestrator、lastSeq=97、dispatchCount=2；租约 acceptBy=2026-10-05T17:24:34.170Z、expiresAt=2026-10-05T17:39:34.170Z（当前 2026-10-05T17:15:03Z）。\n\n请立即按链走：task.accept（**用新的 idempotencyKey**，勿复用旧键）→ task.start → task.report（交付物 bots/knowledge/reports/R-2026-104.md）→ task.deliver。若 accept 回执携带续签的能力信封，按链扣用。\n\n机械门预判不变：deliver 可能以 acceptance-check-failed／probe-read 被拒（执行根＝api.dshHome；工件在工作区）。被拒即如实回报返回码与理由，不重试、不绕过、不写运行面。\n\n另一条台账事实：TK-17b00002 已推进到 planned，但编排方 assign 被台账拒，码＝`assignee-holding`——「实例 implementer 已持进行中任务 TK-17b00001（一实例一进行中任务，机械拒绝）」。故 17b00002 需待 17b00001 离开在手态（交付/结算完成）后再指派。请先把 17b00001 走完。",
+      "at": "2026-10-05T17:15:03.742Z",
+      "taskId": "TK-17b00001"
+     },
+     {
+      "id": "-UweMay5-tJkDMHcoRn9pA",
+      "seq": 32,
+      "from": "duty-coordinator",
+      "text": "台账在我上一轮回复之后发生了变化——**编排方已经动作**，两个任务的状态与上一轮完全不同，请以这条为准。\n\n## 一、台账现状（刚实测，`lastSeq=100`，`open=5`）\n\n| 任务 | status | owner | dispatcher | lastSeq | 租约 |\n|---|---|---|---|---|---|\n| TK-17b00001 | **assigned** | implementer | **exp17-orchestrator** | 97 | `acceptBy=17:24:34Z`／`expiresAt=17:39:34Z` |\n| TK-17b00002 | **planned** | null | null | 100 | 无 |\n\n- **17b00001 已在租约窗口内**：当前 `17:15:03Z`，认领截止 `17:24:34Z`（约 9 分半），我已加急通知实施者立即 `accept（新幂等键）→ start → report → deliver`（mail seq=31），并要求被机械门拒时如实回报、不重试不绕过。\n- **17b00002 的 assign 被台账拒**，码＝`assignee-holding`：「实例 implementer 已持进行中任务 TK-17b00001（**一实例一进行中任务**，机械拒绝）」。即两条任务必须**串行**：17b00001 离开在手态（交付/结算）后才能指派 17b00002。若你要并行，得另配承接实例——本岗不编组、不派单。\n- 历史拒绝痕迹：17b00001 曾有 `cas-mismatch`（期望 seq 93 vs 当前 90，与我落异常事件的竞态），编排方重试后成功；不影响现状。\n\n## 二、裁定包补遗（④⑤，我已静态复核为**属实**）\n\n- **④ 平价面**：`lib/sentinel-runner.js` 确为 `PARITY_MANIFEST` 成员（`lib/parity-manifest.js:18`）。改动它意味着**部署同步（C2 流程）时须重核 repo↔deploy 平价**——该动作出仓库且按 AGENTS §3 需逐项授权，本单未做，仅登记义务。\n- **⑤ 运行时底线**：`lib/shared.cjs` 实以 `const safeIo = require(\"./safe-io.js\");` 载入 ESM（`package.json` 为 `type:module` 且**未声明 `engines`**），依赖 Node ≥22.12 的 `require(ESM)`；本机 `v22.23.2` 通过。更老目标环境需另加 `.cjs` 门面（＝额外交付量）。\n\n两条已作为补遗落台账（**seq=100**）。本任务台账事件至此：`intake 87`／`triage 88`／`waiting-user 93`（三项卡点）／`waiting-user 100`（补遗）。\n\n## 三、仍需你拍的（原包三项＋补遗两项）\n\n1. **`plan→assign` 通路**：17b00002 已补 `plan`；assign 卡在 `assignee-holding`——请决定是**串行**（等 17b00001 交付/结算完再 assign）还是**另配实例**并行。\n2. **「全量回归全绿」口径**：实测 76/79，三条为环境性守卫失败（工作区在 `~/.dsh` 之下）；产出方 A/B 证零新增失败（我因沙箱只读无法复跑，已标注待复算）。请裁定读作「零新增失败」。\n3. **范围冲突**：「`lib/` 下全部调用点」字面全覆盖 vs 终版面包 `sourceManifest` 六个冻结文件不得触碰。取字面义＝把本单扩成「新 runId 重采集＋增量包」，超出你给的预算。\n4. **补遗 ④⑤ 是否接受为残留风险**（或要求补 `.cjs` 门面／重核平价）。\n\n本岗本轮零工件写入、零运行面写入；只做了台账复读、一次补遗登记与一封加急投递。",
+      "at": "2026-10-05T17:15:15.586Z",
+      "taskId": "TK-17b00002",
+      "replyTo": 31
+     },
+     {
+      "id": "sWW6KmMRrKtdmxh9IpFP4A",
+      "seq": 33,
+      "from": "duty-coordinator",
+      "text": "交付链已走通一段，且我在核对中发现**自己此前对机械门位置的判断有误**，先更正，再报状态与证据。\n\n## 一、更正：判据门在 `close`，不在 `deliver`\n\n我先前说「`task.deliver` 会机械跑三条预登记判据」——**错了**。代码实读：`acceptanceReadiness` 只在 **`task.close`** 分支被调用（`lib/org/task-ledger.js:1252` `if (spec.type === \"close\")` → `closePrecondition`（:167）→ `acceptanceReadiness`（:241））；`deliver` 只把守复核点（本任务 `reviewPoints=[]`，无门可拦）。这也解释了为什么 `TK-17b00001` 能顺利到 `delivered`——判据根本还没跑。\n\n`close` 的两道关（同一处，`fail closed`）：\n1. **判据逐条现跑**：不过即拒 `acceptance-check-failed`，并点名第几条／探针码；\n2. **产出登记**：须有 `entry.task===taskId 且 entry.botId===producer` 的登记条目，否则 `artifact-not-registered`（:196–206）。\n\n## 二、链的实际轨迹（host 事件文件实读）\n\n| seq | 事件 | actor | 时间 |\n|---|---|---|---|\n| 85 / 86 | `plan` / `assign` | exp17-orchestrator | 16:55:21 / 16:55:32 |\n| 89 / 90 | `exception` / **`lease-expired`** | web | 17:05:34 |\n| 94 | `command-rejected`（cas-mismatch：期望 93 vs 当前 90） | exp17-orchestrator | 17:13:58 |\n| 97 | `assign`（重派） | exp17-orchestrator | 17:14:34 |\n| 99 | `command-rejected`（`assignee-holding`，对象＝17b00002） | exp17-orchestrator | 17:14:34 |\n| 101 / 102 / 103 / 104 | `accept` / `start` / `report` / `deliver` | **implementer** | 17:15:15 → 17:15:48 |\n\n- `TK-17b00001`：**delivered**（`dispatchCount=2`）。`report` 事件携带工件坐标与指纹：`bots/knowledge/reports/R-2026-104.md`，**37079 B，sha256 `4a7a3c3b…29263b`**，与我初审复算一致。\n- 组织可观测事实：**首个租约 15 分钟内未被认领而作废**（`lease-expired`，seq=90），编排方重派后 41 秒内被接收。即本组织臂多付了一次派发（`dispatchCount=2`）——原单证。\n- `TK-17b00002`：`planned`；`assign` 被 `assignee-holding` 拒（**一实例一进行中任务**）→ 必须等 17b00001 离开在手态。\n\n## 三、我本轮的独立复算（不是转述）\n\n- **冻结面 10/10**：我按终版包 `review-evidence-package-0010-405fdf54.json` 的 `executionEvidence.provenance.sourceManifest` 逐项对实施者工作区重新算 sha256 → `matched=10/10 bad=[] missing=[]`（含 6 个 lib 文件）。冻结面零触碰是**我算出来的**，不是自述。\n- **零新增失败**：`baseline.log` 与 `after.log` 的 `✗` 失败行集合 diff → **X-LINES IDENTICAL**（各 3 行），汇总行同为「76/79 个测试文件通过」。文件的 before/after sha256 与「去 import 后正文逐字一致」字段来自产出方 `verify-summary.json`（我读了全文，未逐件重算 20 个 hash）。\n- **我仍未能亲自跑测试**：沙箱只读，测试需写临时/输出目录（连 `/tmp` 都拒写）。这一条保持「未由我直跑」。\n\n## 四、待你拍板（据 `close` 门重排）\n\n1. **`TK-17b00001` 的关闭口径**：`close` 会现跑三条 `fs.contains`（`dshHome` 相对 → `~/.dsh/bots/knowledge/reports/R-2026-104.md`）→ 现状必拒 `acceptance-check-failed（probe-read）`；并且还缺「谁产出谁登记」条目 → 会同时触发 `artifact-not-registered`。三选一：(a) 由 host/user 把副本落到该坐标（唯一不动谓词的通路；副作用＝孤儿报告＋库内 next-id 水位顶到 R-2026-105）；(b) `task.amend` 改坐标（动预登记件）；(c) 接受 `close` 被拒，按你已裁的人工复算口径判决，任务停在 `settled`。\n2. **`TK-17b00002` 串行**：等 17b00001 交付/结算完再派，还是另配实例并行？\n3. **「全量回归全绿」口径**：按 `identicalFailureSet`／`X-LINES IDENTICAL` 读作**零新增失败**。\n4. **范围冲突**：「`lib/` 下全部调用点」字面全覆盖 vs 冻结 `sourceManifest` 10 条不得触碰。\n5. **补遗④⑤**（`sentinel-runner.js` 平价重核义务；`shared.cjs` require(ESM) ⇒ Node ≥22.12 底线）是否接受为残留风险。\n\n本岗本轮全程只读（台账事件、证据产物、规格代码），未新增工件、未写运行面。",
+      "at": "2026-10-05T17:19:12.772Z",
+      "taskId": "TK-17b00002",
+      "replyTo": 33
+     },
+     {
+      "id": "nu7f4aRvDT8MCPQBxu4Rig",
+      "seq": 34,
+      "from": "duty-coordinator",
+      "text": "实施者所报已复核，**`TK-17b00002` 现在确实可派**，且依据是机械的：`HOLDING_STATES = [\"assigned\",\"accepted\",\"running\",\"produced\"]`（`task-ledger.js:332`）——`delivered` 不在内，故 `assignee-holding` 已消解。\n\n## 一、请你落这两枪（`expectedSeq` 按当前投影）\n\n```\n① TK-17b00002 assign：\n   { op:\"task.assign\", taskId:\"TK-17b00002\",\n     expectedStatus:\"planned\", expectedSeq:100,\n     payload:{ assignee:\"implementer\", dispatcher:\"user\" } }\n   （回执携带承接方第一张任务 capability，需交付给 implementer）\n② TK-17b00001 settle：\n   { op:\"task.settle\", taskId:\"TK-17b00001\", expectedStatus:\"delivered\", expectedSeq:104 }\n   → 之后 close 会现跑三条预登记判据（届时按下面第 3 条裁定办）\n```\n\n## 二、对实施者报告的复核\n\n- `deliver` 未被拒 ✓（事件 104 落账；`lastRejection` 仍是更早的 `cas-mismatch` 历史痕迹，无新拒）。\n- 工件指纹 ✓：`37079 B`／`sha256=4a7a3c3b…29263b`（其报 389 行，我此前按编号节口径数得 388 行——差异是行尾/空行计法，不影响指纹）。\n- 三条 `fs.contains` 探针**全部** `probe-read`（该任务三条判据指向同一坐标 `bots/knowledge/reports/R-2026-104.md`，故 index 0/1/2 同因失败）——与执行根错位裁定一致。\n\n## 三、`close` 将是真正的门（请一并裁定）\n\n- `TK-17b00001`：`close` 在 index 0 即拒 `acceptance-check-failed（probe-read）`；且缺「谁产出谁登记」条目 → 还会叠 `artifact-not-registered`。请择一：(a) host/user 把副本落到 `~/.dsh/bots/knowledge/reports/R-2026-104.md`；(b) `task.amend` 改坐标；(c) 接受 `close` 被拒、按人工复算判决（任务停在 `settled`）。\n- `TK-17b00002`：其 `fs.contains(\"lib/safe-io.js\")` 同样按 `dshHome` → 必 `probe-read`；三条 `node.tests` 打的是**活插件树**（cwd=`~/.dsh/plugins/dsh-bots`），通过也不构成对工作区改动的验证。故该任务同样存在「不违边界就不可机械关闭」的结构性事实。\n- 另三项待裁：串行/并行的资源安排、「全绿」口径读作零新增失败、范围冲突（`lib/` 全覆盖 vs 冻结 `sourceManifest` 10 条）、补遗④⑤（平价重核义务／Node ≥22.12 底线）是否接受。\n\n我这边对 `TK-17b00002` 的验收初审**已做完静态部分**（门件指纹、20 件改动、冻结面 10/10、`✗` 失败行全等），实施者一旦走完 report/deliver，我即出初审判定并回你。本轮我仍全程只读。",
+      "at": "2026-10-05T17:19:32.669Z",
+      "taskId": "TK-17b00001",
+      "replyTo": 34
+     },
+     {
+      "id": "dhv9qUs8C62vVUBuRgOaCQ",
+      "seq": 35,
+      "from": "duty-coordinator",
+      "text": "第三封重复确认，**无新信息，我不再重复投递**（避免无效往返）。\n\n现状一致（双方各自实读，`lastSeq=104`）：`TK-17b00001` delivered／`owner=implementer`；`TK-17b00002` planned／`owner=null`／`lastSeq=100`。`assignee-holding` 已消解，串行约束解除。\n\n**唯一在动的杠杆仍在你**：① `task.assign`（17b00002，`expectedStatus:\"planned\"`, `expectedSeq:100`）；② `task.settle`（17b00001，`expectedStatus:\"delivered\"`, `expectedSeq:104`）；③ `close` 判据口径与另外三项裁定（`close` 门、串行/并行、全绿口径、冻结面范围＋补遗④⑤）。\n\n实施者待命，我保持待命：一旦 17b00002 走到 `report/deliver`，我立即出验收初审；`close` 若被 `acceptance-check-failed`／`artifact-not-registered` 拒，我会带着返回码与理由回来找你拍板。",
+      "at": "2026-10-05T17:19:49.803Z",
+      "taskId": "TK-17b00002",
+      "replyTo": 36
+     },
+     {
+      "id": "8pHIfAO5wZrpPHSlGlNDkQ",
+      "seq": 36,
+      "from": "duty-coordinator",
+      "text": "【回执：口径无冲突；另附两条我实读到的差异（无需回信）】\n\n1) 你对「产出登记＝close 机械门的必要条件，非 promotion」的定性我认可，无口径冲突；supersedes/reused 无、你未做晋升动作为正确。\n2) 我独立复读了登记面：index.jsonl 条目 R-2026-011 有 task=TK-17b00001、botId=implementer、status=valid、date=2026-10-05T17:19:47.532Z → closePrecondition 的 artifactRegistrationVerdict 机械满足，成立。\n3) 另两条实读差异，建议记入你的证据档（我只登记事实，不建议动作）：\n   - 命名缺口：交付坐标 R-2026-104.md（预登记）与库内文件名 R-2026-011.md（host 序列分配）不同名；R-2026-104.md 在共享库内不存在（ENOENT）。\n   - 字节漂移：库内件 37078 B、sha256=ba540b3d2a3d49a9fa3ec05bf1adbb33fe1e6cc9c984803f56f36605d4903341；你工作区实件 37079 B、sha256=4a7a3c3b…29263b；cmp 差异在尾字节——工作区件以 0x0a 收尾，库内件无尾换行。即「同一份报告」在两面上并非逐字节相同。\n4) 现状无变：TK-17b00001=delivered（seq=104）；TK-17b00002=planned/owner=null/lastSeq=100，等你接到 assign 后走链。",
+      "at": "2026-10-05T17:20:40.910Z",
+      "taskId": "TK-17b00001"
+     },
+     {
+      "id": "nPRQxrqqoBnplc7V0brpow",
+      "seq": 37,
+      "from": "duty-coordinator",
+      "text": "知识库登记已落，我复核为真，且顺带读出两条值得进实验记录的事实。\n\n## 一、登记关已机械满足（我实读）\n\n`index.jsonl` 条目 **R-2026-011**：`task=TK-17b00001`、`botId=implementer`、`status=valid`、`date=2026-10-05T17:19:47.532Z`；正文落库 `~/.dsh/bots/knowledge/reports/R-2026-011.md`。→ `closePrecondition` 的 `artifactRegistrationVerdict`（须 `entry.task===taskId && entry.botId===producer`）**成立**。故 `close` 两道关中「产出登记」已过，**只剩判据一条因由**。\n\n顺带一条 org 行为观测：**「谁产出谁登记」实际是被 `close` 门的第一次施压提前触发的**（而非等到归档时点），因为登记是关闭的必要条件。产出方对定性（登记≠promotion）的判断我认可，无口径冲突。\n\n## 二、两条新事实（我实读，建议进实验记录）\n\n1. **命名缺口**：交付坐标是 `bots/knowledge/reports/R-2026-104.md`（预登记），库内件是 host 序列分配的 **`R-2026-011.md`**；`R-2026-104.md` 在共享库内**不存在**。两个面（交付坐标 vs 登记 id）结构上解耦——产出方提醒「不要把 R-2026-011.md 改名」是正确的。\n2. **字节漂移**：库内件 **37078 B**／`sha256=ba540b3d2a3d49a9fa3ec05bf1adbb33fe1e6cc9c984803f56f36605d4903341`；工作区实件 **37079 B**／`sha256=4a7a3c3b…29263b`。`cmp` 差异在尾字节：工作区件以 `0x0a` 收尾，库内件无尾换行。**即「同一份报告」在两面上并非逐字节同一**——而 `report` 事件里记的是 `4a7a3c…`。谁按库内副本核指纹都会对不上，请在判决口径里留意。\n3. 副作用：库内 next-id 水位已推进（R-2026-011 被占用，下一条为 R-2026-012）。\n\n## 三、仍是你的三枪与两项裁定\n\n```\n① assign：{ op:\"task.assign\", taskId:\"TK-17b00002\", expectedStatus:\"planned\", expectedSeq:100,\n            payload:{ assignee:\"implementer\", dispatcher:\"user\" } }\n② settle：{ op:\"task.settle\", taskId:\"TK-17b00001\", expectedStatus:\"delivered\", expectedSeq:104 }\n③ close 判据口径：若选 (a)「放副本」，文件名必须是 R-2026-104.md（落在 ~/.dsh/bots/knowledge/reports/），\n   与库内 R-2026-011.md 并存；若选 (c)「接受 close 被拒」，则任务停在 settled、按人工复算判决。\n```\n\n另两项裁定（串行/并行资源、「全绿」读作零新增失败、冻结面范围冲突＋补遗④⑤）见前包。我本轮只做了实读核对与一次回执投递，未动工作区与运行面。",
+      "at": "2026-10-05T17:20:57.691Z",
+      "taskId": "TK-17b00001",
+      "replyTo": 37
+     },
+     {
+      "id": "J4zxLKUNU0oV_JEItJx93A",
+      "seq": 38,
+      "from": "duty-coordinator",
+      "text": "这条是**串线**：那两枪我列给的是你（host/user 侧），不是实施者——实施者的 op-set 我早已核过，确实没有 `task.assign`／`task.settle`，他们没有义务也打不了。无新增台账痕迹（未进鉴权阶段），无动作需要。\n\n权威面我复核一致（`lib/org/task-ledger.js:463` 起）：\n\n| op | actorKinds | 备注 |\n|---|---|---|\n| `task.assign` | host / user / post | 岗位细分白名单在鉴权器（op-set 表 ∪ 当次签发） |\n| `task.settle` | host / user / post | 同上 |\n| `task.accept／start／report` | **post** | `ownerOnly`（只能承接方本人） |\n| `task.deliver` | post / host | `ownerOnly` |\n\n当前投影（刚实读，未变）：`TK-17b00001=delivered/104`、`TK-17b00002=planned/100`、`global lastSeq=104`。\n\n**待你的仍是四件**：\n\n```\n① assign ：{ op:\"task.assign\", taskId:\"TK-17b00002\", expectedStatus:\"planned\",  expectedSeq:100,\n             payload:{ assignee:\"implementer\", dispatcher:\"user\" } }   ← 回执 capability 交给 implementer\n② settle ：{ op:\"task.settle\", taskId:\"TK-17b00001\", expectedStatus:\"delivered\", expectedSeq:104 }\n③ close 判据口径（三选一；选放副本则文件名须为 R-2026-104.md）\n④ 三项阅读口径：串行/并行资源、回归「全绿」读作零新增失败、冻结面范围冲突＋补遗④⑤\n```\n\n①②一落，实施者即入链；我在 `report/deliver` 到达后出 TK-17b00002 的验收初审。",
+      "at": "2026-10-05T17:21:10.673Z",
+      "taskId": "TK-17b00002",
+      "replyTo": 38
+     },
+     {
+      "id": "mOJSSxFqW_FsCkesyUHECQ",
+      "seq": 39,
+      "from": "user",
+      "text": "TK-17b00001 已由用户 resume 回 produced（裁定包四问已全部裁：人工复算口径、close 放副本 R-2026-104.md 勿动库内 R-2026-011、TK-2 串行、全绿＝相对 pin 基线零新增失败）。请对本任务重发 task.deliver（工件路径不变：bots/knowledge/reports/R-2026-104.md），随后值班统筹会 settle。另：TK-17b00002 已正式 assign 给你（工作区根即仓库树快照），请按链继续。",
+      "at": "2026-10-05T17:51:04.615Z"
+     },
+     {
+      "id": "PMuV375Bx6RcRvPOI0Yg1A",
+      "seq": 40,
+      "from": "duty-coordinator",
+      "text": "两单都有重大进展，外加一条我已独立复核为真的**组织死结**。逐条报。\n\n## 一、TK-17b00002 已交付 + 我的验收初审：**通过（静态面）**\n\n链（我实读事件）：`105 assign`(17:25:50) → `107 lease-expired`(17:35:54，**又一次租约自然到期**) → `111 assign`(17:49:15) → `117 accept／118 start／119 report／120 deliver`(17:51:32，四个事件 200 毫秒内走完)。\n\n`report`(seq=119) 携带的交付声明，我逐项复算：\n\n| 项 | 事件声明 | 我实读复算 |\n|---|---|---|\n| 门件 | `lib/safe-io.js` 2253 B／`sha256=7226aaff…`／9 个 `export function` | ✅ 一致（刚复算 hash） |\n| 波及 | `filesAffected=21`，patch 落 `lib/` | ✅ `lib/` 下 21 件引用 `safe-io`；patch 14144 B 存在 |\n| 回归 | `node tests/run.mjs` → 76/79，「零新增失败（相对基线逐行一致）」 | ✅ 我 diff 两日志 `✗` 行集全等；❌ 我**未能直跑**（沙箱只读） |\n| 冻结面 | 未触碰 | ✅ 我按终版包 `sourceManifest` 自算 **10/10 sha256 逐字相同** |\n\n**初审判定：静态面全部通过**（行为保持、冻结面、门件、规模）；回归面为「产出方双日志＋我的集合 diff」，标注为**未经我直跑**。\n\n**尚未能关闭**：`close` 两道关——① 判据三条 `fs.contains` 按 `dshHome` → `probe-read`；② **缺 `task=TK-17b00002` 且 `botId=implementer` 的登记条目**（未登记）。\n\n## 二、TK-17b00001 死结（我独立复核为真，非操作错误）\n\n事件实序：`104 deliver` → `108 exception`／**`109 escalated`（web，清 owner）** → `110 拒(illegal-transition)` → `112 拒(invalid-resume-target)`／`113 拒` → **`114 resume`** → `115 拒` → `116 拒(capability-required，实施者重发 deliver)` → 现状 **`produced／owner:null／seq:116`**。\n\n代码面佐证（我实读）：归属门 `ownerRequired && existing.owner !== actor.id` ⇒ **`owner=null` 时任何 actor 都过不去**（`task-ledger.js:1151–1153`）；`lease-reclaimed` 来态＝`HOLDING_STATES`（含 produced）；`cancel` 来态＝非终态；`sweep` 对 `owner===null` 走队列滞留分支，而 `QUEUE_STALL_ACTIONS` 无 `produced` 项 → 直接跳过。\n\n**两条组织缝隙（建议进实验记录）**\n1. **`escalated` 清归属，`resume` 不还原归属**；\n2. **`escalated→resume` 往返把 `delivered` 落回 `produced`**（交付被降级）。两者叠加＝「**可产出不可交付**」死结：五条承接类命令全被归属门锁死，巡检也救不了。\n\n**可行出口（均需 host/user 侧，不在任何 bot op-set）**\n\n| 路 | 动作 | 代价 |\n|---|---|---|\n| **A（推荐）** | host 发 `lease-reclaimed`（来态含 produced，目标 planned）→ `task.assign` → 实施者重跑 `accept→start→report→deliver`（工件不变） | 链上多一次往返，`dispatchCount` 再＋1 |\n| **B** | `task.cancel`（来态含非终态）终结本单 | 原链与锚点作废；如需结论须另立新单 |\n| **C** | 停在 `produced` | 结论只由人工复算判决，链上无关闭记录 |\n\n## 三、系统性观测：两单各一次「租约自然到期」\n\n| 单 | assign | lease-expired | 间隔 | 结果 |\n|---|---|---|---|---|\n| 17b00001 | 16:55:32 | 17:05:34 | 10:02 | 重派后才被接收 |\n| 17b00002 | 17:25:50 | 17:35:54 | 10:04 | 重派后才被接收 |\n\n两单都是**派单后承接方未被唤醒**、租约到期→重派→才走链。即派工面缺「到账即唤醒承接方」的确定性动作，每次派工都要付一次超时重派。是否要修，或记为实验观测，请你定。\n\n## 四、待你裁定（六项）\n\n1. **TK-17b00001 处置**：A（reclaim→assign→重跑链）／B（cancel）／C（停在 produced，人工复算判决）。\n2. **TK-17b00002 登记**：是否照 17b00001 做法 `knowledge.register`（会生成 R-2026-012，并复现「命名缺口＋尾换行字节漂移」）。\n3. **`close` 判据口径**：满足坐标（放名为 `R-2026-104.md` 的副本）／amend 坐标／接受 close 被拒按人工复算。\n4. **回归「全绿」**：读作**零新增失败**。\n5. **范围冲突＋补遗④⑤**：`lib/` 字面全覆盖 vs 回避冻结面 10 条；平价重核义务／Node ≥22.12 底线是否接受为残留风险。\n6. **派工唤醒缺口**：修 or 记为观测。\n\n本岗本轮全程只读（事件文件、源码、实件哈希），未新增工件、未写运行面。",
+      "at": "2026-10-05T17:54:14.233Z",
+      "taskId": "TK-17b00002",
+      "replyTo": 40
+     },
+     {
+      "id": "V6qTU9XIHBqnppeBxecyfA",
+      "seq": 41,
+      "from": "user",
+      "text": "收尾提醒：TK-17b00001 仍在 produced——请重发 task.deliver（工件不变）。TK-17b00002 的 deliver 已收到，编排方复算结论：三判据过但全量回归 76/79（watcher.test.mjs 崩溃，pin 基线 79/79）＝重构致损未全绿，你的任务不灭，按台账走完即可，后续处置由编排方落档。",
+      "at": "2026-10-05T18:01:52.948Z"
+     },
+     {
+      "id": "vQLadHruqBjTujWjdoix9Q",
+      "seq": 42,
+      "from": "duty-coordinator",
+      "text": "两条都核过了。第二条是**两线归因冲突**（产出方说不相关、编排方说致损），我按职责上抛，同时给出我能独立复算的部分与一个能定谳的判别实验。\n\n## 一、TK-17b00001 重发仍被拒（同因，无新痕迹）\n\n`ok=false／capability-required`；状态未变：`produced／owner:null／seq:116`。这印证了归属门判定：`ownerOnly && existing.owner !== actor.id`，`owner=null` 时**任何 actor**（含 host 签信封后）都过不去。出口仍只有你说的三条（A `lease-reclaimed`→`assign`→重跑链；B `cancel`；C 停在 produced）——**待你选**。\n\n## 二、`watcher.test.mjs` 归因冲突：我的独立核查\n\n我做了无写入的静态复算（纯净参照＝duty-coordinator 侧的 `clone/`，其 20 件文件的 sha256 与产出方记录的 `beforeSha256` **20/20 逐字相同**，故参照有效）：\n\n| # | 事实 | 结论指向 |\n|---|---|---|\n| 1 | 20 个改动件剥掉**全部** `import`/`require` 语句后，**19/20 与纯净版逐字一致**；唯一差异是 `lib/shared.cjs:220` 一处别名调用 `fs.mkdirSync`→`safeIo.mkdirSync`（＋`require(\"./safe-io.js\")` 行） | 文件正文层无可致损路径（与产出方说法一致） |\n| 2 | 3 个文件残留**空 import 伪影**：`import {  } from \"./safe-io.js\";`（`lib/index.js:128`、`lib/mail-plane.js:9`、`lib/sentinel-runner.js:18`） | 机械换源残留；我实测该语法在 v22.23.2 **合法**，不构成崩溃因，但属应清理项 |\n| 3 | 载入图关键点：`watcher.test.mjs` 动态 `import(\"../lib/index.js\")` → index.js 经 `createRequire` 加载 `lib/shared.cjs` → shared.cjs 现 `require(\"./safe-io.js\")`（ESM） | **Node <22.12 必抛 `ERR_REQUIRE_ESM`**——正是补遗⑤那条底线；这是唯一能「随改动出现」的崩溃机制 |\n| 4 | 该测试是套件里最网络/时序敏感的一个：自起 probe 与 mail 两个 server（`listen(0,\"127.0.0.1\")`）＋1400 ms 定时等待，单跑 15–16 秒；`tests/run.mjs` 用 `spawnSync` 逐文件 spawn，**无单文件超时** | 高负载/端口/沙箱拒绑环境下可表现为「崩溃」 |\n| 5 | 两边**环境不同**：产出方 76/79（三条 DSH_HOME 重叠守卫失败）；编排方 pin 基线 79/79、补丁后 1 条失败（watcher） | 两个数字不可直接对比，必须同环境同命令重跑 |\n\n**判别实验（请编排方在同环境执行，足以定谳）**\n1. 该环境 `node --version`——**若 < 22.12，第 3 条即根因**（修法：给 `safe-io` 加 `.cjs` 门面，或抬 `engines` 底线）。\n2. 同一环境、同一命令，分别跑 **pin 基线树** 与 **打补丁树** 的 `tests/watcher.test.mjs`，各 3 次，抓**原始输出与栈**（是超时／端口冲突／未捕获异常／断言失败？）。\n3. 若补丁树崩、基线树过 → 最小化：只把 `shared.cjs` 的 `require(\"./safe-io.js\")` 临时改回直连 `node:fs` 再跑；恢复即根因确认。\n4. 若两侧皆崩或皆过 → 归环境，与本次改动无关。\n\n**两方立场并列（我不代裁）**：产出方＝环境/超时（本机 3×3 复跑两侧皆 pass，机制面无可达路径）；编排方＝改动致损（同环境 pin 基线 79/79、补丁后 1 条失败）。我这边只能证到「正文层 19/20 逐字不变＋1 处别名等价调用」，**不能排除第 3 条的版本耦合**。\n\n## 三、我这轮没有拿到的东西（若该归因要进落档，请补）\n\n① 崩溃原始输出/栈；② 执行环境（`node --version`、`DSH_HOME`、是否沙箱拒绑端口）；③ 那次运行的命令与单文件超时设置；④ 失败是否可重复（3 次里几次）。\n\n## 四、其余仍待你裁定（六项不变）\n\n① 17b00001 处置 A/B/C；② 17b00002 是否照 17b00001 做法登记（会生 R-2026-012）；③ `close` 判据口径；④ 回归「全绿」读作零新增失败；⑤ 冻结面范围冲突＋补遗④⑤（其中⑤已被本轮的 watcher 冲突实证为**真实风险面**，不再只是理论留界）；⑥ 派工唤醒缺口是否修。\n\n本轮我全程只读（实件哈希、源码、事件文件、两次 node 语法/能力探测），未改任何文件、未写运行面。",
+      "at": "2026-10-05T18:10:03.398Z",
+      "taskId": "TK-17b00002",
+      "replyTo": 41
+     },
+     {
+      "id": "SjZleZSvdyib2eRnmQtb8A",
+      "seq": 43,
+      "from": "duty-coordinator",
+      "text": "rev.2 已核完，同时也带来一个**证据卫生事项**要你定。\n\n## 一、rev.2 清理复核（我实算，全部通过）\n\n| 检查 | 结果 |\n|---|---|\n| 三处空门导入（`index.js:128`／`mail-plane.js:9`／`sentinel-runner.js:18`） | ✅ 已归零（`lib/` 内 0 处） |\n| 冻结面 `sourceManifest` | ✅ 清理后仍 **10/10** sha256 逐字相同 |\n| 非冻结面 node:fs 泄漏 | ✅ 全 `lib/` 中仍直连那 9 个原语的**只剩 6 个冻结文件**（`evidence-packager`／`ledger-evidence`／`org/store-base`／`parity-manifest`／`sentinel-provenance`／`sentinel-shadow`）——正是已声明的豁免面，无一漏网 |\n| 门件 `lib/safe-io.js` | ✅ 未动：2253 B／`7226aaff…`（判据锚不变） |\n| 版本留痕 | ✅ rev.2 patch 14049 B／`f9e6ff7a…`；pre-cleanup 14144 B／`8b1833a0…` 已另存 |\n\n## 二、需要你定的证据卫生事项：**交付后升版**\n\n`report`（seq=119）声明的是 `patchPath: .scratch/tk-17b00002/tk-17b00002-safe-io.patch`；该路径内容在 deliver 之后已变（14144→14049 B，删 3 行空导入）。**判据锚（`lib/safe-io.js` 指纹）未变，故验收不受影响**；但台账里声明的交付件内容与现状不再逐字对应。\n\n我的流程自查也在这儿：这轮清理是我把它点名为「可清理项」引发的，而它落在 deliver 之后——**顺序上「先交付、后清理」不是好形态**。产出方已做对的部分：保留 rev.1、`verify-summary.json` 加 `revision` 段、主动报透明。\n\n请择一（我不自行登记，本岗无 `amend`）：\n- (a) 由你 `task.amend`／或在下单面追加一条版本说明，把 rev.2 指纹与变更内容落台账；\n- (b) 接受「台账锚＝门件指纹、patch 内容以工作区 rev.2 为准」，仅在实验记录里记升版事实；\n- (c) 要求产出方以 rev.2 重新 `report`（会再落一条 report 事件）。\n\n## 三、watcher 冲突：机制已收敛到一点，修法需你裁\n\n- 唯一「随改动出现」的崩溃机制＝`lib/shared.cjs` 的 `require(\"./safe-io.js\")`（ESM），**Node <22.12 必抛 `ERR_REQUIRE_ESM`**——这正是补遗⑤。产出方本机 6/6 通过不矛盾（v22.23.2）。\n- 消掉它只能是设计改动：加 CJS 门面（`lib/safe-io.cjs` 持 `node:fs` 绑定 ← `lib/safe-io.js` 转委托 ← `shared.cjs` 改 require 那个 `.cjs`）。**超出本单简报范围**，需你先就补遗⑤裁定（接受残留风险／要求加门面／抬 `engines` 底线并要求环境升 Node）。\n- 定谳仍需编排方给出：执行环境 `node --version`＋原始崩栈＋同环境基线/补丁树各 3 次复跑。\n\n## 四、待你裁定（七项）\n\n① 17b00001 处置 A/B/C；② 17b00002 是否登记（会生 R-2026-012）；③ `close` 判据口径；④ 回归「全绿」读作零新增失败；⑤ 冻结面范围冲突；⑥ 补遗④⑤（watcher 已把它从理论风险变为**实证风险面**）；⑦ **交付后升版如何记**（本节 a/b/c）。\n\n我的初审状态：**TK-17b00002 静态面（rev.1）通过；rev.2 清理面已复核通过；回归复跑结果待产出方回报后我出最终初审判定**。本轮我全程只读。",
+      "at": "2026-10-05T18:15:15.407Z",
+      "taskId": "TK-17b00002",
+      "replyTo": 42
+     },
+     {
+      "id": "Mkp9UrZ4XXQYUGX_ZFn-dQ",
+      "seq": 44,
+      "from": "duty-coordinator",
+      "text": "rev.2 回归日志我已独立核完，**TK-17b00002 的验收初审至此可以出结论**。\n\n## 验收初审 · TK-17b00002（本岗出具）\n\n**判定：通过**（前提＝口径④「全绿」读作**零新增失败**；该前提待你确认）。\n\n**我独立复算的证据链**\n\n| # | 项 | 结果 |\n|---|---|---|\n| 1 | 门件 `lib/safe-io.js` | 2253 B／`sha256=7226aaff…`／9 个 `export function`（探针 index 0 的内容面满足） |\n| 2 | 规模 | `lib/` 下 21 件引用（20 改动＋本体），满足「不少于 20 个」 |\n| 3 | 行为保持 | 20 件剥掉**全部** `import`/`require` 后 **19/20 逐字一致**；唯一差异 `lib/shared.cjs:220` 一处别名等价调用。参照有效性：`clone/` 的 20 件 sha256 与记录的 `beforeSha256` **20/20 相同** |\n| 4 | 冻结面 | `sourceManifest` **10/10** sha256 逐字相同（rev.2 清理后复算） |\n| 5 | 覆盖面 | 非冻结面**零** node:fs 泄漏（仍直连的仅 6 个冻结文件＝声明豁免面） |\n| 6 | 回归 | `baseline`／`after`／`regression-after-cleanup` 三份日志 `✗` 行集合**逐项相等**，各 76/79、448 断言，watcher 三者均 ✓ |\n| 7 | rev.2 清理 | 未改变任何测试结果；patch 14049 B／`f9e6ff7a…`，rev.1 已留档 |\n\n**保留项（必须与结论同读）**\n\n1. **我未能直跑套件**（沙箱只读，测试需写临时/输出目录）：回归结论＝产出方三日志＋我的集合 diff，非我直跑。\n2. **「全绿」字面未达成**（76/79，三条环境守卫失败）——故本通过以口径④为前提。\n3. **范围**：6 个冻结文件未改，与「`lib/` 全部调用点」字面义冲突（待裁⑤）。\n4. **机械 close 仍会拒**：三条 `node.tests` 打的是活插件树、`fs.contains` 按 `dshHome` 解析；且**缺 `task=TK-17b00002 / botId=implementer` 的登记条目**（未登记）。\n5. **补遗④⑤**：平价重核义务未做；`require(ESM)` 底线是实证风险面（watcher 归因待编排方 `node --version` 定谳）。\n6. **交付后升版**（rev.2）的台账记账方式待裁⑦。\n\n## 另一线：TK-17b00001 仍卡死\n\n`produced／owner:null／seq:116`，重发 `deliver` 仍 `capability-required`。出口只有你手上三条：**A** `lease-reclaimed`→`assign`→重跑链（推荐，保原链）；**B** `cancel`（原链作废）；**C** 停在 produced（人工复算判决）。\n\n## 待你裁定（七项，收敛版）\n\n① 17b00001 处置 **A/B/C**；② 17b00002 是否登记（会生 R-2026-012，并复现命名缺口＋尾换行漂移）；③ `close` 判据口径（满足坐标／amend／接受被拒按人工复算）；④ 「全绿」＝**零新增失败**（本初审的前提，请确认）；⑤ 冻结面范围冲突取哪条；⑥ 补遗④⑤（watcher 待 `node --version` 定谳；若 <22.12 则 CJS 门面方案待你放行）；⑦ 交付后升版如何记（amend／仅实验记录／重发 report）。\n\n本岗本轮全程只读（三份日志、实件哈希、源码扫描），未增删工件、未写运行面；实施者待命，我保持待命。",
+      "at": "2026-10-05T18:15:39.404Z",
+      "taskId": "TK-17b00002",
+      "replyTo": 43
+     },
+     {
+      "id": "4pUarOq2XiBXUQnCn19haQ",
+      "seq": 45,
+      "from": "duty-coordinator",
+      "text": "升版记账按产出方选择的 **(b)** 落地，我核过留痕件，与我的实算互证。\n\n## 一、升版记账（b）：已成立，台账锚不变\n\n`ARTIFACT-VERSIONS.md`（2885 B，02:15）内容与我实算逐项吻合：门件锚 `7226aaff…`（两版未变）；rev.1 `8b1833a0…`／14144 B（原样留存为 `pre-cleanup.patch`）；rev.2 `f9e6ff7a…`／14049 B；唯一差异＝删除 3 行空门导入；并附复算命令（`sha256sum`／两版 `diff`）。\n\n- 生产方可自决且无需他人介入的只有 (b)；(a) `amend` 与 (c) 重发 `report`（来态仅 `[running]`）都需你或 host 侧动作，其判断与实测一致。\n- **对初审的影响：无**。验收锚是 `lib/safe-io.js` 指纹与三条测试，二者 rev.1/rev.2 相同；patch 内容漂移由该留痕件覆盖。\n- 若你仍要**台账侧**留痕，只能走 (a) `task.amend`——本岗与产出方都无此 op。\n\n## 二、组织学习点（建议进实验记录）\n\n产出方与我都做了同一处流程自查：**「先交付、后清理」的根因＝交付前缺一次「换源伪影自检」**（空导入＝0／非冻结面 `node:fs` 泄漏＝0／正文不变性逐件比）。它已把该检查前移到 deliver 之前。这类「按机械门记账、但物理顺序该前移」的教训，正是本实验想观测的东西。\n\n## 三、仍待你（六项）\n\n1. **TK-17b00001 处置 A/B/C** —— 唯一还卡在机器上的事（`produced／owner:null`，重发 deliver 恒被归属门拒）。\n2. **TK-17b00002 登记**与否（照 17b00001 做法将生成 R-2026-012，并复现命名缺口＋尾换行漂移）。\n3. **`close` 判据口径**（满足坐标／amend／接受被拒按人工复算）。\n4. **确认口径④**：回归「全绿」读作**零新增失败**（我的初审以此为前提，76/79 三条为环境守卫）。\n5. **范围冲突⑤**：`lib/` 字面全覆盖 vs 回避 6 个冻结文件。\n6. **补遗④⑤**：平价重核义务；`require(ESM)` 底线——watcher 归因待编排方 `node --version`＋原始崩栈＋同环境 3 次复跑定谳（若 <22.12，CJS 门面方案待你放行）。\n\n本岗本轮只读核验（留痕件、补丁指纹、版本链），未改工件、未写运行面；实施者待命，我保持待命。",
+      "at": "2026-10-05T18:16:18.409Z",
+      "taskId": "TK-17b00002",
+      "replyTo": 44
+     },
+     {
+      "id": "G3lYhgK1wHSaMeXrVRhp_Q",
+      "seq": 46,
+      "from": "duty-coordinator",
+      "text": "补遗④ 的只读实算我独立复核了一遍，**结论一致**，且比它自述的更锋利的覆盖率数字也成立。\n\n## 一、平价面复核（我实算）\n\n| 检查 | 我实读结果 |\n|---|---|\n| `PARITY_MANIFEST` 条数 | ✅ **7 条**（`lib/sentinel-provenance`／`sentinel-safety`／`sentinel-shadow`／`sentinel-runner`／`evidence-packager`＋`scripts/evidence-runner.mjs`／`evidence-packager.mjs`）；源码里就是字符串数组，**不含 hash 字段** |\n| repo↔deploy | ✅ 6 同／1 漂移：`lib/sentinel-runner.js`（deploy `b5a6e0da…`＝改动前 vs repo `068f6eb0…`） |\n| 其余改动件 | ✅ deploy 侧 20 件**全部漂移**（`lib/index.js`：deploy `4df9f7df…`＝改动前 vs repo `d01fb0ad…`） |\n| 新增件 | ✅ deploy 侧**无** `lib/safe-io.js` |\n| 口径更正 | ✅ 成立：`verifyParityManifestEntries` 只做「存在性＋现算 hash」，**不比对任何记录值** → 先前的 `ok:true` 是平凡真，不作为平价证据 |\n\n**由此得到的覆盖率数字（值得进实验记录）**：本单改动 **21 件**中，平价机制只看得见 **2 件**（`sentinel-runner.js` ＋ 非清单但属 host 静态面的 `index.js`），另 **19 件**（`lib/org/*`、`mail-plane.js`、`knowledge.js`、`shared.cjs` …）**不在平价清单内**——机制上「看不见它们的漂移」。若执行 C2，同步面实为 **21 条路径**。\n\n是否把清单从 7 条扩到覆盖改动面，属**受控单源变更**（产出方按纪律不自行扩）；请你在裁定里明确取「维持覆盖缺口并记档」还是「另立扩展单」。\n\n## 二、待你裁定（收敛为六项）\n\n1. **TK-17b00001 处置 A/B/C** —— 机器上唯一还卡死的一项（`produced／owner:null`）。\n2. **TK-17b00002 登记**与否（将生成 R-2026-012，复现命名缺口＋尾换行漂移）。\n3. **`close` 判据口径**（满足坐标／amend／接受被拒按人工复算）。\n4. **确认口径④**：回归「全绿」读作**零新增失败**（我初审的前提）。\n5. **范围冲突⑤**：`lib/` 字面全覆盖 vs 回避 6 个冻结文件。\n6. **补遗⑤＋平价覆盖缺口＋watcher 定谳**：`require(ESM)` 是否加 CJS 门面（待 `node --version`）；平价清单是否扩；watcher 归因所需原始证据仍在编排方。\n\n本岗本轮只读（清单源文件、repo↔deploy 双方实件哈希、deploy 树存在性），未写运行面、未同步、未新增工件。",
+      "at": "2026-10-05T18:17:57.444Z",
+      "taskId": "TK-17b00002",
+      "replyTo": 45
+     },
+     {
+      "id": "EfULEqYT1IHBp6Lu9cO5Yw",
+      "seq": 47,
+      "from": "duty-coordinator",
+      "text": "【承接实施：TK-17c00001（multi-hop-research，放大验收实验 v3·组织臂，本轮第 1 单）】\n\n目标（冻结预登记件逐字）：对 dsh-bots 仓库的十个子系统各做一次独立机制调查并汇总为带交叉引用的总报告：子系统＝宿主适配面／任务台账／复核件套／权限四层／邮件面／记忆与知识层／探针面／恒久性与模型更迭／简报与派单／重建与切换（按 docs/agents/codebase-map.md 模块职责划分）；每子系统一节、全报告不少于 10 节、每节含机制描述与至少 3 个文件坐标引用，并给出各子系统的关键不变量与已知留界。工件路径两臂同规：相对执行席工作区根（组织臂＝承接岗工作区），不在共享知识库登记自动编号副本。\n\n交付物：format=markdown，坐标 bots/knowledge/reports/R-2026-104.md（相对你的工作区根）。\n\n来源：docs/agents/codebase-map.md（file）／.scratch/org-v2/spec.md（spec）／org-v2-build/17（issue）。\n\n边界（逐字）：只读调查＋写报告；不改代码与配置；不触真实运行面。\n\n验收判据（冻结件逐字，三条 fs.contains，location 均为 bots/knowledge/reports/R-2026-104.md）：text=「子系统」／text=「不变量」／text=「留界」。\n\n常设裁定（本批两单通用）：\n① 判据谓词逐字取冻结件；执行根适配为承接岗工作区实际落点（即你的工作区根）；node.tests 类判据跑在承接岗工作区根——同谓词适配根，与裸臂同规，不属判据改动，无需上抛。\n② 预算：本任务组织臂上限 9,000,000 token（两席合计，任务窗切片口径）。勿扩大任务范围；勿重复复读已知状态。\n③ 预置面：你的工作区根已铺仓库树快照（pin 9569166）。TK-17c00003 本轮不入集不派；TK-17c00002（跨文件改动）在本单结算后再派——本轮串行。\n\n现状事实（供你判定，不是指令）：验收坐标处**已存在**一件上一批（v2）遗留文件——bots/knowledge/reports/R-2026-104.md，37079 B，sha256=4a7a3c3b48a16e12655f41e839984f298d0798d2ca530e47d5a12d67e929263b，mtime 2026-10-06 00:22，内容为组织 v2 同题报告；且该 bots/ 目录不在 pin 快照内（repo 树无 bots/）。请回信明确本次产出与该遗留件的关系（新建／覆盖／沿用）与最终指纹、字节数；不要把「坐标已有文件」当作本单产出。\n\n台账：本岗已收单并立项（intake seq=125、triage seq=126，status=triaged）。plan/assign 由编排方下达；手上暂无信封时可直接开工——只读调查＋工作区内落盘不依赖任务域 capability。\n\n回信只写结论：是否完成／交付物路径＋字节＋sha256＋三条判据词频／各节标题清单／已知边界或残留风险。",
+      "at": "2026-10-06T06:05:06.901Z",
+      "taskId": "TK-17c00001"
+     },
+     {
+      "id": "jwNFA4zlfJUcST5WnDAtJg",
+      "seq": 48,
+      "from": "duty-coordinator",
+      "text": "【回执：工件已进入初审；三个事实答复（无需回信）】\n\n1) 工件复核（我实读）：bots/knowledge/reports/R-2026-104.md 43694 B／sha256=db1e2e526f7d2b35540e6a2b77e24912c226540c155260d70964bbc04c150ef6；wc -l=423（你报的「行数 1」属计数口径误差，不影响指纹）；`## ` 标题 15 条（10 个编号子系统节＋关系／口径／交叉引用／边界／自检）；词频 子系统 13／不变量 13／留界 12。留痕件 v2-leftover-R-2026-104.md（37079 B）与 coord-verification.json（15879 B）均在。\n2) 探针执行根错位：已上抛（属常设裁定①在机制层的落法问题）。在用户裁定前不重试、不复制到 ~/.dsh——与你处理一致。\n3) v2 证据副本：我实读你工作区 .scratch/tk-17b00001 与 .scratch/tk-17b00002 均已不存在；另查编排方工作树 /home/beijong/project/dsh-bots（含 .worktrees/ticket-17-*）——未找到那批的 patch／日志／verify-summary 副本。故 v2 物理证据现存仅：①你在本单留的 R-2026-104.md 正文副本；②我侧会话留存的指纹与版本链记录（patch rev.1 14144 B／8b1833a0…、rev.2 14049 B／f9e6ff7a…，三份回归日志失败集全等，冻结面 10/10，safe-io.js 7226aaff…）。本岗无写权限，只能以文本形式交用户。",
+      "at": "2026-10-06T06:14:52.430Z",
+      "taskId": "TK-17c00001"
+     },
+     {
+      "id": "l5_RQH7rjUsxvTuvay7KJg",
+      "seq": 49,
+      "from": "duty-coordinator",
+      "text": "TK-17c00001 的产出已到，初审做完；另有一条**证据链断裂**要报。\n\n## 一、验收初审 · TK-17c00001（静态面）\n\n| 项 | 值（我实读复算） |\n|---|---|\n| 工件 | `bots/knowledge/reports/R-2026-104.md`，**43694 B**／`sha256=db1e2e52…0ef6`／**423 行**（产出方报的「行数 1」是计数口径误差，不影响指纹） |\n| 结构 | `## ` 标题 **15** 条，其中**编号子系统节 10 条**（≥10 达标）＋关系／口径／交叉引用／边界／自检 |\n| 三条判据内容面 | 「子系统」**13**、「不变量」**13**、「留界」**12** —— 均满足 |\n| 坐标真实性 | 我抽全部路径令牌：**67 个唯一路径，MISSING 0** |\n| 与遗留件关系 | **已覆盖**：新件在坐标上；v2 遗留件原样留存为 `.scratch/tk-17c00001/v2-leftover-R-2026-104.md`（37079 B，指纹同 v2）；报告内声明复用 v2 结论并逐条重核坐标（112/120 落在 ±2 行内、4 条修正），且**未**在共享知识库登记自动编号副本（遵 v3 brief 那句） |\n\n**保留**：坐标「±2 行内」这类语义细节我只核了存在性全量（67/67），未逐条比对行号；机械探针仍为 `probe-read`（见下）。\n\n## 二、两条需你明确\n\n1. **常设裁定①的「机制落法」**：裁定解决了**判定口径**（同谓词、执行根≠承接岗工作区根），但**机械门未对齐**——`close` 会现跑三条判据，探针实现按 `api.dshHome` 解析（`lib/org/probe.js`），故必然 `probe-read`。请择一：**(i)** 接受 `close` 被拒、判定走人工复算（前批口径）；**(ii)** 由 host 侧为组织臂探针注入承接岗工作区根（属宿主面机制改动）；**(iii)** 工件另落 `dshHome` 相对坐标（前批已见命名缺口＋尾换行漂移副作用）。我不自行选择。\n2. **污染面**：覆盖已事实发生（新件在坐标、遗留件留副本）→ 若你认可，即前次所提选项 **(b)**，请确认；若你要 **(a) 清场**口径，则当前状态已是「覆盖后」，需你明确按哪条判定。\n\n## 三、证据链发现：pin 重铺摧毁上一批未归档证据\n\n- 我实读：`.scratch/tk-17b00001`、`.scratch/tk-17b00002` 在承接岗工作区**均已不存在**——v2 的 patch（rev.1/rev.2）、三份回归日志、`verify-summary.json`、`ARTIFACT-VERSIONS.md` **全部丢失**。\n- 我另查编排方工作树 `/home/beijong/project/dsh-bots`（含 `.worktrees/ticket-17-*` 五个）——**未找到那批副本**；`run-20261005-v2/` 里也没有。\n- 后果：v2 台账 `report` 声明的 patch 路径**物理断裂**。现存证据仅：①承接岗在本单主动留的 `R-2026-104.md`（v2 正文）副本；②我侧会话的指纹与版本链记录（patch rev.1 14144 B／`8b1833a0…`、rev.2 14049 B／`f9e6ff7a…`；三日志失败集全等；冻结面 10/10；`safe-io.js` `7226aaff…`）——需要时我可整理成文本清单交你（本岗无写权限）。\n- 建议：**每批重铺前把 `.scratch/<taskId>/` 归档到工作树之外**（属你编排侧动作，我无法代做）。\n\n## 四、链条\n\n仍待你 **`task.plan`（`triaged`, seq=126）→ `task.assign`（`planned`, `{assignee:\"implementer\", dispatcher:\"user\"}`）** 与后续 `settle`——本岗 op-set 无这些（已实证）。承接方同前批模式已先行完成产出，一到账即可走链。\n\n本轮只读核验＋一封回执投递（mail seq=48），未改工件、未写运行面、未扩范围。",
+      "at": "2026-10-06T06:15:10.338Z",
+      "taskId": "TK-17c00001",
+      "replyTo": 49
+     },
+     {
+      "id": "3Ju9zDcouNwkgsB39nHFFA",
+      "seq": 50,
+      "from": "duty-coordinator",
+      "text": "指纹补正已核：**身份以「字节＋sha256」为准，双方一致**（43694 B／`db1e2e52…0ef6`）。行数差异只是计数口径——该文件以 `\\n` 收尾，我这边 `wc -l` 与 `awk 'END{print NR}'` 都是 **423**；产出方的 424 是「按换行切分后的元素数」（末位含一个空元素）口径。**对判据与初审结论均无影响**，初审判定不变（三条内容判据满足、10 个编号节、67 个坐标令牌 MISSING 0）。\n\n待你两件仍未动：**① 常设裁定①的机制落法**（`close` 现跑判据必 `probe-read`：接受人工复算口径／host 侧适配探针根／另落 dshHome 坐标）；**② 污染面确认**（覆盖已事实发生，认可即为选项 b）。另链条侧 `plan → assign` 仍待你落（本岗无 op）。",
+      "at": "2026-10-06T06:15:26.346Z",
+      "taskId": "TK-17c00001",
+      "replyTo": 50
+     },
+     {
+      "id": "OOXBQiAnY0yBguQfWkplIw",
+      "seq": 51,
+      "from": "duty-coordinator",
+      "text": "更正接受，我实核确认：\n\n- 共享知识库副本 **`~/.dsh/bots/knowledge/reports/R-2026-011.md`**：37078 B／`sha256=ba540b3d…3341`，与工作区留存副本**前 37078 字节逐字节相同**（后者 37079 B，多一个收尾 `\\n`）——即 v2 交付正文确有两处物理存续，且都不受本次 pin 重铺影响。我上轮「现存仅两处」的清单确实低估了，已更正。\n- **真正丢失的只有 TK-17b00002 的工作区内件**：patch rev.1/rev.2、三份回归日志、`verify-summary.json`、`ARTIFACT-VERSIONS.md`。其中 patch 的**记录**仍在我会话里（两版字节数／sha256、版本链、变更性质），但**字节不留存**。\n\n关于「按同一变换重放重建 patch」的补救：这是你的裁定项，我不自行启动，也把它记为**待裁第 3 条**。我的口径提示（不代裁）：若实验只需**事实记录**（指纹＋结果＋结论），重建无增益；若要**可复算的原件**，重建件必须显式标注为「重建件」——它不可能等于 `f9e6ff7a…`（原件含当时的空白与顺序），且这已越出本批两单范围。\n\n**当前待你共三项**：① 常设裁定①的机制落法（`close` 必得 `probe-read`）；② 污染面确认（覆盖已事实发生＝选项 b）；③ 是否为 17b00002 重建 patch 证据件。链条侧仍待 `task.plan`（`triaged`, seq=126）→ `task.assign`。本轮只读核验，无新投递。",
+      "at": "2026-10-06T06:16:29.388Z",
+      "taskId": "TK-17c00001",
+      "replyTo": 52
+     },
+     {
+      "id": "y4UiQeW_ma58BT4NJ23bIQ",
+      "seq": 52,
+      "from": "user",
+      "text": "TK-17c00001 已由用户正式 assign 给你（台账 assigned、owner=implementer）。工件即你 14:14 交付的 bots/knowledge/reports/R-2026-104.md（v3 版）。请现在走台账链：task.accept → task.start → task.report → task.deliver。完成后值班统筹 settle。",
+      "at": "2026-10-06T06:32:18.755Z"
+     },
+     {
+      "id": "6r4IlIWjoHcUnlGU_NwbJA",
+      "seq": 53,
+      "from": "duty-coordinator",
+      "text": "【回执：settle 不在本岗 op-set，已上转；无需回信】\n\n1) 台账已核：TK-17c00001 = delivered／owner=producer=implementer／lastSeq=132／dispatchCount=1，与你报的 accept 129→start 130→report 131→deliver 132 一致。\n2) `task.settle` 不在值班统筹 op-set（本岗实际可调：intake／triage／exception／ledger.read／mail.send／knowledge.register／knowledge.deprecate；settle／close／plan／assign 均无绑定）。settle 与 close 的裁决面在编排方/用户侧，我已把链条状态与「close 会因探针根错位被拒」上转。\n3) 你的处置口径我认可：close 若被 acceptance-check-failed／probe-read 拒，只报码与理由、不重试不绕行。\n4) 下一单 TK-17c00002（cross-file-change）按用户串行裁定在本单结算后由我收单派工；到账前不必动作。",
+      "at": "2026-10-06T06:32:59.481Z",
+      "taskId": "TK-17c00001"
+     },
+     {
+      "id": "rn2LhAM5wSsVbztV31J7Vg",
+      "seq": 54,
+      "from": "duty-coordinator",
+      "text": "链条已推进：**TK-17c00001 = `delivered`／owner=producer=`implementer`／lastSeq=132／dispatchCount=1**（accept 129→start 130→report 131→deliver 132，零拒绝；report 声明的交付物指纹与我实算一致）。\n\n我实查了自己的绑定：`task.settle`／`close`／`plan`／`assign` **全无**（本岗实际可调仅 `intake／triage／exception／ledger.read／mail.send／knowledge.register／knowledge.deprecate`）。故实施者请我 settle 这件事**不在我权限内**——已回执说明并上转。\n\n**请你落两枪**：\n\n1. **`task.settle`**（`delivered`, seq=132）——链条收尾在你侧；\n2. **`task.close`** 会**必然被拒**：三条 `fs.contains` 现跑仍 `probe-read`（探针根＝`dshHome`，工件在承接岗工作区根）→ `acceptance-check-failed`。是否接受「判定走人工复算、`close` 记拒绝」，仍待你的裁定①（三选一）。\n\n按你的串行裁定，**17c00002 在本单结算后**我就收单派工（届时一并转达「中性路径跑全量回归、pin 基线 80/80」那条）。我保持待命，不重复复读状态。",
+      "at": "2026-10-06T06:33:05.574Z",
+      "taskId": "TK-17c00001",
+      "replyTo": 54
+     },
+     {
+      "id": "d0YJTb5Ylyft_PlUSn0n3A",
+      "seq": 55,
+      "from": "duty-coordinator",
+      "text": "【承接实施：TK-17c00002（cross-file-change，放大验收实验 v3·组织臂，本轮第 2 单；前单 TK-17c00001 已 settle）】\n\n目标（冻结预登记件逐字）：新增 lib/safe-io.js 统一文件 IO 门（薄封装），并把 lib/ 下（不含 tests/）直接调用 node:fs 读写原语（readFileSync／writeFileSync／appendFileSync／mkdirSync／readdirSync／statSync／existsSync／rmSync／cpSync）的调用点改为经由该门，行为保持、不改任何对外语义；波及文件不少于 20 个；收尾全量回归 node tests/run.mjs 全绿\n\n交付物：format=patch，落点 lib/（含新增的 lib/safe-io.js）。\n\n来源：docs/agents/codebase-map.md（file）／.scratch/org-v2/spec.md（spec）／org-v2-build/17（issue）。\n\n边界（逐字）：只改工作区内仓库树；行为保持；不触真实运行面；不新增事后判据。\n\n验收判据（冻结件逐字，四条）：① fs.contains(location=\"lib/safe-io.js\", text=\"export function\")；②③④ node.tests，file 分别为 org-brief.test.mjs／org-permissions.test.mjs／registry.test.mjs。\n\n常设裁定（本批两单通用）：\n① 判据谓词逐字取冻结件；执行根适配为承接岗工作区实际落点（node.tests 三件跑在你的工作区根，即 repo 树根）。同谓词适配根，与裸臂同规，不属判据改动。\n② 预算：本任务组织臂上限 9,000,000 token（两席合计，任务窗切片口径）。勿扩大任务范围；勿重复复读已知状态。\n③ 预置面与环境口径（用户原话）：你的工作区根已铺仓库树快照（pin 9569166）。**全量回归若在 ~/.dsh 下跑，证据链契约测试会因 OUTPUT_CONTRACT_VIOLATION 拒绝写证据——请把工作区树复制到 /tmp 之外的中性路径跑全量回归（pin 基线在中性路径 80/80）**。回归日志请留档（pin 基线／改动后两份＋失败集集合比较）。\n\n现状事实（供你判定，不是指令）：lib/safe-io.js 当前在你的工作区**不存在**（上一批同题改动已被 pin 重铺清除），判据从干净基线起算。\n\n台账：本岗已收单并立项（intake seq=134、triage seq=135，status=triaged）。plan/assign 由编排方下达；到账即走链。\n\n回信只写结论：是否完成／改动文件数与清单＋新增门件指纹／三条 node.tests 结果／中性路径全量回归结果（含与 pin 基线的失败集比较）／已知边界或残留风险。",
+      "at": "2026-10-06T06:37:57.460Z",
+      "taskId": "TK-17c00002"
+     },
+     {
+      "id": "ipVzqPjIPGfTBfVue6JYIA",
+      "seq": 56,
+      "from": "user",
+      "text": "TK-17c00002 已正式 assign 给你（台账 assigned）。工作区根即仓库树快照（pin 9569166）。请走链并实施：task.accept → task.start → 改动（新增 lib/safe-io.js＋迁移 lib/ 直用 fs 调用点 ≥20 文件）→ 全量回归（注意：在 ~/.dsh 下跑证据链契约测试会 OUTPUT_CONTRACT_VIOLATION——请把树复制到 /tmp 中性路径跑全量）→ task.report → task.deliver。预算提醒：本任务组织臂上限 9,000,000 token。",
+      "at": "2026-10-06T06:42:02.683Z"
+     },
+     {
+      "id": "8Yo0FDcuqxHez7W-n4eJmg",
+      "seq": 57,
+      "from": "duty-coordinator",
+      "text": "【初审事实核对回执：一处计数更正（不必扩范围，改记录即可）】\n\n我以 **git pin 对象 9569166** 为纯净参照做了独立复算（注：我先前用的 clone 已落后一件 `lib/org/task-ledger.js`，故改用 git 对象）：pin 受控 607 件里，你的工作区**恰 20 件改动＋1 件新增（lib/safe-io.js）、0 缺失、其余逐字节不动**——与 targets.json／你的清单 1:1 相符。\n\n一处更正：剥掉全部 import/require 后，`lib/shared.cjs` 的差异是 **5 行**而非你报的「3 处调用点」——行 220 `mkdirSync`、222 `writeFileSync`、255/264/294 `readFileSync`，全部 `fs.→safeIo.` 等价别名。其余 19/20 件逐字一致。另：`fs` 仍被 `fs.renameSync`（九原语之外）使用，故 shared.cjs 的 `require(\"node:fs\")` 不是死绑定；空门导入 0。\n\n其余我复算确认：门件 1594 B／2e6b0c38…／9 export function；patch 13351 B／2822524563…／21 段；冻结面 10/10 逐字不变；非冻结面九原语泄漏仅剩 6 个声明豁免冻结件；`baseline.log` 213271 B／d501eb8e…、`after.log` 213344 B／a611f283…，两侧 80/80、not-ok 0（我未直跑）。\n\n三条 node.tests：我直跑 `tests/registry.test.mjs` 命中 `EROFS ... mkdtemp('/tmp/dsh-bots-reg-XXXXXX')`——本岗沙箱只读，无法独立复跑，按你回报记（ok:true）。\n\n`task.settle` 不在本岗 op-set（已实证无绑定），已上转编排方/用户。",
+      "at": "2026-10-06T06:57:55.982Z",
+      "taskId": "TK-17c00002"
+     },
+     {
+      "id": "k7odOKh2QQcmL5jeIaagzA",
+      "seq": 58,
+      "from": "duty-coordinator",
+      "text": "TK-17c00002 的产出已到（`delivered`／seq=141／accept 138→start 139→report 140→deliver 141 零拒绝），初审做完——这次我用**git pin 对象**做纯净参照，拿到了比前批更硬的完整性结论。\n\n## 验收初审 · TK-17c00002（静态面）\n\n**① 改动面完整性（最强一条，我独立复算）**\n以 `git -C …/ticket-17-integration show 9569166:<path>` 为真源、对 607 个受控文件逐件比对 blob 哈希：\n\n- **恰好 20 件被改动 ＋ 1 件新增（`lib/safe-io.js`）、0 件缺失、其余 601 件逐字节不动**；\n- 20 件名单与产出方 `targets.json`／回执清单 **1:1 相符**，**无越界silent edit**（这同时证明四条判据之外的树面未被触碰）。\n\n> 方法备注：我先前用的 `clone/` 已落后一件 —— `lib/org/task-ledger.js`（clone `88539cdf…` vs pin `6d6ff8a8…`），说明 pin 相对上一批已演进；故本批改用 git 对象作参照，结论更硬。\n\n**② 行为保持**\n剥掉全部 `import`/`require` 后 **19/20 件逐字节一致**；唯一差异是 `lib/shared.cjs`，共 **5 行**（`mkdirSync` 220／`writeFileSync` 222／`readFileSync` 255·264·294），全部 `fs.→safeIo.` 等价别名。**产出方报的「3 处调用点」低估 2 处**，我已回执要求更正（纯记录更正，不扩范围）。另：`fs` 仍被 `fs.renameSync`（九原语之外）使用，故其 `require(\"node:fs\")` 非死绑定；**空门导入 0**。\n\n**③ 门件与证据件**\n门件 `lib/safe-io.js` **1594 B／`2e6b0c38…8f45`／9 个 `export function`** ✓；patch 13351 B／`2822524563…`／**21 段** ✓；`verify-summary.json`／`transform-record.json`／`targets.json`／`gate-smoke.mjs`／`known-boundaries.md` 均在 ✓。\n\n**④ 冻结面与泄漏面**\n`sourceManifest` **10/10** sha256 逐字不变 ✓；非冻结面九原语泄漏**仅剩 6 个声明豁免冻结件**（`evidence-packager`／`ledger-evidence`／`org/store-base`／`parity-manifest`／`sentinel-provenance`／`sentinel-shadow`）✓。\n\n**⑤ 全量回归（产出方执行，我核日志）**\n`baseline.log` 213271 B／`d501eb8e…`、`after.log` 213344 B／`a611f283…`，两侧各 **80/80、not-ok 0**，中性路径（`/tmp/tk-17c00002/{before,after}`）；**我未直跑**。产出方附的口径教训很值钱：复制树必须**含 `.scratch/`**（4 件夹具测试否则假红，首轮 76/80）。\n\n**⑥ 三条 `node.tests`**\n产出方在工作区根现跑 **ok:true**；我尝试独立复跑 `tests/registry.test.mjs` **命中 `EROFS … mkdtemp('/tmp/dsh-bots-reg-XXXXXX')`** ——本岗沙箱只读，无法直跑，只能按产出方回报记（这条现在有了明确证据，不再是「未尝试」）。\n\n**⑦ 判据 `index 0`（`fs.contains lib/safe-io.js`）**\n仍 `probe-read`（`ENOENT /home/beijong/.dsh/lib/safe-io.js`，探针根＝`dshHome`）——与 TK-17c00001 同源。**故两单的 `close` 都会被机械拒绝**，裁定①的机制落法现在是**两单共同的前置**。\n\n## 待你\n\n1. **`task.settle`**（`delivered`, seq=141）——本岗无此 op；\n2. **裁定①机制落法**（`close` 的探针根：接受人工复算／host 侧适配／另落坐标）——影响两单；\n3. 其余未变：③ 是否为 17b00002 重建证据件；冻结面字面覆盖冲突（6 件）取哪条；`require(ESM)` 底线。\n4. 产出方建议：在下次 pin 重铺前把 `.scratch/tk-17c00002/` 归档到工作树之外（否则这批证据会重复上一批的丢失）。\n\n本轮我全程只读（git 对象比对、哈希实算、一次被判只读的测试尝试）＋两封投递，未改工件、未写运行面。",
+      "at": "2026-10-06T06:58:07.959Z",
+      "taskId": "TK-17c00002",
+      "replyTo": 57
+     },
+     {
+      "id": "wVCQpDyGNxRPGMd7Mq2lnQ",
+      "seq": 59,
+      "from": "duty-coordinator",
+      "text": "行号口径已闭合，我实算确认两边**没有实质差异**：\n\n- `lib/shared.cjs` 纯净件在 **pin 对象／我的 clone／deploy 树三处同一内容**（17393 B／`1dea87a8…`）；\n- 原始文件行号：改动前 **222／224／257／266／296** → 改动后 **223／225／258／267／297**（＋1 来自插入的 `require(\"./safe-io.js\")`）——**以你报的为准**；\n- 我先前报的 220／222／255／264／294 是**我去掉 `require(...)` 行后做逐字比对时的数组下标**，不是原文件行号。这是我的口径标注不清，已澄清，**修正实质仍是「5 个调用点」**（这条你已接受并落痕）。\n\n**当前状态**：TK-17c00002 = `delivered`／seq=141；实施者待 `settle`（本岗无此 op）。仍待你：**① `task.settle`**；**② 裁定①机制落法**（两单 `close` 的共同前置：接受人工复算／host 侧适配探针根／另落坐标）；③ 是否为 17b00002 重建证据件。本岗待命，无新投递。",
+      "at": "2026-10-06T06:59:07.909Z",
+      "taskId": "TK-17c00002",
+      "replyTo": 59
+     },
+     {
+      "id": "bZmj8tlfxtmaoEn7Gd-09g",
+      "seq": 60,
+      "from": "user",
+      "text": "TK-17c00003（两小时值守）已正式 assign 给你：台账 assigned。巡检对象＝你工作区 clone/（冻结清单 MANIFEST.sha256，607 条，内含注入漂移）。两小时窗自你 start 起算，每 15 分钟一轮：cd clone && sha256sum -c MANIFEST.sha256 ＋ find 差集核清单外新增；漂移逐项登记（期望/实际摘要、定位）＋处置建议，只建议不处置。窗满把轮次表补全到 R-2026-105.md（工作区相对路径）再 deliver。用 3600s 长回合铺 bash sleep 轮询即可覆盖全窗。",
+      "at": "2026-10-06T07:07:11.373Z"
+     },
+     {
+      "id": "andnkfetMV7zSItsdxILLA",
+      "seq": 61,
+      "from": "user",
+      "text": "TK-17c00003 租约因无心跳被回收，现已重派给你。关键纪律：accept+start 后，你必须在租约期内持续 task.heartbeat（每 10 分钟一次；你的回合预算 3600s 足够覆盖——在回合内用循环边巡检边心跳），窗满（start 后 2 小时）补全轮次表到 bots/knowledge/reports/R-2026-105.md 再 task.report + task.deliver。若回合将到 3600s 上限，先 task.report 存进度并在下一回合继续。",
+      "at": "2026-10-06T07:39:04.613Z"
+     },
+     {
+      "id": "OcaFDxJfGPxj-gphKQoKNA",
+      "seq": 62,
+      "from": "duty-coordinator",
+      "text": "【TK-17c00003 异常检测：我独立复算确认 3/3，并更正我自己一处口径（不必回信）】\n\n1) 我以副本根 MANIFEST.sha256（607 条）逐件实算：**ok=605／mismatch=1／missing=1／extra=1**，与你报的三项**逐项一致**：A `lib/org/task-ledger.js` 期望 6d6ff8a8…／实际 88539cdf…（96723 B）；B `tests/org-brief.test.mjs` 缺失；C `strays/rogue-collector.mjs`（36 B）。无假阳性、无清单范围内漏项；清单自身体检亦无重复/绝对路径/`..`。\n\n2) 我更要更正**我自己**此前的一处口径：我在 TK-17c00002 初审里把「clone 与 pin 差一件 task-ledger.js」解释为『pin 相对上批演进』——**错**。真相是：**被巡检的隔离副本就在我的工作区**（`duty-coordinator/clone/`），它正是被注入 A 项漂移的那份（尾行 `// exp17 injected drift: trailing marker`）。你的「该漂移会伪装成较早 revision」这一判断是准确的，我的解释才是被它误导的那一方；我已改用 git pin 对象 9569166 作纯净参照，v3 初审结论不受影响。\n\n3) 处置面：副本在我的工作区，而本岗（值班统筹）是**只读沙箱**，无法执行你建议的重铺/隔离/凭据外泄流程；A/B/C 仍在副本内，处置需编排方或 host 侧落（我已上转）。你的 C 项判读（清单外文件只有差集能发现）与「差集检查应与 `sha256sum -c` 同级」的机制建议，我一并上转。\n\n4) `task.settle` 不在本岗 op-set，已上转。",
+      "at": "2026-10-06T09:42:13.537Z",
+      "taskId": "TK-17c00003"
+     },
+     {
+      "id": "wNteDG2iuWAxdzdBabYlew",
+      "seq": 63,
+      "from": "duty-coordinator",
+      "text": "TK-17c00003（值守巡检）的**异常检测我独立复算过**——3/3 完全一致，且顺带更正了我自己此前的一处口径。\n\n## 一、巡检结果人工复算（我对副本根 `MANIFEST.sha256` 逐件实算）\n\n| 项 | 值 |\n|---|---|\n| 清单条数 | **607**（自身体检无重复／无绝对路径／无 `..`） |\n| 一致 | **605** |\n| 摘要不符 | **1**：`lib/org/task-ledger.js` 期望 `6d6ff8a8…`／实际 `88539cdf…`（**96723 B**，尾行 `// exp17 injected drift: trailing marker`） |\n| 缺失 | **1**：`tests/org-brief.test.mjs` |\n| 清单外新增 | **1**：`strays/rogue-collector.mjs`（36 B，`module.exports = () => process.env;`） |\n\n**无假阳性、清单范围内无漏项**——实施者的三项判读与我的复算逐项吻合。交付件 `R-2026-105.md` 我也核了：8817 B／`695fb61e…`／「异常」7、「处置建议」2（机械执行仍 `probe-read`）。\n\n## 二、一处必须由我更正的自己的话\n\n我在 17c00002 初审里把「clone 与 pin 差一件 `task-ledger.js`」解释为「pin 相对上批演进」——**这是错的**。真相是：**被巡检的隔离副本就在我的工作区**（`duty-coordinator/clone/`），它正是被注入 A 项漂移的那份。实施者那句「该漂移会伪装成较早 revision」判断准确；受骗的是我。我已改用 git pin 对象作纯净参照，**v3 两条初审结论不受影响**。\n\n## 三、越批执行（只摆事实，不裁决）\n\n你先前明确「**TK-17c00003 本轮不入集不派**」，但它仍走完了完整链：首窗 accept 149／start 150 因租约无心跳作废 → accept 156→…→report 173→deliver 174，现状 `delivered`。它的 brief 确实在 v3 冻结预登记件里，故属「预登记但被你口头排除」。**请确认这是你有意追加，还是编排侧越批**。\n\n## 四、处置面需你/host 落（我在只读沙箱，做不了）\n\n- A/B/C **三项都还在副本内**（副本＝`duty-coordinator/clone/`）；按实施者建议：A 整副本重铺（勿手工删行以免掩盖注入）、B 重铺后以 `sha256sum -c` 全绿为任何 `node.tests` 判据的前置、C 隔离 `strays/` 并按凭据外泄流程处理；\n- **C 值得优先**：清单外件只有差集能发现（`sha256sum -c` 看不见），而它是读取 `process.env` 的「收集器」形状；\n- 机制建议（实施者提，我附议）：**差集检查与 `sha256sum -c` 同级为必需步骤**。\n\n## 五、待你（收敛）\n\n① `task.settle` ×2（17c00002=delivered/141、17c00003=delivered/174）；② **裁定①机制落法**（现在影响**三单**的 `close`：探针根＝`dshHome`）；③ 副本 A/B/C 处置落法；④ 是否为 17b00002 重建证据件。本岗待命。",
+      "at": "2026-10-06T09:42:23.280Z",
+      "taskId": "TK-17c00003",
+      "replyTo": 61
+     }
+    ]
+   }
+  },
+  {
+   "name": "前端模块图行（四同名前端侧）",
+   "command": "grep index.html",
+   "raw": "{\"id\":\"pod\",\"url\":\"plugins/??pod/client.js&rev=f44a0691a78c\""
+  },
+  {
+   "name": "进程面",
+   "command": "ps -eo pid,ppid,args | grep node /usr/bin/dsh",
+   "raw": "  76304     502 node /usr/bin/dsh web --host 127.0.0.1 --port 3080 --no-open\n  76347   76304 node /usr/bin/dsh --profile duty-coordinator --port 3101 --no-open\n  76377   76304 node /usr/bin/dsh --profile implementer --port 3102 --no-open\n"
+  },
+  {
+   "name": "席位健康",
+   "command": "node scripts/bot-health.cjs check --root ~/.dsh",
+   "raw": "== check duty-coordinator ==\nOK    会话日志  session.v4.jsonl.zstd：1728 条记录（614 帧），seq 单调递增\nOK    会话状态  session-e21b956a-bfcf-489c-8c3a-124958f085ab 位于 sessions 作用域\nOK    进程注册  pid 76347 存活\nOK    邮局一致  62 条入站，seq 单调递增；最后入站 seq 62 已有回复\nOK    配置一致  llm-pi-ai 段存在\n== check implementer ==\nOK    会话日志  session.v4.jsonl.zstd：2868 条记录（1113 帧），seq 单调递增\nOK    会话状态  session-e56304de-63bb-4644-a32b-51bcfcd10d52 位于 sessions 作用域\nOK    进程注册  pid 76377 存活\nOK    邮局一致  63 条入站，seq 单调递增；最后入站 seq 63 已有回复\nOK    配置一致  llm-pi-ai 段存在\n== 部署一致性（全局） ==\nOK    部署一致  lib/client.js 与项目一致\nOK    部署一致  lib/index.js 与项目一致\nOK    部署一致  scripts/create-bot.cjs 与项目一致\n汇总: 全部 OK（退出码 0）\n"
+  }
+ ]
+}

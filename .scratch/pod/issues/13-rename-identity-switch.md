@@ -320,5 +320,17 @@ docs-only、producerKind 本地字面量）待用户追认，见本件 Comments�
 | `execution/pod13-window-20261012T102118Z-migrate-report.json` | `353f6289294f8bb640bd8ef0b52465068a1ed8025e01b7b11d1eeb5981616d0f` |
 | `execution/pod13-window-20261012T102118Z-verify-after.json` | `233e893c02117b4061437d413a839ad0c438a519a9ac0d5a7d5d8a905a0900f5` |
 | `execution/pod14-window-20261012T102221Z-dryrun.json`（14 会话步 0 基线） | `59423807d9d9d78bb84bf72ae45368abeb37a832c8162a917703e30042396f5e` |
+| `preparation/pod13-window-20261012T103933Z-batch.json`（复审处置批第三次部署） | `3819d3a41580f82d7f7727d5d2e950c1c206c5fa5074d4e325e2d64614b02178` |
+| `preparation/pod13-window-20261012T103933Z-plan-734b2893.json` | `734b28939d56e959248bfec35b701107f662e867ada68caffd401b5dd6871a33` |
+| `execution/pod13-window-20261012T103933Z-sync-66c533a5.json` | `66c533a5864d2617fdb85b8db980547b15593921379d6e6c9e7180239880c6d8` |
+| `execution/pod13-window-20261012T103933Z-readiness-2c14203b.json`（终态就绪核验，ready:true） | `2c14203bb5ffb213369b6ee8c6b8e3bdd9ab711c4a1167d983af5b0d4bdf5b87` |
+| `execution/pod13-window-20261012T103933Z-smoke-ab434c40.json`（终态 smoke 原始输出九探针） | `ab434c4004d2517715f4cf4ac92601887866ab8fccefb5d4fa09c5582b95e1dc` |
+
+- **第三次部署同步与重启（复审处置批收尾）**：处置批使仓库前进到 `a1ac234` → 按「部署面＝
+  仓库面」重刷部署面（`changed 2`、备份 `…103933Z-backup-734b2893`、整面 all-same 223/223）
+  并重启链（停 host 76304 前身 67586／席 67619／67650 → 起 host **76304**＋席 **76347**／
+  **76377**）→ 终态就绪核验 **ready:true**（两通道 roleReady、`sourceDigest` 同值、
+  宿主契约 15 PASS／0 FAIL／0 SKIP）＋终态 smoke 九探针全绿（席位／台账 lastSeq 180／
+  open 5／tasks 9／两席 inbox 200 各 50 条／前端模块图行 `pod`／进程面／bot-health 全 OK）。
 
 
