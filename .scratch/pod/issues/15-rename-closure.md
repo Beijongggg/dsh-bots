@@ -192,9 +192,17 @@ EV-20261011-pod-rename-batch-close 事件）。**Status 维持 `ready-for-agent`
   `node scripts/ci-gates.mjs`（pre-commit ②③）**PASS**——`--no-verify` 偏离项闭合，
   钩子恢复常态（本票提交不再需要）。
 - **落档**：CHANGELOG 事件 EV-20261012-pod15-incremental-package；README §2 证据链行为
-  「最新序号包」指针式表述，无需随包改动（§6.1 本轮无正式文档新增／移动／重命名）。
+  「最新序号包」指针式表述，无需随包改动（§6.1 本轮无正式文档新增／移动／重命名）；
+  `docs/PROJECT_UNDERSTANDING.md` 两处「0010 冻结面」指针随当前终版包改写为「0011 包冻结面」
+  （`lib/org/store-base.js` 行＋冻结件组 20 项行——两处被引面均在 0011 manifest 11 件内，复算属实）。
+- **两轴复审处置（b713a27）**：Standards 轴 0 硬违规（定向核验：旧包/raw 只读、registry 纯追加、
+  文件内嵌 sha 与实算对拍、独立复算冻结面 11/11）；Spec 轴 0 缺失／0 越权，三条细微观察处置：
+  ①「票面未记 PROJECT_UNDERSTANDING 改动」→ 已补（本条上方落档段）；②「移交①前置条件
+  表述过时」→ 已改（见下）；③「②门自指式、闭包完备性依赖上游复核」→ 记观察不改（本批
+  10/10→11/11 更正即该机制的实证）。
 - **移交备注（遗留项）**：① 全窗关闭的许可收缩（env 回落形＋migration-face 形、
-  role-cards 之外残留复核）待运行面切换完成后的收口复核另记；② 架构派生件 17 件＋
-  `preview/*.png` 13 张重出（仓内无生成器）留待运行面切换窗口或外部生成器；③ spec.md
-  §D3／§E1／V-P4.1 坐标修订归 Lead 收口（既定安排）；④ 仓库外两脚本实值核对已随票 13
-  窗口完成（`~/.dsh/dsh-web.sh`／`restart-split.sh` 新名 export），本票未再触碰。
+  role-cards 之外残留复核）——前置条件均已就位（部署同步／重启链／数据迁移／retired 清理
+  ／仓库外脚本五件全数完成），待办＝收缩动作与窗关闭复核本身，另记（另点名）；② 架构
+  派生件 17 件＋`preview/*.png` 13 张重出（仓内无生成器）留待运行面切换窗口或外部生成器；
+  ③ spec.md §D3／§E1／V-P4.1 坐标修订归 Lead 收口（既定安排）；④ 仓库外两脚本实值核对已随
+  票 13 窗口完成（`~/.dsh/dsh-web.sh`／`restart-split.sh` 新名 export），本票未再触碰。
