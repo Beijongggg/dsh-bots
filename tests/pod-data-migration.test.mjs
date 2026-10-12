@@ -102,9 +102,12 @@ function buildFixtureHome(prefix = "pod-migrate-") {
       "      name: 'dsh-bots'",
       ""
     ].join("\n"));
-  // node_modules 旧名软链（改名＋重指部署目录面）
+  // node_modules 旧名软链（改名＋重指部署目录面）：profile 自有（web 形）＋profiles 根
+  // 共享锚（bot profile 无自有 node_modules，宿主按 specifier 自 profile 目录逐级上溯到本链接）
   mkdirSync(join(home, "profiles", "coder", "node_modules"), { recursive: true });
   symlinkSync("../pod-target", join(home, "profiles", "coder", "node_modules", "dsh-bots"));
+  mkdirSync(join(home, "profiles", "node_modules"), { recursive: true });
+  symlinkSync("../pod-target", join(home, "profiles", "node_modules", "dsh-bots"));
   // 部署备份（回滚点；只读面，不搬）
   mkdirSync(join(home, "backups", "dsh-bots", "r1-backup-abcd1234"), { recursive: true });
   writeFileSync(join(home, "backups", "dsh-bots", "r1-backup-abcd1234", "f.txt"), "b\n");
@@ -227,6 +230,11 @@ test("execute --profiles：patch 行 name→pod＋workspaceRoot→pod-workspaces
   ok(lstatSync(newLink).isSymbolicLink(), "node_modules/pod 软链在位（lstat 判存，目标可悬空）");
   equal(readlinkSync(newLink), join(home, "plugins", "pod"), "软链目标重指部署目录 plugins/pod");
   ok(!existsSync(join(home, "profiles", "coder", "node_modules", "dsh-bots")), "旧名软链移除");
+  // 共享锚（profiles 根 node_modules）：bot profile 的解析落点，同口径改名＋重指
+  const sharedLink = join(home, "profiles", "node_modules", "pod");
+  ok(lstatSync(sharedLink).isSymbolicLink(), "profiles 根共享锚 node_modules/pod 在位");
+  equal(readlinkSync(sharedLink), join(home, "plugins", "pod"), "共享锚重指部署目录 plugins/pod");
+  ok(!existsSync(join(home, "profiles", "node_modules", "dsh-bots")), "共享锚旧名移除");
   // 幂等：二跑 --profiles 零改动（patch 已新形、软链已在位且指向部署目录）
   const before = snapshotTree(home);
   const r2 = runCli(["--dsh-home", home, "--profiles", "--report", join(home, "..", "r2-migrate.json")], home);
@@ -237,7 +245,7 @@ test("execute --profiles：patch 行 name→pod＋workspaceRoot→pod-workspaces
   rmSync(join(home, "..", "r2-migrate.json"), { force: true });
 });
 
-test("--profiles 边界：旧名项非软链＝fail closed 不动；新名链接已指他处＝不动待人工确认", () => {
+test("--profiles 边界：旧名项非软链＝fail closed 不动（profile 自有＋共享锚）；新名链接已指他处＝不动待人工确认", () => {
   const home = buildFixtureHome();
   // profile#1：旧名项是普通文件（非软链）——fail closed，零写入
   mkdirSync(join(home, "profiles", "plain", "node_modules"), { recursive: true });
@@ -245,11 +253,15 @@ test("--profiles 边界：旧名项非软链＝fail closed 不动；新名链接
   // profile#2：新名链接已在位但指他处——不动（不并行改）
   mkdirSync(join(home, "profiles", "wrong", "node_modules"), { recursive: true });
   symlinkSync("/somewhere/else", join(home, "profiles", "wrong", "node_modules", "pod"));
+  // 共享锚同口径：夹具软链换成普通文件——fail closed 不动
+  rmSync(join(home, "profiles", "node_modules", "dsh-bots"), { force: true });
+  writeFileSync(join(home, "profiles", "node_modules", "dsh-bots"), "not-a-link\n");
   const plainBefore = readFileSync(join(home, "profiles", "plain", "node_modules", "dsh-bots"), "utf8");
   const r = runCli(["--dsh-home", home, "--execute", "--profiles"], home);
   equal(r.status, 0, `退出码 0：\n${r.stdout}${r.stderr}`);
   ok(lstatSync(join(home, "profiles", "plain", "node_modules", "dsh-bots")).isFile(), "非软链旧名项不动");
   equal(readFileSync(join(home, "profiles", "plain", "node_modules", "dsh-bots"), "utf8"), plainBefore, "非软链内容零触碰");
+  ok(lstatSync(join(home, "profiles", "node_modules", "dsh-bots")).isFile(), "共享锚非软链旧名项不动");
   equal(readlinkSync(join(home, "profiles", "wrong", "node_modules", "pod")), "/somewhere/else", "新名已在他处＝不动");
   const report = JSON.parse(readFileSync(join(home, "pod", "bots.json"), "utf8"));
   ok(report !== null);

@@ -61,7 +61,7 @@ started 261 行、bot-workspaces 13 目录 644MB、profiles 19、sessions 47、b
 | 8 | 工作区 | `bot-workspaces/<botId>/`（13 目录 644MB） | `pod-workspaces/<botId>/` | 同上（整树含 `.dsh-bot-session.json`／`.dsh-bot-heal.json`／eval 件） | 目录数＋逐文件 sha/byteLength |
 | 8b | 注册表路径字段 | `bots/bots.json` 各席 `workspace`／`workspaceRoot` 指旧工作区根 | 同表字段重写指 `pod-workspaces` | **execute 步骤 ②′**（拷贝复验后、retire 前）：`bot.workspace` 被宿主序列化输出（`serializeBot`）与权限判定（`isBotWritablePath`）消费——整表搬运保留的存量值不重写则重启后仍指已迁走的旧根；厂外自定义 workspace 不误改 | 重写后逐字段断言指新根、非路径字段原样；报告 `registryRewrite.changes` 列清单 |
 | 9 | profile patch | `profiles/<id>/cordis.patch.yml`（`name: 'dsh-bots'` 行＋`workspaceRoot:` 旧绝对路径） | 同路径内容重写 | **`--profiles` 步骤**（非拷贝）：patch 行 name→`pod`、workspaceRoot→`pod-workspaces` 新路径 | 重写后逐份断言无 `dsh-bots` 名行、workspaceRoot 指新根 |
-| 10 | profile 链接 | `profiles/<id>/node_modules/dsh-bots`（2 处手工软链） | `profiles/<id>/node_modules/pod` | 链接改名＋**重指部署目录**（`→ <dshHome>/plugins/pod`）：存量链接目标是旧部署目录 `plugins/dsh-bots`——保目标改名会让 patch 行 `name: 'pod'` 解析到旧代码（四同名绑定：patch name＝条目名＝package.json.name）。部署同步为窗口内先行步，目标可暂缺（lstat 判存不跟随悬空链） | 链接存在且 target＝`<dshHome>/plugins/pod` |
+| 10 | profile 链接 | `profiles/node_modules/dsh-bots`（**共享解析锚**：bot profile 无自有 node_modules，宿主按 specifier 自 profile 目录逐级上溯到本链接）＋`profiles/web/node_modules/dsh-bots`（profile 自有），共 2 处手工软链 | 两处同名改 `pod` | 链接改名＋**重指部署目录**（`→ <dshHome>/plugins/pod`）：存量链接目标是旧部署目录 `plugins/dsh-bots`——保目标改名会让 patch 行 `name: 'pod'` 解析到旧代码（四同名绑定：patch name＝条目名＝package.json.name）。部署同步为窗口内先行步，目标可暂缺（lstat 判存不跟随悬空链） | 两处链接存在且 target＝`<dshHome>/plugins/pod` |
 | 11 | session 分片 | `sessions/<shard>/<sessionId>/` | **不动** | 旧分片静止只读；新分片由重启后的宿主按新 cwd 自建 | 失配处置＝既有兜底扫描＋bot-health 双认（§4 风险②） |
 | 12 | 部署备份 | `backups/dsh-bots/<runId>-backup-<sha8>/` ×13 | **不动** | 历史回滚证据，角色冻结 | 只读计数（迁移报告记数） |
 | 13 | 新批备份 | — | `backups/pod/` | 票 13 部署同步面（`deploy-sync.mjs` 已改写 `backups/pod`） | 票 13 面自校验 |
@@ -149,6 +149,13 @@ started 261 行、bot-workspaces 13 目录 644MB、profiles 19、sessions 47、b
   解析到旧代码（四同名绑定；`host-runtime-map` 解析锚节同口径）。新名链接已在位且
   已指部署目录＝幂等零改动；新名已在位但指他处＝不动待人工确认（不悄然改写），
   旧名项非软链＝fail closed 不动（人工处置点）；反例用例锁两侧。
+  **共享锚（2026-10-12 修门 d；/implement 13 后续会话）**：`profiles/node_modules`
+  （根级共享链接）与 profile 自有 `node_modules` **同口径**处理。原实现按
+  `<id>/node_modules` 单形枚举、根级 `node_modules` 被跳过——而 bot profile 目录自身
+  无 `node_modules`，宿主按 specifier 自 profile 目录逐级上溯，根级链接即各 bot 的
+  解析落点；漏改则重启后各席位解析失败、插件缺席（邮件／组织面全休眠）。实测
+  （隔离夹具，2026-10-12）：自 bot profile 目录 `resolve('dsh-bots')` 命中根级链接，
+  无 `pod` 链接时 `MODULE_NOT_FOUND`。
 - **报告**（`--report` JSON）：迁移前后路径清单、逐面计数（席位表条目/逐 id、台账
   lastSeq/事件数、inbox/outbox 文件数与行数、capabilities/nonce 计数、started 行数、
   knowledge index 行数/reports 数、workspaces 目录与文件数、backups 计数）、逐件 sha

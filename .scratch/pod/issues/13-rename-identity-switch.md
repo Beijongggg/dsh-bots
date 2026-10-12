@@ -246,6 +246,19 @@ docs-only、producerKind 本地字面量）待用户追认，见本件 Comments�
   输出＋红态拒因＋修后只读复算，持久件）；③新门有限 fail-open→票 14 显式登记为有意取舍；
   ④「每 botId 最新行」第三份同形实现→留界（触发＝第四份或需改口径时按单源先例收敛）；
   ⑤测试夹具 `deadPid()` 与 helpers 重复＝前位遗产未加剧→不追改；⑥库外脚本注释「双读」断言
-  经复核为真（`lib/env-aliases.js` readEnvValue）。
+经复核为真（`lib/env-aliases.js` readEnvValue）。
+
+### 共享锚链接修门 d（2026-10-12，/implement 13 后续会话）
+
+窗口前阻塞面：本票待授权项 4「profile 侧 2 手工软链 `node_modules/dsh-bots`→`pod`」的
+真实落点是 `~/.dsh/profiles/node_modules/dsh-bots`（**根级共享锚**：bot profile 无自有
+`node_modules`，宿主按 specifier 自 profile 目录逐级上溯，根级链接即各席解析落点）＋
+`~/.dsh/profiles/web/node_modules/dsh-bots`（profile 自有）；`--profiles` 原实现按
+`<id>/node_modules` 单形枚举、漏根级共享锚（漏改则重启后各席位 `pod` 解析失败、插件
+缺席，且就绪核验不查解析锚＝静默失败面）。已按 TDD 修门（链接处置抽
+`relinkLegacyPluginLink`，根级与 profile 自有同口径），明细、实测与 dry-run 原文见
+[票 14 Comments「共享锚链接修门 d」](14-rename-data-plane-migration.md)。本修门在窗口内
+随 `--execute --profiles` 一步生效，**不新增授权件**（属本票授权项 4／票 14 授权件④
+既有面）。
 
 

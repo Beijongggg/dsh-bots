@@ -386,6 +386,50 @@ export function rewritePatchText(text) {
   return { text: lines.join("\n"), changes };
 }
 
+/** 单处旧名软链处置：改名为新名＋**重指部署目录**（四同名绑定：patch 行 name＝条目名＝
+ *  package.json.name；存量链接目标是旧部署目录 plugins/dsh-bots——保目标改名会让 'pod'
+ *  解析到旧代码，故重指 plugins/pod；部署同步为窗口内先行步，目标可暂缺）。
+ *  判存用 lstat（链接可能悬空）；非软链旧名项＝fail closed 不动（人工处置点）。
+ *  返回 `{ changed, actions }`。 */
+function relinkLegacyPluginLink(nmDir, { label, deployTarget, dryRun }) {
+  const actions = [];
+  let changed = 0;
+  const legacyLink = join(nmDir, LEGACY_PLUGIN_MODULE_NAME);
+  const newLink = join(nmDir, PLUGIN_MODULE_NAME);
+  let legacyIsLink = false;
+  let newIsPresent = false;
+  let newTarget = null;
+  try {
+    legacyIsLink = lstatSync(legacyLink).isSymbolicLink();
+  } catch { /* 不存在 */ }
+  try {
+    newIsPresent = lstatSync(newLink).isSymbolicLink();
+    if (newIsPresent) newTarget = readlinkSync(newLink);
+  } catch { /* 不存在 */ }
+  if (newIsPresent && newTarget !== deployTarget) {
+    actions.push({ profile: label, target: `node_modules/${PLUGIN_MODULE_NAME}`, changes: [`新名链接已在他处（${String(newTarget)}）——不动待人工确认`], wrote: false });
+    return { changed, actions };
+  }
+  if (legacyIsLink) {
+    const changes = [
+      `软链改名保形（${LEGACY_PLUGIN_MODULE_NAME} → ${PLUGIN_MODULE_NAME}）`,
+      `重指部署目录（${readlinkSync(legacyLink)} → ${deployTarget}）`
+    ];
+    changed += 1;
+    actions.push({ profile: label, target: `node_modules/${LEGACY_PLUGIN_MODULE_NAME} → ${PLUGIN_MODULE_NAME}`, changes, wrote: !dryRun });
+    if (!dryRun) {
+      renameSync(legacyLink, newLink);
+      if (lstatSync(newLink).isSymbolicLink() && readlinkSync(newLink) !== deployTarget) {
+        rmSync(newLink, { force: true });
+        symlinkSync(deployTarget, newLink);
+      }
+    }
+  } else if (linkEntryExists(nmDir, LEGACY_PLUGIN_MODULE_NAME)) {
+    actions.push({ profile: label, target: `node_modules/${LEGACY_PLUGIN_MODULE_NAME}`, changes: ["旧名项不是软链——fail closed 不动，须人工处置"], wrote: false });
+  }
+  return { changed, actions };
+}
+
 /** --profiles 步骤：逐 profile 重写 cordis.patch.yml＋旧名软链改名为新名并**重指部署目录**。 */
 export function rewriteProfiles(dshHome, { dryRun = true } = {}) {
   const actions = [];
@@ -413,45 +457,18 @@ export function rewriteProfiles(dshHome, { dryRun = true } = {}) {
         if (!dryRun) writeFileSync(patchPath, text, { mode: 0o600 });
       }
     }
-    // ② node_modules 旧名软链 → 新名＋重指部署目录（四同名绑定：patch 行 name＝条目名＝
-    //    package.json.name；存量链接目标是**旧部署目录** plugins/dsh-bots——保目标改名会让
-    //    'pod' 解析到旧代码，故重指 plugins/pod；部署同步为窗口内先行步，目标可暂缺）。
-    //    判存用 lstat（链接可能悬空）；非软链旧名项＝fail closed 不动（人工处置点）。
-    const nmDir = join(dir, "node_modules");
-    const legacyLink = join(nmDir, LEGACY_PLUGIN_MODULE_NAME);
-    const newLink = join(nmDir, PLUGIN_MODULE_NAME);
-    let legacyIsLink = false;
-    let newIsPresent = false;
-    let newTarget = null;
-    try {
-      legacyIsLink = lstatSync(legacyLink).isSymbolicLink();
-    } catch { /* 不存在 */ }
-    try {
-      newIsPresent = lstatSync(newLink).isSymbolicLink();
-      if (newIsPresent) newTarget = readlinkSync(newLink);
-    } catch { /* 不存在 */ }
-    if ((legacyIsLink || newIsPresent) && newIsPresent && newTarget !== deployTarget) {
-      actions.push({ profile: entry.name, target: `node_modules/${PLUGIN_MODULE_NAME}`, changes: [`新名链接已在他处（${String(newTarget)}）——不动待人工确认`], wrote: false });
-      continue;
-    }
-    if (legacyIsLink) {
-      const changes = [
-        `软链改名保形（${LEGACY_PLUGIN_MODULE_NAME} → ${PLUGIN_MODULE_NAME}）`,
-        `重指部署目录（${readlinkSync(legacyLink)} → ${deployTarget}）`
-      ];
-      changed += 1;
-      actions.push({ profile: entry.name, target: `node_modules/${LEGACY_PLUGIN_MODULE_NAME} → ${PLUGIN_MODULE_NAME}`, changes, wrote: !dryRun });
-      if (!dryRun) {
-        renameSync(legacyLink, newLink);
-        if (lstatSync(newLink).isSymbolicLink() && readlinkSync(newLink) !== deployTarget) {
-          rmSync(newLink, { force: true });
-          symlinkSync(deployTarget, newLink);
-        }
-      }
-    } else if (linkEntryExists(nmDir, LEGACY_PLUGIN_MODULE_NAME)) {
-      actions.push({ profile: entry.name, target: `node_modules/${LEGACY_PLUGIN_MODULE_NAME}`, changes: ["旧名项不是软链——fail closed 不动，须人工处置"], wrote: false });
-    }
+    // ② profile 自有 node_modules 旧名软链（web 等带独立 node_modules 的 profile）
+    const link = relinkLegacyPluginLink(join(dir, "node_modules"), { label: entry.name, deployTarget, dryRun });
+    changed += link.changed;
+    actions.push(...link.actions);
   }
+  // ②′ profiles 根 node_modules——**共享解析锚**：bot profile 目录自身无 node_modules，宿主按
+  //    specifier 自 profile 目录逐级上溯解析，本链接即各 bot 的 'pod' 落点；漏改则重启后
+  //    席位解析失败、插件缺席（邮件/组织面全休眠）。实测（隔离夹具，2026-10-12）：自 bot
+  //    profile 目录 resolve 'dsh-bots' 命中本链接；无 'pod' 链接时 MODULE_NOT_FOUND。
+  const shared = relinkLegacyPluginLink(join(profileRoot(dshHome), "node_modules"), { label: "profiles/node_modules（共享锚）", deployTarget, dryRun });
+  changed += shared.changed;
+  actions.push(...shared.actions);
   return { ok: true, scanned, changed, actions };
 }
 

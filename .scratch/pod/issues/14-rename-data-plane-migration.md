@@ -197,3 +197,41 @@ $ node --input-type=module -e 'import { findLiveInstancePids } from "./scripts/m
   收敛面在窗口前扩大）。②`tests/pod-data-migration.test.mjs` 自带本地 `deadPid()`
   （`tests/helpers/dead-pid-fixture.mjs` 有同名助手，违 tests/README.md「夹具复用」）——
   **前位提交遗产，本 diff 未加剧**，不追改。
+
+### 共享锚链接修门 d（2026-10-12，/implement 13 后续会话）
+
+**窗口前阻塞面**：修门 A（`8d0911c`）把软链处置落在 `<id>/node_modules/dsh-bots` 单形
+枚举，而真实运行面的两处手工软链是——
+
+1. `~/.dsh/profiles/node_modules/dsh-bots`（**根级共享锚**）；
+2. `~/.dsh/profiles/web/node_modules/dsh-bots`（profile 自有）。
+
+根级 `node_modules` 被枚举循环 `continue` 跳过（`entry.name === "node_modules"`）。
+bot profile 目录（`duty-coordinator`／`implementer`）**无自有 `node_modules`**：宿主按
+patch 行 `name` 自 profile 目录逐级上溯解析，**根级链接即各 bot 的解析落点**——漏改则
+重启后各席位 `pod` 解析失败、插件缺席（邮件／组织面全休眠）；且 §5 步骤 5 就绪核验
+（roster／deployment／coordinates／runtime）不查解析锚，属**静默失败面**，故按窗口前
+阻塞件处置（TDD）。
+
+**实测（隔离夹具，`~/.dsh` 零写）**：`createRequire(<tmp>/profiles/duty-coordinator/index.js)`
+→ `resolve('dsh-bots/package.json')` 命中 `<tmp>/profiles/node_modules/dsh-bots`；
+同名 `resolve('pod/package.json')` → `MODULE_NOT_FOUND`。
+
+**处置**：`scripts/migrate-pod-data.mjs` 链接处置抽为
+`relinkLegacyPluginLink(nmDir, { label, deployTarget, dryRun })`；per-profile 链接与
+根级共享锚**同口径**调用（改名＋重指 `<dshHome>/plugins/pod`；非软链旧名项 fail closed
+不动）。测试夹具增根级链接；`--profiles` 用例增三条断言（共享锚在位／重指部署目录／
+旧名移除）；边界用例增共享锚非软链 fail-closed 断言（修前该形必红——根级链接零动作）。
+
+**真实运行面只读复算**（`node scripts/migrate-pod-data.mjs --dsh-home ~/.dsh --profiles`，
+dry-run 零写入）：链接动作现为两条（此前仅 web 一条）＋18 份 patch 重写，逐条原文：
+
+```
+- web | node_modules/dsh-bots → pod | ['软链改名保形（dsh-bots → pod）', '重指部署目录（/home/beijong/.dsh/plugins/dsh-bots → /home/beijong/.dsh/plugins/pod）'] | wrote False
+- profiles/node_modules（共享锚） | node_modules/dsh-bots → pod | ['软链改名保形（dsh-bots → pod）', '重指部署目录（/home/beijong/.dsh/plugins/dsh-bots → /home/beijong/.dsh/plugins/pod）'] | wrote False
+```
+
+**验证**：`TMPDIR=/dev/shm node --test tests/pod-data-migration.test.mjs` **13/13**；
+全量回归与 ③ 门见本批提交（EV-20261012-pod14-window-fixgate-d）。**与并行会话**：本修门
+（票 13「13 后续」会话）与票 14 窗口会话（修门 A/B）同工作树并行；A/B 语义未动，仅补
+未覆盖的第二个链接位置，窗口执行口径以本节为准。
