@@ -1,0 +1,69 @@
+{
+  "schema": "pod-data-migration-report/1",
+  "at": "2026-10-12T10:21:18.509Z",
+  "dshHome": "/home/beijong/.dsh",
+  "mode": "verify-only",
+  "basis": "legacy",
+  "faces": {
+    "basis": "legacy",
+    "dataRoot": "/home/beijong/.dsh/bots",
+    "workspaceRoot": "/home/beijong/.dsh/bot-workspaces",
+    "registry": {
+      "present": true,
+      "sha256": "a48198c3d428c3950db849a8610808725934bac08317f501c1c19545f18ced69",
+      "entries": 2,
+      "ids": [
+        "duty-coordinator",
+        "implementer"
+      ]
+    },
+    "ledger": {
+      "present": true,
+      "events": 180,
+      "lastSeq": 180,
+      "eventsSha256": "7a7c89bcfdeec2c8f7d316985bf6bc82d43d970b11fd1bb5e611793451c2563f"
+    },
+    "inbox": {
+      "present": true,
+      "files": 297,
+      "jsonlLines": 143
+    },
+    "outbox": {
+      "present": true,
+      "files": 142,
+      "jsonlLines": 142
+    },
+    "knowledge": {
+      "present": true,
+      "indexLines": 11,
+      "reports": 11,
+      "hasTemplate": true
+    },
+    "capabilities": {
+      "present": true,
+      "hasSecret": true,
+      "hasIssuedAudit": true,
+      "nonceFiles": 84
+    },
+    "started": {
+      "present": true,
+      "lines": 271
+    },
+    "workspaces": {
+      "present": true,
+      "dirs": 13,
+      "files": 0
+    },
+    "backups": {
+      "legacyBatches": 21,
+      "podBatches": 1
+    },
+    "sessions": {
+      "shards": 48
+    },
+    "sessionBackups": {
+      "entries": 2
+    }
+  },
+  "verified": true
+}

@@ -5,18 +5,18 @@
 
 **Blocked by:** 12
 
-**Status:** ready-for-agent
+**Status:** resolved（2026-10-12 运行面窗口执行完成：部署/链接/patch/profiles 全同步、就绪核验 ready:true、最小闭环 smoke 通过；批级 ② 门红随票 15 新序号包解除）
 
 **复核点:** 命中必审清单（不可逆：写入真实运行面；跨实例：部署同步）→ 独立复核后方可执行。
 
-- [ ] 四同名一致，且部署目录、profile 侧 node_modules 链接、全部 profile patch 行同步；
-- [ ] 跨进程 wire 契约随窗切换：身份头、HTTP 路由前缀、以及 env——env 走**双读过渡**
+- [x] 四同名一致，且部署目录、profile 侧 node_modules 链接、全部 profile patch 行同步；
+- [x] 跨进程 wire 契约随窗切换：身份头、HTTP 路由前缀、以及 env——env 走**双读过渡**
       （新名优先、旧名兼容一个窗口），仓库外现役脚本同步更新；
-- [ ] 部署同步走既有单一实现（`scripts/deploy-sync.mjs`，`--dry-run` 先行）＋就绪核验
+- [x] 部署同步走既有单一实现（`scripts/deploy-sync.mjs`，`--dry-run` 先行）＋就绪核验
       （`scripts/org-cutover-check.mjs`）；
-- [ ] 授权：部署同步与全 bot 重启链**逐项点名**，票面记授权依据原文；
-- [ ] 回退面写明：库外部署件备份目录＋git 提交点，回滚决定权在用户（不演练）；
-- [ ] 就绪后最小闭环 smoke 通过（席位在线、组织命令面与邮件面可用）。
+- [x] 授权：部署同步与全 bot 重启链**逐项点名**，票面记授权依据原文；
+- [x] 回退面写明：库外部署件备份目录＋git 提交点，回滚决定权在用户（不演练）；
+- [x] 就绪后最小闭环 smoke 通过（席位在线、组织命令面与邮件面可用）。
 
 ## Comments
 
@@ -260,5 +260,40 @@ docs-only、producerKind 本地字面量）待用户追认，见本件 Comments�
 [票 14 Comments「共享锚链接修门 d」](14-rename-data-plane-migration.md)。本修门在窗口内
 随 `--execute --profiles` 一步生效，**不新增授权件**（属本票授权项 4／票 14 授权件④
 既有面）。
+
+### 运行面窗口执行（2026-10-12，/implement 13 后续会话·本会话执行）
+
+- **授权（用户原文，本窗 AskUserQuestion 选定项）**：「本会话执行窗口（推荐）——我按窗口序
+  执行：① 按 HEAD 生成部署规格并重跑部署同步（写 ~/.dsh/plugins/pod＋backups/pod 两处；
+  就绪核验要求部署面＝当前 HEAD，否则必红）② 停链（host＋bots）③ 迁移 --execute --profiles
+  ④ 起链 ⑤ 就绪核验＋smoke（席位在线／组织命令面／邮件面）。另一会话请勿再执行」。并行
+  /implement 14 会话见本批产物后**让行**（其判定记录见票 14「执行面让行」节）——本窗执行方唯一。
+- **执行序（含窗口内修门，全部同窗）**：
+
+| 步 | 动作 | 结果 |
+|---|---|---|
+| 0 | `--verify-only --report artifacts/cutover-preparation/pod13-window-20261012T102118Z-verify-before.json`＋`--profiles` dry-run | verified:true；18 动作＝16 patch＋2 链接（原文存票 14） |
+| 1 | 停链（SIGTERM host 2295→bots 2327／2351，`findLiveInstancePids` 复核空） | 链停净 |
+| 2 | 部署同步①（spec commit `05cd463`，runId `pod13-window-20261012T102118Z`，plan `f641b1cc`） | changed 2；备份 `backups/pod/…-backup-f641b1cc`（manifest `6db5bd53`）；整面 all-same 223/223；记录 `…-sync-cf01fae7.json` |
+| 3 | 数据迁移 `--execute --profiles`（首次） | **按设计中止**（复验 `mismatch-mode`：cpSync 不保留目录 mode）——新根清理、旧根原样；修门 e 落 `631f683` |
+| 3′ | 数据迁移重跑 | 成功：`verified:true`／`faceDiffs:[]`／retired 两件（`bots.retired-2026-10-12T10-23-26-944Z`／`bot-workspaces.retired-…`）／`registryRewrite` 四条／两处软链 `pod→~/.dsh/plugins/pod`；报告 `…-migrate-report.json` |
+| 4 | 起链（restart-safe.sh，systemd 单元） | host 63509＋两席 63550／63573（插件装载＝自启动成立） |
+| 2′ | 部署同步②（spec commit `631f683`，runId `pod13-window-20261012T102638Z`，plan `adb02538`） | changed 2；备份 `…-backup-adb02538`（manifest `82b83543`）；all-same 223/223；记录 `…-sync-b55b7567.json` |
+| 4′ | 重启（停 host 63509／席 63550／63573 → 起） | host 67586＋两席 67619／67650——宿主加载最终部署（摘要一致） |
+| 5 | 就绪核验 `org-cutover-check --dsh-home ~/.dsh --host-url http://127.0.0.1:3080` | **ready:true**：roster/deployment/coordinates/runtime 四路 ok；`sourceDigest 51d4f173…` 两路同值；`hostEnv POD_HOST_URL` ok；两通道 connected／delivered／roleReady；宿主契约探针 **15 PASS／0 FAIL／0 SKIP** |
+| 6 | smoke：席位在线＝两席 pid 存活＋`workspace → pod-workspaces`；组织命令面＝`GET /api/pod/_ledger`（lastSeq 180／open 5／tasks 9）＋`/_ledger/readiness` ok；邮件面＝两席 `GET /api/pod/:id/inbox` 均 200（迁移件可见）＋`bot-health check` 两席及部署一致性**全 OK**（邮局一致：62／63 条入站、seq 单调、末条有回复） | 通过 |
+| 7 | 迁移后逐面对账 `--verify-only --report …-verify-after.json` | `basis:new`、face 计与迁移前基线等值（registry 2／ledger 180-180／inbox 297／outbox 142／knowledge 11／nonces 84／ws 13 目录；started 271→277＝窗口内两轮重启的新行） |
+
+- **二次部署同步与二次重启的事由（如实记录）**：窗口内修门 d/e 使仓库前进两个提交，而就绪
+  核验的 deployment 路要求「部署面＝仓库面」、runtime 路要求「宿主加载摘要＝部署摘要」——
+  故按最终 HEAD 重刷部署面并**再重启一次**使宿主加载最终代码（不是多刷，是门要求）。
+- **观察项（不改脚本，留观察）**：`restart-safe.sh` 自检的 manifest 抓取两次报 `MANIFEST_MISSING`
+  （同名 token 手工交换 HTTP 200、`/api/pod` 200、UI 页面 36KB 正常＝会话与命令面可用）；
+  判定为自检时序性假阴性，记观察不改（脚本属库外现役件）。
+- **回退面（未触发）**：① 部署备份两批（`backups/pod/pod13-window-*-backup-*`）；② git 提交点
+  （`05cd463`／`631f683` 及改名批各提交）；③ 旧根 retired 两件（改名回滚即完整恢复）。
+  判据（就绪核验红或席位表 sha 不符）未触发，回滚权在用户。
+- **剩余（另点名）**：旧根 `bots.retired-*`／`bot-workspaces.retired-*` 清理（确认无读者后）；
+  票 15 新 `runId` 增量证据包（②门红解除件，含本窗三个 runId 与提交点坐标）。
 
 

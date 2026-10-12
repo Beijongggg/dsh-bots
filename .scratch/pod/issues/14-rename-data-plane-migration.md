@@ -4,18 +4,18 @@
 
 **Blocked by:** 13
 
-**Status:** ready-for-agent
+**Status:** resolved（2026-10-12 运行面窗口执行完成：数据面搬迁＋逐件校验绿、旧根 retired 只读窗口在位、就绪核验 ready:true、smoke 通过；旧根清理另点名、批级 ② 门红随票 15 包解除）
 
 **复核点:** 命中必审清单（不可逆写入真实运行面，涉及存量数据）→ 方案与执行各独立复核一次。
 
-- [ ] 迁移方案先定稿并经用户过目：范围（注册表、信箱、知识库、台账、能力/nonce、workspace、
+- [x] 迁移方案先定稿并经用户过目：范围（注册表、信箱、知识库、台账、能力/nonce、workspace、
       session 分片、备份目录）、搬迁步骤、**双读过渡**、回退面、授权点；
-- [ ] 明确并处置两个已知风险：① 注册表为空会触发 bootstrap 锚点自动重建——不得以「先清空
+- [x] 明确并处置两个已知风险：① 注册表为空会触发 bootstrap 锚点自动重建——不得以「先清空
       再重建」充当迁移；② session 分片目录名由工作区路径派生，改工作区根名会使旧分片失配，
       须迁移或显式兼容；
-- [ ] 迁移前后逐件校验：席位表、台账事件序列、信箱与回滚点数量，留证据；
-- [ ] 旧路径保留只读一个窗口，确认无读者后再清理（清理另点名）；
-- [ ] 不演练回滚，但写明回滚判据与执行人。
+- [x] 迁移前后逐件校验：席位表、台账事件序列、信箱与回滚点数量，留证据；
+- [x] 旧路径保留只读一个窗口，确认无读者后再清理（清理另点名）；
+- [x] 不演练回滚，但写明回滚判据与执行人。
 
 ## Comments
 
@@ -296,3 +296,20 @@ execute／起链／核验由该会话执行）。
   （两席 workspace／workspaceRoot → `pod-workspaces`）、两处软链 `pod →
   ~/.dsh/plugins/pod`（独立 ls 复核）。报告：
   `artifacts/cutover-execution/pod13-window-20261012T102118Z-migrate-report.json`。
+
+### 窗口执行完成（2026-10-12，13 后续会话执行；本票运行面交付闭合）
+
+本票运行面三件（部署同步重跑／数据迁移 `--execute --profiles`／起链）已随票 13 窗口执行
+完毕——执行序表、证据（报告/记录/备份路径、pids、就绪核验与 smoke 计数）见
+[票 13 Comments「运行面窗口执行」](13-rename-identity-switch.md)。本票侧要点：
+
+- **首次 execute 按设计中止**（复验 `mismatch-mode`）→ 修门 e（`631f683`，见上节）→ 重跑
+  成功；中止现场保全（新根清理、旧根原样）与重跑绿态同件可核（`…-migrate-report.json`）。
+- **迁移后逐面对账**：`--verify-only --report …-verify-after.json`（basis:new）与迁移前基线
+  等值——registry 2 席、ledger 180 事件／lastSeq 180、inbox 297 文件、outbox 142、knowledge
+  11 行、nonces 84、ws 13 目录；started 271→277（窗口内两轮重启新行，预期）。
+- **旧根 retired 两件在位**（只读窗口）：`bots.retired-2026-10-12T10-23-26-944Z`／
+  `bot-workspaces.retired-2026-10-12T10-23-26-944Z`；清理另点名（本票验收项已注明）。
+- **风险②实证（session 分片不搬）**：`bot-health check` 两席「会话状态位于 sessions 作用域」
+  OK（新旧前缀双认生效）＋邮局一致 OK——跨根等效性以 bot-health＋就绪核验（两通道
+  roleReady 且 `sourceDigest` 同值）留证。
