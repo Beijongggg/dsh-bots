@@ -124,9 +124,13 @@ started 261 行、bot-workspaces 13 目录 644MB、profiles 19、sessions 47、b
   2. 新根不在位：`<home>/pod` 或 `<home>/pod-workspaces` 已存在 → 拒
      （「已迁移或布局冲突」——二次 execute 天然拒绝，幂等语义＝拒绝而非重搬；
      复验走 `--verify-only`）；
-  3. 无在跑进程：读 `bots/started/instances.jsonl` 全部行＋注册表内 `pid` 字段，
-     逐 pid 存活探测（`process.kill(pid,0)`；EPERM 视同存活）——发现任何存活 pid 即拒
+  3. 无在跑进程：读 `bots/started/instances.jsonl` **每个 botId 最新行**＋注册表内 `pid`
+     字段，逐 pid 存活探测（`process.kill(pid,0)`；EPERM 视同存活）——发现任何存活 pid 即拒
      （host 行含内，窗口内 host 也必须停）。
+     *修门口径（2026-10-12，窗口侦察＋票 14 Comments）：原「全部行」在真实运行面假阳性——
+     instances.jsonl 271 行历史里 pid 940／968／987 已被 cupsd／cups-browsed／snapfuse 复用，
+     逐行探测会把已停机窗口误判为在跑。收窄为每 botId 最新行，与 capability 面「实例注册表
+     最新行 pid」同口径；反例锁＝最新行活仍拒（tests/pod-data-migration.test.mjs）。*
 - **失败中止语义**：拷贝与复验任一步失败 → 已落新根删除（rm 已建新目录树）、旧根不动、
   exit 非 0——不留半迁移态；旧根改名是**最后一步**，之前任何失败均不影响旧布局。
   注记（评审返修）：`--profiles` 步不在新根清理面——已重写 patch／已改名软链不自动

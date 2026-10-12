@@ -235,6 +235,33 @@ test("在跑检测拒绝：instances.jsonl 活 pid（含本测试进程）→ �
   deepEqual(snapshotTree(home), before, "拒绝路径零写入");
 });
 
+test("在跑检测口径（pid 复用修门）：每 botId 只认最新行——历史行 pid 被无关进程复用不再假阳性拒迁", () => {
+  const home = buildFixtureHome();
+  const dead = deadPid();
+  // 真实场景复现（2026-10-12 窗口侦察）：instances.jsonl 历史 271 行里 pid 940/968/987
+  // 已被 cupsd／cups-browsed／snapfuse 复用；夹具＝同 botId「老行活 pid（本测试进程）＋新行死 pid」。
+  // 旧口径逐行探测 → 假阳性拒迁；口径＝每 botId 最新行 → 放行。
+  writeFileSync(join(home, "bots", "started", "instances.jsonl"),
+    JSON.stringify({ botId: "host", pid: process.pid, startedAt: "2026-01-01T00:00:00.000Z", hostInstanceId: "host-old", at: "2026-01-01T00:00:00.000Z" }) + "\n" +
+    JSON.stringify({ botId: "host", pid: dead, startedAt: "2026-01-01T00:00:01.000Z", hostInstanceId: `host-${dead}`, at: "2026-01-01T00:00:01.000Z" }) + "\n");
+  const r = runCli(["--dsh-home", home, "--execute"], home);
+  equal(r.status, 0, `历史行 pid 复用不得拒迁，实际 ${r.status}：\n${r.stdout}${r.stderr}`);
+  ok(existsSync(join(home, "pod", "bots.json")), "迁移完成（新根注册表在位）");
+});
+
+test("在跑检测口径反例：最新行活 pid（同 botId）仍拒——口径收窄不放行真在跑实例", () => {
+  const home = buildFixtureHome();
+  const dead = deadPid();
+  writeFileSync(join(home, "bots", "started", "instances.jsonl"),
+    JSON.stringify({ botId: "host", pid: dead, startedAt: "2026-01-01T00:00:00.000Z", hostInstanceId: `host-${dead}`, at: "2026-01-01T00:00:00.000Z" }) + "\n" +
+    JSON.stringify({ botId: "host", pid: process.pid, startedAt: "2026-01-01T00:00:01.000Z", hostInstanceId: "host-live", at: "2026-01-01T00:00:01.000Z" }) + "\n");
+  const before = snapshotTree(home);
+  const r = runCli(["--dsh-home", home, "--execute"], home);
+  ok(r.status !== 0, "最新行活即拒");
+  match(`${r.stderr}${r.stdout}`, /在跑|存活|pid/i);
+  deepEqual(snapshotTree(home), before, "拒绝路径零写入");
+});
+
 test("前置校验拒绝：旧注册表缺失 → 拒且零写入；注册表非对象表 → 拒", () => {
   const empty = mkdtempSync(join(tmpdir(), "pod-migrate-empty-"));
   const before = snapshotTree(empty);

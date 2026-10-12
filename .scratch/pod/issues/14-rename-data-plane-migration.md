@@ -128,3 +128,30 @@ integration/pod-rename。方案文档 `.scratch/pod/rename-migration-plan.md` �
 三项均为 Lead 裁定推荐，用户可逐项否决）。**Status 维持 `ready-for-agent`**：数据迁移
 execute、旧根 `*.retired-*` 清理（另点名）待授权；窗口手册见方案文档 §5（停 bot → 部署同步 →
 迁移 → 起链 → 就绪核验，四件授权逐步标注）。
+
+### 修门与授权留档（2026-10-12，票 13 窗口续会话）
+
+- **方案过目＋迁移授权（用户原文）**：「继续2 3 4」→ AskUserQuestion 选定「授权 execute＋
+  方案三项按推荐（停机搬迁／新根名 `pod`＋`pod-workspaces`／sessions 不搬）」——方案文档
+  `.scratch/pod/rename-migration-plan.md`（冻结候选）据此**过目通过**，为窗口执行依据；
+  **数据迁移 execute（F8 点名）已授权、未执行**（同轮裁定「暂不跑窗口」）。勾选框按仓库
+  惯例收口时才勾，维持未勾。
+- **修门（TDD；本票脚本面，阻塞票 13 窗口）**：`scripts/migrate-pod-data.mjs`
+  `findLiveInstancePids` 口径「instances.jsonl **全部行**」→「**每 botId 最新行**」。
+  事由（失败门名＋观测值＋证据指针）：真实运行面 271 行历史里 pid **940**（`cupsd`）／
+  **968**（`cups-browsed`）／**987**（`snapfuse`）被系统进程复用（`ps -o pid,args` 实证），
+  链停净后逐行探测仍判「在跑」而拒迁（`[migrate] 拒绝：检测到在跑进程 pid=…`）——pid 复用
+  假阳性；口径与 capability 面「实例注册表最新行 pid」（`lib/org/capability-issue.js`）一致。
+- **红→绿留痕**：`tests/pod-data-migration.test.mjs` 新用例先红（`not ok 7`，拒因原文
+  `pid=26996（botId=host，来源 instances.jsonl）`），修后该件 **12/12**；反例用例锁
+  「最新行活 pid（同 botId）仍拒」，防口径过宽放行真在跑实例。
+- **真实数据只读复算**：`findLiveInstancePids("~/.dsh")` → 候选中存活项＝
+  `host 2295`／`duty-coordinator 2327`／`implementer 2351`（＋注册表重复两行），
+  cups*／snapfuse 假阳性 **0**。
+- **方案文档同步**：§5 前置校验 3 改新口径＋修门注记（含事由与反例锁坐标），保证窗口
+  执行方不按旧口径误解。
+- **验证**：`TMPDIR=/dev/shm node --test tests/pod-data-migration.test.mjs` **12/12**；
+  `TMPDIR=/dev/shm node tests/run.mjs` **94/94**；`node scripts/ci-gates.mjs` ③ **0 违例** ✅
+  （② 7/10 既有预期红，归票 15 新序号包）。
+- **窗口未执行项**（待点名）：停链（含 host）→`--execute --profiles`→起链→就绪核验；
+  停链会终止实施会话所在宿主进程（host pid 2295），故先落档后执行。

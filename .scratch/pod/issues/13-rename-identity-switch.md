@@ -211,4 +211,32 @@ docs-only、producerKind 本地字面量）待用户追认，见本件 Comments�
   dry-run print-only 属工具设计（纪律 #6），「dry-run 先行」凭据＝票面叙述所记 planSha8 与
   写实件内嵌值一致（跨核成立）。
 
+### 运行面窗口 ②③④（2026-10-12 续：授权、修门与 ③ 落地）
+
+- **用户点名（原文）**：「继续2 3 4」＋四项裁定（AskUserQuestion）：①票 14 数据迁移 execute
+  授权＋方案三项按推荐；②阻塞处置＝按 TDD 修门（每 botId 最新行）；③窗口执行＝**暂不跑窗口**；
+  env 写法（针对授权件③）＝**只写新名**（写侧一律新名口径；已告知「回退旧插件时邮件缝休眠」风险并接受）。
+- **③ 仓库外两脚本（本窗落地）**：`~/.dsh/dsh-web.sh`（`DSH_BOTS_HOST_URL`→`POD_HOST_URL`）、
+  `~/.dsh/restart-split.sh`（同前＋`DSH_BOTS_TURN_TIMEOUT_MS`→`POD_TURN_TIMEOUT_MS`）；
+  会话前备份 `~/.dsh/dsh-web.sh.bak-pod-rename-20261012`／`restart-split.sh.bak-pod-rename-20261012`
+  （`cp -p` 保模式）。验证＝`bash -n` 双绿、`export` 行旧名清零（旧名仅存注释溯源）、
+  diff 与备份逐行对照（各 1 处 env 块）。侦察旁证：`check-plugin-deps.mjs`／`settings.yaml`／
+  `~/.dsh/.env` 无旧名残留（无需扩面）。
+  - **已知窗口风险（裁定后接受）**：库外旧插件 `plugins/dsh-bots/lib/index.js` 实测
+    `DSH_BOTS_HOST_URL`×11、`POD_HOST_URL`×0——若在窗口（票 14 迁移＋④）之前发生非预期
+    宿主启动且仍加载旧插件，邮件缝休眠（2026-10-05 事件类）；恢复＝手工置旧名或立即执行窗口。
+- **②④ 挂起与授权留档**：②（全 bot 重启链）与 ④（`--profiles` 面）均待「跑窗口」指令。
+  实测 ④ 无独立执行路径：`--profiles` 仅在 dry-run 出 `profilesPreview`，真执行＝
+  `--execute --profiles`＝整段数据迁移（拷贝→复验→profiles→旧根 retire）。窗口序＝
+  停链（含 host）→迁移→起链→就绪核验（方案 §5 步 0–5）；停链会终止本会话所在宿主进程
+  （host pid 2295），故必须先落档后执行。
+- **门修（阻塞解除，落票 14 脚本面）**：`findLiveInstancePids` 原「instances.jsonl 全部行」
+  口径在真实运行面假阳性——271 行历史里 pid 940／968／987 已被 cupsd／cups-browsed／snapfuse
+  复用，链停净后仍会拒迁。按 TDD 修门口径为**每 botId 最新行**（与 capability 面「最新行 pid」
+  同口径）；红→绿与新用例见票 14 Comments。真实数据只读复算：候选中存活项＝host 2295／
+  duty-coordinator 2327／implementer 2351（＋注册表重复），cups* 假阳性 **0**。
+- **验证**：`TMPDIR=/dev/shm node --test tests/pod-data-migration.test.mjs` **12/12**；
+  `TMPDIR=/dev/shm node tests/run.mjs` **94/94**；`node scripts/ci-gates.mjs` ③ **0 违例** ✅
+  （② 7/10 既有预期红，归票 15 新序号包）。
+
 

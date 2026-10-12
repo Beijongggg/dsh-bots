@@ -296,20 +296,27 @@ export function pidAlive(pid) {
 const legacyRegistryFile = (dshHome) => join(dshHome, LEGACY_DATA_ROOT_NAME, "bots.json");
 const legacyStartedRegistryFile = (dshHome) => join(dshHome, LEGACY_DATA_ROOT_NAME, "started", "instances.jsonl");
 
-/** 在跑检测（读**旧布局**——执行时点新根尚不存在）：instances.jsonl 全部行＋
- *  注册表内 pid 字段，逐 pid 存活探测（host 行含内——窗口内 host 也必须停）。 */
+/** 在跑检测（读**旧布局**——执行时点新根尚不存在）：instances.jsonl **每个 botId 最新行**＋
+ *  注册表内 pid 字段，逐 pid 存活探测（host 行含内——窗口内 host 也必须停）。
+ *  修门（2026-10-12，票 14 Comments）：**只认每 botId 最新行**——instances.jsonl 是追加日志，
+ *  历史行可达数百，其 pid 会被无关系统进程复用（实测 cupsd 940／cups-browsed 968／
+ *  snapfuse 987 复用 2026-09-07 历史行），逐行探测即假阳性、把已停机窗口误判为在跑而拒迁；
+ *  口径与 capability 面「实例注册表最新行 pid」一致（lib/org/capability-issue.js）。 */
 export function findLiveInstancePids(dshHome) {
   const candidates = [];
   try {
+    /** 文件追加序里的最新一行＝该 botId 的现役实例行。 */
+    const latestByBot = new Map();
     for (const line of readFileSync(legacyStartedRegistryFile(dshHome), "utf8").split("\n")) {
       if (line.trim() === "") continue;
       try {
         const row = JSON.parse(line);
         if (Number.isInteger(row?.pid) && row.pid > 0) {
-          candidates.push({ pid: row.pid, botId: String(row?.botId ?? "?"), source: "instances.jsonl" });
+          latestByBot.set(String(row?.botId ?? "?"), row.pid);
         }
       } catch { /* 损坏行不参与判定 */ }
     }
+    for (const [botId, pid] of latestByBot) candidates.push({ pid, botId, source: "instances.jsonl" });
   } catch { /* 缺面＝无行 */ }
   try {
     const registry = JSON.parse(readFileSync(legacyRegistryFile(dshHome), "utf8"));
