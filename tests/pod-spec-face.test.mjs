@@ -1013,12 +1013,12 @@ test("V-P1.4/V-P1.5 15 号票全窗关闭：代码面旧名残留只余退役段
     assert.equal(OLD_IDENTIFIER_SHAPE.test(readTextOrEmpty(join(REPO_ROOT, rel))), false,
       `${rel} 不得再带旧标识符形（旧类名／旧 id／旧 data-*）`);
   }
-  // 全窗关闭后：lib／scripts／tests 面旧名记号（bare／hyphen／env 类）全零——
-  // 唯一豁免＝role-cards 退役段名（colon 类，历史提及）；迁移工作面两件已整件删除。
-  for (const [root, kind] of [["lib/", "env"], ["lib/", "bare"], ["scripts/", "bare"], ["scripts/", "env"], ["tests/", "bare"], ["tests/", "env"]]) {
-    const remaining = whitelisted.filter((entry) => entry.file.startsWith(root) && entry.kind === kind);
-    assert.equal(remaining.length, 0, `${root} 面不得再留 ${kind} 类旧名记号`);
-  }
+  // 许可面形状锁定（**非恒真**——评审返修：此前的「目录×kind 全零」filter 循环在当前
+  // 许可面下必空＝检测力为零；改为直接枚举幸存成员：重加任一条目/形即红）。
+  assert.deepEqual(Object.keys(IDENTITY_ALLOW_TOKENS).sort(), ["lib/org/role-cards.js"],
+    "IDENTITY_ALLOW_TOKENS 幸存成员须恰为 role-cards 一条（重加即红）");
+  assert.deepEqual(IDENTITY_ALLOW_SHAPES.map((entry) => entry.id), ["retired-section"],
+    "IDENTITY_ALLOW_SHAPES 幸存形须恰为 retired-section 一类（重加即红）");
 });
 
 test("V-P8.2 A 组九类清单扫全：模块 id／包名／CSS 前缀／locale ns／host 插件名／wire 头／路由前缀／日志前缀／测试与脚本字面量逐类有落点", () => {

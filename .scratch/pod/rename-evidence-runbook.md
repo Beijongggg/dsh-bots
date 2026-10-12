@@ -101,6 +101,8 @@ node scripts/evidence-runner.mjs
 - 失败语义：任何 phase 失败 exit 2／run 记 failed——**不得**对失败 run 打包
   （packager 会查 registry 终态，fail closed）。
 
+**复审备注（2026-10-12 全窗关闭批）**：本手册为已执行的一次性准备件；`--new-test-modules` 所列 `tests/pod-data-migration.test.mjs` 已随全窗关闭批退役删除（说明书重跑该参数会报「文件不存在」——属预期史实，不作重跑依据）。
+
 ## 5. 第五步：打包（evidence-packager）
 
 ```sh

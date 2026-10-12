@@ -237,8 +237,23 @@ EV-20261011-pod-rename-batch-close 事件）。**Status 维持 `ready-for-agent`
 - **冻结面纪律**：0011 包 `sourceManifest` 11 件**零触碰**（②门 11/11 佐证）——本批不触发
   新 runId 重采集；数据面语义（`lib/data-roots.cjs`）未动。
 - **残留登记（另记，不改本批范围）**：① **部署面**仍载旧版 `env-aliases.js`（双读实现）与
-  已删迁移两件——下次部署同步窗口随行清理（部署面动作须点名）；② `lib/data-roots.cjs` 注释
-  中「retired 只读窗口」措辞微旧——该件在 0011 冻结面内，随下次因实质原因触碰时同批改写；
-  ③ shared-face 旧形容错与 bot-health 分片双认窗口**按设计仍开**（`~/.dsh/sessions/` 存量
-  20 个旧前缀分片未搬，读面须双认；非本批范围）；④ spec 附录 A `V-P8.5` 的「迁移前后逐件校验」
-  落点随脚本退役转为史实（证据＝窗口产物），坐标修订归 Lead 一并记。
+  已删迁移两件——下次部署同步窗口随行清理（部署面动作须点名）；② `lib/data-roots.cjs`
+  **注释微旧＋`LEGACY_DATA_ROOT_NAME`／`LEGACY_WORKSPACE_ROOT_NAME` 成死导出**（随迁移脚本
+  退役零消费者；Spec 轴复核发现，已复算证实）——该件在 0011 冻结面内，为两枚死导出启动
+  重采集不值，登记 `docs/PROJECT_UNDERSTANDING.md`「仍可选题」（触发＝下次因实质原因触碰
+  该件时同批删）；③ shared-face 旧形容错与 bot-health 分片双认窗口**按设计仍开**
+  （`~/.dsh/sessions/` 存量 20 个旧前缀分片未搬，读面须双认；非本批范围）；④ spec 附录 A
+  `V-P8.5` 的「迁移前后逐件校验」落点随脚本退役转为史实（证据＝窗口产物），坐标修订归
+  Lead 一并记。
+- **两轴复审处置（b6a5a17）**：Standards 轴 0 硬违规（冻结面 11 件交集 ∅、删除零悬空、
+  许可面自洽、提交纪律合规；smell 仅 env-aliases「边缘 Middle Man」——由读侧单点契约支撑，
+  不动）；Spec 轴 0 硬违例／0 缺失／0 越权（关闭条件四条复算成立、四轴与票面逐一对上、
+  计数全中；一处口径偏轻已处置）。处置三条：① **六组「目录×kind 全零」断言恒真**（当前
+  许可面下 filter 必空，检测力为零）→ 已改为**幸存成员形状锁定**（`IDENTITY_ALLOW_TOKENS`
+  键集＝`["lib/org/role-cards.js"]` 恰等、`IDENTITY_ALLOW_SHAPES` id 序＝`["retired-section"]`
+  恰等——重加任一条目／形即红）；② 构造形负例无自证（`join("")` 笔误会使负例恒绿）→ 已补
+  「夹具自证」用例（三段结构 split 钉死＋尾段替换一致性，断言零旧名字面量）；③ runbook
+  `--new-test-modules` 仍列已删件 → 已加复审备注（一次性手册，说明书重跑会报「文件不存在」
+  属预期史实）。judgement 采纳不改：host-runtime-map 软链措辞已随本处置批按现状改写。
+- **复审处置后复核**：全量 **93/93**；preflight 四门 **①93/93・②11/11・③0・④15-0-0 PASS**；
+  扫描直跑 hits＝0／staleAllow＝0／unusedShapes＝[]（whitelisted 仍 role-cards×2）。

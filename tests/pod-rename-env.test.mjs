@@ -19,11 +19,20 @@ import { buildSpawnEnv } from "../lib/spawn-env.js";
 import { checkHostEnvSeam, HOST_URL_SEAM_VAR } from "../lib/org/host-env-seam.js";
 import { readEnvValue } from "../lib/env-aliases.js";
 
-/** 旧名构造形（负例专用；不落字面记号）。 */
+/** 旧名构造形（负例专用；不落字面记号）。自证断言把构造值钉回真旧名——
+ *  防 `join("")` 类笔误让负例静默失去意义（Standards 轴复核返修）。 */
 const legacyName = (suffix) => ["DSH", "BOTS", suffix].join("_");
 
 /** 逃生阀新名（对外运维合同；spawn-env 未导出常量，测试以字面名锁定——本仓惯例）。 */
 const ENV_EXTRA_VAR = "POD_ENV_EXTRA";
+
+test("V-P8.3 env 窗关闭·夹具自证：构造形值＝真旧名（防笔误使负例恒绿）", () => {
+  // 分隔符钉死：三段结构（DSH／BOTS／尾段，`_` 连接）——join("") 类笔误即红。
+  assert.deepEqual(legacyName("X").split("_"), ["DSH", "BOTS", "X"]);
+  assert.equal(legacyName("HOST_URL").length, "DSH".length + "BOTS".length + "HOST_URL".length + 2);
+  // 尾段替换一致性（同一构造规则对两个尾段成立）
+  assert.equal(legacyName("ENV_EXTRA"), legacyName("HOST_URL").replace("HOST_URL", "ENV_EXTRA"));
+});
 
 test("V-P8.3 env 窗关闭·单点读：readEnvValue 只读新名；旧名不再回落（构造形负例）", () => {
   const oldHostUrl = legacyName("HOST_URL");

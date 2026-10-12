@@ -182,6 +182,12 @@
 
 仍可选题（长期观察项，不立项、只记触发信号；边界见 docs/agents/issue-tracker.md）：
 
+- **`lib/data-roots.cjs` 死导出与微旧注释（2026-10-12 全窗关闭批复核登记）**：
+  `LEGACY_DATA_ROOT_NAME`／`LEGACY_WORKSPACE_ROOT_NAME` 两常量随迁移脚本退役
+  （票 15 全窗关闭批删除 `scripts/migrate-pod-data.mjs`）已**零消费者**——实为死导出；
+  文件头「`bots.retired-<ts>` 只读窗口」注释亦为微旧措辞（窗口已清理）。**本批不清理**：
+  该件在 0011 包 `sourceManifest` 内，触碰须新 `runId` 重采集，为两枚死导出启动证据链
+  不值。触发＝下次因实质原因触碰该件（功能批／重采集窗口）时，同批删死导出＋改注释。
 - **DSH 会话编排的轮询与子代理失效面（2026-10-11 观察，pod 批 retro R6①）**：
   implement-spec 长批实测——Lead 用 `sleep 200–300` 循环盯子代理进度（41 次／约 3 小时，
   宿主明明有子代理与后台任务完成通知）；子代理可**静默死亡**（pod 批 01 号票首派无收尾
