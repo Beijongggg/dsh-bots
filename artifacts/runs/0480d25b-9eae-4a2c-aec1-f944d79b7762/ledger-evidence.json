@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "ledger-evidence/1",
+  "runId": "0480d25b-9eae-4a2c-aec1-f944d79b7762",
+  "capturedAt": "2026-10-12T11:55:45.044Z",
+  "source": {
+    "kind": "host-ledger",
+    "path": "/home/beijong/.dsh/pod/ledger/events.jsonl",
+    "present": true,
+    "byteLength": 82048,
+    "sha256": "7a7c89bcfdeec2c8f7d316985bf6bc82d43d970b11fd1bb5e611793451c2563f",
+    "lineCount": 180,
+    "firstSeq": 1,
+    "lastSeq": 180,
+    "absentReason": null
+  },
+  "window": {
+    "rule": "seq ∈ (fromSeq, toSeq]：fromSeq 缺省＝本 run 起步时台账末位 seq（＝本 run 期间新增的事件）；演练 run 显式 fromSeq=0（隔离演练根自建台账，窗口＝整段演练）；窗口内事件**收全**，不做挑选",
+    "fromSeq": 180,
+    "toSeq": 180,
+    "fromAt": null,
+    "toAt": null
+  },
+  "counts": {
+    "events": 0
+  },
+  "events": [],
+  "sliceDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "verification": {
+    "scheme": "lib/org/ledger-events.js::validateEventRecord 逐条重算（类型／负载键白名单／taskId／actor／两张事实表词表／eventHash），窗口内 seq 连续（首条以上一条＝window.fromSeq），sliceDigest 复算",
+    "ok": true,
+    "checked": 0,
+    "problems": []
+  },
+  "drill": null
+}

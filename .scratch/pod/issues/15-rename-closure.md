@@ -4,18 +4,19 @@
 
 **Blocked by:** 14
 
-**Status:** ready-for-agent
+**Status:** resolved（2026-10-12 新 runId 增量证据包 0011 生成落地——runId `0480d25b-…`／包 `review-evidence-package-0011-b59bb215.json`；preflight 四门全绿 ①94/94・②冻结面 11/11・③0・④15-0-0；授权③＝用户本会话点名）
 
-**复核点:** 命中必审清单（不可逆：冻结面证据链）→ 新包生成前独立复核。
+**复核点:** 命中必审清单（不可逆：冻结面证据链）→ 新包生成前独立复核（已执行：2026-10-12 子代理只读对源，结论「可按原文执行」＋计数更正 10/10→11/11）。
 
-- [ ] 旧名残留清理（可清理路径与冻结件区分清楚；冻结件不回改，只在新版本承接）；
-- [ ] 改名触发了当前终版包 `sourceManifest` 内文件（部署目录名与数据路径字样在案）——
-      按纪律以**新 `runId` 重采集**并生成新序号增量包，旧包只读；
-- [ ] 授权：**新 `runId` 增量证据包生成属逐项授权点**（对齐规格 V-P8.7：部署同步／全 bot
+- [x] 旧名残留清理（可清理路径与冻结件区分清楚；冻结件不回改，只在新版本承接）——收口清点三类：可清未清＝空集、应改未改＝空集（详见收口记录）；
+- [x] 改名触发了当前终版包 `sourceManifest` 内文件（部署目录名与数据路径字样在案）——
+      按纪律以**新 `runId` 重采集**并生成新序号增量包，旧包只读——0011 包（runId `0480d25b-9eae-4a2c-aec1-f944d79b7762`）；
+- [x] 授权：**新 `runId` 增量证据包生成属逐项授权点**（对齐规格 V-P8.7：部署同步／全 bot
       重启链／新 runId 包三件各一次点名），执行前用户点名，票面记授权依据原文；
-- [ ] 冻结面门（preflight ②门）在新清单下 PASS；
-- [ ] `README.md` §2 与当月 CHANGELOG 事件同步（正式文档新增／移动／重命名按 §6.1 记事件）；
-- [ ] 票面 Status 置 `resolved` 并附实施、验证与授权凭据；遗留项写「移交备注」。
+- [x] 冻结面门（preflight ②门）在新清单下 PASS——**11/11**（0011 包 sourceManifest 11 件全符）；
+- [x] `README.md` §2 与当月 CHANGELOG 事件同步（正式文档新增／移动／重命名按 §6.1 记事件）——
+      §2 证据链行为「最新序号包」指针式，无需随包改动；CHANGELOG 记 EV-20261012-pod15-incremental-package；
+- [x] 票面 Status 置 `resolved` 并附实施、验证与授权凭据；遗留项写「移交备注」。
 
 ## Comments
 
@@ -149,3 +150,51 @@ PROJECT_UNDERSTANDING 部署链同步（目标态＋「运行面切换待授权�
 EV-20261011-pod-rename-batch-close 事件）。**Status 维持 `ready-for-agent`**：新 runId 增量
 证据包生成（授权③；手册就绪，执行前独立复核）与 ②门 10/10 PASS 待授权窗口；全窗关闭的
 许可收缩（env 回落形＋migration-face 形）随 retired 清理另记。
+
+### 新 runId 增量证据包生成（2026-10-12，授权③执行；本票收口）
+
+- **授权依据原文**：用户 2026-10-12 本会话点名 V-P8.7 授权③——AskUserQuestion 提问
+  「票 15 唯一剩余件＝『新 runId 增量证据包生成』（V-P8.7 授权③）。准备（手册）与执行前
+  独立复核均已完成，复核结论＝可按原文执行（已更正一处预期计数 10/10→11/11）。是否在本
+  会话点名授权执行？」→ 用户选定「**点名授权·本会话执行**（推荐）」。（同步入包
+  `human.authorizationBasis`。）
+- **前置核验（只读）**：① 三段并集按手册 §2 重 derive＝**111 件**（与准备时点一致；
+  `2a1aede..HEAD` 修门提交仅触 `scripts/migrate-pod-data.mjs`／`tests/pod-data-migration.test.mjs`／
+  `pod-data-roots`／`pod-spec-face` 四件，全部已在集内）；② 0010 包文件 sha256 对拍＝
+  `405fdf54…5470` 吻合、0011 序号未占用；③ parity 预检 7/7 一致；④ 真实面写入观察＝
+  唯一周期写者 `pod/capabilities/issued.jsonl`（两席 role 续期，**10 分钟节拍**，不在豁免面）
+  ——按「避开续期拍」择时起跑（19:54:40，续期拍 19:53:45／下一拍约 20:03:45）。
+- **执行前独立复核**（票面复核点）：子代理新会话、只读对源（runner／packager／
+  lib/evidence-packager／ledger-evidence／preflight／sentinel-provenance）逐项核验八组主张，
+  结论＝**可按原文执行**；唯一不符＝②门预期计数：0011 包 sourceManifest＝**11 件**（0010 的
+  10 件＋`lib/data-roots.cjs`——runner `:48` 与 sentinel-shadow 新增对其 import），按 10/10
+  核对会误判。已复算证实（`buildExecutionSourceManifest` 独立复跑＝11 件）并回写手册 §6／§7
+  （§7 增补「执行窗口时序约束」＝避续期拍的实测口径）。
+- **采集**：`node scripts/evidence-runner.mjs` 裸跑（缺省 out-root／profile）→ runId
+  **`0480d25b-9eae-4a2c-aec1-f944d79b7762`**，终态 **completed**：回归 **94/94**、
+  parity **7/7 identical**（deployDir `~/.dsh/plugins/pod`，零漂移）、真实面核验
+  **clean＋verified**（前后只读快照零差异）、台账证据段 **0 事件**（窗口 `(180, 180]`，
+  采集时点真实台账 lastSeq＝180；缺省口径空窗合法，复核已证）。run 产物三件
+  `artifacts/runs/0480d25b-…/{raw.json,capture-manifest.json,ledger-evidence.json}`。
+- **打包**：`node scripts/evidence-packager.mjs --run 0480d25b-… --base-package 405fdf54…5470
+  --base-package-path artifacts/packages/review-evidence-package-0010-405fdf54.json
+  --human /tmp/pod-rename-human.json --modified-files /tmp/pod-rename-modified.json
+  --new-test-modules /tmp/pod-rename-newtests.json --sequence 0011` → 新包
+  `artifacts/packages/review-evidence-package-0011-b59bb215.json`，sha256
+  `b59bb215d03b38d3cc4459b9095e70f8546c6ccfa0cb20b43d8db87fe9ef55bc`，byteLength **112270**；
+  basePackage 链指向 0010 包文件 sha256；`modifiedFiles` 111 件、`newTestModules` 3 件；
+  deploymentImpact 机械派生＝driftCount 0（identical 7/checked 7、restartNeeded false、
+  deploySyncNeeded false）。七项绑定核验通过；旧包 0010 与更早包、raw、registry 只读未动
+  （新 run 目录／claim／registry 行为纯追加）。
+- **四门复核**：`TMPDIR=/tmp node scripts/preflight.mjs` → **①回归 94/94 ✅
+  ②冻结面（0011 包）11/11 ✅ ③0 违例（扫 118 md；命名扫描 221 活文件）✅ ④宿主契约
+  15 PASS／0 FAIL／0 SKIP ✅；`preflight: PASS`**——**票 13/14 的 ②门红态解除**；
+  `node scripts/ci-gates.mjs`（pre-commit ②③）**PASS**——`--no-verify` 偏离项闭合，
+  钩子恢复常态（本票提交不再需要）。
+- **落档**：CHANGELOG 事件 EV-20261012-pod15-incremental-package；README §2 证据链行为
+  「最新序号包」指针式表述，无需随包改动（§6.1 本轮无正式文档新增／移动／重命名）。
+- **移交备注（遗留项）**：① 全窗关闭的许可收缩（env 回落形＋migration-face 形、
+  role-cards 之外残留复核）待运行面切换完成后的收口复核另记；② 架构派生件 17 件＋
+  `preview/*.png` 13 张重出（仓内无生成器）留待运行面切换窗口或外部生成器；③ spec.md
+  §D3／§E1／V-P4.1 坐标修订归 Lead 收口（既定安排）；④ 仓库外两脚本实值核对已随票 13
+  窗口完成（`~/.dsh/dsh-web.sh`／`restart-split.sh` 新名 export），本票未再触碰。

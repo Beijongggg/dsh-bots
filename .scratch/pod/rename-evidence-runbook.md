@@ -135,16 +135,25 @@ node scripts/evidence-packager.mjs \
 TMPDIR=/tmp node scripts/preflight.mjs
 ```
 
-**预期：②门 10/10 PASS**——`latestPackage` 取新 0011 包（正则
+**预期：②门 11/11 PASS**——`latestPackage` 取新 0011 包（正则
 `^review-evidence-package-(\d{4})-[0-9a-f]+\.json$`，按内嵌序号排），
-`verifyFrozenFace` 对**当前树**逐文件重算 0011 包 sourceManifest 的 sha256＋
-byteLength 全符。**四门预期全绿**：①回归 94/94（或执行时点计数）／②10/10／
+`verifyFrozenFace` 对**当前树**逐文件重算 0011 包 sourceManifest 的 sha256＋byteLength 全符。
+**计数更正（2026-10-12 执行前独立复核发现，已复算证实）**：0011 包 sourceManifest＝**11 件**
+（0010 的 10 件＋`lib/data-roots.cjs`——runner `:48` 与 `lib/sentinel-shadow.js` 新增对其
+import，闭包扩大），按 10/10 核对会误判；门行为本身无误。
+**四门预期全绿**：①回归 94/94（或执行时点计数）／②11/11／
 ③0 违例／④宿主契约 dev 面 15 PASS／0 FAIL／0 SKIP；`preflight: PASS`。
 pre-commit 钩子（`ci-gates`＝②＋③）自此恢复常态，**不再需要 `--no-verify`**
 （票 13/14 偏离项的闭合条件）。
 
 ## 7. 红线（执行窗口内仍然有效）
 
+- **执行窗口时序约束（2026-10-12 实测补记）**：真实面存在 **10 分钟节拍的能力续期写**
+  （两席 role 续期，落 `$DSH_HOME/pod/capabilities/issued.jsonl`；实测 19:33:4x／19:43:4x
+  两拍、间隔约 10m02s）。该路径**不在** `PROTECTED_SNAPSHOT_EXCLUSIONS` 豁免面内
+  ——run 前后快照窗口若覆盖任一续期拍，终态即 failed（O-6.3），本 run 不得打包。
+  故 runner 须**择时起跑**：以 `stat -c %y` 读 issued.jsonl 现行 mtime 推算下一拍
+  （≈ mtime＋10min），保证「起跑＋全程（约 90s）」不再覆盖下一拍；或等一拍刚过再起跑。
 - 旧包／raw／run-registry 只读；runner/packager 之外任何手段不得触碰
   `artifacts/`。
 - 真实运行面零写入：runner 的 DSH_HOME／部署目录快照为只读，packager 纯只读
