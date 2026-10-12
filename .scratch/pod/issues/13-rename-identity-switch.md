@@ -157,3 +157,32 @@ sentinel-shadow／evidence-runner）被改名批触碰，§F7 预期中间态，
 restart-split.sh）、2 手工软链＋16 份 profile patch 重脚手架、就绪后最小闭环 smoke——均待
 用户逐项点名授权（菜单已随本批收口呈报）。口径判定三条（路由 `/api/pod`、env 第 12 名
 docs-only、producerKind 本地字面量）待用户追认，见本件 Comments「口径判定」。
+
+### 运行面窗口 item ① 部署同步（2026-10-12，/implement 13 会话，main 工作树）
+
+- **授权依据（原文）**：用户「/implement 13」AskUserQuestion 逐项选定——票号＝「pod/13 改名·身份切换」；
+  运行面仅勾「① 部署同步（推荐先做）」（②全 bot 重启链／③仓库外两脚本／④软链＋profile patch
+  未选，一律不做）；dry-run 后二次确认「执行写实（推荐）」。
+- **执行**：spec＝`artifacts/cutover-preparation/pod13-rename-20261012T085258Z-batch.json`
+  （`files`＝`deploymentInventory` 同一实现枚举的全量面 **223 件**（runtime 98＋support 125；
+  本票收口记的 219 为 2026-10-11 时点 HEAD 口径）；`commit`＝HEAD `9999a946`；
+  `inventory.require`＝`all-same`；`restart`＝不做）。`--dry-run` 先行（223 件全 create、
+  planSha8 `7aced21b`、仓库与运行面零写入）→ 用户确认 → 写实。
+- **写实结果**：`~/.dsh/plugins/pod` 223 件全落（逐件 sha256 回读核验全 ok）；备份目录
+  `~/.dsh/backups/pod/pod13-rename-20261012T085258Z-backup-7aced21b`（排他创建；目标全新，
+  223 行全 absent 型无字节可备；manifest sha8 `cb5ad205`）；执行记录
+  `artifacts/cutover-execution/pod13-rename-20261012T085258Z-sync-e77b5103.json`；整面复核
+  `all-same` 223/223、`deploymentOnly` 0、零违例。
+- **独立复算（只读）**：`deploymentInventory(repoRoot, ~/.dsh/plugins/pod)` → ok:true、
+  223 same、sourceDigest `6e47ab38672296fc…`（与 deploy-sync 记录同值）。
+- **旧目录与运行面其余零触碰**：`~/.dsh/plugins/dsh-bots` 原样保留为回退面；本窗仅写
+  `plugins/pod/**` 与 `backups/pod/<runId>-backup-*/**` 两处。
+- **就绪核验现状（观察项，非本批失败）**：`node scripts/org-cutover-check.mjs --dsh-home ~/.dsh`
+  → **退出码 2**、`ENOENT: no such file or directory, open '/home/beijong/.dsh/pod/bots.json'`
+  ——`registryPath` 已随 14 号票切到新数据根 `pod`，数据面迁移（14 号票运行面 `--execute`）
+  未授权未执行，注册表不在新根，`checkCutover` fail-closed。roster／`ready` 判定在数据迁移
+  前不可得；本窗部署面已由 deploy-sync 整面复核＋独立只读复算双证。证据指针：本节命令原文
+  与退出码、record 件 `inventoryAfter` 段。
+- **状态**：`Status` 维持 `ready-for-agent`——②③④、14 号票数据迁移、就绪后最小闭环 smoke、
+  新 runId 增量证据包（15 号票）仍待逐项授权；重启链执行前宿主不加载新目录，现役行为零变化。
+
