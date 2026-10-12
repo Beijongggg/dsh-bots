@@ -221,10 +221,12 @@ patch 行 `name` 自 profile 目录逐级上溯解析，**根级链接即各 bot
 `relinkLegacyPluginLink(nmDir, { label, deployTarget, dryRun })`；per-profile 链接与
 根级共享锚**同口径**调用（改名＋重指 `<dshHome>/plugins/pod`；非软链旧名项 fail closed
 不动）。测试夹具增根级链接；`--profiles` 用例增三条断言（共享锚在位／重指部署目录／
-旧名移除）；边界用例增共享锚非软链 fail-closed 断言（修前该形必红——根级链接零动作）。
+旧名移除）；边界用例增共享锚非软链 fail-closed 断言（修前必红者为**正向断言**——根级链接
+零动作；fail-closed 断言系防护性新增，修前恒绿）。
 
 **真实运行面只读复算**（`node scripts/migrate-pod-data.mjs --dsh-home ~/.dsh --profiles`，
-dry-run 零写入）：链接动作现为两条（此前仅 web 一条）＋18 份 patch 重写，逐条原文：
+dry-run 零写入）：链接动作现为两条（此前仅 web 一条）＋**16 份 patch 重写**（动作总数
+18＝16 patch＋2 链接；更正见本文末「记录更正」节），逐条原文：
 
 ```
 - web | node_modules/dsh-bots → pod | ['软链改名保形（dsh-bots → pod）', '重指部署目录（/home/beijong/.dsh/plugins/dsh-bots → /home/beijong/.dsh/plugins/pod）'] | wrote False
@@ -235,6 +237,17 @@ dry-run 零写入）：链接动作现为两条（此前仅 web 一条）＋18 �
 全量回归与 ③ 门见本批提交（EV-20261012-pod14-window-fixgate-d）。**与并行会话**：本修门
 （票 13「13 后续」会话）与票 14 窗口会话（修门 A/B）同工作树并行；A/B 语义未动，仅补
 未覆盖的第二个链接位置，窗口执行口径以本节为准。
+
+### 记录更正（2026-10-12，/implement 14 收尾会话）
+
+- **「18 份 patch 重写」系笔误**（三处：本节 dry-run 复算段、`EV-20261012-pod14-window-fixgate-d`
+  验证行、`EV-20261012-pod13-window-executed` 范围／变化行）：迁移报告实测
+  `profiles.changed=18`＝**16 份 patch 重写＋2 处软链重指**（动作总数；`patch actions: 16`／
+  `link actions: 2`，逐条见 `artifacts/cutover-execution/pod13-window-20261012T102118Z-migrate-report.json`）。
+  后两处为**冻结事件正文不可回改**（README §6.2「更正写新事件」），更正记录随本批提交事件承接；
+- **「修前该形必红」措辞**（修门 d 节）：共享锚 fail-closed 断言系防护性新增（修前恒绿），
+  修前红者为**正向断言**（无 `node_modules/pod` 产出）——已就地上改正；
+- 本节为运行面窗口后处置记录，运行面零写入。
 
 ### 修门 A/B 实施记录与执行面让行（2026-10-12，/implement 14 会话）
 

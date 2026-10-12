@@ -277,6 +277,28 @@ test("--profiles 边界：旧名项非软链＝fail closed 不动（profile 自�
   deepEqual(Object.keys(registry).sort(), ["coder", "custom", "duty-coordinator"], "fail-closed 路径下注册表席位键集仍原样");
 });
 
+test("--profiles 边界：新名项非软链（普通文件／目录）＝fail closed 不动——防 renameSync 静默覆盖", () => {
+  const home = buildFixtureHome();
+  // 危险形：旧名是**真软链**＋新名处是普通文件——旧实现 renameSync 会静默覆盖占位文件
+  mkdirSync(join(home, "profiles", "clobber", "node_modules"), { recursive: true });
+  symlinkSync("/home/beijong/.dsh/plugins/dsh-bots", join(home, "profiles", "clobber", "node_modules", "dsh-bots"));
+  writeFileSync(join(home, "profiles", "clobber", "node_modules", "pod"), "PLACEHOLDER\n");
+  // 危险形：旧名真软链＋新名处是目录——旧实现 renameSync 抛 EISDIR 中止整段
+  mkdirSync(join(home, "profiles", "dirtrap", "node_modules", "pod"), { recursive: true });
+  symlinkSync("/home/beijong/.dsh/plugins/dsh-bots", join(home, "profiles", "dirtrap", "node_modules", "dsh-bots"));
+  writeFileSync(join(home, "profiles", "dirtrap", "node_modules", "pod", "inner.txt"), "inner\n");
+  const r = runCli(["--dsh-home", home, "--execute", "--profiles"], home);
+  equal(r.status, 0, `退出码 0（fail-closed 不中止整段）：\n${r.stdout}${r.stderr}`);
+  equal(readFileSync(join(home, "profiles", "clobber", "node_modules", "pod"), "utf8"), "PLACEHOLDER\n",
+    "普通文件占位零触碰（不被静默覆盖）");
+  ok(lstatSync(join(home, "profiles", "clobber", "node_modules", "dsh-bots")).isSymbolicLink(),
+    "占位态下旧名软链也不动（改名无落点）");
+  ok(lstatSync(join(home, "profiles", "dirtrap", "node_modules", "pod")).isDirectory(), "目录占位仍在位");
+  equal(readFileSync(join(home, "profiles", "dirtrap", "node_modules", "pod", "inner.txt"), "utf8"), "inner\n", "目录内容零触碰");
+  // 已指部署目录的新名软链不受影响（占位判定只挡非软链）
+  ok(lstatSync(join(home, "profiles", "coder", "node_modules", "pod")).isSymbolicLink(), "正常软链路径不受占位判定影响");
+});
+
 test("注册表重写复验红线：非清单字段含旧根串（整文替换会静默改写）→ 拒且零写入", () => {
   const home = buildFixtureHome();
   const file = join(home, "bots", "bots.json");

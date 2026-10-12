@@ -406,7 +406,8 @@ export function rewritePatchText(text) {
 /** 单处旧名软链处置：改名为新名＋**重指部署目录**（四同名绑定：patch 行 name＝条目名＝
  *  package.json.name；存量链接目标是旧部署目录 plugins/dsh-bots——保目标改名会让 'pod'
  *  解析到旧代码，故重指 plugins/pod；部署同步为窗口内先行步，目标可暂缺）。
- *  判存用 lstat（链接可能悬空）；非软链旧名项＝fail closed 不动（人工处置点）。
+ *  判存用 lstat（链接可能悬空）；非软链旧名项＝fail closed 不动（人工处置点）；
+ *  新名处为**非软链占位**（普通文件／目录）＝同口径 fail closed（防 rename 静默覆盖／EISDIR）。
  *  返回 `{ changed, actions }`。 */
 function relinkLegacyPluginLink(nmDir, { label, deployTarget, dryRun }) {
   const actions = [];
@@ -425,6 +426,12 @@ function relinkLegacyPluginLink(nmDir, { label, deployTarget, dryRun }) {
   } catch { /* 不存在 */ }
   if (newIsPresent && newTarget !== deployTarget) {
     actions.push({ profile: label, target: `node_modules/${PLUGIN_MODULE_NAME}`, changes: [`新名链接已在他处（${String(newTarget)}）——不动待人工确认`], wrote: false });
+    return { changed, actions };
+  }
+  // 新名处存在但**不是软链**（普通文件／目录占位）：改名会静默覆盖文件或 EISDIR 中止——
+  // fail closed 不动（人工处置点；与旧名项非软链同口径）。
+  if (!newIsPresent && linkEntryExists(nmDir, PLUGIN_MODULE_NAME)) {
+    actions.push({ profile: label, target: `node_modules/${PLUGIN_MODULE_NAME}`, changes: ["新名项非软链（占位）——fail closed 不动，不覆盖，须人工处置"], wrote: false });
     return { changed, actions };
   }
   if (legacyIsLink) {
