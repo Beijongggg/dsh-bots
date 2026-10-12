@@ -179,10 +179,36 @@ docs-only、producerKind 本地字面量）待用户追认，见本件 Comments�
   `plugins/pod/**` 与 `backups/pod/<runId>-backup-*/**` 两处。
 - **就绪核验现状（观察项，非本批失败）**：`node scripts/org-cutover-check.mjs --dsh-home ~/.dsh`
   → **退出码 2**、`ENOENT: no such file or directory, open '/home/beijong/.dsh/pod/bots.json'`
-  ——`registryPath` 已随 14 号票切到新数据根 `pod`，数据面迁移（14 号票运行面 `--execute`）
+  ——`registryPath` 已随 14 号票切到新数据根 `pod`（`lib/data-roots.cjs` 的 `DATA_ROOT_NAME`，
+  翻转提交 `663fa03`），数据面迁移（14 号票运行面 `--execute`）
   未授权未执行，注册表不在新根，`checkCutover` fail-closed。roster／`ready` 判定在数据迁移
   前不可得；本窗部署面已由 deploy-sync 整面复核＋独立只读复算双证。证据指针：本节命令原文
   与退出码、record 件 `inventoryAfter` 段。
 - **状态**：`Status` 维持 `ready-for-agent`——②③④、14 号票数据迁移、就绪后最小闭环 smoke、
   新 runId 增量证据包（15 号票）仍待逐项授权；重启链执行前宿主不加载新目录，现役行为零变化。
+
+### 双轴复审与处置（2026-10-12，/implement 13 收尾）
+
+- 复审面：`git diff 9999a94...02eab52`（两轴并行只读子代理：Standards／Spec）。
+- **Spec 轴：CLEAN**——授权面内零缺失、零越权、零错实现。子代理独立复算全过：spec.files
+  ≡ `deploymentInventory` 枚举（runtime 98＋support 125）；哈希链三链一致
+  （record.specSha256＝sha256(spec)＝plan.specSha256；planSha8 `7aced21b`；记录件名自嵌
+  `e77b5103`；盘上备份 manifest sha8 `cb5ad205` 与记录一致）；运行面写入口径核对——
+  `plugins/pod` 恰 223 件、旧目录 `plugins/dsh-bots` mtime 9-29 未触、仓库外两脚本
+  mtime 10-6 未触（③未做）、plan 全 `create` 无软链／patch 操作（④未做）、
+  `restart=不做` 五面一致。
+- **Standards 轴：零硬违例**（§2 显式 pathspec／`--stage`、§3 逐项授权、README §6.2 四要件、
+  issue-tracker 移交三要素与「判定落票面」均合规），5 条 judgement 逐条处置：
+  1. CHANGELOG 事件密度超「摘要」角色——**保留**：同卷先例事件（如
+     EV-20261012-org-v2-spec-status-close）同等密度（含 SHA-256、四门分），事件已链接票面，
+     摘要角色由标题行承担；不单独收紧本件。
+  2. 授权段 6 面重复——机器工件按设计自含出处，手写面两份为纪律所许；不修（与 1 同判）。
+  3. 「registryPath 已随 14 号票切新根」缺自身证据指针——**已修**：本处置批补
+     `lib/data-roots.cjs` 的 `DATA_ROOT_NAME`＋翻转提交 `663fa03`。
+  4. 三工件 Data Clumps——机器生成 provenance 工件非手写代码，不适用。
+  5. `--no-verify`——沿改名批先例（②门设计性红），四门实跑留档；恢复常态归 15 号票新序号包。
+- Spec 轴两条 non-findings 备悉：勾选框按仓库惯例收口时才勾（②③④／smoke 未了，维持未勾）；
+  dry-run print-only 属工具设计（纪律 #6），「dry-run 先行」凭据＝票面叙述所记 planSha8 与
+  写实件内嵌值一致（跨核成立）。
+
 
