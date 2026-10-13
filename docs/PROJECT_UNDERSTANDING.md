@@ -182,6 +182,16 @@
 
 仍可选题（长期观察项，不立项、只记触发信号；边界见 docs/agents/issue-tracker.md）：
 
+- **真实面快照与后台能力签发竞态（2026-10-13 验证观察）**：`evidence-runner-contract`
+  的 O-6.3 在全量及单文件复验中均报 `modified.length = 1`。独立只读快照复算五对，
+  首对在 `10:07:29.283Z` 至 `10:07:34.761Z` 仅 `pod/capabilities/issued.jsonl` 变化，
+  后四对无差异，均零扫描失败；同窗两席 role 签发记录位于 `10:07:32.272Z/276Z`。
+  后续 `10:12:12Z` 至 `10:12:32Z` 样本每约 5 秒追加两席签发行，频率变化原因未核实，
+  不能照用[历史采证手册 §7](../.scratch/pod/rename-evidence-runbook.md#7-红线执行窗口内仍然有效)
+  的 10 分钟间隔。本批 runner 与测试均与 `5a2772a` 相同，未改豁免、未重启或写运行面。
+  触发＝需要恢复快照门稳定性或再次采证时，先核签发与递送状态，再决定隔离验证或采证窗口方案。
+  复现入口为 `TMPDIR=/dev/shm node tests/evidence-runner-contract.test.mjs`，并行追加时可红；
+  一次通过不代表该竞态消失。
 - **`lib/data-roots.cjs` 死导出与微旧注释（2026-10-12 全窗关闭批复核登记）**：
   `LEGACY_DATA_ROOT_NAME`／`LEGACY_WORKSPACE_ROOT_NAME` 两常量随迁移脚本退役
   （票 15 全窗关闭批删除 `scripts/migrate-pod-data.mjs`）已**零消费者**——实为死导出；

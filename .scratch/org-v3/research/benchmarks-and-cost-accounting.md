@@ -1,8 +1,8 @@
 # Benchmarks and Cost Accounting for Multi-Agent vs Single-Agent Organizations
 
 - **Date:** 2026-10-13
-- **Ticket:** `org-v3/02`
-- **Document state:** COMPLETE — all six required sections, reference list and inference section present.
+- **Ticket:** [带成本的公开基准与成本口径](../issues/02-research-benchmarks-with-cost.md)
+- **Document state:** research input; the owning ticket remains open pending its closure checks.
   （字段名由「Status」改为「Document state」：③门 status-lint 按票面词表扫 `.scratch/**/*.md`，
   研究件的文档状态字段会与之撞名；口径见 map Notes。）
 - **Provenance:** This file is the deliverable of wayfinder research ticket 02 (`org-v3/02`).
@@ -10,6 +10,12 @@
   score+cost numbers attached to them, the cost-accounting conventions in circulation,
   and the comparability criteria that decide whether any two reported numbers may be
   placed side by side.
+
+**2026-10-13 correction.** Before using leaderboard costs, read
+[the primary-source correction record](evidence-corrections-2026-10-13.md).
+SWE-bench also publishes cost fields. HAL's historical rows below are quarantined pending
+row-level verification. Sections 3–5 offer accounting and comparison methods, not a chosen
+Pod acceptance metric; that decision belongs to the "划算" ticket.
 
 > Scope note: the question driving this ticket is **not** "can multi-agent beat
 > single-agent" but "under what conditions and at what cost ratio does an organized
@@ -23,14 +29,14 @@
 ## 1. Benchmark inventory
 
 Legend for **Cost reported?**: **yes (suite)** = the suite's own harness/leaderboard
-schema captures cost or tokens as a first-class field; **partial** = a *resource* proxy
-(runtime/wall-clock/trials) but no token or dollar ledger; **no** = no cost field
-observed, and submitters are not asked for one.
+schema captures cost or tokens as a first-class field; **partial** = a resource proxy
+in the inspected source; **no** = no cost field observed in that source, not proof that
+the suite has no published cost elsewhere. **Unverified** marks unread or conflicting evidence.
 
 | Suite | What it measures | Task count | Where scores live | Cost reported? | Version / contamination caveats |
 |---|---|---|---|---|---|
 | **GAIA** | Real-world assistant questions needing reasoning + web browsing + multimodality + tool use | 466 questions; answers withheld for 300 to power the leaderboard | HF Space `gaia-benchmark/leaderboard` (submission = JSONL of answers) | no | Private test answers limit inspection; 3 difficulty levels; paper reports human 92% vs GPT-4+plugins 15% |
-| **SWE-bench Verified** | Resolving real GitHub issues in Python repos with execution-based tests | 500 human-validated instances (subset of SWE-bench's 2,294) | `swebench.com/verified.html` | no | Verified exists *because* the original set had underspecified issues; sibling splits (Lite / Multimodal / Multilingual / Full) are not interchangeable |
+| **SWE-bench Verified** | Resolving real GitHub issues in Python repos with execution-based tests | 500 human-validated instances (subset of SWE-bench's 2,294) | `swebench.com`, official `leaderboard-data` JSON | **yes, optional**: `cost`, `instance_cost`, per-instance cost; 45/180 Verified rows non-null in this snapshot | Example: Claude 4.5 Opus high / mini-SWE-agent 2.0.0, 76.8%, $376.9539985 total, $0.753907997/instance; splits and scaffold versions are not interchangeable |
 | **τ-bench / τ²-bench** | Tool–agent–user interaction under domain policy; τ² adds dual-control (user also acts) | Domains: `mock`, `airline`, `retail`, `telecom`, `banking_knowledge` | `github.com/sierra-research/tau2-bench`, `taubench.com` | no | **Documented comparability break:** v1.0.1 (Jul 2026) grading update — "results produced with tau2-bench < 1.0.1 are not comparable with >= 1.0.1"; 75+ task fixes derived from SABER |
 | **BrowseComp** | Persistently navigating the web for hard-to-find, entangled facts | 1,266 questions | `github.com/openai/simple-evals` | no | **Harness frozen:** repo states simple-evals "will no longer be updated for new models or benchmark results" (Jul 2025) — later scores must come from elsewhere |
 | **HLE (Humanity's Last Exam)** | Closed-ended expert academic questions at the knowledge frontier | 2,500 questions, dozens of subjects | `lastexam.ai` | no | Designed so answers are *not* quickly retrievable online; multi-modal; calibrated-accuracy reporting complicates single-number comparison |
@@ -38,8 +44,8 @@ observed, and submitters are not asked for one.
 | **OSWorld** | Open-ended computer use across real web/desktop apps, OS file I/O, multi-app workflows | 369 tasks; **361** if the 8 Google Drive tasks needing manual setup are excluded | `os-world.github.io` | no | The 8-task exclusion changes the denominator — a 361-task number and a 369-task number are not directly comparable |
 | **WebArena** | Long-horizon web tasks across 4 self-hosted domains | Paper's benchmark task set; human baseline 78.24% vs best GPT-4 agent 14.41% | `webarena.dev` | no | Self-hosted sites make environment drift/reproducibility the main hazard; HAL tracks a different web suite (Online Mind2Web) |
 | **MLE-bench** | ML engineering: 75 Kaggle competitions, graded by medal thresholds vs human leaderboards | 75 competitions; "Low complexity" split = 22 | Results table inside the repo README | **partial** — columns are Low==Lite / Medium / High / All %, **Running Time (hours)**, Notes | README explicitly separates "Additional Leaderboard Submissions that are not directly comparable" (e.g. an ensemble flagged for *Test-set feedback*) |
-| **PaperBench** | Replicating 20 ICML 2024 Spotlight/Oral papers from scratch, graded by author-co-developed rubrics | 20 papers; 8,316 individually gradable rubric nodes | `github.com/openai/preparedness` | no | Rubric + LLM-judge pipeline; judged scores inherit judge error (paper builds a separate judge benchmark) |
-| **RE-Bench** | Open-ended ML research engineering with a real human comparison | 7 environments; 71 eight-hour attempts by 61 distinct experts | METR publication | **partial** — reports *time budgets* (2h/8h/32h) and qualitative cost | Human-vs-AI comparison is time-budget-matched, not token- or dollar-matched; "much lower cost" is asserted, not itemised |
+| **PaperBench** | Replicating 20 ICML 2024 Spotlight/Oral papers from scratch, graded by author-co-developed rubrics | 20 papers; 8,316 individually gradable rubric nodes | `github.com/openai/preparedness` | **unverified**: this pass did not read cost appendices; the shape report §5.3/§5.6 cites rollout and judge costs | Resolve the source conflict before classifying cost availability; judge cost and agent-run cost are different |
+| **RE-Bench** | Open-ended ML research engineering with a real human comparison | 7 environments; 71 eight-hour attempts by 61 distinct experts | METR publication | **unverified beyond time budgets**: the shape report §5.6 identifies a score-vs-cost Figure 11 | The earlier "qualitative only" claim is withdrawn; read the figure and cost denominator before reuse |
 | **SWE-Lancer** | Real Upwork freelance tasks + managerial decisions, valued in real payouts | 1,400+ tasks; $1M total real-world payout value | `github.com/openai/SWELancer-Benchmark` (Diamond split) | **no (different axis)** — reports the *dollar value of tasks solved*, not inference cost | Economic-value benchmark: conflating "value earned" with "cost spent" is the classic error here |
 | **TheAgentCompany** | Simulated small-software-company work: browsing, coding, running programs, messaging coworkers | Self-contained company environment; best baseline agent completes ~30% | `the-agent-company.com` | no | Long-horizon workplace simulation; internal sites make environment version part of the result |
 | **HAL (Holistic Agent Leaderboard)** | Meta-leaderboard: accuracy **and** cost across 9 benchmarks, 9 models, many scaffolds | 21,730 rollouts, 9 models × 9 benchmarks over 9 suites (see §2) | `hal.cs.princeton.edu` (+ arXiv 2510.11977) | **yes (suite)** — required metric schema includes `total_cost_usd`, `total_tokens`, `cached_input_tokens`, `uncached_input_tokens`, `output_tokens`, `n_trials`, `pass@k`, `avg_trial_duration_sec` | One of its 9 suites is **SWE-bench Verified *Mini***, not the full 500; site note says leaderboard updates are **paused** (focus shifted to reliability measurement) |
@@ -48,13 +54,13 @@ observed, and submitters are not asked for one.
 | **MAEBE** | Emergent behaviour of multi-agent systems (safety-flavoured) | Framework + benchmark | arXiv 2506.03053 | no | Emergent-behaviour focus, not economic |
 | **CoffeeBench / MedAgentBoard / alem-env / DebateLLM / elimination_game / step_game / pgg_bench** | Domain or interaction-specific multi-agent suites (heterogeneous economies, medical tasks, long-horizon coordination, debate truthfulness, social reasoning/deception, public-goods cooperation) | Varies | See §7 references | no | Heterogeneous; several are workshop/NeurIPS-track artefacts with early version churn |
 
-### 1.1 The load-bearing structural fact
+### 1.1 Confirmed public score and cost fields
 
-Only **two** suites surveyed treat cost or tokens as a first-class, machine-readable
-field: **Terminal-Bench 4.0** (COST + TOKENS columns) and **HAL** (cost/token fields in
-the required metrics schema, plus explicit accuracy-vs-cost Pareto frontiers).
-**MLE-bench** and **RE-Bench** report resource proxies (running time, time budget) but no
-token or dollar ledger. Every other suite reports a score only.
+Terminal-Bench 4.0 and SWE-bench's official Verified data both provide machine-readable
+scores and costs. HAL describes cost tracking in its paper, but its current row-level
+accounting requires verification (§2.2). This is not an exhaustive list of cost-bearing
+suites. Optional cost fields, unread appendices and unresolved field semantics prevent a
+claim that every other suite reports scores only.
 
 This is the gap **AI Agents That Matter** named as a field-level defect: "a narrow focus
 on accuracy without attention to other metrics. As a result, SOTA agents are needlessly
@@ -73,20 +79,22 @@ nearest neighbours:
   competition with milestone KPIs and varies coordination topology, which is the
   structural variable an organization plugin actually changes. No cost.
 - **MAEBE** (arXiv 2506.03053) — emergent behaviour of multi-agent systems; no cost.
-- **HAL** — evaluates scaffolds on fixed models, which is the *methodological* template
-  an organization benchmark would follow; but its agents are single-process scaffolds,
-  not organizations.
+- **HAL** evaluates model/scaffold configurations and offers a methodological template.
+  A scaffold name or process count alone does not establish which organizational
+  mechanisms its implementation contains.
 
-Honest statement: **there is no public organization-level suite with published cost
-figures.** §5 covers what to do instead.
+The bounded search did not verify a suite covering all the listed Pod mechanisms with
+published cost. That does not show no such suite exists, or that generic task suites
+cannot evaluate an organization. Section 5 describes controlled evaluation options.
 
 ## 2. Published multi-agent vs single-agent numbers with score AND cost
 
 ### 2.1 The strongest same-suite, cost-bearing evidence found
 
-**Terminal-Bench 4.0** is the single best public artefact for this ticket: it is the
-only suite found where many configurations are scored on one task set, with one
-harness, with cost *and* token ledgers, at a fixed trial count (n=330).
+**Terminal-Bench 4.0** provides public configuration rows with scores and reported costs
+at n=330 trials. The correction pass verified the two Codex rows named below directly
+in the official embedded data. The other rows remain original collection excerpts.
+The board is not a controlled same-model organization-vs-single experiment.
 
 Selected rows from the live leaderboard (retrieved 2026-10-13; board metadata
 `updated_at` 2026-10-06):
@@ -106,25 +114,27 @@ Selected rows from the live leaderboard (retrieved 2026-10-13; board metadata
 | Muse Code | Muse Spark 1.3 | xhigh | 14.55% ± 2.9 | **$0.00** | 9.01B | 8.65B | 87.5M |
 | Claude Code | Sonnet 5 | max | 12.42% ± 3.1 | **$9,603.86** | 21.56B | 21.03B | 116.6M |
 
-Four things fall out of that table; all are direct evidence, not inference:
+The table has the following limits:
 
 1. **A tie in score is not a tie in cost.** GPT-6 Astra (max) and GPT-6.1 Sol (max) both
    score **58.18%** at **$3,267.18** and **$634.24** — a **5.15×** cost difference at
-   identical measured accuracy on the same suite.
-2. **More spend buys worse results, publicly.** Claude Code + Sonnet 5 (max) is the most
-   expensive row at **$9,603.86 / 21.56B tokens** and scores **12.42%**, the joint-lowest
-   accuracy in the table. Codex + GPT-6 Luna at **$72.14** scores **16.36%** — ~133×
-   less money for a higher score.
-3. **Caching dominates the ledger.** Every high-token row is ~96–98% cached input (16.69B
-   of 17.19B; 21.03B of 21.56B). A single "tokens" number without the cached/uncached
-   split is not reconstructible.
-4. **Open weights are priced at $0.00**, not left unset (Muse Code, 14.55%, 9.01B → `$0.00`).
-   Cross-source cost comparison is invalid unless the price table is stated.
+   equal published scores on the same board version. Models and run dates differ;
+   neither quality equivalence nor an organizational causal effect follows.
+2. Other rows describe configurations with different prices and scores. They cannot
+   establish that increasing spend causes performance to decline.
+3. **Token-field semantics remain unresolved.** In each checked row, `uncached_input_tokens`
+   plus `output_tokens` equals `total_tokens`, while a large `cached_input_tokens` field
+   is also present. Do not add those fields literally or infer audited cache savings.
+4. A reported `$0.00` does not establish that a run is free, self-hosted or open-weight.
+   Verify the billing and exclusion policy before interpreting a zero-cost row.
 
 ### 2.2 HAL: same benchmark, accuracy *and* cost, per scaffold
 
-HAL publishes top-3 previews per benchmark with accuracy and dollar cost (retrieved
-2026-10-13) — the cleanest public same-suite, same-model, two-scaffold evidence available.
+The following table preserves the original collection's HAL preview excerpts.
+**It is not currently approved as decision evidence.** The correction pass could not
+reach the site or verify the alleged 2026-10-05 nested-span accounting issue's scope
+and re-derivation status. The separate cached-token fix in PR #114 proves neither that
+these rows are affected nor that they have been repaired. See the correction record §2.
 
 | Benchmark | Agent (scaffold) | Model | Score | Cost |
 |---|---|---|---|---|
@@ -147,14 +157,11 @@ HAL publishes top-3 previews per benchmark with accuracy and dollar cost (retrie
 | USACO | USACO Episodic + Semantic | GPT-5 Medium | 69.1% | $116.63 |
 | USACO | USACO Episodic + Semantic | o4-mini Low | 53.1% | $24.60 |
 
-Two of these pairs are directly quotable as *same-model, same-benchmark,
-different-scaffold* comparisons with both numbers:
-
-- **Online Mind2Web, Claude Sonnet 4**: Browser-Use 40.0% @ **$1,577.26**; Browser-Use
-  **High** reasoning 39.3% @ **$1,609.92**. Raising reasoning effort cost 2.1% more
-  and *lost* 0.7 points.
-- **Scicode**: o3 Medium Tool Calling 9.2% @ **$111.11** vs o4-mini Low Zero Shot 9.2%
-  @ **$1.74** — a **63.9×** cost difference at an identical reported score.
+The original pair labels were also incorrect. Mind2Web's two Browser-Use rows vary
+reasoning effort, not scaffold. SciCode's o3 Medium Tool Calling and o4-mini Low Zero Shot
+rows vary model, effort and scaffold. The arithmetic `$111.11 / $1.74 ≈ 63.9` is retained
+only to identify the withdrawn claim, not as a verified efficiency ratio. Restoring use
+requires the source rows, accounting-issue scope and any affected-row recalculation.
 
 The HAL paper's own aggregate finding is the general form of this: "For 21 of 36 runs,
 higher reasoning effort does not improve accuracy" (arXiv 2510.11977, Fig. 3), i.e.
@@ -204,10 +211,10 @@ pruning policy, not the mere existence of multiple agents, decides the cost rati
 BudgetMLAgent and AgentPrune get their result by *removing* work — cheap models in
 cascade, pruned messages — not by adding agents.
 
-### 2.5 Score-only multi-agent claims (explicitly flagged as cost-free)
+### 2.5 Other claims and unresolved cost coverage
 
-The following publish a score without a cost or token figure, and are listed so no
-later reader mistakes them for cost-bearing evidence:
+The following were originally read as score-only evidence. Unread cost material remains
+unverified rather than classified as absent.
 
 - **MAST / "Why Do Multi-Agent LLM Systems Fail?"** (arXiv 2503.13657) — its only dollar
   table (Appendix K, Table 9) is the **LLM-annotator** cost of labelling traces, *not*
@@ -221,22 +228,23 @@ later reader mistakes them for cost-bearing evidence:
   scenarios. No cost or token figure.
 - **"More Agents Is All You Need"** (arXiv 2402.05120) — sampling-and-voting scales with
   the number of instantiated agents; no monetary or token cost reported.
-- **RE-Bench** (arXiv 2411.15114) — AI agents score **4×** human experts at a **2-hour**
-  budget; humans exceed top agents at **8 hours** and reach **2×** at **32 hours**. Cost
-  is qualitative only: agents work "over ten times faster than humans, at much lower
-  cost."
+- **RE-Bench** is not classified as cost-free. The original abstract-level reading did
+  not inspect Figure 11, identified by the shape report as a cost plot; that conflict
+  remains to be checked against the primary paper.
 
 ## 3. Cost accounting conventions
 
 ### 3.1 What is actually inside a "token count"
 
-A single agent turn can generate charges in at least seven separable places. Sources
-differ in which of these they include, and most publish only the aggregate:
+A run has billing categories and activity tags. Sources differ in what they expose.
+The rows below are not all additive: tool-result tokens can already be input tokens,
+reasoning can be included in output, and orchestration/retry calls carry their own usage.
 
 | Component | Where it comes from | Commonly omitted? |
 |---|---|---|
 | Uncached input tokens | Full prompt resent each turn | Rarely omitted, but often merged with cached input |
 | Cached input tokens | Prompt-prefix cache hits (system prompt, tools, prior context) | Frequently omitted; priced differently from uncached |
+| Cache-write tokens | Provider-specific cache creation or refresh billing | May be included in input or reported separately; verify the provider schema |
 | Output tokens | Visible model output | Usually included |
 | Reasoning / thinking tokens | Provider-side reasoning effort (o-series, extended thinking) | Often bundled into "output" or not disclosed at all |
 | Tool-call *result* tokens | Tool output fed back into context (file reads, command output, search results) | Frequently omitted from agent-level cost claims |
@@ -246,23 +254,24 @@ differ in which of these they include, and most publish only the aggregate:
 The **tool-call result** line is the one most likely to be silently load-bearing: HAL
 logs "2.5B tokens of language model calls" for 21,730 rollouts precisely because tool
 output re-enters the context window (arXiv 2510.11977). Any agent with a shell or
-filesystem surface therefore has a different tool-token profile from one without — which
-is why §4 requires a "same tool surface" check.
+filesystem access can therefore have a different tool-token profile from one without.
+Section 4 distinguishes controlled base tools from declared organizational treatment.
 
 ### 3.2 The four reporting archetypes actually observed
 
-1. **Full ledger (rare).** Terminal-Bench 4.0 separates `total_tokens`,
+1. **Named usage fields, not necessarily a complete ledger.** Terminal-Bench 4.0 exposes `total_tokens`,
    `output_tokens`, `cached_input_tokens`, `uncached_input_tokens` and a single
    `total_cost_usd` per (scaffold, model, effort) row at fixed `n_trials`. HAL's metrics
    schema requires the same family of fields (`accuracy`, `accuracy_ci95_half_width`,
    `total_tokens`, `output_tokens`, `cached_input_tokens`, `uncached_input_tokens`,
-   `total_cost_usd`, `n_trials`, `pass_at_2..5`, `avg_trial_duration_sec`). These two are
-   the reference standard.
+   `total_cost_usd`, `n_trials`, `pass_at_2..5`, `avg_trial_duration_sec`). Field names alone
+   do not establish disjoint categories or a reproducible bill; see §2.1 and §2.2.
 2. **Dollar total only.** e.g. HAL's previews ("74.5% / $178.20"). Enough to compare
-   *on that leaderboard*, not enough to re-derive under another price table.
+   as published values once row integrity is established, not enough to re-derive under
+   another price table. HAL's rows remain subject to the unresolved integrity check.
 3. **Run-time proxy.** MLE-bench publishes **Running Time (hours)**; RE-Bench publishes
-   **time budgets**. Neither is a token or dollar ledger, and RE-Bench's human
-   comparison is time-matched, not cost-matched.
+   **time budgets** in the inspected summary. A time figure is not a dollar ledger;
+   additional RE-Bench cost evidence remains to be checked.
 4. **Qualitative cost assertion.** "much lower cost" (RE-Bench); "about 15× more tokens
    than chats" (Anthropic). Usable as a signal, unusable as an accounting unit.
 
@@ -272,15 +281,14 @@ Seven concrete mechanisms, each with a source:
 
 1. **Price tables differ and drift.** `total_cost_usd` is a function of a vendor price
    list at a moment in time. Terminal-Bench's own board shows a 5.15× cost gap at
-   identical accuracy between two rows that are plausibly only separated by
-   provider/pricing (58.18% at $3,267.18 vs $634.24).
-2. **Open weights are priced at zero or unpriced.** Muse Code + Muse Spark 1.3 scores
-   14.55% at **$0.00** across 9.01B tokens on Terminal-Bench 4.0. A $0 row is not a
-   cheap row; it means self-hosted, where the real cost (GPU-hours, energy, ops) is
-   simply not in the field.
+   equal published scores between two different model configurations (58.18% at
+   $3,267.18 vs $634.24). This does not isolate pricing as the cause.
+2. **Zero and missing costs require explanation.** The original Muse Code excerpt reports
+   `$0.00`, but its billing basis was not verified. A zero cannot establish either free
+   execution or self-hosting; excluded GPU-hours, energy or operations must be declared.
 3. **Caching is priced non-linearly and is not reconstructible from an aggregate.**
-   Rows on the same board are 96–98% cached input. Without the split, a "total tokens"
-   number can differ in cost by an order of magnitude from another with the same total.
+   Cache read/write rates and field inclusion rules differ. The checked Terminal-Bench
+   fields cannot yet be converted into a disjoint split, so their bills were not recomputed.
 4. **Reasoning effort is not comparable across providers.** HAL states it outright:
    "Different providers define 'low,' 'medium,' and 'high' reasoning effort
    differently. LiteLLM maps 'high' to 4,096 reasoning tokens, while OpenAI does not
@@ -308,41 +316,44 @@ leading to **50x cost variations for similar precision**" across 12 benchmarks
 almost **two orders of magnitude**. Yet, the cost of running these agents isn't a
 top-line metric reported in any of these papers" (arXiv 2407.01502 §2.3).
 
-### 3.4 What a defensible cost metric looks like
+### 3.4 Reconstructible accounting and candidate metrics
 
-A cost figure is defensible when a third party can re-derive it. Concretely, a
-defensible report states a **tuple**, never a scalar:
+The following is a candidate accounting method, not a selected Pod acceptance rule.
+The "划算" ticket owns the eventual cost definition and primary metric.
 
-1. **Accuracy with its denominator** — metric name, `n_trials`, and whether the
-   aggregation is single-run, mean, or `pass@k`.
-2. **Token ledger split four ways** — uncached input, cached input, output, and
-   reasoning tokens if separable. A single "tokens" number is not enough.
-3. **Dollar cost plus the price table and its date**, plus an explicit flag when a
-   model is self-hosted (cost excluded) rather than genuinely free.
-4. **Wall-clock or critical-path time**, kept separate from cost. MLE-bench and
-   RE-Bench show these are distinct axes; HAL carries `avg_trial_duration_sec`
-   alongside cost rather than instead of it.
-5. **Cost per solved task, not cost per run.** This is the **cost-of-pass** framing:
-   "the expected monetary cost of generating a correct solution," with the
-   **frontier cost-of-pass** taking the minimum across available models or the
-   approximate cost of hiring a human expert (arXiv 2504.13359). Cost-per-run rewards
-   cheap failures; cost-per-correct-solution does not.
-6. **A Pareto statement, not a ranking.** Both flagship cost-aware efforts present
-   accuracy-vs-cost frontiers rather than leaderboards (arXiv 2407.01502 §2.2;
-   arXiv 2510.11977 §1). AgentBalance goes further and reports "AUC on
-   performance-versus-budget curves" (arXiv 2512.11426).
-7. **No compute proxies.** The cost-controlled-evaluation paper is explicit about
-   using dollars "instead of using proxies for cost such as the amount of compute
-   used" (arXiv 2407.01502 §2.2).
+For each unique billed call, record model/version, provider, price date, raw usage and
+its mapping into mutually exclusive billing categories. A possible reconstruction is:
 
-The structural point that matters most for Pod is **fixed vs variable cost**: "Fixed
-costs are one-time expenses incurred when optimizing the agent's hyperparameters …
-Variable costs are incurred each time the agent is run and depend on the number of input
-and output tokens. The more an agent is used, the more the variable cost dominates"
-(arXiv 2407.01502 §3). An organization plugin spends more fixed cost — roles, ledger and
-review gates are extra prompt surface on *every* run — to buy down variable cost (fewer
-failed multi-hop trajectories, less re-reading). Pod's local numbers are consistent with
-that trade, but only a per-solved-task metric can show it.
+```text
+call_cost = sum(category_tokens * category_rate_per_million / 1_000_000)
+run_cost = sum(call_cost over unique billed calls) + declared non-token charges
+cohort_cost = sum(run_cost over every attempt, including failures and retries)
+cost_per_success = cohort_cost / successful_tasks  # only when successful_tasks > 0
+```
+
+Categories may include uncached input, cache read, cache write and output. Provider
+semantics decide whether reasoning is already in output or cache writes already in input.
+Tool results are usually a subset of input; orchestration, review and retries are activity
+tags on calls. Do not sum activity-tag totals on top of their billed calls. Unknown usage
+or price is unknown, not zero. The checked Terminal-Bench rows provide published costs,
+not a verified application of this formula.
+
+A reproducible comparison also records:
+
+1. Quality metric, task ids/version, trial count, retry policy, aggregation and uncertainty.
+2. Raw usage, the deduplication key, mapping rules, rates, excluded charges and reconciliation
+   between per-call and total cost. Keep any self-hosted cost outside the API bill explicit.
+3. Per-run latency separately from dollars and token usage; report which clock it uses.
+4. One-time design/search cost separately from per-task inference and switching cost.
+   If amortized, name the reuse count and rule. Role prompts sent on every run are variable
+   costs, not fixed costs merely because the role definition is reused.
+
+Cost per successful task is one candidate, supported by arXiv 2504.13359 and 2607.12161.
+On a fixed cohort it is an aggregate ratio under the declared retry policy, not automatically
+an estimate of future expected cost. With zero successes it is undefined; report that outcome
+and the spend rather than inventing a finite value. Alternatives include a quality floor
+with a cost ratio, score at fixed budget, and Pareto comparison of quality and cost.
+The research does not choose among them or set numeric gates.
 
 ### 3.5 Papers that explicitly study budget-aware / cost-aware multi-agent orchestration
 
@@ -408,8 +419,8 @@ enterprise benchmark against real APIs:
   across 500+ sessions with 10,000-token system prompts: caching cuts API cost by
   **41–80%** and improves TTFT by **13–31%**. Naive full-context caching can
   *paradoxically* hurt; placing dynamic content at the end of the system prompt works
-  better. Consistent with the Terminal-Bench board, where 96–98% of tokens on the
-  largest rows are cached input.
+  better. The Terminal-Bench board also exposes cache fields, but their inclusion rules
+  remain unresolved and do not independently verify this saving.
 - **The harness is itself a cost variable.** "Harness Tokenomics" (arXiv 2609.28919): a
   harness "decides which model answers, what the model reads, how the prompt cache is
   used and which subagents run, so it picks the rate on the price sheet and sets the
@@ -426,60 +437,64 @@ enterprise benchmark against real APIs:
 
 ## 4. Comparability criteria
 
-Numbers may be compared **directly** only when every check below passes. When any check
-fails, report the two **side by side** with the differing factor named — never merged into
-one ranking.
+Register the comparison question first. Distinguish the treatment being tested from the
+controls held fixed. For a same-model organization-vs-single experiment, roles, prompts,
+coordination commands and control flow are the organizational treatment; requiring them
+to be identical would remove the experiment. Record that treatment precisely instead.
 
-| # | Check | Passes when | Fails when (→ side by side) |
+Keep these C1–C9 identifiers when the ticket or a later decision cites the checklist.
+
+| # | Check | Controlled-comparison requirement | If missing or changed without a declared treatment |
 |---|---|---|---|
-| C1 | **Same model snapshot** | Identical dated model id / version string | "GPT-6 Astra" vs "GPT-6.1 Sol"; a provider silently updates a dated alias |
-| C2 | **Same reasoning effort, comparably defined** | Same provider *and* same effort setting, **or** effort verified as equivalent compute | Effort labels are provider-private; HAL documents that LiteLLM maps "high" to 4,096 reasoning tokens while OpenAI does not disclose its meaning — "impossible to ensure agents are using equivalent compute" |
-| C3 | **Same tool surface** | Identical tool set, schemas, and permissions | One side has shell/filesystem/web and the other does not; tool-result tokens enter the context window |
-| C4 | **Same prompt / scaffold** | Same system prompt, role definitions, and control flow | Different scaffolds are a *result*, not noise: HAL's CORE-Bench Hard update says an updated Claude-Code-based scaffold "drastically outperforms" the CORE-Agent scaffold, plus grading errors fixed by manual scoring |
-| C5 | **Same budget accounting** | Both report uncached input, cached input, output, reasoning, tool-result, orchestration and retry tokens; same price table and date; self-hosted flagged, not zero-priced | A single "tokens" figure; a `$0.00` open-weights row; cached/uncached merged |
-| C6 | **Same task set and version** | Identical task ids, split and suite version | 369 vs 361 OSWorld tasks; τ²-bench <1.0.1 vs ≥1.0.1; full SWE-bench Verified (500) vs **Verified Mini** |
-| C7 | **Same aggregation rule and n** | Same metric, same trial count / `pass@k`, same k | Single run vs mean-of-8 — CLEAR measured 60% (single) vs 25% (8-run consistency); a `pass@8` column compared to a single-run column |
-| C8 | **Same value denominator** | Cost per **solved** task, or an explicitly declared per-run figure | Cost-per-run rewards cheap failure; cost-of-pass is the metric that does not (arXiv 2504.13359) |
-| C9 | **Contamination status declared** | Submission states whether test-set feedback was used | MLE-bench's own README segregates "Additional Leaderboard Submissions that are not directly comparable"; HAL's log inspection found agents "searching for the benchmark on HuggingFace instead of solving a task" |
+| C1 | Model snapshot | Same dated base model for the same-model contrast; record every model assignment | Different models confound an architecture-only claim |
+| C2 | Inference settings | Fix provider, reasoning settings and sampling/retry policy unless an explicit treatment; state the budget protocol | Equal effort labels alone do not establish equal compute |
+| C3 | Base tools and environment | Hold base shell/filesystem/web capabilities, task state and external access fixed; list organization-only commands and permission routing as treatment | Extra external information or tool capability cannot silently count as coordination benefit |
+| C4 | Prompt and scaffold treatment | Freeze and version each arm's prompts, roles and control flow; enumerate the intended differences | Unrecorded prompt or scaffold changes confound attribution; identical prompts across arms are not required |
+| C5 | Budget and accounting | Apply one usage mapping, call-deduplication rule, price basis and inclusion policy (§3.4); declare fixed-budget or cost-quality protocol | Missing cache/retry charges or different counting rules invalidate the cost ratio; different measured spend alone does not |
+| C6 | Task set and version | Same task ids, split, suite version and environment snapshot | Different denominators or grading versions prevent a direct same-task comparison |
+| C7 | Aggregation and trials | Same metric, declared trial schedule, `pass@k`/retry interpretation and uncertainty method | Single runs, repeated-run consistency and `pass@k` are not interchangeable |
+| C8 | Cost denominator | Same chosen unit and denominator, with absolute quality, total spend and zero-success handling reported | A per-run cost and a per-success cost cannot be silently compared |
+| C9 | Contamination | Declare development/test separation and any use of test feedback; keep test answers out of prompts and search inputs | Unknown or unequal exposure limits the causal claim |
 
-**Practical rule for Pod.** Pod's comparison of interest is
-*team-configuration A vs single-agent configuration B on the same suite*. By
-construction **C3, C4 and C5 will fail** — that is the entire treatment. So the correct
-report is not "Pod beats a single agent by X%" but a **four-tuple per configuration**
-(accuracy ± CI, cost per solved task, token ledger split, n/aggregation) presented as a
-Pareto pair, with the differing scaffold named. That is precisely the format HAL and
-Terminal-Bench 4.0 already use, and it is the format that survives C4/C5 failing.
+When these conditions hold, Pod may estimate a score difference or cost ratio for the
+registered treatment, with its uncertainty and limits. A fixed-budget experiment answers
+a different question from a variable-spend cost-quality comparison; pre-register which one
+is being run. Pareto presentation is an option, not a workaround for broken accounting.
+
+External leaderboard rows can still support descriptive differences and ratios, such as
+the checked Terminal-Bench 5.15 ratio. Name the differing models, versions and accounting
+limits. Such a ratio is not a causal organizational benefit or an automatic Pod gate.
 
 ## 5. Fallback: what to do when no suite reports cost
 
-**The finding, stated plainly: no public suite reports cost for an
-*organization-structured* agent configuration.** Cost-aware suites exist
-(Terminal-Bench 4.0, HAL) but their unit of analysis is a single-process **scaffold**
-(Claude Code, Codex, SWE-Agent, Browser-Use, SeeAct, mini-SWE-agent), not an organization
-with roles, a ledger, permissions, review points and memory. No suite found accepts an
-organization as a submission unit; §1.2 records this as a bounded-search negative result.
+This is a fallback for a selected suite that lacks usable cost data, not a claim that
+all public suites lack it. Section 1.2 records only the bounded search's coverage.
+A task suite need not model Pod's internal roles or ledger to compare its end-to-end
+results; organization-specific mechanisms may require additional local tasks.
 
-In order of decreasing defensibility:
+Options for the later evaluation decision:
 
 1. **Re-run on a public task set with a cost-tracking harness.** HAL's harness is open
    source (`github.com/princeton-pli/hal-harness`) and "requires light-weight
    modifications to integrate scaffolds, while automatically instrumenting cost
-   tracking, logging all API calls, and capturing complete execution traces"; its metric
-   schema already carries every field §3.4 requires. Running the Pod team and the bare
-   single agent through *one* harness on *one* task set is the only route to numbers
-   that pass C1–C9. Caveat: the HAL leaderboard is currently **paused** for new model
-   entries, so treat self-produced numbers as reportable-with-provenance rather than as
-   a leaderboard submission.
+   tracking, logging all API calls, and capturing complete execution traces". It is one
+   candidate, not the only valid recorder. Verify billing-category semantics and nested
+   call deduplication before adopting it. One task set and consistent accounting can
+   support C1–C9 while the arms intentionally use different organizational control flow.
+   Board submission availability must be rechecked separately; a local run is not a submission.
 2. **Adopt Terminal-Bench 4.0's row format as the reporting template** even for
    self-produced numbers: scaffold, model, effort, resolution rate ± CI, cost USD, total
-   tokens, output tokens, cached input, uncached input, n_trials.
-3. **Make cost per solved task primary**, not cost per run — the cost-of-pass framing
-   (arXiv 2504.13359) and the explicit recommendation of arXiv 2607.12161.
+   tokens, output tokens, cached input, uncached input, n_trials. Use independently
+   defined field semantics rather than copying the board's unresolved inclusion rules.
+3. **Present metric candidates for the "划算" decision.** Cost per successful task,
+   quality-constrained cost ratios, fixed-budget scores and Pareto views answer different
+   questions. No primary metric is selected by this research.
 4. **Report organization-local numbers as organization-local.** Pod's three measured
    figures (17.0M FAILED vs 5.71M PASSED; 9.29M = 3.2% over cap on a 20-file refactor;
    20.58M = 2.3× cap on a 2-hour patrol) have **no public counterpart** and must be
-   labelled non-comparable: not on a public task set, not run through a third-party
-   harness, no declared price table. They are evidence about Pod, not about the field.
+   labelled local: they do not share the public task set, and no common price basis is
+   declared here. A third-party recorder is not intrinsically required for a valid local
+   controlled experiment. These historical measurements are not a public benchmark ranking.
 
 ## 6. Blind spots
 
@@ -493,7 +508,8 @@ Gaps that remain, each a real limitation rather than a caveat:
    relevance, **not** citation weight; a highly-cited cost study may be missing.
 3. **HAL's full leaderboards are client-rendered.** Only the landing-page top-3 previews
    were readable; full rows, confidence intervals and the complete scaffold matrix were
-   not extracted. HAL's API endpoint did not respond to curl.
+   not extracted in the original collection. The correction pass timed out on the site;
+   row values and the alleged nested-span issue remain unverified (§2.2).
 4. **Terminal-Bench version/task-count conflict unresolved.** The repo README describes a
    beta of ~100 tasks and points to Harbor for "Terminal-Bench 2.0", while the live
    leaderboard self-identifies as **Terminal-Bench 4.0** (dataset `4-0-0`). The 4.0 task
@@ -512,8 +528,9 @@ Gaps that remain, each a real limitation rather than a caveat:
    Cost tables living inside PDFs are the most likely omission.
 8. **No empirical reproduction was performed.** Every number here is quoted; nothing was
    re-run, so no figure in this file has been independently verified by execution.
-9. **§3.4's prescription is untested on Pod.** No cost-of-pass figure has been computed
-   for Pod; the fixed-vs-variable framing is imported from arXiv 2407.01502.
+9. **§3.4's candidates are untested on Pod.** This research has not computed a Pod cost-of-pass
+   figure or selected an acceptance metric; fixed/variable cost refers to when a charge
+   recurs, not whether its prompt text was written once.
 10. **"An organization-level suite exists but was not found" cannot be excluded.** §1.2 is
     a negative result from a bounded search (arXiv relevance queries, GitHub repo search,
     two leaderboards). Absence of evidence, stated as such.
@@ -527,7 +544,7 @@ All URLs retrieved **2026-10-13**. Within a row, sources are separated by `‖`.
 
 | Refs | Sources (URL · classification · date/version) |
 |---|---|
-| B1–B3 | GAIA · arxiv/2311.12983 · primary · 2023-11-21 · leaderboard huggingface.co/spaces/gaia-benchmark/leaderboard ‖ SWE-bench · arxiv/2310.06770 · primary · 2023-10-10 · board swebench.com/verified.html (no cost/token fields) ‖ SWE-bench Verified = **500** human-validated problems · github.com/princeton-nlp/SWE-bench README (GitHub contents API) · primary · 2024-08-13 |
+| B1–B3 | GAIA · arxiv/2311.12983 · primary · 2023-11-21 · leaderboard huggingface.co/spaces/gaia-benchmark/leaderboard ‖ SWE-bench · arxiv/2310.06770 · primary · 2023-10-10 · official swebench.com `leaderboard-data` includes optional cost fields; correction record §4 · retrieved 2026-10-13 ‖ SWE-bench Verified = **500** human-validated problems · github.com/princeton-nlp/SWE-bench README (GitHub contents API) · primary · 2024-08-13 |
 | B4–B6 | τ-bench · arxiv/2406.12045 · primary · 2024-06-17 ‖ τ²-bench · arxiv/2506.07982 · primary · 2025-06-09 ‖ tau2-bench **v1.0.1 grading update** · github.com/sierra-research/tau2-bench README/RELEASE_NOTES · primary · Jul 2026 |
 | B6–B7 | BrowseComp · arxiv/2504.12516 · primary · 2025-04-16 ‖ simple-evals (**frozen Jul 2025**) · github.com/openai/simple-evals · primary ‖ HLE · arxiv/2501.14249 · primary · 2025-01-24 · lastexam.ai |
 | B8–B10 | Terminal-Bench repo README (beta ≈100 tasks) · github.com/laude-institute/terminal-bench · primary ‖ **Terminal-Bench 4.0 leaderboard** (COST + TOKENS, n=330) · tbench.ai/leaderboard · primary · board `updated_at` 2026-10-06 ‖ OSWorld (369 tasks; 361 excl. 8 Drive tasks) · arxiv/2404.07972 · primary · 2024-04-11 · os-world.github.io |
@@ -554,33 +571,25 @@ the GitHub API, and direct `curl`/`web_fetch` of leaderboards and repositories. 
 *(Inference — the following are this research pass's reading of the evidence, not
 findings stated by any cited source.)*
 
-- **Pod's own headline metric is the one the literature discredits.** Pod reasons in
-  "total tokens burned"; arXiv 2607.12161 shows a 38.4% token cut that *raised* billed
-  cost 6.8% (r=0.15). Pod should switch its success metric to **cost per solved task**
-  and treat its three local token figures as non-comparable context, not benchmarks.
-- **The 17.0M-FAILED vs 5.71M-PASSED pair is Pod's most valuable local datum, but not
-  for the reason it looks like.** It is the only local case where the *cheaper*
-  configuration also succeeded — i.e. it is a case against the "organization costs more"
-  assumption, and it needs a cost-of-pass denominator and a declared price table before
-  it can be stated publicly.
-- **Depth is the cost variable Pod actually controls.** arXiv 2609.23790 puts memory
+- **Token reduction need not reduce the bill.** arXiv 2607.12161 reports a 38.4% tool-token
+  reduction with a 6.8% cost increase. Token totals remain usage measurements; selecting
+  dollars, cost per success or another economic metric belongs to the "划算" decision.
+- **The local 17.0M-FAILED vs 5.71M-PASSED pair merits controlled follow-up.** It records
+  fewer tokens and a successful outcome in one configuration, not an audited dollar saving
+  or a universal organizational advantage. Price, task, retry and sampling conditions matter.
+- **Depth is one cost variable to test.** arXiv 2609.23790 puts memory
   injection at a structural zero at depth 1 and 27.6% of billed cost at depth 6, growing
-  linearly (R²=0.9974). Pod's roles/ledger/memory/review points are precisely depth
-  increases, so per-layer injected-token accounting is the highest-value measurement Pod
-  is not yet taking.
-- **Pod cannot claim a public win, because no public suite scores organizations.**
-  Terminal-Bench 4.0 and HAL are cost-aware but score single-process scaffolds; §1.2 is
-  a bounded-search negative result. The credible move is to *reuse HAL's harness and
-  metric schema* and publish Pod-vs-single-agent as a Pareto pair with the differing
-  scaffold declared (C3/C4/C5 necessarily fail).
-- **A cost win is more likely to come from removing work than from organizing it.** Every
-  cost-winning paper found here prunes, routes, schedules or reallocates (BAMAS −86%,
-  AgentPrune $43.7→$5.6, BudgetMLAgent −94.2%, MasRouter −52%, AgentDropout −21.6%),
-  while the one direct test of naive agent-scaling finds MAD's advantage over self-agent
-  scaling "limited". Pod's permission/review gates should be justified as *work removed*
-  (failed trajectories not re-run), not as coordination added.
+  linearly (R²=0.9974). Whether Pod's role, memory and review steps exhibit the same
+  relation needs measurement; the paper's coefficient is not a Pod cost constant.
+- **A public task set can host a controlled organization comparison.** Declare the
+  treatment and satisfy C1–C9; no dedicated organization leaderboard is required to
+  report that experiment. HAL is a possible recorder only after its relevant accounting
+  behavior is verified, not a mandatory dependency.
+- **Test savings from avoiding redundant work.** Several cited systems prune, route,
+  schedule or reallocate work. That motivates a test of whether review and coordination
+  prevent expensive failures; it does not establish that adding agents can never save cost.
 - **Caching and harness defaults may dominate the whole comparison.** Caching alone is
-  worth 41–80% of API cost (arXiv 2601.06007), and Terminal-Bench's top rows are 96–98%
-  cached input. Before attributing any cost difference to Pod's organization, Pod should
-  hold cache policy and harness defaults fixed across both arms, or the measured effect
-  will be a caching artefact.
+  worth 41–80% of API cost in arXiv 2601.06007's reported conditions. For an organization
+  contrast, hold billing rules and initial cache conditions fixed or declare them as part
+  of the treatment. Different resulting hit rates may be a mechanism of the treatment;
+  they are not automatically a confound. The Terminal-Bench fields alone do not audit savings.

@@ -1,12 +1,9 @@
 # Multi-Agent Organization Landscape — Pre-Chart Reconnaissance
 
 - **Date:** 2026-10-13
-- **Ticket:** TBD (wayfinder research ticket)
-- **Document state:** pre-chart reconnaissance. This document is the reconnaissance input that the
-  effort's wayfinder map will adopt as a research-ticket deliverable. It is a breadth-first
-  landscape map, not a design proposal and not a decision record.
-  （字段名由「Status」改为「Document state」：③门 status-lint 按票面词表扫 `.scratch/**/*.md`，
-  研究件的文档状态字段会与之撞名；口径见 map Notes。票号已定：`org-v3/01`。）
+- **Ticket:** [组织形态谱系、动态架构（相变）与成本经济](../issues/01-research-org-patterns-and-phase-transition.md)
+- **Document state:** partial research deliverable adopted by the map. The owning ticket remains
+  open. This is a survey with unresolved source checks, not a design proposal or decision record.
 - **Subject of the map:** the space of organizational forms for LLM multi-agent systems, the
   measured economics of those forms, their failure modes, the runtime-adaptive ("dynamic
   organization") family, the public benchmarks that report score *and* cost, and the
@@ -17,20 +14,17 @@
   inline `[未经一手来源核验]`. Where a source was unreachable, §9 and the reference entry say
   so explicitly. Numbers are quoted as published; no unit conversion or re-derivation was
   performed unless stated.
-- **Length deviation, recorded explicitly.** The brief set a 500–800 line target; this document is
-  ~2,060 lines. The overage is deliberate and concentrated in §4 (~25 systems, each needing *what
-  adapts / what drives the switch / measured gain / switching cost*) and §5 (11 benchmark families,
-  each needing score source, cost unit and an example row). Meeting the brief's own per-item detail
-  requirements inside 800 lines was not possible without dropping exact figures, which the brief also
-  required. **No long excerpts were pasted** — the density is citations and figures, not prose. If a
-  shorter artefact is wanted, §0 plus the tables in §1.10, §2.1, §4.4 and §5.1 carry the load-bearing
-  content in roughly 120 lines.
+- **Reading route:** start with the ticket's current Answer and the correction record below.
+  For individual mechanisms, follow §1–§4; for benchmark and comparison claims, read §5 and §7;
+  check §9 before transferring any result into a decision.
 - **Sourcing note:** **no citation counts appear anywhere in this document**, because the Semantic
   Scholar API was rate-limited to unusable across two agents and ~30 attempts (§9.1). Every judgement
   about a work's influence rests on venue and citation-chaining, not bibliometrics.
 
-> Sections 1–9 and the closing inference block were appended incrementally, and §0 was written last.
-> (This note is the residue of that incremental method and can be deleted on adoption.)
+**2026-10-13 correction.** The owning ticket is open pending core-source verification.
+For AdaptOrch baselines, partial adaptation costs and leaderboard integrity, read
+[the primary-source correction record](evidence-corrections-2026-10-13.md) before citing a number.
+The edits below correct those claims; they do not certify every source in this survey.
 
 ## 0. Executive digest
 
@@ -59,18 +53,19 @@ Twelve findings that carry the map. Each is sourced in its section; this is a re
    communication, with an exact condition for budgeted synergy and closed-form budget thresholds, and
    closed-form risks for star/chain/tree (§4.5, arXiv 2601.17311). **It is validated only in synthetic
    simulation**; the authors say large-scale matched-budget evaluation is "computationally prohibitive."
-6. **Empirically, the phase transition is NOT confirmed.** The one careful test found order–disorder
+6. **The empirical tests below do not establish a general phase-transition law for Pod.** One test found order–disorder
    crossovers *"incompatible with"* 2D Ising exponents and concluded alignment is **"field-driven
    crossovers instead of genuine phase transitions"**; another reported *"mixed"* agreement with its own
-   theory (§4.5). **The transferable assets are thresholds, not criticality:** budget threshold, ~45%
+   theory (§4.5). **Candidate signals need task-specific calibration:** budget threshold, ~45%
    capability ceiling, verification dose-vs-delay (inverse golden ratio at delay 2), effective team size,
    role-library semantic overlap, and the model-capability threshold below which self-organization loses
    to rigid structure.
 7. **The dominant dynamic-organization family is offline search, not per-task transition.** AFlow,
    AgentSquare, MASS, ScoreFlow, EvoAgent search once and deploy frozen; only MANTA, AgentConductor,
-   AdaptOrch, DyLAN and ZEBRA genuinely adapt per task (§4.1–4.3). Search cost spans **two orders of
-   magnitude** ($3.56 to $21.75 per dataset), and **the systems claiming the largest gains report no
-   adaptation cost at all** (§4.4).
+   AdaptOrch, DyLAN and ZEBRA include per-task adaptation (§4.1–4.3). The cited MATH search costs
+   differ by about **6.1× in dollars** ($3.56 to $21.75) and **99.3× in prompt tokens**
+   (3.24M to 321.8M). AdaptOrch reports some routing and synthesis overhead, but complete search,
+   rerouting and migration costs have not been verified (§4.4).
 8. **The cheapest organization found is frequently one agent with a router**, not a team: compiling a
    homogeneous multi-agent workflow into a single agent with shared KV cache gives similar accuracy at
    **−54% tokens and −50% latency**, and matches an AFlow-optimized heterogeneous workflow (§4.6, arXiv
@@ -81,13 +76,12 @@ Twelve findings that carry the map. Each is sourced in its section; this is a re
    independent ways: majority voting alone accounts for most MAD gains with a martingale proof (NeurIPS
    2025 Spotlight); debate is an "amplifier for the majority opinion"; and debate costs **2.1–3.4× more
    tokens than isolated self-correction** for equal-or-worse accuracy (§1.8, §3.4).
-10. **The public infrastructure to price organizations exists; nobody has used it for a controlled
-    multi-agent-vs-single comparison.** Terminal-Bench 4.0, HAL, SWE-bench Verified and Vals AI all
-    publish score + cost (§5.1), and the strongest spend-vs-score datapoint is brutal: **identical
-    58.18% at $634.24 and at $3,267.18** (§5.2). **No published multi-agent-vs-single benchmark result
-    with both score and cost was found** except Anthropic's internal eval (§5.5). This is the gap Pod
-    can fill.
-11. **The "impossible triangle" does not exist as a formulation — a null result.** No source names a
+10. **Public score and cost fields exist; this pass has not verified a complete same-model
+    multi-agent-vs-single comparison.** The checked Terminal-Bench rows report **58.18% at $634.24
+    and at $3,267.18** for different models (§5.2). SWE-bench also has optional cost fields.
+    These support descriptive comparisons, not organizational causal gains. A controlled Pod
+    experiment could use this infrastructure; novelty is not established by a bounded search.
+11. **The "impossible triangle" was not located in the bounded search.** No source found here names a
     trilemma about multi-agent cooperation derived from organizational + LLM characteristics; none of
     the four candidate axis-triples appears as a named trilemma; `"iron triangle"` and `"impossible
     triangle"` return zero relevant arXiv entries (§6.1). The nearest formal result is a self-described
@@ -102,10 +96,9 @@ Twelve findings that carry the map. Each is sourced in its section; this is a re
     conservative than a protocol-fixable reading, and the Specification Gap shows a **25–39pp
     coordination tax surviving full specification** (§3.4).
 
-**The one-line orientation for the owner:** amplification is real, the overhead is measured, the theory
-of per-task phase transition exists but is unconfirmed, the measured levers are thresholds rather than
-criticality, the cheapest organization is often not a team at all — and the trilemma the v3
-architecture is meant to explain is not in the literature, so Pod would be originating it.
+The results motivate tests of conditional organizational gains, overhead and strong single-agent
+baselines. They do not establish a universally economical topology, a Pod switching threshold or
+the absence of a trilemma formulation outside the searched sources.
 
 ## 1. Organization and coordination topologies
 
@@ -726,9 +719,9 @@ agent is already strong, the measured return is **negative**, and the negative c
 Verified (−15% to −2%) and PlanCraft (−70% to −39%). And the most efficient organization in the
 measured set is frequently **one agent with a router** (OneFlow: 54% fewer tokens; Skill-compilation:
 54% fewer tokens and 50% less latency) or **isolated self-correction** (10× output budget matches
-debate). **The owner's own result — the team passing where a 17.0M-token single agent failed, at 5.71M
-— is a capability-enabling result, not a token-efficiency result, and it therefore sits outside the
-band where the counter-evidence applies.**
+debate). Pod's local result, a team passing at 5.71M tokens where a single agent failed at 17.0M,
+records a capability difference under those conditions. It does not by itself establish general
+token efficiency or exempt Pod from testing the counter-evidence.
 
 ### 2.9 Cost-accounting pitfalls the literature itself flags
 
@@ -1034,7 +1027,8 @@ adaptation happens**:
 
 **The distinction is load-bearing because the cost structure is completely different.** An offline
 searcher can spend $21.75 and 321.8M tokens once (AFlow on MATH) and amortize; an online switcher pays
-every task, and **almost nobody reports that per-task switching overhead** — see §9.
+per task. The current source set does not yet yield a complete, comparable switching ledger;
+partial routing costs must be kept separate from search and state migration (§4.4).
 
 ### 4.2 The named family (what actually adapts, what drives the switch)
 
@@ -1066,7 +1060,7 @@ additive across axes (MASS found topology composition added only +3% on top of p
 | **FlowMAS** | [2609.37151](https://arxiv.org/abs/2609.37151), 2026-09-29 `[primary]` | discrete workflow topology | GFlowNet reward-guided flow + curiosity-driven structural exploration + information-guided objective | best of 15 baselines; **+8.17 pts** over hand-crafted, **+6.12** over automated | Offline-trained flow → per-query generation |
 | **TopoPrior** | [2605.17359](https://arxiv.org/abs/2605.17359), 2026-05-17 `[primary]` | initial collaboration graph + downstream refinement | offline prior learning from multi-domain reference graphs; query-conditioned generation | improves several topology-evolution backbones while **reducing online inference-time token usage** | **Hybrid** — cleanest offline/online split |
 | **MACA** | [2605.25746](https://arxiv.org/abs/2605.25746), 2026-05-25 `[primary]` | participation + interactions + orchestration policy, **budget-conditioned** | task- and budget-conditioned structural prior; reward = accuracy − β·token cost, KL-regularized | **+8.42%** avg over adaptive baselines with **43.19% fewer tokens**, six benchmarks | Offline prior → per-task conditioning |
-| **AdaptOrch** | [2602.16873](https://arxiv.org/abs/2602.16873), 2026-02-18 `[primary]` | selects among **4 canonical topologies** (parallel, sequential, hierarchical, hybrid) | task dependency DAG + "empirically derived domain characteristics"; routing in O(\|V\|+\|E\|) | **12–23%** over static single-topology baselines on SWE-bench, GPQA, RAG, **identical underlying models** | **Online per-task, rule-based (not searched)** |
+| **AdaptOrch** | [2602.16873v1](https://arxiv.org/abs/2602.16873v1), 2026-02-18 `[primary]` | chooses among **4 canonical topologies** and supports failure rerouting | dependency DAG and calibrated thresholds; routing in O(\|V\|+\|E\|) | **11.9–22.9% relative to Single Best**, not the strongest fixed topology; SWE fixed-hybrid 49.8 vs 52.6, matched Self-MoA 51.5 vs 52.6; same model pool, differing assignments | Offline threshold calibration; online per-task routing and task-internal rerouting |
 | **G-Designer** | [2410.11782](https://arxiv.org/abs/2410.11782) `[primary]` | communication topology, task-adaptive (task virtual node) | variational graph auto-encoder decodes topology | MMLU **84.50%**, HumanEval pass@1 **89.90%**, **up to −95.33% tokens** on HumanEval; −0.3% under adversarial attack | Offline train (cheap: 2.7e5 tokens / 0.3h) → online per-query generation |
 | **Evolving Orchestration** | [2505.19591](https://arxiv.org/abs/2505.19591), NeurIPS 2025 `[primary]` | agent sequencing/prioritization ("puppeteer") | RL orchestrator, reward = quality − λ·cumulative cost | "superior performance with reduced computational costs"; **no headline number**; gains attributed to "more compact, cyclic reasoning structures" | Offline RL → per-task sequencing |
 | **Graph-GRPO** | [2603.02701](https://arxiv.org/abs/2603.02701) `[primary]` | topology edges | group-relative per-edge advantage (fixes variance of absolute-reward RL) | "significantly outperforms SOTA"; no % in abstract | Training-time policy → inference |
@@ -1090,15 +1084,20 @@ This is the most decision-relevant table in §4, because it prices the *act of a
 | **Mas-Orchestra** | **>10× efficiency** vs inference-time orchestration (AFlow, MAS-Zero) in LLM calls, tokens, and cost | 2601.14652 |
 | **W4S** | 7B meta-agent trained in **1 GPU hour** | 2504.04785 |
 | **DyLAN** | **NOT REPORTED** — explicitly excludes it: "Since 'Task solving' after 'Team Optimization' is essential for testing and deployment, we mainly report the cost from the second stage." | 2310.02170 |
-| **MANTA, FlowMAS, MACA, Graph-GRPO, AdaptOrch** | **no search/switching cost figures located** | — |
+| **AdaptOrch** | router **<50ms/task** on one CPU core; synthesis **about $0.01/instance**; separate offline-search and failure-rerouting costs not located | v1 Appendix B.2, §5.5 and Table 4 |
+| **MANTA, FlowMAS, MACA, Graph-GRPO** | separate search/switching cost not located in the inspected material | original bounded search; not a claim that none is published |
 
-**Three conclusions.** (1) Search cost spans **more than two orders of magnitude** ($3.56 to $21.75 per
-dataset, 3.24M to 321.8M tokens) for systems with comparable reported gains — so "adaptive
-orchestration" is not one cost tier. (2) The systems with the *largest* claimed gains (MANTA +5.8,
-FlowMAS +8.17, AgentConductor +14.6% pass@1) are precisely the ones that **do not report their
-adaptation cost** — the reporting gap is not random, it correlates with the claim size. (3) The only
-paper that quantifies the *per-query* penalty of scaling an adaptive system is MasRouter: scaling 6→10
-agents yields **marginal gains at 1.5× per-query inference cost**.
+The MATH search-cost pair is $21.75/$3.56 = **6.1×**, while the prompt-token pair is
+321.8M/3.24M = **99.3×**. Do not call the dollar difference two orders of magnitude.
+MasRouter also reports marginal gains when scaling 6 to 10 agents at 1.5× per-query inference
+cost. These are different cost objects, not one common "adaptation cost" tier.
+
+AdaptOrch's partial online costs do not price offline threshold search, task-internal failure
+rerouting or state migration separately. Its Table 2 labels one comparison "Best Static", but
+Table 4's fixed hybrid and Table 2's compute-matched Self-MoA give different gaps. The paper also
+labels SWE-bench as 500 instances while §5.5 says Tables 2–4 use only the 85% test split.
+The linked code repository returned 404 on this pass. Exact baselines, units and limits are in
+the correction record §1; these remain author-reported results, not reproduced Pod evidence.
 
 ### 4.5 "Phase transition", "criticality", "order parameter" — measured vs framing
 
@@ -1196,8 +1195,9 @@ measurements, a great deal of borrowed vocabulary.**
   analogy; the fit is empirical.** The Reasoning Trap finding is the useful part.
 - **[primary] AdaptOrch**, arXiv [2602.16873](https://arxiv.org/abs/2602.16873) — its "Performance
   Convergence Scaling Law" is a formalized *argument* that orchestration selection outweighs model
-  selection, validated only by benchmark comparison (12–23% over static topologies), **not** by
-  measuring a transition.
+  selection. The benchmark comparisons include dynamic routing versus named fixed baselines;
+  12–23% is relative to Single Best, not the strongest static topology. These comparisons do not
+  measure a physical phase transition; their accounting and denominator limits are recorded in §4.4.
 - **"Self-organized criticality" + multi-agent LLM appears essentially nowhere as a measured
   phenomenon.** An arXiv query for that exact phrase with multi-agent returns a 2018 spiking-neural-
   network paper (arXiv 1805.02995), not LLM work.
@@ -1275,6 +1275,10 @@ what do those rows actually say about whether extra token spend buys score?**
 
 ### 5.1 The four surfaces that actually report score AND cost
 
+The table is the original collection snapshot, not four newly audited ledgers. The correction
+record verifies the two named Codex rows and one SWE-bench row. HAL row costs are held out pending
+the issue-scope check in §5.6. Other values require their source and accounting limits on reuse.
+
 | Surface | Owner / URL | Score | Cost column | Example row |
 |---|---|---|---|---|
 | **Terminal-Bench 4.0** | Stanford / Laude / Harbor — [tbench.ai/leaderboard](https://www.tbench.ai/leaderboard) (updated 2026-10-06; **330 trials/row**) | resolution rate ±CI95 | **USD total + total tokens + output tokens + cached/uncached input + avg seconds/trial** | Opus 5.5 / Claude Code / max: **64.85% ±3.11 @ $4,718.65**, 8.03B tokens, 4,790 s/trial |
@@ -1287,17 +1291,19 @@ but no USD: MLE-bench and BrowseComp.
 
 ### 5.2 The single best datapoints for "does extra spend buy score"
 
-All first-party, all readable as a spend-vs-score curve:
+These are reported score/cost observations, not one causal spend-vs-score curve. Models,
+scaffolds, versions and denominators differ. RE-Bench and PaperBench cost coverage conflicts
+with the companion cost report; their excerpts below remain pending primary-table reconciliation.
 
 1. **Terminal-Bench 4.0, identical score at 5.15× the cost.** GPT-6.1 Sol / Codex / max:
-   **58.18% @ $634.24**. GPT-6 Astra / Codex / max: **58.18% @ $3,267.18**. Zero points for 5.15× the
-   money.
+   **58.18% @ $634.24**. GPT-6 Astra / Codex / max: **58.18% @ $3,267.18**. The published cost ratio
+   is 5.15 for different models, not evidence of an organizational effect or equivalent quality.
 2. **Terminal-Bench 4.0, same model, rising reasoning effort, non-monotone.** Opus 5 / Claude Code:
    low **34.85% @ $2,393.88** → medium 44.85% → high 50.30% → xhigh **53.94% @ $6,086.22** → max
-   **51.82% @ $5,969.11**. **Max spend scores 2.12 pts *worse* than the step below it.** GPT-6 Astra
+   **51.82% @ $5,969.11**. **Max effort scores 2.12 points below xhigh** in this snapshot. GPT-6 Astra
    low 50.61% @$1,557.30 → max 58.18% @$3,267.18: +7.57 pts for 2.10× spend, but the last
    xhigh→max step buys **+0.30 pt for +$916.67**. Fable 5.1: max buys **0.00 pt for +$1,371.46**.
-   → **Spend buys score up to a knee, then stops or reverses.**
+   These aggregate rows do not identify a causal marginal return without controlled trials.
 3. **SWE-bench Verified, one point for 10.3× the money.** MiniMax M2.5 (high) **75.8% @ $0.0733/inst**
    vs Claude 4.5 Opus (high) **76.8% @ $0.7539/inst**. Also Gemini 3 Flash (high) **75.8% @ $0.3560**.
 4. **HAL, higher reasoning effort lowers accuracy in the majority of runs.** The paper's own headline:
@@ -1347,8 +1353,8 @@ All first-party, all readable as a spend-vs-score curve:
 | **OSWorld** ([2404.07972](https://arxiv.org/abs/2404.07972)) 369 tasks (361 w/o Drive) | execution-based success on real computer tasks, 3 OSes | Google Sheet via osworld-v1.xlang.ai (**the sheet is a task-verification tracker, not a score board**) | **No** | — | humans 72.36% vs best model 12.24% (paper) |
 | **WebArena** ([2307.13854](https://arxiv.org/abs/2307.13854), NeurIPS 2024 Oral); VisualWebArena 2401.13649; WebArena-Infinity; TheAgentCompany ICML 2025 | task success in self-hosted replicas of real sites | webarena.dev is a **4.3 KB landing page with no leaderboard table in 2026** | **No** | — | not stated; WebArena-Infinity exists to counter static-env saturation |
 | **MLE-bench** ([2410.07095](https://arxiv.org/abs/2410.07095)) 75 Kaggle competitions | end-to-end ML engineering, medal rate | paper Table 2 + repo README; no live leaderboard | **Partially — GPU-h + tokens, no USD** | 1,800 GPU-h + 127.5M in/15.0M out per seed | o1-preview+AIDE 16.9% medals |
-| **PaperBench** ([2504.01848](https://arxiv.org/abs/2504.01848)) 20 papers; PBCD variant | replicating an AI paper's codebase, rubric-graded | paper; no live leaderboard | **Yes** | **USD per rollout + per-paper grading** | designed to be below human expert replication; PBCD correlates with full PaperBench at only **r = 0.48** (o1) |
-| **RE-Bench** ([2411.15114](https://arxiv.org/abs/2411.15114)) 7 environments | ML R&D under fixed **time** budget, vs 71 eight-hour human expert attempts | paper + METR | **Yes — tokens and USD, plus a human $ baseline** | agent ~$123 / 8 h vs human ~$1,855 / 8 h | agents 4× humans at 2 h; humans 2× agents at 32 h |
+| **PaperBench** ([2504.01848](https://arxiv.org/abs/2504.01848)) 20 papers; PBCD variant | replicating an AI paper's codebase, rubric-graded | paper; no live leaderboard | Original pass reports cost; companion-report conflict awaits primary-table reconciliation | USD per rollout and per-paper grading are distinct | PBCD/full correlation r = 0.48 is an original excerpt, not a new verification |
+| **RE-Bench** ([2411.15114](https://arxiv.org/abs/2411.15114)) 7 environments | ML R&D under fixed time budget, vs 71 eight-hour human expert attempts | paper + METR, Figure 11 | Original pass reports token/USD costs; companion-report conflict awaits reconciliation | Original excerpt: agent ~$123/8 h vs human ~$1,855/8 h; not reused as a verified cost comparison | Time-budget comparisons do not establish equal-cost returns |
 
 ### 5.4 Multi-agent-specific suites
 
@@ -1362,31 +1368,29 @@ All first-party, all readable as a spend-vs-score curve:
 | **"Beyond Success Rate"** | [2607.15263](https://arxiv.org/abs/2607.15263), 2026-07-16 | cost-aware security-agent eval: *"compare models at fixed cost levels and decompose performance by inference spend and tool spend."* Offensive CTF scales with test-time compute; **defensive SOC investigation does not** — it depends on disciplined tool use, not reasoning budget | **Yes — fixed-cost-level comparison** |
 | **Multi-Agent Routing benchmark** | [2606.28925](https://arxiv.org/abs/2606.28925) | 3,000 WildChat prompts over a fixed 12-agent catalog; set-level metrics + latency + **ordinal agent-cost tiers**; supervised routers beat nearest-neighbour and zero-shot LLM routing | **Yes — cost-tier constrained routing** |
 | **MedAgentBoard** | cited in [2604.02460](https://arxiv.org/abs/2604.02460) as Zhu et al. 2025 | collaborative-agent benchmark showing **MAS advantages are task-specific, not universal** | not verified in this pass |
-| **Anthropic internal research eval** | [blog](https://www.anthropic.com/engineering/multi-agent-research-system) | the only industrial multi-agent-vs-single result with both: **+90.2% over single-agent Claude Opus 4**, and **tokens explain 80% of BrowseComp variance** | **Yes — 4× chat (single agent), 15× chat (multi-agent)** |
+| **Anthropic internal research eval** | [blog](https://www.anthropic.com/engineering/multi-agent-research-system) | vendor reports **+90.2% over single-agent Claude Opus 4** on an internal eval and token/performance correlation on BrowseComp | **4×/15× relative to chat**, not matched score-plus-cost measurements for the two experimental arms |
 
 ### 5.5 Is there a published multi-agent-vs-single comparison with BOTH score and cost?
 
-**Almost none.** This is the strongest negative result in §5.
+This pass has not verified a same-task, same-model pair with both complete quality and cost
+measurements. That is an open evidence requirement, not proof that no such result exists.
 
 - **SWE-bench Verified:** no multi-agent-vs-single pairing. The page notes results come "from simple LM
   agent loops to RAG systems to multi-rollout and review type systems" — review/multi-rollout systems
   are present but **not labelled as multi-agent and not cost-paired**.
 - **GAIA, tau-bench, tau2-bench, BrowseComp, HLE, Terminal-Bench, OSWorld, WebArena, MLE-bench,
   PaperBench, RE-Bench:** none found with both score and cost for a multi-agent vs single-agent pair.
-  Terminal-Bench has the cost infrastructure and no multi-agent scaffold ranked (agents are Claude Code,
-  Codex, Grok Build, mini-SWE-agent, Muse Code).
+  Scaffold names such as Claude Code or Codex alone do not show whether a run used subagents.
 - **MAST** gives multi-agent *failure* data and prices only its annotator. **MultiAgentBench** gives
   topology comparison with **no cost**.
-- **The only first-party multi-agent-vs-single result with both is Anthropic's internal eval** — not a
-  public benchmark, not independently reproducible, and it is the same source that says token usage
-  explains 80% of the variance.
+- **Anthropic's internal eval is not the required controlled cost pair.** Its token ratios use
+  chats as the denominator, while the score claim compares different agent configurations on an
+  internal eval. The companion cost report §2.4 lists further candidates requiring table-level checks.
 
-> **This is the gap the owner is asking to be filled, and it is a real gap, not a search failure.**
-> The public benchmark infrastructure to *price* multi-agent organizations exists (Terminal-Bench 4.0,
-> HAL, SWE-bench Verified cost columns, Vals AI); what does not exist is anyone using it to run a
-> controlled multi-agent-vs-single comparison at matched budget. Building that measurement — Pod's own
-> topologies, one benchmark with a native cost column, matched budget — would be a contribution to the
-> public record, not just an internal acceptance test.
+Public score/cost infrastructure can support a Pod experiment. Its contribution would be a
+traceable measurement under declared controls; this search does not establish novelty.
+Controlled organizational contrasts and descriptive external comparisons follow the companion
+cost report §4, C1–C9.
 
 ### 5.6 Leaderboards that rank by cost-efficiency (the surfaces to use)
 
@@ -1396,10 +1400,11 @@ All first-party, all readable as a spend-vs-score curve:
   fix is *"Cost-controlled evaluations as default"* with built-in logging and cost tracking.
   **21,730 agent rollouts, 9 models, 9 benchmarks, total cost ≈ $40,000, 2.5B tokens** of released
   agent logs. Every leaderboard carries a **Cost (USD)** column and **"Pareto optimal"** tags; ships a
-  "Resolved vs cost limit" style view. **Caveats that matter:** paused for new models; costs exclude
-  caching benefits; and an unresolved **Oct 5, 2026 known issue where nested trace spans double-counted
-  API responses — "inflated by exactly 2×… not uniform across rows. Not yet re-derived."** Treat HAL
-  dollars as **upper bounds and non-comparable across rows**.
+  "Resolved vs cost limit" style view in the original collection. **Current citation restriction:**
+  that collection alleges an Oct 5, 2026 nested-span issue with nonuniform double counting, but the
+  correction pass could not verify its affected versions, rows or recalculation status. It is a
+  lead to investigate, not a basis to call all HAL costs upper bounds or all rows incomparable.
+  Hold the row-cost comparisons in this report out of decision evidence until verified (§9.1).
 - **SWE-bench cost-controlled charts** — the official leaderboard ships
   `resolvedVsAvgCostChart.js`, `resolvedVsCostLimitChart.js`, `cumulativeCostChart.js`: literally
   "resolved vs cost limit" (score at a fixed spend), plus a **bash-only standardized track** where every
@@ -1444,18 +1449,17 @@ triples — cost/latency/quality, capability/controllability/cost, autonomy/reli
 organizational efficiency/flexibility/legitimacy, accuracy/cost/robustness; plus `"iron triangle"`
 and `"impossible triangle"` against agents/AI.
 
-### 6.1 HEADLINE FINDING: the claimed trilemma does not exist as a formulation
+### 6.1 Bounded search result: no matching formulation located
 
-> **There is no influential primary formulation of a multi-agent-cooperation trilemma arising from
-> organizational characteristics plus LLM characteristics.** No source found (a) names a trilemma,
+> The sources reached in this pass did not yield a formulation that (a) names a trilemma,
 > (b) makes it about multi-agent cooperation/organization specifically, and (c) derives it from the
-> conjunction of organizational and LLM properties. **None of the five candidate axis-triples appears
-> as a named trilemma anywhere in the literature reached.** The arXiv queries for `"iron triangle"`
+> conjunction of organizational and LLM properties. None of the five candidate axis-triples appeared
+> as a named trilemma in that sample. The arXiv queries for `"iron triangle"`
 > and `"impossible triangle"` in the agent/AI context returned **zero** entries.
 
-The owner's belief is therefore, as of 2026-10-13, **an unsourced framing**. That is stated plainly
-here because a null result is a finding: if Pod adopts a trilemma framing in its v3 spec, Pod would be
-*inventing* the concept, not citing it, and the spec must say so.
+This is not evidence that no formulation exists, nor a novelty claim for Pod. Until a suitable
+source is located, any use in the specification should be labelled a project hypothesis rather
+than an established impossibility result. Search coverage remains limited by §9.
 
 ### 6.2 What actually exists: adjacent formulations (explicitly labelled adjacent)
 
@@ -1536,7 +1540,7 @@ not a trilemma, and it is falsifiable in a way a trilemma is not.
 ### 6.5 If a trilemma is to be used, the honest statement of its status
 
 Any Pod v3 use of "impossible triangle" should be written as one of:
-- **(a)** a *Pod-originated hypothesis* explicitly marked as such and *not* attributed to the
+- **(a)** a *project hypothesis* explicitly marked as such and *not* attributed to the
   literature (defensible, but then it must be pre-registered and tested, not asserted), or
 - **(b)** dropped in favour of the four-factor sensitivity framing above, which *is* sourced.
 
@@ -1550,23 +1554,26 @@ This section is about what makes an *organization-level* claim falsifiable, and 
 conventions actually are. It is deliberately separate from §5 (which benchmarks exist) — §5 is
 inventory, this is method.
 
-### 7.1 The four controls that decide whether a result means anything
+### 7.1 Comparison questions and controls
 
-The landscape converges on four controls, and papers that omit any of them produce claims that the
-better-controlled papers then reverse.
+The examples below motivate checks, not a universal experimental design. The shared comparison
+checklist is [C1–C9 in the cost report](benchmarks-and-cost-accounting.md#4-comparability-criteria).
+Choose the question first: quality under a fixed budget, or the quality gained for additional spend.
 
 1. **Compute normalization (matched budget).** 2604.02460 makes this the primary control and holds
    *thinking tokens* constant — defined as "the total number of tokens used for intermediate reasoning,
    **excluding prompts and final answers**" — and only then compares SAS to five MAS architectures.
-   Its result (SAS ≥ MAS) is a direct consequence of adding this control. **Implication: an unmatched
-   budget comparison of multi-agent vs single-agent is not evidence about organization.**
-2. **Implementation normalization (same tools, prompts, model).** 2512.08296 standardizes "tools,
-   prompts, and compute to isolate architectural effects" across 260 configurations and five
-   architectures. Without this, an architecture effect and an implementation effect are confounded —
-   their stated reason for the design.
-3. **Sequential-vs-parallel accounting.** Anthropic's numbers are only interpretable because they
-   separate the ~4× single-agent-vs-chat multiplier from the ~15× multi-agent-vs-chat multiplier.
-   Reporting a single "multi-agent is Nx" number conflates worker count with turn count.
+   Its result concerns equal thinking-token budgets, not every quality-cost comparison. Different
+   measured spend can be intentional in an economic comparison, provided both arms use one
+   accounting policy and the conclusion does not claim equal-budget superiority.
+2. **Treatment versus controls.** 2512.08296 reports standardizing tools, prompts and compute for its
+   experiment. A Pod organization experiment must version prompts, roles and control flow as part of
+   the intended treatment. Requiring these to be identical would remove the organization difference
+   being tested. Hold task inputs, base capabilities, model configuration and measurement rules fixed
+   where the research question requires them; enumerate intentional differences.
+3. **Accounting denominators.** Anthropic's ~4× and ~15× figures both use chat as denominator.
+   Their quotient is an approximate deployment-level ratio, not a matched experimental pair with
+   score and cost for each arm. Track worker count, repeated calls and parallel latency separately.
 4. **Stochasticity / repeated runs.** 2608.15286 ("No Task Fails Every Time: Why One-Shot Audits Are
    Structurally Blind to Agent Damage", arXiv [2608.15286](https://arxiv.org/abs/2608.15286), 2026-08)
    is the methodological exemplar. Across 2,128 runs, nine models, six families:
@@ -1597,18 +1604,19 @@ better-controlled papers then reverse.
 
 **Cross-convention warning for Pod.** "USD" numbers are pricing-dependent and therefore expire;
 "tokens" numbers are comparable only if the token classes match (thinking vs prompt vs completion);
-"LLM calls" numbers reward small calls. A Pod claim should state the class. The most defensible single
-metric in the landscape is 2512.08296's successes-per-1K-tokens *because it is a ratio* — but it is
-only meaningful alongside an absolute-quality floor, since a system that answers nothing cheaply
-scores well on it.
+"LLM calls" ignores per-call size. A Pod claim should state the class and denominator. Successes per
+1,000 tokens is one candidate, not inherently superior because it is a ratio. Report absolute quality
+alongside it; zero successes yields zero efficiency when token use is positive, while zero token use
+makes the ratio undefined. The main metric remains for the cost-worthiness decision.
 
 ### 7.3 Pre-registration and frozen criteria
 
-- **The literature is thin here, and that is a finding.** An arXiv full-text query for
+- **The retrieved sample is small.** The original search record for
   `"pre-registration" AND "agent" AND "evaluation"` returned six hits, of which only one
   (2608.15286) actually pre-registers criteria for an agent evaluation; the rest use the word
-  incidentally. So pre-registration is *not* an established convention in LLM multi-agent evaluation
-  — the field mostly publishes post-hoc thresholds.
+  incidentally. This bounded search does not establish how common pre-registration is across the
+  field. The original record calls the query full-text; its actual coverage needs checking before
+  making a claim beyond the retrieved sample.
 - **The exemplar is 2608.15286**, and its specific mechanics are worth copying wholesale: pre-register
   which model families are confirmatory vs exploratory; fix the power floor before measuring; name the
   primary damage/quality metric in advance; run many seeds; report underpowered results as
@@ -1616,8 +1624,8 @@ scores well on it.
 - **Pod note:** Pod's v2 spec closed with a pre-registered capability-amplification threshold, and its
   economics failed that threshold while amplification passed. That is exactly the situation
   pre-registration exists to make legible, and the 2608.15286 practice (e.g. "underpowered, not
-  confirmation") is the vocabulary Pod needs for its next pre-registration. The *convention* Pod uses
-  is ahead of the public literature, not behind it.
+  confirmation") offers a useful reporting option. This comparison does not establish that Pod is
+  ahead of the field.
 
 ### 7.4 Ablations: what the literature actually ablates
 
@@ -1637,23 +1645,25 @@ Useful ablation patterns found, worth reusing as a template:
 - **Negative-control arms.** 2512.08296's "Independent" architecture (58% overhead, no coordination
   mechanism) functions as a negative control separating "more samples" from "more coordination".
 
-### 7.5 What makes an organization-level claim falsifiable (distilled)
+### 7.5 Candidate checks for an organization-level claim
 
-An organization-level claim is falsifiable when all of the following are pinned, because the landscape
-contains a published reversal for each unpinned dimension:
+Use these as prompts when applying C1–C9, not as a second authoritative cost definition or a frozen
+acceptance contract:
 
-1. **Budget class and value** (thinking tokens / total tokens / USD), matched against the single-agent
-   arm. *Reversal source: 2604.02460.*
-2. **Single-agent arm strength** — a strong single agent with the same tools and the same turn budget,
-   not a one-shot prompt. *Reversal source: 2601.12307.*
+1. **Budget question and unit** (thinking tokens / total tokens / USD): distinguish fixed-budget
+   quality from additional-spend economics. *Example: 2604.02460.*
+2. **Single-agent arm strength**: compare with a strong single-agent baseline rather than assuming a
+   one-shot prompt is sufficient. Turn limits depend on the declared budget protocol.
+   *Example: 2601.12307.*
 3. **Task-structure fit** — whether the task is decomposable/parallelizable or sequential. *Measured
    spread: +80.8% (Finance Agent, decomposable) to −70% (PlanCraft, sequential) in 2512.08296.*
 4. **Model-capability regime** — benefits shrink or reverse as the base model strengthens; the
-   measured threshold in 2512.08296 is single-agent accuracy above ~45% on the task implying negative
-   returns from extra agents. *Reversal source: 2512.08296, 2601.14652.*
+   ~45% threshold in 2512.08296 is specific to its models, tasks and budgets, not a Pod routing
+   constant. *Example: 2512.08296, 2601.14652.*
 5. **Error-absorption mechanism** — whether the organization has centralized verification.
    2512.08296: architectures without centralized verification propagate errors more (independent
-   variants amplify errors to 17.2× baseline).
+   variants amplify errors to 17.2× baseline). That trace-level association is not a causal effect;
+   its controlled coefficient is not significant (§2.7).
 6. **Repetition** — the number of seeds, given 0.80 one-shot miss rates in 2608.15286.
 7. **Cost of the adaptation itself** — if the organization searched for its own shape, the search cost
    is part of the claim (AFlow's MCTS training cost is 18.41× HieraMAS's on HumanEval++; see §4).
@@ -1826,10 +1836,11 @@ Recorded precisely, because a reconnaissance map's value depends on where its ed
   `webarena.dev/webarena-infinity` (23 KB JS shell; zero occurrences of "cost", "token" or "success
   rate" in the HTML), `hal.cs.princeton.edu/swebench_verified_mini` (table body not parsed). A browser
   with a real session (the `browser-automation` skill path) would likely resolve these.
-- **HAL is paused for new models** and carries an **unresolved Oct 5, 2026 accounting bug** (nested
-  trace spans double-counting API responses, "inflated by exactly 2×… not uniform across rows. Not yet
-  re-derived"). **All HAL dollar figures in this document are upper bounds and are not comparable
-  across rows.** Any Pod plan that leans on HAL must re-derive costs.
+- **HAL accounting-issue scope is unverified.** The original collection recorded a purported
+  Oct 5, 2026 notice about nested-span double counting. The correction pass timed out on the site
+  and located only a different cached-token fix, PR #114. Neither source establishes which current
+  rows are affected or recalculated. HAL row costs remain quarantined; do not generalize the clue
+  into an all-table inflation claim. See the correction record §2.
 
 ### 9.2 Claims I could not verify, and what would verify them
 
@@ -1840,12 +1851,11 @@ Recorded precisely, because a reconnaissance map's value depends on where its ed
 - **The "10,000 agents contributed <10%" claim (§8.2): no source found at all, primary or secondary.**
   The nearest real fact is a >1,000-agent compute failure in Project Sid. **What would settle it:** the
   original secondary source, if it exists. It should not be cited until then.
-- **Per-task switching/migration overhead in dynamic organizations: reported by almost nobody.** Hard
-  search-cost numbers exist only for AgentSquare, MasRouter, G-Designer, W4S, AFlow (via MasRouter) and
-  HieraMAS. **MANTA, FlowMAS, MACA, Graph-GRPO, AdaptOrch and CayleyTopo report no switching cost
-  figures at all** — and these are the systems with the largest claimed gains. **This is the biggest
-  single hole in the landscape and it is exactly the number the owner needs**, because a per-task
-  phase transition is only rational if the switching cost is below the saving.
+- **Complete switching/migration cost is not yet verified.** Search-cost examples and AdaptOrch's
+  partial routing/synthesis costs are different objects (§4.4). Missing separate rerouting or
+  migration charges must not be recorded as zero or generalized to "nobody reports costs".
+  Resolving this requires source-level inclusion rules and a declared amortization basis, then
+  a project-specific measurement if Pod adopts switching.
 - **Venue unconfirmed from primary metadata** for: AFlow, AgentPrune, G-Designer, ScoreFlow, and every
   2026 preprint (no `journal-ref` or `comments` field). No ICLR/ICML/NeurIPS attribution is asserted for
   these. **What would settle it:** OpenReview. (Confirmed venues, for contrast: MASS — ICLR 2026 per
@@ -1874,10 +1884,10 @@ Recorded precisely, because a reconnaissance map's value depends on where its ed
   a *later paper's* re-quoting of MAST, not from MAST's own text in the pass that captured them. The
   taxonomy structure, the κ values, the 1,642 traces and the 41–86.7% failure range **were** verified
   directly from MAST.
-- **Task-verification completeness:** the owner's brief also implied checking "tau-bench/tau2-bench"
-  cost and "MLE-bench/PaperBench/RE-Bench" cost — done — but **OSWorld and WebArena have no cost
-  surface at all**, so any Pod plan to measure economics on computer-use or web benchmarks has no
-  existing cost column to read and would have to instrument its own.
+- **Cost-inventory reconciliation remains open.** This report and the companion cost report differed
+  on SWE-bench, PaperBench and RE-Bench. SWE-bench's optional fields are now verified; the latter
+  two need primary-table checks. No cost column was found in the inspected OSWorld/WebArena pages;
+  inaccessible or unread material does not establish that no such column exists elsewhere.
 
 ### 9.3 What this map deliberately did not do
 
@@ -1898,42 +1908,29 @@ Recorded precisely, because a reconnaissance map's value depends on where its ed
 
 ## 10. 对 Pod 的可迁移含义
 
-> **以下 8 条全部是推断（inference），不是被引来源的主张。** 每条后面括号内是它所依赖的证据编号；
-> 证据本身在正文各节。凡与来源冲突处，来源优先。
+> 以下是实验与决议候选，不是项目已定判据。正文中的作者报告未独立复现，补核缺口仍归所属研究票。
+> 比较设计读成本报告 C1–C9，主指标和预算取舍留给 HITL 决议。
 
-1. **Pod 的验收实验应当把"单 agent 在同一预算下做不到"与"单 agent 做得更便宜"当成两个假设分别
-   预注册。** Pod 已有的结果（单 agent 烧 17.0M 失败、团队 5.71M 通过）属于前者——是能力使能，
-   不是 token 效率；而文献中的反证（2604.02460、2601.12307、2512.08296）绝大多数打的是后者。
-   把两者混在一个阈值里，会让"经济学未达标"看起来像"放大不成立"。（§1.0、§2.8、§8.5）
-2. **下一步实验必须匹配预算，并声明预算类别。** 文献中每一次"多 agent 更好"的反转都发生在补上
-   "匹配 thinking token / 匹配 compute / 匹配工具与 prompt"之后。Pod 应报告 thinking tokens、
-   prompt tokens、completion tokens、USD 与 LLM 调用数五类中的哪一类，因为五者不可通约；
-   `successes per 1K tokens` 这类比值只有配上绝对质量下限才有意义。（§2.2、§7.2）
-3. **动态组织的切换信号应当用已测量的阈值，而不是"临界性"。** 可用的量是：预算阈值、单 agent
-   任务准确率 >≈45% 即负回报、子 agent 能力上升则 MAS 收益下降、工具密度、验证剂量与延迟的
-   稳定性阈值（delay 2 时为黄金分割倒数）、有效团队规模律与角色库语义重叠度。真实相变只在
-   合成模型中被证明、在经验中未被确认，因此以"临界点"为切换依据缺乏依据。（§4.5、§2.4）
-4. **每任务相变之前，先量化切换本身的成本，因为这是全领域最大的报告空洞。** 声称最大收益的系统
-   （MANTA、FlowMAS、MACA、AgentConductor）恰恰不报告自适应开销；已有数字跨两个数量级
-   （$3.56–$21.75/数据集，3.24M–321.8M tokens）。若 Pod 不测自己的切换成本，"按任务相变"在
-   经济学上不可证伪。（§4.4、§9.2）
-5. **先测"三角色是不是同一个 agent 穿三件衣服"，再谈组织形态。** 同基座模型、不同角色提示的三
-   agent 委员会测得平均 CoT 余弦相似度 0.888、有效秩 2.17/3.0；同质工作流的单 agent KV-cache
-   编译已测得 −54% tokens、−50% latency 且性能相当。这两项测量都便宜，且会直接决定 Pod 的
-   role/post card 设计是否有独立信息量。（§2.7、§4.6）
-6. **角色库的容量上限由语义重叠而非数量决定，这给 post card 设计一条可执行的纪律。** 唯一技能在
-   最大库规模下选择率仍 100%；每技能加一个语义竞争者即 −7–30%，加两个 −17–63%；拟合容量
-   N* ≈ 83.5–91.8（更强模型并未更大）。Pod 应把"新增 post card 与既有卡的语义距离"当作准入
-   检查，而不是把角色数量当作丰富度指标。（§4.6）
-7. **权限层与复核点应按"降低失败率"而非"消除失败"来设定预期，并且复核必须是可执行检查而非
-   代理指标。** MAST 自己说验证器"不是银弹"；MAS-FIRE 测得语义类故障机制级检出率 ≈0%，而原则
-   上 100% 可检出；规格缺省下协作税 25–39pp 在完全规格化后依然存在。因此 Pod 的 review point
-   价值主张应写成"减少 X% 的某类失败"，并配一个能对真实语义执行的检查。（§3.4、§3.5）
-8. **Pod 可以填补一个公开空白，并借此把"多花的 token 值不值"变成可对外比较的量。** 公开基准中
-   报告 score+cost 的表面已存在（Terminal-Bench 4.0、HAL、SWE-bench Verified、Vals AI），但
-   **没有任何已发表的、同时给出分数与成本的多 agent vs 单 agent 对照**；同时 HAL 存在未修复的
-   2× 成本高估、SWE-bench 榜首行 cost 为 null。用同一基准、同一预算、Pod 自己的几种组织形态做
-   一次受控对照，既能服务验收，也能成为对外可引用的记录。（§5.1、§5.5、§5.7）
+1. **分别检验能力与经济性。** 原项目记录中的单 agent 17.0M 失败、团队 5.71M 通过，是特定实验
+   条件下的能力差异，不足以证明等预算优势、一般成本优势，或不受其他文献反例影响。（§1.0、§2.8）
+2. **先定比较问题，再定预算控制。** 等预算质量与额外成本是否划算是不同问题。记录 token 类别、
+   美元、调用数及完整失败成本；角色、提示与流程作为处理变量版本化，而非强行两臂相同。主指标
+   仍待裁定，效率比值须同时报告绝对质量。（§7.1、§7.2）
+3. **测量本项目的切换信号。** 文献中的准确率约 45%、预算阈值、工具密度与延迟阈值都是特定模型、
+   任务或合成系统的结果。它们可提示采集哪些变量，不能直接成为 Pod 常量。术语也不替代有效性
+   对照。（§4.5、§2.4）
+4. **分开计算选形、搜索与任务内切换。** AdaptOrch 已报告部分路由与合成开销，完整搜索摊销与
+   状态迁移账仍未核。原摘录的 $3.56–$21.75 约差 6.1 倍，3.24M–321.8M tokens 约差 99.3 倍，
+   且成本对象不同；不能合称美元跨两个数量级或全领域无人报告。（§4.4、§9.2）
+5. **检验角色是否带来独立贡献。** 委员会相似度与单 agent 工作流编译结果可提示消融设计，不能
+   直接判断 Pod 角色有效性。测量成本与语义有效性本身也需要验证。（§2.7、§4.6）
+6. **把角色重叠作为候选风险。** 技能库论文的语义竞争与容量拟合来自其特定实验；技能选择并非
+   本项目的岗位协作，数值上限和准入规则均不能直接移植。（§4.6）
+7. **为复核机制选定可观察的失败类型。** MAST 等材料可帮助设计故障分类和反例，但不能用某论文
+   的检出率承诺 Pod 减少多少失败。权限与复核点的验收仍需项目内的可执行检查。（§3.4、§3.5）
+8. **受控对照服务本项目，不预宣称填补全球空白。** Terminal-Bench 与 SWE-bench 已核有公开分数
+   和成本；当前成本研究仍未完成同集同模型 multi-vs-single 双数字核验。HAL 争议及旧行 63.9 倍
+   暂停用于决策。公开表可以提供候选口径，不能替代本项目受控实验。（§5.1、§5.5、§5.7）
 
 **使用这些推断时的一条元规则：** 本图中最强的单篇证据（2512.08296 的 1.6–6.2×、≈45% 天花板、
 +80.8%→−70% 跨度）来自**同一篇论文**且尚未在本图范围内被独立复现；其工具协调方向在 6 基准模型
