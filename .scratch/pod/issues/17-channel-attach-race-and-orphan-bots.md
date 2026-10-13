@@ -151,12 +151,11 @@ B 以**结构性判据**落地，非计时宽限——见下「口径偏离」�
   属纵深防御并有用例把守——**口径记录于此**；③`bindings` 监听保留到子进程退出／断开或 `close()`：
   `bindings` 按 botId 唯一（至多与席位数同阶），非无界增长，且保留监听正是路线 A 的前提，故不改。
 
-### 留界登记（判据 6，2026-10-13）
+### 留界登记（判据 6，2026-10-13）→ 触发句①已执行（同日「出库」点名）
 
-`~/.dsh/restart-split.sh` 只 kill／重启 `dsh web`、不触 bot 子进程，本轮**点名范围内不动它**
-（本轮点名仅 C2 部署同步＋重启宿主＋复验）。归属：出仓库运行面运维件，非本仓版本化面。
-触发句（择一才动）：①将来要把脚本改成「同批收掉 bot 子进程」；②宿主侧接管被判不可接受、
-要求脚本侧收口。仓库内半边（自启动接管遗留进程）已在本票落地，脚本不动不再构成缺口。
+`~/.dsh/restart-split.sh` 只 kill／重启 `dsh web`、不触 bot 子进程，本票首轮**点名范围内未动它**
+（首轮点名仅 C2 部署同步＋重启宿主＋复验）。归属：出仓库运行面运维件，非本仓版本化面。
+用户 2026-10-13「出库」点名后按触发句①执行：见末节「第二次重启：脚本侧收缩复验」。
 
 ### 运行面复验（判据②③，2026-10-13 15:08–15:11）
 
@@ -183,10 +182,34 @@ pid=87694（at 07:08:44.008Z）`、`implementer pid=87723（at 07:08:46.404Z）`
 得 **`ready:true`、退出码 0**：roster ok／deployment 222 件 all-same 且 `deploymentOnly` 0／
 coordinates ok（60 件）／runtime ok（摘要相符＋deploy 探针 15 PASS・0 FAIL・0 SKIP＋两席通道全真）。
 记录件 `artifacts/cutover-execution/pod17-reattach-20261013T070635Z-readiness-2c286afa.json`
-（自校验 sha8＝`2c286afa`）；轮询日志 `/dev/shm/pod17-run/verify.log`（首次轮询即 rc=0）。
+（自校验 sha8＝`2c286afa`，持久证据以记录件为准）；复验轮询日志在 `/dev/shm/pod17-run/verify.log`
+——tmpfs 临时件，随本轮「出库」清理移除，非冻结面。
 
 **归因（接管路径直证）**：新宿主 `processes` 为空＋登记 pid 仍活 ⇒ `planAutoStart` 判两席
 `restart:true` ⇒ `api.stop` 收掉上一代进程（旧 pid 由活转灭、端口让出）⇒ `api.start` 重 spawn
 （新 pid、`ppid=87653`）⇒ 自注册行落盘 ⇒ ready ⇒ 组织通道挂回本代际。宿主 stdout
 （`~/.dsh/web-split-server.log`）只落 banner 与 restart 注册行、不落 `[pod]` 日志，故接管证据以
 进程表＋`instances.jsonl`＋`bots.json` 为准（可复算，非日志推断）。
+
+### 第二次重启：脚本侧收缩复验（留界项①，2026-10-13 15:22–15:23）
+
+**改动**：`~/.dsh/restart-split.sh` 新增 bot 收尾段——**宿主确认退出之后、新宿主启动之前**收掉
+bot 子进程（顺序不可反：宿主活着时先杀 bot 会触发其崩溃自愈重启，新起的 bot 反成下一代孤儿）；
+判定与仓内 `pidMatchesBot` 同口径（注册表登记＋pid 活＋`/proc/<pid>/cmdline` 同时含 `--profile`
+与该 botId），禁用按名宽匹配（2026-09-29 事故）；漏收由仓内侧自启动接管兜底（本票②，已实测）。
+备份 `~/.dsh/restart-split.sh.bak-pod17-20261013`（sha256 `471f701d…`）；改后 sha256 `83e4f0c1…`；
+`bash -n` 通过，干跑只打印不杀（识别 `duty-coordinator:87694 implementer:87723`）。
+
+**复验（restart-safe.sh → `dsh-restart-1791876181`）**：本次重启日志逐行——
+`old pids: 87653` → **`bot pids: duty-coordinator:87694 implementer:87723`** → `new pid: 92143`，
+且**无**「未退，已 SIGKILL」行（两席收到 SIGTERM 后在等待窗内自行退出）。即两席由**脚本侧**在
+新宿主启动前收掉，新宿主启动时登记 pid 已死 ⇒ 走普通启动而非接管。结果：`host-92143`（15:23:03）
+起后 `duty-coordinator pid=92178`（15:23:05，`ppid=92143`）、`implementer pid=92222`（15:23:07，
+`ppid=92143`）；旧代 `87653`／`87694`／`87723` 全灭，端口 3101／3102 在听（401）；
+`org-cutover-check` **`ready:true`、退出码 0**（第 3 次轮询），两席 `gen=host-92178`／`host-92222`
+且 connected／delivered／roleReady 全真；`restart-split-done.txt`＝`PID=92143`＋`MANIFEST_OK`。
+本轮就绪记录件＝`artifacts/cutover-execution/pod17-reattach-20261013T070635Z-readiness-26d7426e.json`
+（capturedAt `07:23:12Z`，sha8 `26d7426e`；首轮记录件 `…-readiness-2c286afa.json` 对应 15:08 那次重启）。
+
+**边界（触发句的代价面）**：脚本侧收缩后「重启后席位拉起」完全依赖宿主自启动——`POD_AUTOSTART=0`
+时脚本会收掉两席而无人拉起，且仓内侧接管腿也不再兜底（遗留进程已被收掉）。属运维口径，随本节留痕。
