@@ -116,7 +116,8 @@ setInterval(() => {}, 1000);
     // 组织工具带点 op 名被供应商名称模式拒绝（2026-09-29 TK-20260929 HTTP 400）；
     // bot 进程经官方 DSH_TOOLS_MODE 环境缝整体切 PTC run_code 呈现，原名工具
     // 保留在生成的 SDK 内，岗位/任务权限面不变。pod 10 号票基底显式口径：
-    // 基底＝官方默认 preset `standard`（27 工具；patch 不覆写 agent-preset-registry），
+    // 基底＝官方默认 preset `standard`（31 工具，0.2.1-alpha.2 重测 host-alpha2-adapt/01；
+    // patch 不覆写 agent-preset-registry），
     // 呈现面＝本断言的无条件 ptc 注入（含此未绑岗位、无模型 pin 实例）。
     assert.equal(dump.DSH_TOOLS_MODE, "ptc", "bot 子进程以 PTC 工具呈现启动（DSH_TOOLS_MODE）");
     assert.equal(dump.DUMP_PATH, dumpPath, "逃生阀附加在位");

@@ -62,8 +62,9 @@ Status: resolved（2026-10-10 core 批实施完成；07／08／09 由用户裁�
   整屏层 portal 到 body；官方会话页与侧栏在 Pod 期间**全程挂载**，退出＝撤层。配一套过渡
   语言（淡入＋约 4px 上浮、约 200ms，令牌取宿主 `--ds-*`），并做焦点／键盘隔离
   （modal 契约＋`useModalLayer`＋背景 `inert`）与旁带跳变清理。
-- **改动点②（工具面）＝L1／L2／L3 全对齐**：L1 基底＝**官方默认 preset `standard`（27 工具）
-  ＋呈现面 ptc**（保留 PTC；显式写明并附实测证据）；L2 新增宿主只读投影
+- **改动点②（工具面）＝L1／L2／L3 全对齐**：L1 基底＝**官方默认 preset `standard`（31 工具）
+  ＋呈现面 ptc**（保留 PTC；显式写明并附实测证据；工具数随宿主版本重测——
+  0.2.0-rc.1＝27，0.2.1-alpha.2＝31，host-alpha2-adapt/01）；L2 新增宿主只读投影
   `BotsApi.trace(id, since)`（与 `api.stats` 同款双路，PTC 内层工具名不别名化、不丢失）；
   L3 在 Pod 会话流里按官方形制渲染工具调用（通用行＋四类专用行＋回合折叠头）。
 - **回合级拼装规则冻结**（票 07 的唯一前提）：邮件面消息与会话事件按「回合」拼装，
@@ -178,9 +179,9 @@ Status: resolved（2026-10-10 core 批实施完成；07／08／09 由用户裁�
 
 #### D2. L1：基底显式化与呈现面（票 10）
 
-- **终局口径**（Q27 `4保留ptc`，L5284）：**保留 PTC**（`DSH_TOOLS_MODE` 无条件注入不动）；显式写明「**基底＝官方默认 preset `standard`（27 工具）＋呈现面 ptc**」，不再靠死键偶然对上（转写 L4803；票 10 L10-11）。**为何不切 native**：会把「模型指派」这一用户域旋钮与呈现面绑死（GLOSSARY 明写「岗位-模型解耦」是架构义务），且组织 op 名带点是裁定级合同、`niko` 类 provider 直接 400（转写 L4759-4763、L4800-4803）。
-- **27 工具清单（实测）**：`bash read write edit read_image glob grep job_output job_list job_kill skill get_goal create_goal update_goal exit_plan_mode send_message interrupt_agent list_agents subagent subagent_fork list_subagent_models workflow ask_user_question todo_write web_search web_fetch present`（转写 L4024）。
-- **关键事实**：① per-bot `settings.yaml` 的 `agent-presets:` 段在 0.2.0-rc.1 **完全不进入解析**（无 per-profile 读者），现行命名空间＝profile entry `agent-preset-registry` 的 `selectedDefault`；无覆写 → 回落官方默认 `standard`（转写 L4023、L4061）；② 官方侧**没有任何工具名校验／清洗／别名映射**（native 原样发、PTC 加引号生成进 SDK）（转写 L4025、L3952）；③ **PTC 不挡真实工具名**：一份 PTC 会话（1728 事件）同时含 `tool/call`（137，外层 `run_code`）与 `tool/ptc-dispatch-start`／`tool/ptc-dispatch`（各 212），内层真实名可见；官方对 PTC 的渲染本来就是「`run_code` 行＋子调用树」（1728 事件数与计数转写 L4790、L4792；内层真实名 L4734、L4793；官方事件白名单与 `subCalls` L4742、L4794）。
+- **终局口径**（Q27 `4保留ptc`，L5284）：**保留 PTC**（`DSH_TOOLS_MODE` 无条件注入不动）；显式写明「**基底＝官方默认 preset `standard`（31 工具）＋呈现面 ptc**」（裁定时为 27 工具，随宿主升级重测改记 31——host-alpha2-adapt/01），不再靠死键偶然对上（转写 L4803；票 10 L10-11）。**为何不切 native**：会把「模型指派」这一用户域旋钮与呈现面绑死（GLOSSARY 明写「岗位-模型解耦」是架构义务），且组织 op 名带点是裁定级合同、`niko` 类 provider 直接 400（转写 L4759-4763、L4800-4803）。
+- **31 工具清单（实测）**：`bash read write edit read_image glob grep job_output job_list job_kill schedule_create schedule_list schedule_delete schedule_update skill get_goal create_goal update_goal exit_plan_mode send_message interrupt_agent list_agents subagent subagent_fork list_subagent_models workflow ask_user_question todo_write web_search web_fetch present`（0.2.0-rc.1 真实会话实测 27 工具转写于 L4024；0.2.1-alpha.2 重测＋4 个 `schedule_*` → 31，preset 行 32→31——移除 3 行字面 disabled 行（0 模型可见工具）＋新增 `tool-schedule` 行，`time-context` 行不贡献工具——名称来源＝官方工具包注册名，其余 15 包新旧名称面逐包对拍一致；host-alpha2-adapt/01）。
+- **关键事实**：① per-bot `settings.yaml` 的 `agent-presets:` 段在 0.2.0-rc.1 **完全不进入解析**（无 per-profile 读者；0.2.1-alpha.2 复核同判——宿主内 `agent-presets` 引用仅是设置面板 UI 槽 id，无配置键读者，host-alpha2-adapt/01），现行命名空间＝profile entry `agent-preset-registry` 的 `selectedDefault`；无覆写 → 回落官方默认 `standard`（转写 L4023、L4061）；② 官方侧**没有任何工具名校验／清洗／别名映射**（native 原样发、PTC 加引号生成进 SDK）（转写 L4025、L3952）；③ **PTC 不挡真实工具名**：一份 PTC 会话（1728 事件）同时含 `tool/call`（137，外层 `run_code`）与 `tool/ptc-dispatch-start`／`tool/ptc-dispatch`（各 212），内层真实名可见；官方对 PTC 的渲染本来就是「`run_code` 行＋子调用树」（1728 事件数与计数转写 L4790、L4792；内层真实名 L4734、L4793；官方事件白名单与 `subCalls` L4742、L4794）。
 - **取证证据**（Q24a／Q26a）：`opencode-go` 带点名 **200 接受**；`niko` **400 拒绝**（错误模式 `pattern '^[a-zA-Z0-9_-]+$'`）——结论**只对当前网关注效、不可外推**（转写 L4798、L5409、L4035）；留档用途＞决策用途（Q27 已改判保留 PTC）。
 - **死配置清理范围**（Q25a，L4238「其余无异议」）：清除 per-bot `settings.yaml` 的 `agent-presets` 段与 profile patch 的 `settings` 死重定向行（`dsh-settings` 不声明 Config schema）；**生成器同步** `lib/shared.cjs`、`lib/index.js`、`scripts/create-bot.cjs`；**反向验证** `dsh --dump-config` 不再出现该段；既有 bot 的 profile 清理属运行面写入，等点名后执行（转写 L4037、L5410；票 10 L15）。
 - **静默降级收口**：写明「bot 基底＝官方默认 preset `standard`，**人物设定不裁**」，收掉 `bot-nopersona`「去 persona」从未生效这条静默降级（转写 L4228、L4037）。**边界**：不碰 `lib/org/op-set.js` 岗位 op 集与 op 命名合同（票 10 L16）。
@@ -389,7 +390,7 @@ Status: resolved（2026-10-10 core 批实施完成；07／08／09 由用户裁�
 - **形制统一**（票 09）：逐项参数、覆盖范围、通知面不动、locale zh/en、键盘可达。
 - **形制件抽取**（票 03）：纯重构零行为变化（既有回归全绿）＋抽取件被既有 UI 复用、
   `tests/client-disclosure.test.mjs` 的骨架／aria／受控／令牌断言；视觉零差异并入票 11 收口目视。
-- **L1 基底**（票 10）：27 工具对照、死配置清理与反向验证、`--dump-config`、op 集不碰。
+- **L1 基底**（票 10）：31 工具对照（0.2.1-alpha.2 重测，host-alpha2-adapt/01）、死配置清理与反向验证、`--dump-config`、op 集不碰。
 - **拼装**（票 07）：R1–R6 的 fixture 测试（含负例与幂等）；`assembleDiagnostics` 诊断计数可见。
 - **命名**（票 12–15）：四同名、env 双读、剩余命中清单分类、迁移校验、新 runId 包链。
 
@@ -567,8 +568,8 @@ Status: resolved（2026-10-10 core 批实施完成；07／08／09 由用户裁�
 
 | # | 判据 | 执行坐标 | 证据落点 | 级别 |
 |---|---|---|---|---|
-| `V-P7.1` | 规格显式写明「基底＝官方默认 preset `standard`（27 工具）＋呈现面 ptc」，人物设定不裁；附实测证据 | tests/pod-harness-base.test.mjs::V-P7.1（待票 10；文档＋配置扫描） | 回归记录＋票 10 Comments | 常驻 |
-| `V-P7.2` | 27 工具清单与官方默认 preset 逐项一致（防静默漂移） | tests/pod-harness-base.test.mjs::V-P7.2（preset／`--dump-config` 对照） | 回归记录 | 常驻 |
+| `V-P7.1` | 规格显式写明「基底＝官方默认 preset `standard`（31 工具）＋呈现面 ptc」，人物设定不裁；附实测证据 | tests/pod-harness-base.test.mjs::V-P7.1（待票 10；文档＋配置扫描） | 回归记录＋票 10 Comments | 常驻 |
+| `V-P7.2` | 31 工具清单与官方默认 preset 逐项一致（防静默漂移） | tests/pod-harness-base.test.mjs::V-P7.2（preset／`--dump-config` 对照） | 回归记录 | 常驻 |
 | `V-P7.3` | `DSH_TOOLS_MODE` 无条件注入不动，不得改为按 provider 分叉 | tests/pod-harness-base.test.mjs::V-P7.3＋tests/bot-faces-ready.test.mjs | 回归记录 | 常驻 |
 | `V-P7.4` | 死配置清理：per-bot `settings.yaml` 的 `agent-presets` 段＋profile patch 的 `settings` 死重定向行清除，生成器同步 | tests/pod-harness-base.test.mjs::V-P7.4 死配置清理：生成器同步（patch 无 settings 重定向、settings 模板无 agent-presets）＋tests/bot-profile.test.mjs::生成器不写出死键：patch 无 settings 重定向行、settings.yaml 无 agent-presets 段（票 10 落点） | 回归记录 | 常驻 |
 | `V-P7.5` | 反向验证：`dsh --dump-config` 不再出现该段 | tests/pod-harness-base.test.mjs::V-P7.5（`--dump-config` 输出） | 回归记录＋票 10 Comments | 常驻 |

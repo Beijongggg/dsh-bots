@@ -1,9 +1,11 @@
 /**
- * pod 10 号票判据（规格 §V-P7.1–V-P7.7；基线＝官方宿主 0.2.0-rc.1）。
+ * pod 10 号票判据（规格 §V-P7.1–V-P7.7；基线＝官方宿主 0.2.0-rc.1；
+ * 工具面冻结值随 host-alpha2-adapt/01 在 0.2.1-alpha.2 重测：27→31 工具）。
  *
- * 口径：bot 基底＝官方默认 preset `standard`（27 工具）＋呈现面 ptc；per-bot
+ * 口径：bot 基底＝官方默认 preset `standard`（31 工具）＋呈现面 ptc；per-bot
  * settings.yaml 的 `agent-presets:` 段与 profile patch 的 `- id: settings` 重定向行
- * 属死键（0.2.0-rc.1 无读者），生成器不再写出；人物设定不裁；`.agent-presets/`
+ * 属死键（0.2.0-rc.1 无读者，0.2.1-alpha.2 复核同判——agent-presets 引用仅是
+ * 设置面板 UI 槽 id），生成器不再写出；人物设定不裁；`.agent-presets/`
  * 死目录＋13 条断链软链登记长期观察项。
  *
  * 外部载体（官方 standard preset／dsh CLI）缺失时打印 `⤼ SKIP:` 标记
@@ -30,29 +32,35 @@ const SPEC_PATH = join(repoRoot, ".scratch/pod/spec.md");
 const UNDERSTANDING_PATH = join(repoRoot, "docs/PROJECT_UNDERSTANDING.md");
 const ISSUE_PATH = join(repoRoot, ".scratch/pod/issues/10-harness-base-explicit.md");
 
-/** 规格「27 工具清单（实测）」冻结值（来源＝真实会话实测，规格 §3 转写）。 */
-const FROZEN_27 = Object.freeze([
+/** 规格「31 工具清单（实测）」冻结值（0.2.0-rc.1 真实会话实测 27 工具转写规格 §3；
+ *  0.2.1-alpha.2 重测（host-alpha2-adapt/01）：preset 移除 3 行字面 disabled 行
+ *  （ralph／subagent-codex／subagent-claude-code，本就 0 模型可见工具）＋新增
+ *  tool-schedule（4 工具）→ 31。名称来源＝官方工具包 ctx.tools.register 注册名，
+ *  其余 15 个工具贡献包新旧版名称面逐包对拍一致）。 */
+const FROZEN_31 = Object.freeze([
   "bash", "read", "write", "edit", "read_image", "glob", "grep", "job_output", "job_list",
-  "job_kill", "skill", "get_goal", "create_goal", "update_goal", "exit_plan_mode",
+  "job_kill", "schedule_create", "schedule_list", "schedule_delete", "schedule_update",
+  "skill", "get_goal", "create_goal", "update_goal", "exit_plan_mode",
   "send_message", "interrupt_agent", "list_agents", "subagent", "subagent_fork",
   "list_subagent_models", "workflow", "ask_user_question", "todo_write", "web_search",
   "web_fetch", "present"
 ]);
 
-/** 官方 standard preset 的全量插件行（32 行；行 id 含 group 子项）。 */
+/** 官方 standard preset 的全量插件行（31 行，0.2.1-alpha.2 实测；行 id 含 group 子项）。 */
 const STANDARD_ROWS = Object.freeze([
-  "persona", "agent-instructions", "tool-bash", "tool-pwsh", "tool-fs", "tool-fs-search",
-  "tool-jobs", "skill-filesystem", "tool-skill", "command-goal", "tool-goal", "planning",
-  "plan-mode", "compaction", "compaction-basic", "command-compact", "tool-result-pruner",
-  "delegation", "tool-subagent-control", "tool-subagent-list-agents", "tool-subagent",
-  "tool-subagent-fork", "tool-subagent-codex", "tool-subagent-claude-code", "workflow-ptc",
-  "tool-workflow", "tool-ralph", "tool-ask-user", "tool-todo", "tool-web", "present",
+  "persona", "agent-instructions", "time-context", "tool-bash", "tool-pwsh", "tool-fs",
+  "tool-fs-search", "tool-jobs", "tool-schedule", "skill-filesystem", "tool-skill",
+  "command-goal", "tool-goal", "planning", "plan-mode", "compaction", "compaction-basic",
+  "command-compact", "tool-result-pruner", "delegation", "tool-subagent-control",
+  "tool-subagent-list-agents", "tool-subagent", "tool-subagent-fork", "workflow-ptc",
+  "tool-workflow", "tool-ask-user", "tool-todo", "tool-web", "present",
   "tool-plugin-manager"
 ]);
 
-/** 官方 preset 里字面 `disabled: true` 的行（平台无关）。 */
+/** 官方 preset 里字面 `disabled: true` 的行（平台无关；0.2.1-alpha.2 起仅余
+ *  tool-plugin-manager——旧版另三行 ralph／codex 双行已随 preset 移除）。 */
 const STANDARD_DISABLED_LITERAL = Object.freeze([
-  "tool-subagent-codex", "tool-subagent-claude-code", "tool-ralph", "tool-plugin-manager"
+  "tool-plugin-manager"
 ]);
 
 /** 工具行 → 模型可见工具名（名称来源＝官方工具包注册名；`tool-subagent` 行随附
@@ -74,6 +82,7 @@ const TOOL_ROW_NAMES = Object.freeze({
   "tool-ask-user": ["ask_user_question"],
   "tool-todo": ["todo_write"],
   "tool-web": ["web_search", "web_fetch"],
+  "tool-schedule": ["schedule_create", "schedule_list", "schedule_delete", "schedule_update"],
   "present": ["present"]
 });
 
@@ -128,10 +137,10 @@ function parseStandardRows(text) {
   return rows;
 }
 
-/** 规格「27 工具清单（实测）」行里的反引号清单。 */
+/** 规格「31 工具清单（实测）」行里的反引号清单。 */
 function specToolNames() {
-  const line = readFileSync(SPEC_PATH, "utf8").split("\n").find((entry) => entry.includes("27 工具清单（实测）"));
-  assert.ok(line, "规格缺「27 工具清单（实测）」行");
+  const line = readFileSync(SPEC_PATH, "utf8").split("\n").find((entry) => entry.includes("31 工具清单（实测）"));
+  assert.ok(line, "规格缺「31 工具清单（实测）」行");
   const list = line.match(/`([^`]+)`/);
   assert.ok(list, "规格工具清单行缺反引号清单");
   return list[1].trim().split(/\s+/);
@@ -148,10 +157,10 @@ function probePatch() {
 
 // ---------------------------------------------------------------- V-P7.1
 
-test("V-P7.1 规格写明「基底＝官方默认 preset standard（27 工具）＋呈现面 ptc」、人物设定不裁，并附实测证据", () => {
+test("V-P7.1 规格写明「基底＝官方默认 preset standard（31 工具）＋呈现面 ptc」、人物设定不裁，并附实测证据", () => {
   const spec = readFileSync(SPEC_PATH, "utf8");
   for (const needle of [
-    "基底＝官方默认 preset `standard`（27 工具）",
+    "基底＝官方默认 preset `standard`（31 工具）",
     "＋呈现面 ptc",
     "人物设定不裁",
     "`opencode-go` 带点名 **200 接受**",
@@ -173,26 +182,26 @@ test("V-P7.1 规格写明「基底＝官方默认 preset standard（27 工具）
 
 // ---------------------------------------------------------------- V-P7.2
 
-test("V-P7.2 27 工具清单与官方默认 preset 逐项一致（防静默漂移）", (t) => {
-  if (process.platform === "win32") return announceSkip("规格 27 工具清单为 Linux 实测（bash）；win32 变体不在本判据", t);
+test("V-P7.2 31 工具清单与官方默认 preset 逐项一致（防静默漂移）", (t) => {
+  if (process.platform === "win32") return announceSkip("规格 31 工具清单为 Linux 实测（bash）；win32 变体不在本判据", t);
   const names = specToolNames();
-  assert.deepEqual(names, [...FROZEN_27], "规格工具清单与冻结值逐项一致（含顺序）");
-  assert.equal(names.length, 27, "工具数须为 27");
+  assert.deepEqual(names, [...FROZEN_31], "规格工具清单与冻结值逐项一致（含顺序）");
+  assert.equal(names.length, 31, "工具数须为 31");
 
   const presetFile = findStandardPreset();
   if (presetFile === null) return announceSkip("官方 dsh-web-app/presets/standard.patch.yml 不在本机载体（SKIP）", t);
   const rows = parseStandardRows(readFileSync(presetFile, "utf8"));
   assert.deepEqual([...rows.map((row) => row.id)].sort(), [...STANDARD_ROWS].sort(),
-    "官方 standard preset 插件行全集漂移（增/删/改名）——须重测 27 工具清单");
+    "官方 standard preset 插件行全集漂移（增/删/改名）——须重测 31 工具清单");
   assert.equal(rows.length, STANDARD_ROWS.length);
   assert.deepEqual(rows.filter((row) => row.disabledLiteral).map((row) => row.id).sort(),
     [...STANDARD_DISABLED_LITERAL].sort(), "官方 preset 字面 disabled 行集合漂移");
 
   const enabledToolRows = Object.keys(TOOL_ROW_NAMES).filter((row) => platformEnabled(row));
   const expanded = enabledToolRows.flatMap((row) => TOOL_ROW_NAMES[row]);
-  assert.equal(expanded.length, 27, "启用工具行展开须恰为 27 个工具名");
+  assert.equal(expanded.length, 31, "启用工具行展开须恰为 31 个工具名");
   assert.deepEqual([...expanded].sort(), [...names].sort(),
-    "官方 preset 启用工具行展开 ≠ 规格 27 工具清单（静默漂移）");
+    "官方 preset 启用工具行展开 ≠ 规格 31 工具清单（静默漂移）");
 });
 
 // ---------------------------------------------------------------- V-P7.3

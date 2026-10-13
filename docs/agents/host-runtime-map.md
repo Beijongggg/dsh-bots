@@ -11,14 +11,14 @@
   `probeId`）；真实宿主三态探针在 preflight ④门跑。发现新缝后回登记表加行
   并补探针断言，防宿主升级静默失效。
 
-## 安装包布局（实证于 2026-10-03）
+## 安装包布局（实证于 2026-10-03；2026-10-13 对 0.2.1-alpha.2 复核——坐标漂移按条目内注记；实测包差：新增 tool-schedule／tool-session-query／tool-terminal／tool-working-directory／working-directory／session-title-all-prompts-llm＋experimental-* 系，移除 hooks 双包／webhook 双包／invariants／subagent-in-process-driver／schedule-bundle——两向都与 HF 登记面引用的包零交集〔逐名对拍新旧安装树〕）
 
 - 根：`/usr/lib/node_modules/@deepseek-ai/dsh`。`lib/bin.js` 是编译产物，
   cordis 核心语义（`ctx.inject`/`ctx.effect`/disposer）读不到源码——用探针或
   隔离副本实证，别找源码。
 - 子包在 `node_modules/@deepseek-ai/` 下，常用的：
   - `dsh-agent-loop`：回合循环；`turn/end` 事件发射在
-    `lib/index.js:1027`（reason 形状：`{ turn, reason }`，error 终止
+    `lib/index.js:1029`（0.2.1-alpha.2 实测；0.2.0-rc.1 为 1027。reason 形状：`{ turn, reason }`，error 终止
     `reason.kind === "error"` 带 error 对象）。
   - `dsh-api-session-controller`：`sessionController.create`（入参形状见
     `lib/types/` 的 `SessionCreateRequest`）。
@@ -27,8 +27,12 @@
   - `dsh-agent-tool-presentation`：preset 的工具呈现行。
   - `dsh-web-app`：**工具呈现环境缝**在 `cordis.patch.yml:34–38`——
     `mode: !!js process.env.DSH_TOOLS_MODE`（官方 TEMPORARY workaround，
-    unset＝native）。presets 目录含 `ptc.patch.yml`、`standard.patch.yml`、
-    `minimal.patch.yml`。
+    unset＝native；0.2.1-alpha.2 复核仍在原行位）。presets 目录含
+    `ptc.patch.yml`、`standard.patch.yml`、`minimal.patch.yml`
+    （standard 插件行集随版本漂移——32 行／4 字面 disabled
+    （0.2.0-rc.1）→ 31 行／1 字面 disabled（0.2.1-alpha.2，移除 ralph＋
+    codex 双行、新增 time-context＋tool-schedule），模型可见工具 27→31，
+    冻结值见 tests/pod-harness-base.test.mjs::V-P7.2）。
   - `dsh-app-boot`：`loadOverlayPatches`（我方探针用它实调官方装载器；
     装载器不求值 `!!js` 表达式，保留 `__jsExpr` 标记）。
   - `cordis*`：插件框架本体（编译，不可读源码）。
@@ -106,3 +110,9 @@
   带 `DSH_HOME=<副本>` 的 `dsh --profile <p> --port <专用端口>` 观察 IPC。
   隔离副本用专用端口段（如 319x），清理按记录的 pid 杀，**禁用**
   `pkill -f 'dsh --profile'` 这类宽匹配——会误杀真实双席（2026-09-29 事故）。
+- 新版宿主预验不动真实面（host-alpha2-adapt/01 实证）：`npm install --prefix
+  /dev/shm/<stage> @deepseek-ai/dsh@<ver>` 暂存新版，再造
+  `<isohome>/.dsh/profiles/node_modules/@deepseek-ai → <stage>/node_modules/@deepseek-ai`
+  符号链接，之后 `HOME=<isohome>` 前缀跑 `scripts/host-contract-probe.mjs` 与
+  `tests/run.mjs`——发现面与测试都以 `~/.dsh/profiles/node_modules` 为第一优先，
+  整体解析到新版（P-SESSION-LOG 在隔离 HOME 无日志，属合法 SKIP 分列）。
