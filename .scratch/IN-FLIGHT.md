@@ -13,3 +13,6 @@
 
 | 任务 | 会话／工具 | 工作面 | spec／票面 | 领取时间 | 备注 |
 |---|---|---|---|---|---|
+| org-v3 票01 第二批补核（在线动态候选） | codex 主会话＋ds4.1 子代理 | main（只增 supplements 新件） | [01 研究票](org-v3/issues/01-research-org-patterns-and-phase-transition.md) | 2026-10-13 23:33 | 输出 `01-online-successors-20261013.md`；验收后清除 |
+| org-v3 票02 第二批补核（三套件四栏） | codex 主会话＋ds4.1 子代理 | main（只增 supplements 新件） | [02 研究票](org-v3/issues/02-research-benchmarks-with-cost.md) | 2026-10-13 23:33 | 输出 `02-suite-fields-remainder-20261013.md`；验收后清除 |
+| org-v3 票03 第二批补核（控制论三缺口） | codex 主会话＋ds4.1 子代理 | main（只增 supplements 新件） | [03 研究票](org-v3/issues/03-research-organization-theory-and-concepts.md) | 2026-10-13 23:33 | 输出 `03-control-authoritative-sources-20261013.md`；验收后清除 |

@@ -92,6 +92,15 @@ output／cache read／cache write）是否可得，币值换算是否可比；�
    [字段缺口补核](../research/supplements/02-gap-rechecks-20261013.md)另确认WebArena为812题，
    MLE-bench的127.5M input+15.0M output为每个含75竞赛seed总量的均值；1800 GPU小时是预算
    上限，非实测用量。版本、分母与仍未覆盖的原套件逐项见交付物§1.3、§6。
+9. [三套件四栏续核](../research/supplements/02-suite-fields-remainder-20261013.md)已把
+   BrowseComp、SWE-Lancer、TheAgentCompany 补到 12/12 栏：BrowseComp 无官方榜单、
+   全文无成本字段（有界检索）、无组织对照；SWE-Lancer §3.6 报 API 费 GPT-4o
+   $194.31±$17.31、o1 $1,623.76±$56.68（237 题×5 runs），全部单 agent scaffold，
+   任务价值 $1M／Diamond $500.8K 与 API 费分列；TheAgentCompany Table 1 报每任务成本
+   （OpenHands+GPT-4o $1.3、Gemini-2.5-Pro $4.2），有部分双臂
+   （OpenHands 单 8.6%／16.7%／$1.3 对 OWL RolePlay 多 4.0%／11.3%／N/A），
+   多臂含 o3-mini 且正文「Both using GPT-4o」与表列冲突，原样并记，不构成同模型分＋成本
+   双数字。三套件均未新增满足原关闭项第 2 条的双数字（仍由 Optima 支撑）。
 
 ### 非美元代价
 
@@ -106,7 +115,7 @@ output／cache read／cache write）是否可得，币值换算是否可比；�
 
 | 原关闭项 | 当前证据状态 | 补核完成条件 |
 |---|---|---|
-| 套件四栏、来源与盲区 | 已核原表与补核范围见§1.3；TB/MLE资源分母和HAL公告已补；全清单仍未覆盖 | BrowseComp、SWE-Lancer、TheAgentCompany和多agent套件仍需逐项核成本与已发表对照；SWE-bench组织双臂未分类；已核套件的未知字段继续保留 |
+| 套件四栏、来源与盲区 | 已核原表与补核范围见§1.3；TB/MLE资源分母、HAL公告及BrowseComp、SWE-Lancer、TheAgentCompany三套件已补（12/12栏，0项来源不可达） | 余下多agent套件仍需逐项核成本与已发表对照；SWE-bench组织双臂未分类；已核套件的未知字段继续保留 |
 | 同集同模型 multi-vs-single 双数字 | 通过，论文报告层：Optima Table 6的未训练MAD对CoT／SC，同为Llama 3.2 3B、同行任务列 | 保留#Tok而非美元账单、非等预算、未复现和未核运行配置限制；不追加原判据没有的硬门 |
 | 可比性判据 | C1–C9 已纠正，处理与控制变量分开 | 下游沿用该编号和边界，不再写「组织对裸臂必不可比」 |
 | S3 公开分数与成本及核算口径 | 公开字段已核，复算候选式见 §3.4 | 保留公布值与独立账单复算的区别，源字段未知不补零 |
@@ -211,3 +220,26 @@ Optima实际配置和token分母，再补原套件四栏及强基线预算边界
   [配置续核](../research/supplements/02-optima-config-and-denominators-20261013.md)及
   [报告](../research/benchmarks-and-cost-accounting.md)的§1.3覆盖表、§3.8非美元代价与§6盲区。
   本批无在途采集，释放认领，整票保持开放，下游依赖继续阻塞。
+
+### 2026-10-13 第二批并发补核派发——三套件四栏
+
+用户「继续」，沿「只推进 ds 可完成的任务」的授权。主会话认领并委派原清单未覆盖套件：
+BrowseComp（arXiv 2504.12516，simple-evals）、SWE-Lancer（arXiv 2502.12115）、
+TheAgentCompany（arXiv 2412.14161），逐套件核「测量对象／分数入口／成本字段／已发表组织对照」
+四栏及版本分母。独立输出 `research/supplements/02-suite-fields-remainder-20261013.md`，
+基线 `41e59b5`。未读面写未核验、不写不存在；不重派已核四套件，不改本票与报告，关票验收仍由主会话执行。
+
+### 2026-10-14 第二批补核验收与移交备注
+
+- 验收：`research/supplements/02-suite-fields-remainder-20261013.md` 已回读抽核
+  （SWE-Lancer §3.6 金额与分母、TheAgentCompany Table 1 行与正文/表模型列冲突、
+  BrowseComp 全文零成本字段的有界检索范围与 simple-evals 入口）。
+- 当前结果：三套件 12/12 栏有提取记录，0 项来源不可达；均未新增满足原关闭项第 2 条的
+  同模型分＋成本双数字（该条仍由 Optima 补核支撑）；TheAgentCompany 的同集多／单仅质量
+  数字且多臂异构，列为有界发现。
+- 未过门：S4——余下多 agent 专用套件与 SWE-bench 组织双臂未核；三套件未知字段
+  （Table 3 分母、金额单位、模型版本日期）按其影响保留。
+- 下一步：另包处理多 agent 套件与 SWE-bench 双臂分类；不重派已核数字，不把任务价值、
+  奖金或预算上限当实耗，不改主指标与 C1–C9。
+- 关键证据：[三套件四栏续核](../research/supplements/02-suite-fields-remainder-20261013.md)
+  与报告 §1.3／§6。本批无在途采集，释放认领，整票保持开放，下游依赖按当前 Answer 的限制引用。

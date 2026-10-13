@@ -7,9 +7,10 @@
 
 ## 本批结果与接手顺序
 
-基线 `a8967ce118c9becfad132159ae50f9a86ba11397`。实际模型为
+基线 `a8967ce118c9becfad132159ae50f9a86ba11397`（第二批 `41e59b5`）。实际模型为
 `opencode-go/deepseek-v4.1-flash`，effort `max`，原生协作子代理，不是 DSH Delegate。
-16份补核均已落盘，分为形态1、成本5、理论8、生态1、评测复用1；已完成采集任务没有在途写入。
+16 份首包补核与第二批 3 份均已落盘，合计分为形态 2、成本 6、理论 9、生态 1、评测复用 1；
+已完成采集任务没有在途写入。
 主会话已回读关键原文、纠正语义并整合报告。收件完成不等于每条结论采纳，更不等于五票全闭。
 
 接手先读所属票当前 Answer 与末尾移交备注，再按下表进入补核件。历史 Comments 保留当时判断，
@@ -18,15 +19,18 @@
 | 补核件 | 本批验收边界 |
 |---|---|
 | [动态对照与回退](research/supplements/01-dynamic-controls-and-fallback-20261013.md) | 三篇已读；保留 AdaptOrch 分母冲突，区分选形、重跑与迁移；完整净收益校准未报告 |
+| [在线动态候选](research/supplements/01-online-successors-20261013.md) | MANTA/AgentConductor/MACA 固定对照与消融已核；固定/静态对照条件判满足 S2，切换成本按实报范围，未单列项保留 |
 | [同模型双数字](research/supplements/02-same-model-dual-metrics-20261013.md) | Optima 未训练 MAD 对 CoT/SC 满足论文报告层双数字，不等于等预算经济增益 |
 | [PaperBench/RE-Bench](research/supplements/02-paperbench-rebench-costs-20261013.md) | API估算、judge费、人工支付和预算分开；没有完整账单复原 |
 | [Optima配置](research/supplements/02-optima-config-and-denominators-20261013.md) | 原表与当前代码的计数边界已核，代码未绑定论文逐run配置 |
 | [TB/MLE/HAL字段缺口](research/supplements/02-gap-rechecks-20261013.md) | 更正token包含关系、seed分母与GPU预算；HAL未重算继续隔离 |
 | [GAIA/tau/HLE/OSWorld](research/supplements/02-suite-fields-20261013.md) | 固定PDF版本及已读成本字段；无组织对照仅限所读范围 |
+| [三套件四栏余项](research/supplements/02-suite-fields-remainder-20261013.md) | BrowseComp/SWE-Lancer/TheAgentCompany 12/12 栏；无新同模型双数字，任务价值与 API 费分列，TAC 双臂异构 |
 | [经典设计警告](research/supplements/03-classic-design-warnings-20261013.md) | 所引原文条件已核，理论迁移另标推断 |
 | [复杂系统](research/supplements/03-complex-systems-sources-20261013.md) | 五项所引内容已核，镜像身份与未读页保留 |
 | [控制原文](research/supplements/03-control-sources-20261013.md) | 与经典包合计仅Ashby/Wiener两项达标 |
 | [控制缺口](research/supplements/03-control-gaps-20261013.md) | Beer/von Foerster百科及Varela题录摘要不计内容达标；只收缺口记录 |
+| [控制权威二手](research/supplements/03-control-authoritative-sources-20261013.md) | Beer 权威二手×2、von Foerster 概念层二手×1；Varela 仍缺口，原作未直读 |
 | [协调原文](research/supplements/03-coordination-sources-20261013.md) | 四篇的所引机制与边界已核，形式细节仍有未读项 |
 | [ADOPT权威二手](research/supplements/03-coordination-gaps-20261013.md) | JAIR综述可按原判据计入，不能冒充ADOPT原作精确定理 |
 | [LLM借用](research/supplements/03-llm-classic-borrowing-20261013.md) | 三个全文样本分清标度借用、相变模型与协议扩展，不估计全领域比例 |
@@ -66,9 +70,9 @@ S1–S5 与全部 HITL 选择保持，不改既有冻结规格，不运行论文
 
 | 所属票 | 下一包可细化的范围 | 完成条件与停止点 |
 |---|---|---|
-| [带成本的公开基准与成本口径](issues/02-research-benchmarks-with-cost.md) | 先补BrowseComp、SWE-Lancer、TheAgentCompany的原清单四栏，再另包查多agent套件 | 每套件独立列成本与组织双臂读取范围；奖金/任务价值、运行费用、人工费用分开，正文不可达即留缺口 |
-| [组织形态谱系、动态架构与成本经济](issues/01-research-org-patterns-and-phase-transition.md) | 从原报告未验收形态/候选中每包选至多三项，核原则、适用条件、成本及固定基线 | 不重派已核三篇；完整切换成本未知限制净收益，不抹去已发表动态对照，不自定S2或路由策略 |
-| [组织理论、复杂系统与控制论](issues/03-research-organization-theory-and-concepts.md) | 控制原清单Beer/Varela/von Foerster有新学术来源时补；另包补原条目边界 | 原作或可定位权威学术二手才计内容；百科、占位PDF与访问失败交回，不降五项要求 |
+| [带成本的公开基准与成本口径](issues/02-research-benchmarks-with-cost.md) | 三套件四栏已核；下一包查多agent专用套件与SWE-bench组织双臂分类 | 每套件独立列成本与组织双臂读取范围；奖金/任务价值、运行费用、人工费用分开，正文不可达即留缺口 |
+| [组织形态谱系、动态架构与成本经济](issues/01-research-org-patterns-and-phase-transition.md) | 从原报告未验收形态/候选中每包选至多三项，核原则、适用条件、成本及固定基线 | 不重派已核六篇；完整切换成本未知限制净收益，不抹去已发表动态对照，不自定S2或路由策略 |
+| [组织理论、复杂系统与控制论](issues/03-research-organization-theory-and-concepts.md) | 控制路仅Varela仍缺，有新学术来源时再补；另包补原条目边界 | 原作或可定位权威学术二手才计内容；百科、占位PDF与访问失败交回，不降五项要求 |
 | [外部产品与本地DSH生态](issues/04-research-external-products-and-ecosystem.md) | 原报告其余节按产品小包建立主张到原文对应；dots与英文访谈只用新的可用官方/作者入口 | 可达性不等于内容支持；只读资料、不绕访问挑战。不能从首包推出全生态结论 |
 
 架构取舍、理论迁移、因果归因、跨报告冲突裁决和最终验收留主会话；没有新资料的访问缺口

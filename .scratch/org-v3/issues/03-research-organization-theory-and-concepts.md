@@ -46,14 +46,16 @@ Ashby 的条件与 NFL 的任务假设未核清前，不把它们写成切换节
 
 ### 阶段性结果，尚待补核
 
-2026-10-13 本批八份补核已交回，已核机制与边界见[报告头部覆盖表](../research/organization-theory-and-concepts.md)。
+2026-10-13 八份补核已交回；2026-10-14 控制论三缺口续件
+[控制权威二手](../research/supplements/03-control-authoritative-sources-20261013.md)验收整合。
+已核机制与边界见[报告头部覆盖表](../research/organization-theory-and-concepts.md)。
 下表只计列明来源及所引内容，不把取得整本文件等同于逐页读完，也不升级原报告其余概念。
 
 | 路径 | 已核计数与层级 | 保留限制 |
 |---|---|---|
 | 组织理论 | 5/5：Galbraith、Gersick、Hannan & Freeman、Simon、Ostrom 讲座的原文内容 | Simon 未读页仍缺；Ostrom 转引的1961定义与 Cox 等统计按二手转述，不冒充她的原始结果 |
 | 复杂系统 | 5/5：BTW 1987、Anderson、Dorigo、Holland 1992、Bettencourt 的原文内容 | 区分原作与镜像载体；Holland 七机制清单未定位，城市标度不是 agent 规模定律 |
-| 控制论 | 2/5：Ashby 1956 所引表条件、Wiener 1961 第二版所引页 | Beer/von Foerster 仅百科，不计权威学术二手；Varela 库载 PDF 只有1页题录摘要，不计正文 |
+| 控制论 | 4/5：Ashby 1956 所引表条件、Wiener 1961 第二版所引页、Beer（权威学术二手×2）、von Foerster（权威学术二手×1） | Beer/von Foerster 原作未直读，边界按转述方自述分层；Varela 的 BioSystems 正文仍缺，库载 PDF 只有1页题录摘要 |
 | 前 LLM 协调 | 5/5：Smith、Hearsay-II、Hewitt、Cohen & Levesque 四篇原文；ADOPT 经 JAIR 权威综述 | ADOPT 非直读原作，精确定理未核；Hearsay 同步/通信及 Teamwork 公式的未核范围保留 |
 
 设计警告的单源为报告 §6。至少三条已能附原文条件提出，但迁移含义仍是项目推断：
@@ -71,7 +73,7 @@ MacNet v3 借用标度关系，不计经典相变机制实现；Absorbing State 
 
 | 原关闭项 | 当前证据状态 | 补核完成条件 |
 |---|---|---|
-| 四路各至少五条经典出处 | 三路已达五项；控制论2/5，未通过 | 控制原清单仍需3项合格内容来源，原文或可定位的权威学术二手；百科与题录不计 |
+| 四路各至少五条经典出处 | 三路已达五项；控制论4/5，Varela 仍缺口 | 控制原清单仍需1项合格内容来源（Varela 的 BioSystems 正文或可定位的等效权威来源）；百科与题录不计 |
 | 边界与至少三条设计警告 | 已核警告达到三条；原报告其余条目仍有边界缺口 | 补原条目的作者边界，已核范围与未核概念分开，项目迁移始终标推断 |
 | 借用与修辞区分 | 三个已读全文样本已分类，满足声明样本内区分 | 保留机制、引用与词语的不同层级；不能外推领域借用比例或全称否定 |
 | 交付物与盲区 | 报告及八份补核已落盘，正文层级和盲区已对齐 | 引用前按具体来源读取，不重复派发本批已核项 |
@@ -134,3 +136,27 @@ Galbraith 1974、Hannan与Freeman 1984、Ashby 1956、Wolpert与Macready 1997，
   [控制缺口](../research/supplements/03-control-gaps-20261013.md)与
   [ADOPT权威二手](../research/supplements/03-coordination-gaps-20261013.md)。
   本批无在途采集，释放认领，当前 Answer 取代历史阶段判断，整票保持开放。
+
+### 2026-10-13 第二批并发补核派发——控制论三缺口
+
+用户「继续」，沿「只推进 ds 可完成的任务」的授权。主会话认领并委派控制论三个未达标项：
+Beer（VSM）、Varela（autopoiesis）、von Foerster（二阶控制论），各求一条可定位权威来源
+（原作或权威学术二手；百科、题录摘要与访问失败不计），带原文定位与作者边界；
+只尝试新学术入口，不复用已失败入口。独立输出
+`research/supplements/03-control-authoritative-sources-20261013.md`，基线 `41e59b5`。
+五项判据不降级；关票验收仍由主会话执行。
+
+### 2026-10-14 第二批补核验收与移交备注
+
+- 验收：`research/supplements/03-control-authoritative-sources-20261013.md` 已回读并抽核：
+  Beer（VSM）补得权威学术二手 2 条（Puche 等 2019、Hutchinson & Warren 2002，五子系统与
+  递归有转述定位）；von Foerster（二阶控制论）补得概念层二手 1 条（Brailas 2024）；
+  Varela 的 *BioSystems* 5(4):187-196 正文仍缺，两条候选二手均落西语专著版本，不达标。
+  控制路覆盖升至 4/5。
+- 当前结果：覆盖表与报告头部已按 4/5 整合；Beer/von Foerster 原作未直读，
+  边界按转述方自述分层标注，不冒充原话。
+- 未过门：S4 及四路覆盖要求——Varela 仍缺 1 项；原报告其余条目的作者边界未全核。
+- 下一步：无新入口不重复失败路径，不以百科或题录降级结案；理论迁移与关票由主会话执行。
+- 关键证据：[控制权威二手](../research/supplements/03-control-authoritative-sources-20261013.md)、
+  [报告头部覆盖表](../research/organization-theory-and-concepts.md)。
+  本批无在途采集，释放认领，整票保持开放。

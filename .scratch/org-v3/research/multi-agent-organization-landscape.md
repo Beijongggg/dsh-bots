@@ -32,6 +32,10 @@ For suite fields and published score/cost pairs, use the current
 [cost report](benchmarks-and-cost-accounting.md), especially §1.3, §2.4 and §6.
 Its supplements now establish Optima's paper-level pair, TB 4.0's task count and the
 HAL accounting notice; they do not certify the remaining topology inventory.
+The [online-successor supplement](supplements/01-online-successors-20261013.md) checks MANTA,
+AgentConductor and MACA against their own tables: §4.3 scopes the three headline claims to the
+cells that own them, and §4.4 records their reported token costs. No same-budget or dollar ledger
+follows from this pass.
 
 ## 0. Executive digest
 
@@ -1065,11 +1069,11 @@ additive across axes (MASS found topology composition added only +3% on top of p
 
 | System | Source | Adapts | Switch signal | Measured gain | Mode |
 |---|---|---|---|---|---|
-| **MANTA** | [2607.28527](https://arxiv.org/abs/2607.28527), 2026-07-30 `[primary]` | **widest surface found**: topology + roles + links + execution order + information visibility + validation pathways | monitors collaboration traces **at inference**; bounded structural updates when the organization becomes insufficient; task-conditioned init from prior structural experience; cross-run transfer without weight updates | avg **74.0** on five benchmarks, **+5.8 pts** over strongest baseline, best on PlanCraft | **Online, explicitly inference-time** |
-| **AgentConductor** | [2602.17100](https://arxiv.org/abs/2602.17100), 2026-02-19 `[primary]` | density-aware layered DAG interaction topology; infers roles + task difficulty | RL-optimized LLM orchestrator; execution feedback refines topology **within** an instance; difficulty-interval partitioning bounds density | **+14.6% pass@1**, **13%** density reduction, **68%** token cost reduction | **Online** — "the topology is updated online in response to execution feedback" |
+| **MANTA** | [2607.28527](https://arxiv.org/abs/2607.28527), 2026-07-30 `[primary]` | **widest surface found**: topology + roles + links + execution order + information visibility + validation pathways | monitors collaboration traces **at inference**; bounded structural updates when the organization becomes insufficient; task-conditioned init from prior structural experience; cross-run transfer without weight updates | avg **74.0±1.8** on five benchmarks; **+7.8 pts vs the strongest static arm** (66.2), **+5.8 pts vs the best other adaptive arm** (ADAS 68.2); fixed-topology ablation 57.5, no-mutation 60.8 | **Online, explicitly inference-time** |
+| **AgentConductor** | [2602.17100](https://arxiv.org/abs/2602.17100), 2026-02-19 `[primary]` | density-aware layered DAG interaction topology; infers roles + task difficulty | RL-optimized LLM orchestrator; execution feedback refines topology **within** an instance; difficulty-interval partitioning bounds density | APPS **58.8** vs MetaGPT 51.3 (**+7.5 pp** absolute; the abstract's 14.6% is relative); w/o SFT valid-topology rate 15%; abstract's **13%** density / **68%** token claims are not located in the paper's own cells | **Online** — "the topology is updated online in response to execution feedback" |
 | **FlowMAS** | [2609.37151](https://arxiv.org/abs/2609.37151), 2026-09-29 `[primary]` | discrete workflow topology | GFlowNet reward-guided flow + curiosity-driven structural exploration + information-guided objective | best of 15 baselines; **+8.17 pts** over hand-crafted, **+6.12** over automated | Offline-trained flow → per-query generation |
 | **TopoPrior** | [2605.17359](https://arxiv.org/abs/2605.17359), 2026-05-17 `[primary]` | initial collaboration graph + downstream refinement | offline prior learning from multi-domain reference graphs; query-conditioned generation | improves several topology-evolution backbones while **reducing online inference-time token usage** | **Hybrid** — cleanest offline/online split |
-| **MACA** | [2605.25746](https://arxiv.org/abs/2605.25746), 2026-05-25 `[primary]` | participation + interactions + orchestration policy, **budget-conditioned** | task- and budget-conditioned structural prior; reward = accuracy − β·token cost, KL-regularized | **+8.42%** avg over adaptive baselines with **43.19% fewer tokens**, six benchmarks | Offline prior → per-task conditioning |
+| **MACA** | [2605.25746](https://arxiv.org/abs/2605.25746), 2026-05-25 `[primary]` | participation + interactions + orchestration policy, **budget-conditioned** | task- and budget-conditioned structural prior; per-step policy over agent subset, routing and STOP; reward = accuracy − β·token cost, KL-regularized | HumanEval **75.76** vs DyLAN 72.73 at **2,100.1 vs 15,256.7** tokens; prose reports **+8.42%** over adaptive baselines with no matching table column; the abstract's **43.19%** token figure is not located (prose gives −36.2% to −51.9%); w/o GraphSpec −14.45% | Hybrid — offline prior, in-task per-step routing |
 | **AdaptOrch** | [2602.16873v1](https://arxiv.org/abs/2602.16873v1), 2026-02-18 `[primary]` | chooses among **4 canonical topologies** and supports failure rerouting | dependency DAG and calibrated thresholds; routing in O(\|V\|+\|E\|) | **11.9–22.9% relative to Single Best**, not the strongest fixed topology; SWE fixed-hybrid 49.8 vs 52.6, matched Self-MoA 51.5 vs 52.6; same model pool, differing assignments | Offline calibration; task-before-execution routing and synthesis-failure re-execution. Mid-execution topology changes are future work (§7.1) |
 | **G-Designer** | [2410.11782](https://arxiv.org/abs/2410.11782) `[primary]` | communication topology, task-adaptive (task virtual node) | variational graph auto-encoder decodes topology | MMLU **84.50%**, HumanEval pass@1 **89.90%**, **up to −95.33% tokens** on HumanEval; −0.3% under adversarial attack | Offline train (cheap: 2.7e5 tokens / 0.3h) → online per-query generation |
 | **Evolving Orchestration** | [2505.19591](https://arxiv.org/abs/2505.19591), NeurIPS 2025 `[primary]` | agent sequencing/prioritization ("puppeteer") | RL orchestrator, reward = quality − λ·cumulative cost | "superior performance with reduced computational costs"; **no headline number**; gains attributed to "more compact, cyclic reasoning structures" | Offline RL → per-task sequencing |
@@ -1095,7 +1099,10 @@ This is the most decision-relevant table in §4, because it prices the *act of a
 | **W4S** | 7B meta-agent trained in **1 GPU hour** | 2504.04785 |
 | **DyLAN** | Separate team-search bill not reported in the inspected sections; the paper says it "mainly" reports Task Solving costs. That is not a claim that all runtime ranker calls are excluded | 2310.02170v2 §4.2; supplement D3 |
 | **AdaptOrch** | router **<50ms/task** on one CPU core; synthesis **about $0.01/instance**; separate offline-search and failure-rerouting costs not located | v1 Appendix B.2, §5.5 and Table 4 |
-| **MANTA, FlowMAS, MACA, Graph-GRPO** | separate search/switching cost not located in the inspected material | original bounded search; not a claim that none is published |
+| **MANTA** | inference 77,652 tokens/run avg (9,416 meta-level ≈12.13%); single agent 21,811, static multi-agent arms 80,781–184,207; audit/repair not split; no dollar ledger. Table 2's 100,315 includes amortized playbook updates and is not reconciled with Table 4 | MANTA Tables 2/4 (supplement N1) |
+| **AgentConductor** | APPS 277,600 prompt + 79,800 completion tokens (unit/denominator not noted); 4-GPU A800 training, no dollar figure; second-round regeneration not separately accounted | AgentConductor Table 3, A.2 (supplement N2) |
+| **MACA** | HumanEval avg 2,100.1 tokens vs DyLAN 15,256.7; one-off training 12–24 h per dataset on 8×A800 (amortized); in-task orchestration not split; no dollar ledger | MACA Tables 1/8 (supplement N3) |
+| **FlowMAS, Graph-GRPO** | separate search/switching cost not located in the inspected material | original bounded search; not a claim that none is published |
 
 The MATH search-cost pair is $21.75/$3.56 = **6.1×**, while the exact prompt-token pair is
 321,813,314/3,235,288 = **99.47×**. Neither ratio is a total-token ratio.
@@ -1904,6 +1911,14 @@ Recorded precisely, because a reconnaissance map's value depends on where its ed
   migration charges must not be recorded as zero or generalized to "nobody reports costs".
   Resolving this requires source-level inclusion rules and a declared amortization basis, then
   a project-specific measurement if Pod adopts switching.
+- **Three successor reconciliation gaps remain in the 2026 batch.** MANTA's Table 2 and Table 4
+  token totals use different bases (amortized playbook updates vs not) and are not reconciled;
+  AgentConductor's abstract "13% density / 68% token cost reduction" was not located in
+  bounded full-text search; MACA's prose reports +8.42% over adaptive baselines without a
+  matching table column, and the abstract's 43.19% token figure is not located (prose gives
+  −36.2% to −51.9%; recomputed APPS token reductions span 22.3–50.1%). Recorded as located
+  gaps, not as claims these figures are false — see the
+  [successor supplement](supplements/01-online-successors-20261013.md).
 - **Venue unconfirmed from primary metadata** for: AFlow, AgentPrune, G-Designer, ScoreFlow, and every
   2026 preprint (no `journal-ref` or `comments` field). No ICLR/ICML/NeurIPS attribution is asserted for
   these. **What would settle it:** OpenReview. (Confirmed venues, for contrast: MASS — ICLR 2026 per
@@ -1942,7 +1957,9 @@ Recorded precisely, because a reconnaissance map's value depends on where its ed
 
 - **No deep dive on any single system.** This is a landscape map by instruction; §4 in particular names
   ~20 systems at table-row depth and characterizes none of them fully. Any of MANTA, AgentConductor,
-  2601.17311 or LUMEN would repay a full read.
+  2601.17311 or LUMEN would repay a full read. Follow-up: MANTA, AgentConductor and MACA received
+  page-level table checks in the [online-successor supplement](supplements/01-online-successors-20261013.md);
+  2601.17311 and LUMEN remain unread in depth.
 - **No independent replication of any number.** Every figure is quoted as published. Nothing here was
   re-run, and no cost was recomputed from token counts.
 - **No citation counts, no bibliometrics** (see 9.1).
@@ -2022,7 +2039,7 @@ consulted. Every arXiv entry was resolved by `id_list` + `arxiv.org/abs` title c
 - `[P]` AgentConductor: *Topology Evolution for Multi-Agent Competition-Level Code Generation*, arXiv:2602.17100 (2026-02-19) — https://arxiv.org/abs/2602.17100
 - `[P]` FlowMAS, arXiv:2609.37151 (2026-09-29) — https://arxiv.org/abs/2609.37151
 - `[P]` TopoPrior, arXiv:2605.17359 (2026-05-17) — https://arxiv.org/abs/2605.17359
-- `[P]` MACA, arXiv:2605.25746 (2026-05-25) — https://arxiv.org/abs/2605.25746
+- `[P]` MACA: *Multi-Agent Coordination Adaptation via Structure-Guided Orchestration*, arXiv:2605.25746 (2026-05-25) — https://arxiv.org/abs/2605.25746
 - `[P]` Evolving Orchestration, arXiv:2505.19591, NeurIPS 2025 — https://arxiv.org/abs/2505.19591
 - `[P]` AdaptOrch, arXiv:2602.16873 (2026-02-18) — https://arxiv.org/abs/2602.16873
 - `[P]` Graph-GRPO, arXiv:2603.02701 (2026-03-03) — https://arxiv.org/abs/2603.02701

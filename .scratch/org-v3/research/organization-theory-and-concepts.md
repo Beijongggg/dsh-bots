@@ -25,7 +25,7 @@
 |---|---|---|
 | 组织路径 5 项 | Galbraith、Gersick、Hannan & Freeman、Simon、Ostrom 讲座 | [经典警告](supplements/03-classic-design-warnings-20261013.md)、[组织余项](supplements/03-org-path-remainder-20261013.md); Ostrom 转述的 1961 定义与 Cox 等统计不冒充她的原始结果 |
 | 复杂系统 5 项 | BTW 1987、Anderson、Dorigo、Holland 1992、Bettencourt | [复杂系统](supplements/03-complex-systems-sources-20261013.md); Holland 七机制列表及未读页不随全文取得自动升级 |
-| 控制论 2/5 项 | Ashby 1956 所引表条件、Wiener 1961 第二版所引页 | [经典警告](supplements/03-classic-design-warnings-20261013.md)、[控制原文](supplements/03-control-sources-20261013.md)、[控制缺口](supplements/03-control-gaps-20261013.md); Beer/von Foerster 只有百科, Varela 只有库载摘要, 均不计达标 |
+| 控制论 4/5 项 | Ashby 1956 所引表条件、Wiener 1961 第二版所引页、Beer 权威学术二手×2（VSM）、von Foerster 权威学术二手×1（概念层） | [经典警告](supplements/03-classic-design-warnings-20261013.md)、[控制原文](supplements/03-control-sources-20261013.md)、[控制缺口](supplements/03-control-gaps-20261013.md)、[控制权威二手](supplements/03-control-authoritative-sources-20261013.md); Beer/von Foerster 原作未直读, Varela 仍缺口（库载摘要不达标） |
 | 协调路径 5 项 | Smith、Hearsay-II、Hewitt、Cohen & Levesque 四篇所列机制/边界; ADOPT 由 JAIR 综述核验 | [协调原文](supplements/03-coordination-sources-20261013.md)、[ADOPT 权威二手](supplements/03-coordination-gaps-20261013.md); 原作 ADOPT 的精确定理条件仍未知 |
 | LLM 借用 3 个全文样本 | MacNet v3、Absorbing State v2、LLM-MR-CNP v1 | [借用核对](supplements/03-llm-classic-borrowing-20261013.md); 不据三样本估计全领域借用比例 |
 
@@ -35,7 +35,8 @@
 
 1. Galbraith 的信息处理成本、Hannan & Freeman 的重组可靠性、Gersick 的期限样本已核到原文。
    它们支持提出成本与边界问题, 不直接给 Pod 的形态选择或切换频率。
-2. 经典四路已有三路达到至少五项内容来源, 控制论仅 2/5。其余条目的边界仍待核, 整票不关闭。
+2. 经典四路已有三路达到至少五项内容来源, 控制论达到 4/5（Beer 权威二手×2、von Foerster
+   权威二手×1; Varela 仍缺口）。其余条目的边界仍待核, 整票不关闭。
 3. 三个 LLM 全文样本呈现不同借用方式：MacNet 借标度关系, Absorbing State 建立带近似条件的
    搜索相变模型, CNP 扩展经典协议。CNP 未完成组件匹配消融, LLM 独立收益仍不能据此认定。
 4. Ashby 的表条件、Wiener 的回路设计边界与 NFL 的均匀平均前提已核。它们都不能直接转换为
@@ -374,9 +375,11 @@
 
 ## 3. 控制论、控制与自主
 
-本节内容达标 2 项：Ashby 1956 所引表条件与 Wiener 1961 第二版所引页。Beer/von Foerster
-续包只取得百科, 不计权威学术二手; Varela 的 REST 文件是 2019 年生成的单页题录摘要, 非
-pp.187-196 正文。其余条目保持摘要/题录或未核, 见两份控制补核件。
+本节内容达标 4 项：Ashby 1956 所引表条件、Wiener 1961 第二版所引页、Beer 的 VSM 与
+von Foerster 的二阶控制论（后两项到可定位权威学术二手, 原作未直读；见
+[控制权威二手](supplements/03-control-authoritative-sources-20261013.md)）。Varela 的
+*BioSystems* pp.187-196 正文仍缺, 库载文件是 2019 年生成的单页题录摘要, 不计达标。
+其余条目保持摘要/题录或未核, 见各控制补核件。
 
 ### 3.1 必要多样性（Ashby）及其对控制器的推论
 
@@ -403,11 +406,18 @@ pp.187-196 正文。其余条目保持摘要/题录或未核, 见两份控制补
   S3 内部运行控制与资源分配、S3* 审计／ sporadically 稽核、S4 环境与未来（适应）、S5 政策与身份
   （系统整体方向）；并主张**递归（recursion）**：每个 S1 自身又是一个完整的可生存系统。核心工程
   手段是"**多样性工程**"（variety engineering）——用 S2/S3/S3*/S4 的设计平衡各层多样性。
-- **一手**：Beer, S. (1972). *Brain of the Firm*. London: Allen Lane / Herder and Herder（OpenLibrary
-  **书目记录核验**：1972）；(1979)《The Heart of Enterprise》；(1985)《Diagnosing the System for
-  Organizations》`[两册未经一手来源核验]`。
-- **边界／须注意**：VSM 常被表述为**诊断语言/分类法**而非可检验的预测模型；其"递归"与"多样性工程"
-  概念清晰，但对"五子系统是否齐备即充分"缺少经验证伪路径 `[评估性判断，属 INFERENCE]`。
+- **一手／权威二手**：Beer, S. (1972). *Brain of the Firm*（OpenLibrary **书目记录核验**：1972）；
+  1979《The Heart of Enterprise》与 1985《Diagnosing the System for Organizations》两册书目仍只
+  属模型知识。内容层新增两条可定位权威学术二手：
+  Puche Regaliza 等, *Systemic Practice and Action Research*,
+  DOI 10.1007/s11213-019-09491-y（§2 转述 Beer 1979/1981/1985 提出 VSM、五子系统与递归；
+  图 1 注转引 Beer 1985 p.136）；Hutchinson & Warren 2002,
+  *Australasian Journal of Information Systems* 9(2)（五子系统功能分列、递归与"S1 内再嵌 VSM"）。
+  两文均自述其概括, 不冒充 Beer 原话。
+- **边界／须注意**：VSM 常被表述为**诊断语言/分类法**而非可检验的预测模型；
+  "necessary and sufficient conditions" 一类措辞属转述方概括, 不写成 Beer 自身的定义级表述。
+  其"递归"与"多样性工程"概念清晰，但对"五子系统是否齐备即充分"缺少经验证伪路径
+  `[评估性判断，属 INFERENCE]`。
   **⇢ 本设计的"评审点"与"权限"几乎是 S3*/S5 的直译**——但 VSM 同时要求 S2 抑制单元间振荡，
   这一点在"形态频繁切换"的设计里通常缺席（INFERENCE）。
 
@@ -419,7 +429,11 @@ pp.187-196 正文。其余条目保持摘要/题录或未核, 见两份控制补
   the Living*（Dordrecht: Reidel；Wikipedia "Autopoiesis" 二手核验其 1972 年首版）；
   Varela, F., Maturana, H. & Uribe, R. (1974). "Autopoiesis: The organization of living systems, its
   characterization and a model", *BioSystems* 5(4):187–196，DOI 10.1016/0303-2647(74)90031-8
-  （Crossref **核验**，该记录无摘要）。
+  （Crossref **核验**，该记录无摘要）。正文仍缺：2026-10-13 续查 OpenAlex 与 Europe PMC,
+  唯一 OA 位置仍是 UChile 单页题录; 两条候选权威二手（Martínez, *Síntesis* 2024;
+  Rodríguez & Torres, *Sociologias* 2003）都落到西语专著《De máquinas y seres vivos》版本,
+  不能替代 *BioSystems* pp.187-196, 见
+  [控制权威二手](supplements/03-control-authoritative-sources-20261013.md)。
 - **边界整理，原文待核**：自创生定义在**分子／生物**层面（组分由系统自身生产）；作者们反对把
   它直接照搬到社会系统。Luhmann 用自创生重构社会系统理论（1984《Soziale Systeme》`[未经核验]`）
   属**独立理论建构**，不等同于原作者的生物学主张。对软件/agent 组织：系统不能"生产自己的组分"
@@ -429,11 +443,15 @@ pp.187-196 正文。其余条目保持摘要/题录或未核, 见两份控制补
 
 - **核心主张**：把观察者纳入被描述系统——控制论应用于自身；观察者所做的**区分**决定了"什么是
   系统的状态"，因此描述总相对于观察者。
-- **一手**：von Foerster, H. (1974). *Cybernetics of Cybernetics*；(1981)《Observing Systems》
-  `[两条均未经一手来源核验]`；Wikipedia "Second-order cybernetics"（本轮二手核验）：其要义即
-  "the role of the observer is appreciated and acknowledged rather than disguised"。
+- **一手／权威二手**：von Foerster, H. (1974). *Cybernetics of Cybernetics*；(1981)《Observing
+  Systems》`[两本原作均未直读]`。内容层新增一条可定位权威学术二手：Brailas,
+  *Integrative Psychological and Behavioral Science*, DOI 10.1007/s12124-024-09867-3
+  （PMC11711560 全文）：转述二阶控制论把观察者纳入系统、"cybernetics of cybernetics"
+  标签与两条律令；其引用的 von Foerster 条目为 1984/2003 转载版本, 不是 1974/1981 本体。
+  Wikipedia "Second-order cybernetics" 仍只作方向线索。
 - **边界**：二阶控制论不提供控制律，它是**认识论立场**；其价值是防止把"我选定的状态变量"当作
-  客观事实。**⇢ 对本设计最有用的一条：形态分类法本身是观察者的产物**——"扁平/层级/矩阵"的划分
+  客观事实。转述句不写成 von Foerster 原话, 1974/1981 本体措辞仍待原作。
+  **⇢ 对本设计最有用的一条：形态分类法本身是观察者的产物**——"扁平/层级/矩阵"的划分
   取决于切分方式，切换控制器所优化的目标函数同样是设计者选定的（INFERENCE）。
 
 ### 3.6 层级控制与"必要层级律"（law of requisite hierarchy）
@@ -739,7 +757,8 @@ Rao & Georgeff 的 1998 章节题录不能代证 1995 版本。
 
 - **待测假设（INFERENCE）**：若所有任务经过同一个串行判定器, 其服务时间可能造成排队瓶颈。
   是否比执行层先饱和取决于到达率、并发度和服务时间, 目前未测。
-- **证据边界**：Beer 与 von Foerster 未取得原作或权威学术二手, 不能替瓶颈命题背书。
+- **证据边界**：Beer 与 von Foerster 已取得可定位权威学术二手（VSM 五子系统／递归；
+  observer 在环）, 但两份转述均不涉及元层服务时间瓶颈, 不能替本命题背书; 原作未直读。
   Magentic-One、MasRouter、RouteGuard 的摘要只给编排与路由线索, 不证明本项目的吞吐瓶颈。
 
 ### 6.7 "没有免费午餐"式论证
@@ -802,7 +821,7 @@ Rao & Georgeff 的 1998 章节题录不能代证 1995 版本。
 ## 7. 盲区：本轮未能到达或未能核验的部分
 
 本节保留原侦察访问失败与当前缺口, 不把旧端点失败当作补核仍不可达。补核已接受的范围见头部表;
-控制论 2/5 仍不足, S4 核心盲区不通过, 不以新增票或改成非核心绕过。
+控制论 4/5（Varela 仍缺口）, 逐条边界与 S4 覆盖未全, 不以新增票或改成非核心绕过。
 
 ### 7.1 原侦察的端点失败与覆盖缺口
 
@@ -828,13 +847,15 @@ Rao & Georgeff 的 1998 章节题录不能代证 1995 版本。
 已补核来源不再列为整篇未读。仍未取得原文或未完成内容边界核验的条目包括 Burns & Stalker、
 Lawrence & Lorsch、Thompson、Galbraith 1973、矩阵病理源、Baldwin & Clark、Langlois、
 Tushman/Romanelli、Williamson、Marschak/Radner、Wegner/TMS、Ostrom 1990、Ashby 1958、
-Beer、von Foerster、Maturana/Varela、Prigogine 系列、Holland 1975/1995/1998、Bak 1996。
-各条仍按正文标注引用, 不借用已核邻近来源替代。
+Beer（原作未直读, 已有两条权威学术二手）、von Foerster（原作未直读, 已有一条概念层权威
+学术二手）、Maturana/Varela（*BioSystems* 正文未取得）、Prigogine 系列、Holland
+1975/1995/1998、Bak 1996。各条仍按正文标注引用, 不借用已核邻近来源替代。
 
 已取来源内仍有缺口：Simon pp.477/478/482 未按页图核; Holland 七机制列表未定位;
 Wiener 第二版第 IV 章后续数学分析未读; Hearsay 的同步/通信/解除只定向检索未核到;
 Teamwork 公式未逐符号核且作者 PS 分页未对齐刊本; ADOPT 只有权威二手, 原作精确定理未核。
-Varela 库载 PDF 仅一页题录摘要, 不计全文。Aulin-Ahmavaara 的必要层级律也只有摘要问题域。
+Varela 的 *BioSystems* 正文续查仍缺, 库载 PDF 仅一页题录摘要, 不计全文。
+Aulin-Ahmavaara 的必要层级律也只有摘要问题域。
 
 ### 7.3 书目核验失败的条目（引用须补核）
 
@@ -844,6 +865,7 @@ Romanelli 1985（ROB 第 7 卷，无 DOI 命中）；Davis & Lawrence 1977《Mat
 1992；Clearwater 1996；Vickrey 1961／Groves 1973／Myerson 1981；Nicolis & Prigogine 1977；
 Bak 1996；Holland 1975／1995／1998；Prigogine & Stengers 1984；Maturana & Varela 1980；
 von Foerster 1974／1981；Wiener 1948；Cannon 1932；David 1985；Beer 1979／1985；Galbraith 1973。
+其中 Beer 与 von Foerster 已另有内容层权威二手（§8.5）, 但各自书目与本体仍待一手核验。
 
 ### 7.4 方法限制（结论强度上限）
 
@@ -905,6 +927,7 @@ von Foerster 1974／1981；Wiener 1948；Cannon 1932；David 1985；Beer 1979／
 - Grassé 1959, *Insectes Sociaux* 6(1):41–80 — `10.1007/BF02223791`；Dorigo, Maniezzo & Colorni 1996,
   *IEEE Trans. SMC-B* 26(1):29–41 — `10.1109/3477.484436`
 - Varela, Maturana & Uribe 1974, *BioSystems* 5(4):187–196 — `10.1016/0303-2647(74)90031-8`
+  （书目核验；正文未取得, 续查位置与候选二手见 §3.4 与控制权威二手补核件）
 - Anderson 1972, *Science* 177(4047):393–396 — `10.1126/science.177.4047.393`
 - Georgeff & Rao 1998, in *Agent Technology* — `10.1007/978-3-662-03678-5_8`
 - Langlois 2000, "Modularity in Technology, Organization, and Society"（工作论文版） — `10.2139/ssrn.204089`
@@ -918,6 +941,8 @@ von Foerster 1974／1981；Wiener 1948；Cannon 1932；David 1985；Beer 1979／
 
 - 原文补核：Ashby 1956 §7/7、§11/5-11; Wiener 1961 第二版、1985 刷次的序 vii-viii 与
   pp.95-97。逐页定位与版本见相应补核件, 不冒充其他版本或全书核验。
+- **权威二手转述（本批新增）**：Beer VSM 两文与 von Foerster 概念文见 §8.5; 原著三书
+  （Beer 1979/1981/1985）与 von Foerster 1974/1981 本体仍未直读, 不因二手转述升级。
 
 - **书目记录核验**：Burns & Stalker 1961 *The Management of Innovation*（Tavistock；Wikipedia 参考
   文献行＋Crossref 1994 OUP 版）；Thompson 1967 *Organizations in Action*（McGraw-Hill，OpenLibrary）；
@@ -965,6 +990,16 @@ von Foerster 1974／1981；Wiener 1948；Cannon 1932；David 1985；Beer 1979／
 可承载有限内容引用的权威学术二手：Fioretto/Pontelli/Yeoh 2018, *JAIR* 61:623-698,
 DOI 10.1613/jair.5565, arXiv:1602.06347v4 §4.3.4、Table 4。只引用其对 ADOPT 的归纳,
 不冒充 ADOPT 原作定理已核。其余以下百科仍只作方向线索。
+
+本批新增可承载有限内容引用的权威学术二手：Puche Regaliza, Jiménez, Arranz Val,
+"Diagnosis of software projects based on the Viable System Model", *Systemic Practice and
+Action Research*, DOI 10.1007/s11213-019-09491-y（VSM 五子系统与递归转述; 图注转引
+Beer 1985 p.136）; Hutchinson & Warren, "Information warfare: using the VSM as a framework
+to attack organisations", *Australasian Journal of Information Systems* 9(2), 2002
+（五子系统功能分列与递归转述）; Brailas, "Replication Crisis in Psychology, Second-Order
+Cybernetics, and Transactional Causality", *Integrative Psychological and Behavioral
+Science*, DOI 10.1007/s12124-024-09867-3（PMC11711560; 二阶控制论概念层转述, 引 von Foerster
+1984/2003 转载版本）。三者只承载各自转述句, 不冒充经典原作。
 
 Wikipedia 条目：Contingency theory · Matrix management · Transaction cost · Transactive memory ·
 Variety (cybernetics) · Viable system model · Second-order cybernetics · Autopoiesis · Self-organized
