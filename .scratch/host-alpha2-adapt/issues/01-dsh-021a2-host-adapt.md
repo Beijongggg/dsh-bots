@@ -1,6 +1,6 @@
 # 01 dsh 宿主升级 0.2.1-alpha.2＋插件适配
 
-Status: needs-info
+Status: resolved
 
 ## 任务
 
@@ -83,22 +83,38 @@ docs/agents/host-runtime-map.md（坐标＋包差＋实证手法）。
   抓出的宿主地图包差注记事实错误（原误写 goal/skill 等为新增，已按安装树
   实名差改正）。
 
-### 移交备注：当前状态＋下一步（接手会话或用户一次 Read 重建上下文）
+### 全局升级执行与终验（2026-10-13 同会话续，用户「直接操作」点名）
 
-- **当前状态**：仓内适配已完成并提交；全局宿主**未升级**（npm prefix=/usr、
-  root 属主、无免密 sudo——安装动作无法由会话执行）。真实面 preflight ①门
-  因 V-P7.2 基线已指向新版而为已知红（92/93），②③④门绿。
-- **下一步（唯一遗留）**：用户执行
-  `sudo npm install -g @deepseek-ai/dsh@0.2.1-alpha.2`
-  （升级即自动切换 `~/.dsh/profiles/node_modules` 符号链接池全体运行面包），
-  然后任一会话复跑 `npm run preflight`——预期四门全绿（①门 93/93、④门
-  15 探针于真实新宿主），绿后本票翻 `resolved` 并记 CHANGELOG 更正/补充事件。
-  若 ④门出现新红，按探针 FAIL 面名查 HF 登记表对应行处置。
-- **证据指针**：基线（旧宿主四门绿）`/tmp/pf-baseline.log`；过渡态
-  `/tmp/pf-interim.log`（均为本机 /tmp 临时件，核心结论已固化于本票与
-  CHANGELOG 事件 EV-20261013-host-alpha2-adapt）；隔离台复现命令一行：
+- **提权路径**：本机 sudo 组成员但会话 shell 无交互终端；实测 WSL 默认发行版为
+  docker-desktop（`wsl.exe -u root` 首三跑全落在 docker-desktop 文件系——
+  `/usr/bin/node: not found` 之假象由此来），改 `wsl.exe -d Ubuntu -u root --
+  /usr/bin/node /usr/lib/node_modules/npm/bin/npm-cli.js install -g
+  @deepseek-ai/dsh@0.2.1-alpha.2` 完成全局安装。执行前 `ps` 复核零 dsh 实例
+  （无活进程脚下换文件）。授权依据＝用户 2026-10-13「更新 dsh 至最新版本
+  alpha2」＋「直接操作」两句点名。
+- **池同步（`~/.dsh/profiles/node_modules/@deepseek-ai`）**：现存链接随 /usr
+  换树自动切新版（抽查 dsh／dsh-base／dsh-web-app／dsh-tools／
+  dsh-client-ui-layout＝0.2.1-alpha.2，cordis＝4.0.5-alpha.1）；清 20 条断链
+  （指向新版已移除包：hooks 双包／webhook 双包／invariants／
+  subagent-in-process-driver／schedule-bundle／旧 client/code-runtime 系等）。
+  74 个「新树有池缺」为升级前即有的既有形态（bundle 解析走宿主自身树，
+  运行面历史即如此）——不做投机补链。
+- **终验（真实面，/tmp/pf-final.log）**：`dsh --version`＝0.2.1-alpha.2；
+  preflight 四门 **①93/93（V-P7.2 对新 preset 绿）②冻结面 11/11 ③lint 0
+  违例 ④宿主契约 15 PASS／0 FAIL／0 SKIP**（P-SESSION-LOG 于真实会话日志
+  完整通过，隔离台时为合法 SKIP）——**preflight: PASS**。
+- **留界（未点名，非本票面）**：部署面 `~/.dsh/plugins/pod` 仍为适配批前
+  HEAD（80cf52d 的 lib 改动仅注释级、行为等价，运行兼容无虞；对账红待下次
+  部署同步窗口随行）；bot/host 重启未执行（当前零实例，下次起链自然载入
+  新宿主）。
+
+### 历程存档（升级执行前的移交备注，已被上节执行结果取代）
+
+- 执行前状态：仓内适配已提交（80cf52d）；全局宿主未升级，真实面过渡态
+  ①92/93（V-P7.2 已知红）②③④绿。
+- 证据指针：基线（旧宿主四门绿）`/tmp/pf-baseline.log`；过渡态
+  `/tmp/pf-interim.log`；终验 `/tmp/pf-final.log`（本机 /tmp 临时件，核心
+  结论已固化于本票与 CHANGELOG 事件）。隔离台复现命令一行：
   `npm install --prefix /dev/shm/s @deepseek-ai/dsh@0.2.1-alpha.2 && mkdir -p
   /dev/shm/h/.dsh/profiles/node_modules && ln -sfn /dev/shm/s/node_modules/@deepseek-ai
   /dev/shm/h/.dsh/profiles/node_modules/@deepseek-ai && HOME=/dev/shm/h npm test`。
-- **未点名面**：部署同步（deploy-sync 至 `~/.dsh/plugins/pod`）、bot/host
-  重启均未在本批授权内，按 AGENTS §3 待逐项点名。
