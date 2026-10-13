@@ -16,16 +16,18 @@
 **Blocked by:** —（独立小批。0011 包 `sourceManifest` 11 件与本票预计改动面
 〔`lib/org/capability-delivery.js`／`lib/bot-autostart.js`／`lib/index.js`〕零交集，实现时复核）
 
-**Status:** ready-for-agent（路线已裁定；仓库内实现＋测试完成，运行面复验进行中——见 Comments「实施记录」）
+**Status:** resolved（2026-10-13 实施＋运行面复验完成：四门 94/94・11/11・0 违例・15-0-0；部署同步
+222/222 all-same；宿主重启后两席零人工干预挂回本代际、`org-cutover-check` 四腿 `ready:true` 退出码 0
+——证据见 Comments「裁定与实施记录」与「运行面复验」）
 
 **验收判据:**
 
 - [x] 竞态回归用例（非恒真，当前实现下先红）：构造「子进程刚起、自注册行尚未落盘」的一拍，
       断言交付条目在该拍**不被回收**，或回收后经 `pod:org-ready` **可重挂**——两条路线至少实现一条
       并由该用例把守；
-- [ ] 宿主重启后零人工干预即恢复：两席（duty-coordinator／implementer）自动挂回本代际，
+- [x] 宿主重启后零人工干预即恢复：两席（duty-coordinator／implementer）自动挂回本代际，
       `channels` 两条且 `gen` 非空、connected／delivered／roleReady 全真；
-- [ ] `node scripts/org-cutover-check.mjs --dsh-home ~/.dsh --host-url http://127.0.0.1:3080`
+- [x] `node scripts/org-cutover-check.mjs --dsh-home ~/.dsh --host-url http://127.0.0.1:3080`
       四腿全绿（`ready:true`，退出码 0）；
 - [x] 四门 PASS 且计数 ≥ 基线（93/93・11/11・0 违例・15-0-0）；
 - [x] 冻结面复核：不触碰 0011 包 `sourceManifest` 11 件；若触碰 ⇒ 新 `runId` 重采集＋新序号
@@ -156,8 +158,35 @@ B 以**结构性判据**落地，非计时宽限——见下「口径偏离」�
 触发句（择一才动）：①将来要把脚本改成「同批收掉 bot 子进程」；②宿主侧接管被判不可接受、
 要求脚本侧收口。仓库内半边（自启动接管遗留进程）已在本票落地，脚本不动不再构成缺口。
 
-### 运行面复验（判据②③，2026-10-13）
+### 运行面复验（判据②③，2026-10-13 15:08–15:11）
 
-**进行中**：C2 部署同步（`scripts/deploy-sync.mjs`＋批规格件）→ 宿主重启（`restart-safe.sh`，
-systemd 单元隔离；旧宿主即本会话所在进程，故重启后由留驻脚本续跑复验）→ `org-cutover-check`
-四腿核验。结果（就绪 JSON 记录件、两席 `gen` 与三态、接管日志行）在本节随批补记。
+**执行面**：`restart-safe.sh`（systemd --user 瞬时单元 `dsh-restart-1791875318`，KillMode=process）→
+`restart-split.sh` 换宿主；复验由留驻单元 `pod17-verify-1791875293` 续跑（旧宿主即发起会话所在
+进程，脚本必须活在宿主之外）。
+
+**部署同步（C2，用户点名）**：批 `pod17-reattach-20261013T070635Z`（基线 commit `9a203a4`）
+写 5 件——`lib/bot-autostart.js`／`lib/org/capability-delivery.js`／`lib/index.js`／
+`tests/bot-autostart.test.mjs`／新增 `tests/org-channel-reattach.test.mjs`；复核 **222/222 same、
+`deploymentOnly` 0**；排他备份 `~/.dsh/backups/pod/pod17-reattach-20261013T070635Z-backup-9ab72b5a`
+（manifest sha8 `3e47aa35`）；记录件 `artifacts/cutover-preparation/pod17-reattach-…-batch.json`／
+`-plan-9ab72b5a.json` 与 `artifacts/cutover-execution/pod17-reattach-…-sync-e22e5986.json`。
+
+**判据②「宿主重启后零人工干预即恢复」——全绿**：新宿主 `host-87653` 起于 15:08:40（`instances.jsonl`
+行 `botId=host,pid=87653,at=07:08:42.029Z`），其后 **2.6s／4.8s** 内两席新起：`duty-coordinator
+pid=87694（at 07:08:44.008Z）`、`implementer pid=87723（at 07:08:46.404Z）`；两席 `ppid=87653`
+（IPC 通道归本代际宿主），端口 3101／3102 均在听（401）；上一代孤儿 `45345`／`46344`／`46358`
+全部消失，`bots.json` 于 15:08:44 重写为新 pid。该窗口**无任何人工动作**（旧宿主即本会话进程，
+会话在重启中断，接管由自启动独立完成）。就绪面两席 `gen=host-87694`／`host-87723` 非空，
+`connected/delivered/roleReady` 全真，`sourceDigest`＝部署摘要 `e7aab5de…`。
+
+**判据③ `org-cutover-check` 四腿——全绿**：`--dsh-home ~/.dsh --host-url http://127.0.0.1:3080`
+得 **`ready:true`、退出码 0**：roster ok／deployment 222 件 all-same 且 `deploymentOnly` 0／
+coordinates ok（60 件）／runtime ok（摘要相符＋deploy 探针 15 PASS・0 FAIL・0 SKIP＋两席通道全真）。
+记录件 `artifacts/cutover-execution/pod17-reattach-20261013T070635Z-readiness-2c286afa.json`
+（自校验 sha8＝`2c286afa`）；轮询日志 `/dev/shm/pod17-run/verify.log`（首次轮询即 rc=0）。
+
+**归因（接管路径直证）**：新宿主 `processes` 为空＋登记 pid 仍活 ⇒ `planAutoStart` 判两席
+`restart:true` ⇒ `api.stop` 收掉上一代进程（旧 pid 由活转灭、端口让出）⇒ `api.start` 重 spawn
+（新 pid、`ppid=87653`）⇒ 自注册行落盘 ⇒ ready ⇒ 组织通道挂回本代际。宿主 stdout
+（`~/.dsh/web-split-server.log`）只落 banner 与 restart 注册行、不落 `[pod]` 日志，故接管证据以
+进程表＋`instances.jsonl`＋`bots.json` 为准（可复算，非日志推断）。
