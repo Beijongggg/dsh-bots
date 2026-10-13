@@ -257,3 +257,18 @@ EV-20261011-pod-rename-batch-close 事件）。**Status 维持 `ready-for-agent`
   属预期史实）。judgement 采纳不改：host-runtime-map 软链措辞已随本处置批按现状改写。
 - **复审处置后复核**：全量 **93/93**；preflight 四门 **①93/93・②11/11・③0・④15-0-0 PASS**；
   扫描直跑 hits＝0／staleAllow＝0／unusedShapes＝[]（whitelisted 仍 role-cards×2）。
+
+### 残留登记①销账：部署面随行清理已执行（2026-10-13，host-alpha2 窗口）
+
+用户 2026-10-13「部署」点名，随宿主 0.2.1-alpha.2 部署同步窗口（runId
+`host-alpha2-window-20261013T054739Z`）执行：① 部署面 13 件 changed 刷新至 HEAD
+`8d11b0b`（整面复核 **221/221 same、deploymentOnly 0**；备份
+`…-backup-7e555b54`）；② 本票残留登记①的两件退役删除件（`scripts/migrate-pod-data.mjs`／
+`tests/pod-data-migration.test.mjs`）备份后移除（备份
+`…-retired-308b5c19`，manifest sha8 `0b99679d`；移除前对拍＝其最后同步点 `bd86944`
+版本逐件 sha256 一致，无台账外漂移）。就绪核验：roster／deployment／coordinates 三路
+ok（sourceDigest `19c399ad…`），runtime 腿「未指定 --host-url」不可核——**起链未在本次
+点名内**，待点名后补核。记录件：
+`artifacts/cutover-execution/host-alpha2-window-20261013T054739Z-{sync-b85d74f1,
+retired-8e1d3f10,readiness-097a2e86}.json`。残留登记①销账；②③④维持原状（②待下次实质
+触碰该件；③按设计仍开；④归 Lead）。

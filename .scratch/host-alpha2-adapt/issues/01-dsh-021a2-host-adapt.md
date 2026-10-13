@@ -118,3 +118,19 @@ docs/agents/host-runtime-map.md（坐标＋包差＋实证手法）。
   `npm install --prefix /dev/shm/s @deepseek-ai/dsh@0.2.1-alpha.2 && mkdir -p
   /dev/shm/h/.dsh/profiles/node_modules && ln -sfn /dev/shm/s/node_modules/@deepseek-ai
   /dev/shm/h/.dsh/profiles/node_modules/@deepseek-ai && HOME=/dev/shm/h npm test`。
+### 部署同步执行（2026-10-13 同会话续，用户「部署」点名）
+
+runId `host-alpha2-window-20261013T054739Z`（batch 同名，commit＝HEAD `8d11b0b`，
+`--dry-run` 先行：changed 13 件符合差集预期）：① 13 件 changed 写入部署面
+（许可收缩批＋本适配批的 lib×6／scripts×1／tests×5，逐件回读复验全 ok；
+备份 `…-backup-7e555b54`，manifest sha8 `4e9d223a`）；② 两件 deploymentOnly
+退役删除件（`scripts/migrate-pod-data.mjs`／`tests/pod-data-migration.test.mjs`，
+`b6a5a17` 删）备份后移除（备份 `…-retired-308b5c19`，manifest sha8 `0b99679d`；
+移除前对拍 last-sync `bd86944` 逐件一致）；③ 整面复核 **221/221 same、
+deploymentOnly 0、violations []**。就绪核验（`org-cutover-check --dsh-home ~/.dsh`）：
+roster／deployment（sourceDigest `19c399ad…`）／coordinates（60/60）三路 ok；
+runtime 腿未指定 --host-url 不可核——起链未点名，留待。记录件：`artifacts/
+cutover-execution/host-alpha2-window-20261013T054739Z-{sync-b85d74f1,retired-8e1d3f10,
+readiness-097a2e86}.json`＋`artifacts/cutover-preparation/…-batch.json`／`…-plan-7e555b54.json`。
+部署面现＝HEAD；票 15 残留登记①随本窗口销账（注记见其票面）。restart：不做
+（当前零 dsh 实例，下次起链自然载入新宿主）。

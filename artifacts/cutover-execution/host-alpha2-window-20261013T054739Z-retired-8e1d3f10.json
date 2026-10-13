@@ -1,0 +1,26 @@
+{
+ "packageType": "deploy-retired-cleanup",
+ "runId": "host-alpha2-window-20261013T054739Z",
+ "kind": "retired-file-deletion",
+ "capturedAt": "2026-10-13T05:48:19.184Z",
+ "deployDir": "/home/beijong/.dsh/plugins/pod",
+ "backupDir": "/home/beijong/.dsh/backups/pod/host-alpha2-window-20261013T054739Z-retired-308b5c19",
+ "backupManifestSha8": "0b99679d",
+ "reason": "b6a5a17（15 全窗关闭许可收缩批）退役删除的两件随部署同步窗口清理；移除前对拍=其最后同步点 bd86944 版本（逐件 sha256 一致），无台账外漂移",
+ "authorization": "用户 2026-10-13「部署」；该件为票 15 登记的「下次部署同步窗口随行」点名件",
+ "entries": [
+  {
+   "path": "scripts/migrate-pod-data.mjs",
+   "action": "deleted",
+   "deployedSha256": "ce9da7f4bfd301162da433ce3b6144c5bf2ba5151346482cbf40a4173518fd5b",
+   "backupSha256": "ce9da7f4bfd301162da433ce3b6144c5bf2ba5151346482cbf40a4173518fd5b"
+  },
+  {
+   "path": "tests/pod-data-migration.test.mjs",
+   "action": "deleted",
+   "deployedSha256": "2b0c0d819459005be56bba846cfdaa01562d8d32e38243902cb5b1cde576690f",
+   "backupSha256": "2b0c0d819459005be56bba846cfdaa01562d8d32e38243902cb5b1cde576690f"
+  }
+ ],
+ "restoreNote": "cp -a <backupDir>/<path> <deployDir>/<path>（manifest.json.restore 段逐件给出）"
+}
