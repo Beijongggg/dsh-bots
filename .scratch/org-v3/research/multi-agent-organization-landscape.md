@@ -25,10 +25,18 @@
 For AdaptOrch baselines, partial adaptation costs and leaderboard integrity, read
 [the primary-source correction record](evidence-corrections-2026-10-13.md) before citing a number.
 The edits below correct those claims; they do not certify every source in this survey.
+For strong baselines, adaptation stages and refusal/calibration fields in AdaptOrch,
+MasRouter and DyLAN, read the [full-text supplement](supplements/01-dynamic-controls-and-fallback-20261013.md)
+and the checked tables in §4.8–§4.9. Other candidates retain their original reading level.
+For suite fields and published score/cost pairs, use the current
+[cost report](benchmarks-and-cost-accounting.md), especially §1.3, §2.4 and §6.
+Its supplements now establish Optima's paper-level pair, TB 4.0's task count and the
+HAL accounting notice; they do not certify the remaining topology inventory.
 
 ## 0. Executive digest
 
-Twelve findings that carry the map. Each is sourced in its section; this is a reading aid, not new claims.
+Twelve candidates from the original survey. Only the checks listed above have completed
+acceptance; the remaining entries still need source-level verification before a decision uses them.
 
 1. **Multi-agent, to first order, is a token-spending mechanism.** Anthropic's own summary: *"Multi-agent
    systems work mainly because they help spend enough tokens to solve the problem"*, with *"token usage
@@ -62,9 +70,10 @@ Twelve findings that carry the map. Each is sourced in its section; this is a re
    to rigid structure.
 7. **The dominant dynamic-organization family is offline search, not per-task transition.** AFlow,
    AgentSquare, MASS, ScoreFlow, EvoAgent search once and deploy frozen; only MANTA, AgentConductor,
-   AdaptOrch, DyLAN and ZEBRA include per-task adaptation (§4.1–4.3). The cited MATH search costs
-   differ by about **6.1× in dollars** ($3.56 to $21.75) and **99.3× in prompt tokens**
-   (3.24M to 321.8M). AdaptOrch reports some routing and synthesis overhead, but complete search,
+   AdaptOrch, DyLAN and ZEBRA include per-task adaptation (§4.1–4.3). DyLAN separates preliminary
+   team selection from within-query reformation; selection can occur per subject, not per query.
+   The cited MATH search costs differ by about **6.1× in dollars** ($3.56 to $21.75) and
+   **99.47× in prompt tokens** (3,235,288 to 321,813,314). AdaptOrch reports some routing and synthesis overhead, but complete search,
    rerouting and migration costs have not been verified (§4.4).
 8. **The cheapest organization found is frequently one agent with a router**, not a team: compiling a
    homogeneous multi-agent workflow into a single agent with shared KV cache gives similar accuracy at
@@ -361,8 +370,9 @@ organizational-design axis, distinct from §4's topology-search axis (though the
 
 **Primary evidence.**
 - **[primary] DyLAN** ("Dynamic LLM-Agent Network"), arXiv [2310.02170](https://arxiv.org/abs/2310.02170) —
-  the founding instance: a dynamically evolving agent network with an agent-importance/team-optimization
-  score, agents selected and ranked per task.
+  a two-stage system: preliminary team selection using Agent Importance, followed by within-query
+  reformation. Selection is per MMLU subject, per WebShop page category, or over the code-generation
+  set, not uniformly a new search for every query. Cost and test-set reuse limits are in §4.8.
 - **[primary] AgentVerse**, arXiv [2308.10848](https://arxiv.org/abs/2308.10848) — explicit
   "dynamic team adjustment" for task solving.
 - **[primary] StaffPro**, arXiv [2507.21636](https://arxiv.org/abs/2507.21636) (2025-07) — "an LLM
@@ -1038,7 +1048,7 @@ partial routing costs must be kept separate from search and state migration (§4
 | **AFlow** | [2410.10762](https://arxiv.org/abs/2410.10762) `[primary]` | workflow DAG as code, MCTS over operators | MCTS with execution feedback + tree-structured experience | **+5.7%** avg over SOTA on six benchmarks; smaller models beat GPT-4o on some tasks at **4.55% of its inference cost in dollars** | Offline |
 | **AgentSquare** | [2410.06153](https://arxiv.org/abs/2410.06153), ICLR 2025 `[primary]` | **agent modules (Planning/Reasoning/Tool/Memory) — NOT topology** | LLM-driven module evolution + recombination, with in-context surrogate performance predictor | **+17.2%** avg over best human-designed agents, six benchmarks | Offline, explicitly |
 | **GPTSwarm** | [2402.16823](https://arxiv.org/abs/2402.16823), ICML 2024 `[primary]` | prompts (node) **and** graph connectivity (edge) | optimization over a parameterized edge distribution + prompt optimization | GSM8K **89.7%** | **Both** — "graph connectivity … can self-improve online as a task is being solved" |
-| **DyLAN** | [2310.02170](https://arxiv.org/abs/2310.02170), COLM 2024 `[primary]` | **role/agent set** (team selection) + dynamic communication structure | unsupervised **Agent Importance Score** from a preliminary trial, per task | up to **+25.0%** on specific MMLU subjects | **Online per task** |
+| **DyLAN** | [2310.02170v2](https://arxiv.org/abs/2310.02170v2), COLM 2024 `[primary]` | preliminary team selection + within-query reformation | Agent Importance selects a team; an LLM ranker deactivates agents during solving | CG selection: 76.2→82.9%; removing reformation also gives 76.2%, with a different cost denominator (§4.8) | Select by task/subject/category, then adapt during solving |
 | **MasRouter** | [2502.11133](https://arxiv.org/abs/2502.11133), ACL 2025 Main `[primary]` | collaboration mode + role allocation + per-agent LLM choice | trained cascaded controller network, per query | **+1.8–8.2%** over SOTA on MBPP; **52.07%** overhead reduction on HumanEval; 17.21–28.17% as a plug-in | Offline train → **online per-query routing** (one forward pass) |
 | **AgentPrune** | [2410.02506](https://arxiv.org/abs/2410.02506) `[primary]` | communication topology (graph mask → one-shot magnitude pruning) | **structural redundancy criterion (low-rank + sparsity), NOT performance** | comparable to SOTA at **$5.6 vs $43.7**; **28.1–72.8%** token reduction as a plug-in; +3.5–10.8% adversarial robustness | Offline one-shot, amortized across queries |
 | **ScoreFlow** | [2502.04306](https://arxiv.org/abs/2502.04306) `[primary]` | workflow structure via continuous-space generator | gradient-based (Score-DPO) on quantitative scores | **+8.2%** over baselines, six benchmarks | Offline generator → per-query generation |
@@ -1060,13 +1070,13 @@ additive across axes (MASS found topology composition added only +3% on top of p
 | **FlowMAS** | [2609.37151](https://arxiv.org/abs/2609.37151), 2026-09-29 `[primary]` | discrete workflow topology | GFlowNet reward-guided flow + curiosity-driven structural exploration + information-guided objective | best of 15 baselines; **+8.17 pts** over hand-crafted, **+6.12** over automated | Offline-trained flow → per-query generation |
 | **TopoPrior** | [2605.17359](https://arxiv.org/abs/2605.17359), 2026-05-17 `[primary]` | initial collaboration graph + downstream refinement | offline prior learning from multi-domain reference graphs; query-conditioned generation | improves several topology-evolution backbones while **reducing online inference-time token usage** | **Hybrid** — cleanest offline/online split |
 | **MACA** | [2605.25746](https://arxiv.org/abs/2605.25746), 2026-05-25 `[primary]` | participation + interactions + orchestration policy, **budget-conditioned** | task- and budget-conditioned structural prior; reward = accuracy − β·token cost, KL-regularized | **+8.42%** avg over adaptive baselines with **43.19% fewer tokens**, six benchmarks | Offline prior → per-task conditioning |
-| **AdaptOrch** | [2602.16873v1](https://arxiv.org/abs/2602.16873v1), 2026-02-18 `[primary]` | chooses among **4 canonical topologies** and supports failure rerouting | dependency DAG and calibrated thresholds; routing in O(\|V\|+\|E\|) | **11.9–22.9% relative to Single Best**, not the strongest fixed topology; SWE fixed-hybrid 49.8 vs 52.6, matched Self-MoA 51.5 vs 52.6; same model pool, differing assignments | Offline threshold calibration; online per-task routing and task-internal rerouting |
+| **AdaptOrch** | [2602.16873v1](https://arxiv.org/abs/2602.16873v1), 2026-02-18 `[primary]` | chooses among **4 canonical topologies** and supports failure rerouting | dependency DAG and calibrated thresholds; routing in O(\|V\|+\|E\|) | **11.9–22.9% relative to Single Best**, not the strongest fixed topology; SWE fixed-hybrid 49.8 vs 52.6, matched Self-MoA 51.5 vs 52.6; same model pool, differing assignments | Offline calibration; task-before-execution routing and synthesis-failure re-execution. Mid-execution topology changes are future work (§7.1) |
 | **G-Designer** | [2410.11782](https://arxiv.org/abs/2410.11782) `[primary]` | communication topology, task-adaptive (task virtual node) | variational graph auto-encoder decodes topology | MMLU **84.50%**, HumanEval pass@1 **89.90%**, **up to −95.33% tokens** on HumanEval; −0.3% under adversarial attack | Offline train (cheap: 2.7e5 tokens / 0.3h) → online per-query generation |
 | **Evolving Orchestration** | [2505.19591](https://arxiv.org/abs/2505.19591), NeurIPS 2025 `[primary]` | agent sequencing/prioritization ("puppeteer") | RL orchestrator, reward = quality − λ·cumulative cost | "superior performance with reduced computational costs"; **no headline number**; gains attributed to "more compact, cyclic reasoning structures" | Offline RL → per-task sequencing |
 | **Graph-GRPO** | [2603.02701](https://arxiv.org/abs/2603.02701) `[primary]` | topology edges | group-relative per-edge advantage (fixes variance of absolute-reward RL) | "significantly outperforms SOTA"; no % in abstract | Training-time policy → inference |
 | **W4S** | [2504.04785](https://arxiv.org/abs/2504.04785) `[primary]` | workflow structure | RLAO RL trains a **weak 7B meta-agent** to design workflows for strong executors | **+2.9–24.6%** over strongest baseline, 11 benchmarks | Offline; **7B meta-agent trained in 1 GPU hour** (cheapest in family) |
 | **FlowBank** | [2606.11290](https://arxiv.org/abs/2606.11290) `[primary]` | selects from a **bank of precomputed workflows** rather than regenerating | reuse — offline-discovered workflows solve different query subsets | not extracted | Hybrid |
-| **Optima** | [2410.08115](https://arxiv.org/abs/2410.08115) `[primary]` | **model weights + communication efficiency — NOT topology** | iterative generate-rank-select-train; reward balances performance, token efficiency, readability | "consistent and substantial"; no numbers in abstract | Training-time. **Flagged: frequently miscited as topology adaptation** |
+| **Optima** | [2410.08115v2](https://arxiv.org/abs/2410.08115v2) `[primary]` | model weights + communication efficiency, not topology | iterative generate-rank-select-train; reward balances performance, token efficiency, readability | Abstract has numeric claims; the former "no numbers" statement is withdrawn. Full-text Table 1 comparisons and prose/table conflict are checked in [cost report §2.4](benchmarks-and-cost-accounting.md#24-multi-agent-studies-that-publish-both-a-score-delta-and-a-cost-delta) | Training changes weights; neither its trained result nor its untrained MAD baselines establishes dynamic-topology gains |
 | **CayleyTopo** | [2604.09703](https://arxiv.org/abs/2604.09703) `[primary]` | communication graph generator sets (circulant Cayley graphs) | lightweight RL + number-theoretic prior | faster dissemination, link-failure resilience; approaches Moore bound | Offline. **Not an LLM-agent paper — no LLM benchmarks, no accuracy/token metrics. Do not transfer its numbers.** |
 
 ### 4.4 Search cost — the numbers that exist, and the hole where they don't
@@ -1083,12 +1093,12 @@ This is the most decision-relevant table in §4, because it prices the *act of a
 | **HieraMAS** | training cost **18.41× cheaper than AFlow** on HumanEval++ | 2602.20229 |
 | **Mas-Orchestra** | **>10× efficiency** vs inference-time orchestration (AFlow, MAS-Zero) in LLM calls, tokens, and cost | 2601.14652 |
 | **W4S** | 7B meta-agent trained in **1 GPU hour** | 2504.04785 |
-| **DyLAN** | **NOT REPORTED** — explicitly excludes it: "Since 'Task solving' after 'Team Optimization' is essential for testing and deployment, we mainly report the cost from the second stage." | 2310.02170 |
+| **DyLAN** | Separate team-search bill not reported in the inspected sections; the paper says it "mainly" reports Task Solving costs. That is not a claim that all runtime ranker calls are excluded | 2310.02170v2 §4.2; supplement D3 |
 | **AdaptOrch** | router **<50ms/task** on one CPU core; synthesis **about $0.01/instance**; separate offline-search and failure-rerouting costs not located | v1 Appendix B.2, §5.5 and Table 4 |
 | **MANTA, FlowMAS, MACA, Graph-GRPO** | separate search/switching cost not located in the inspected material | original bounded search; not a claim that none is published |
 
-The MATH search-cost pair is $21.75/$3.56 = **6.1×**, while the prompt-token pair is
-321.8M/3.24M = **99.3×**. Do not call the dollar difference two orders of magnitude.
+The MATH search-cost pair is $21.75/$3.56 = **6.1×**, while the exact prompt-token pair is
+321,813,314/3,235,288 = **99.47×**. Neither ratio is a total-token ratio.
 MasRouter also reports marginal gains when scaling 6 to 10 agents at 1.5× per-query inference
 cost. These are different cost objects, not one common "adaptation cost" tier.
 
@@ -1098,6 +1108,9 @@ Table 4's fixed hybrid and Table 2's compute-matched Self-MoA give different gap
 labels SWE-bench as 500 instances while §5.5 says Tables 2–4 use only the 85% test split.
 The linked code repository returned 404 on this pass. Exact baselines, units and limits are in
 the correction record §1; these remain author-reported results, not reproduced Pod evidence.
+The supplement also checks a second unresolved inconsistency: Table 6 says 567/698 = 81.2%,
+but its displayed cells sum to 677 with 567 on the diagonal. Recomputing those cells gives
+83.7518%. Preserve both denominators; do not repair the authors' table by choosing one.
 
 ### 4.5 "Phase transition", "criticality", "order parameter" — measured vs framing
 
@@ -1268,6 +1281,35 @@ the measured degradation regime.
   verification dose vs delay (2606.27409); role-library semantic overlap (2601.04748); effective team
   size (2606.02646); phase identity within the task (LUMEN, §2.6).
 
+### 4.8 Checked strong baselines and budget boundaries
+
+This table covers the three full-text sources in the supplement, not the entire candidate list.
+Values are author-reported; differences and ratios are independently recomputed. No experiment was run.
+
+| Source | Single-agent, multi-sample and fixed controls | Published comparison | Budget and attribution limit |
+|---|---|---|---|
+| AdaptOrch v1, Tables 2/4 | Single Best, compute-matched Self-MoA and fixed hybrid | SWE: 52.6 vs 51.5 Self-MoA; 52.6 vs 49.8 fixed hybrid | Same model pool is not fixed per-agent assignment; 500 vs 85% split unresolved; search and failure-rerouting costs not separately priced |
+| MasRouter v1, Table 10 | MBPP: best printed single IO 73.40/$0.146; SC(ComplexCoT) 75.60/$0.487; fixed complete graph 75.20/$2.932 | MasRouter 84.00/$1.039; against SC +8.40 points at 2.1335× the cost column | Model assignment, roles and compute vary; no matched-budget pure-topology contrast. Dollar aggregation is not specified, so these are not labelled per-task bills |
+| DyLAN v2, Tables 5/6 | Team selection and reformation ablations, with early stopping retained in the no-reformation arm | CG: selection raises 76.2→82.9, calls 23.04→16.85; reformation raises 76.2→82.9, calls 17.98→16.85 | Calls are a proxy. Task Solving costs omit a separate Team Optimization bill; selected subsets are included in the eventual test set |
+
+MasRouter's search/training costs in Table 12 are separate from Table 10 inference costs.
+Its MBPP Table 10 and main-text values also differ; the supplement keeps comparisons within one table.
+DyLAN's runtime ranker is counted in the inspected MMLU implementation; this does not establish a complete
+search, tool, retry or hardware ledger for every published run. These limits prevent architecture-only attribution.
+
+### 4.9 Refusal, fallback and net-benefit calibration
+
+| Source | Validation population | Signal and fallback | What the evidence does not establish |
+|---|---|---|---|
+| AdaptOrch | Three fixed benchmarks; development/test denominator conflict remains | Semantic similarity below its criterion invokes an arbiter, then higher coupling and hierarchical rerouting | Semantic similarity is not logical consistency. The oracle-topology accuracy table conflicts internally and does not measure calibrated net benefit or OOD refusal |
+| MasRouter | Benchmark queries and a newly added DeepSeek-v3 model | Routes through its model/role/topology pool; inspected text reports no OOD refusal threshold or safe fallback arm | Generalizing to an unseen model is not testing unfamiliar tasks or time drift. A utility-minus-cost training objective is not calibration evidence |
+| DyLAN | Fixed task sets, role-matched and role-mismatched teams | Removes low-ranked agents; stops on agreement or returns a task-specific final answer at the layer cap | Off-Domain means no role matches the subject, not a held-out task distribution. Agreement and contribution rank are not calibrated net-benefit predictions |
+
+In these three full texts and the inspected official code, no experiment measures refusal/fallback
+net benefit under real time drift. This is a bounded negative result, not a field-wide absence claim.
+The supplement records search terms, exact scopes, unavailable sources and reported conditions.
+No Pod detector, fallback form, threshold or calibration method is selected here.
+
 ## 5. Benchmarks with concrete numbers
 
 **The question this section answers: where can someone read a score and a cost in the same row, and
@@ -1276,8 +1318,9 @@ what do those rows actually say about whether extra token spend buys score?**
 ### 5.1 The four surfaces that actually report score AND cost
 
 The table is the original collection snapshot, not four newly audited ledgers. The correction
-record verifies the two named Codex rows and one SWE-bench row. HAL row costs are held out pending
-the issue-scope check in §5.6. Other values require their source and accounting limits on reuse.
+record verifies the two named Codex rows and one SWE-bench row. The follow-up verifies TB 4.0's
+66 tasks and 35 rows' trial/token fields. HAL row costs remain held out pending affected-row
+identification and re-derivation (§5.6). Other values retain their original reading level.
 
 | Surface | Owner / URL | Score | Cost column | Example row |
 |---|---|---|---|---|
@@ -1286,14 +1329,16 @@ the issue-scope check in §5.6. Other values require their source and accounting
 | **HAL** (Holistic Agent Leaderboard) | Princeton SAgE — [hal.cs.princeton.edu](https://hal.cs.princeton.edu/), paper [arXiv 2510.11977](https://arxiv.org/abs/2510.11977), **ICLR 2026** | 9 benchmarks | **USD total per full benchmark + explicit "Pareto optimal" tags** | GAIA: Claude Sonnet 4.5 **74.55% @ $178.20**; o4-mini High **54.55% @ $59.39** |
 | **Vals AI** | [vals.ai/benchmarks](https://www.vals.ai/benchmarks) (Vals Index updated 2026-10-12, v2.1, 47 models) | accuracy | **Cost/Test + input/output price + tokens + duration** | Gemini 4 Argon **68.90% @ $15.68/test**; MiMo V2.6 Flash **53.23% @ $0.20/test** |
 
-**Two benchmarks advertise cost but do not report it: HLE and WebArena.** Two report tokens/GPU-hours
-but no USD: MLE-bench and BrowseComp.
+HLE v11 reports completion tokens; its live board remains unread. WebArena v4's inspected text
+has no reported inference dollars/token counts. MLE-bench gives token usage and resource budgets;
+BrowseComp's cost coverage is not yet fully checked. None is a field-wide absence claim.
 
 ### 5.2 The single best datapoints for "does extra spend buy score"
 
 These are reported score/cost observations, not one causal spend-vs-score curve. Models,
-scaffolds, versions and denominators differ. RE-Bench and PaperBench cost coverage conflicts
-with the companion cost report; their excerpts below remain pending primary-table reconciliation.
+scaffolds, versions and denominators differ. RE-Bench and PaperBench cost coverage is now
+reconciled through the [primary-source supplement](supplements/02-paperbench-rebench-costs-20261013.md).
+Its limits apply to the observations below; full accounting is not established.
 
 1. **Terminal-Bench 4.0, identical score at 5.15× the cost.** GPT-6.1 Sol / Codex / max:
    **58.18% @ $634.24**. GPT-6 Astra / Codex / max: **58.18% @ $3,267.18**. The published cost ratio
@@ -1306,62 +1351,63 @@ with the companion cost report; their excerpts below remain pending primary-tabl
    These aggregate rows do not identify a causal marginal return without controlled trials.
 3. **SWE-bench Verified, one point for 10.3× the money.** MiniMax M2.5 (high) **75.8% @ $0.0733/inst**
    vs Claude 4.5 Opus (high) **76.8% @ $0.7539/inst**. Also Gemini 3 Flash (high) **75.8% @ $0.3560**.
-4. **HAL, higher reasoning effort lowers accuracy in the majority of runs.** The paper's own headline:
-   *"Our analysis reveals surprising insights, such as higher reasoning effort reducing accuracy in the
-   majority of runs."* Concurrent site evidence: GAIA Claude Sonnet 4.5 **74.55% @ $178.20** vs
-   Sonnet 4.5 *High* **70.91% @ $179.86** — more effort, less accuracy, slightly more cost. And GAIA
-   Opus 4.1 High **68.48% @ $562.24** vs Sonnet 4.5 **74.55% @ $178.20**: **3.2× the cost for −6.07 pts.**
-5. **GAIA via HAL, the cost curve is nearly flat at the top.** HF Open Deep Research / Claude Opus 4:
-   **57.58% @ $1,686.07** vs o4-mini High **54.55% @ $59.39** → **28.4× the cost for +3.03 pts.**
+4. **HAL's paper reports effort/accuracy differences.** Its finding that higher reasoning effort
+   does not improve accuracy in 21/36 runs does not verify a spend relationship while affected
+   costs are unrecalculated. The original GAIA row-cost comparisons are withdrawn from decisions.
+5. **GAIA via HAL has no approved cost-curve conclusion in this report.** Original preview
+   arithmetic mixed configurations; non-uniform double counting prevents reuse as efficiency evidence.
 6. **Vals Index, concrete marginal returns.** Rank 3 Claude Opus 5.5 **66.97% @ $32.14/test** vs
    rank 9 GPT-6.1 Sol **61.15% @ $3.24/test** → **5.8 pts for 9.9× the money**. Rank 14 MiMo V2.6 Pro
    **55.20% @ $0.41/test** → **11.77 pts for 78.4× the money** from rank 3.
-7. **RE-Bench, and it inverts the framing.** METR: agents use ~**29M input / ~499K output tokens at
-   ~$123 per 8-hour run**, vs **~$1,855 per 8-hour human expert attempt** — a **15.1× cost gap in the
-   agent's favour**, with Figure 11 plotting "best score@k results by token cost for AI agents and by
-   money paid to human experts". But: *"the best AI agents achieve a score 4× higher than human experts
-   when both are given a total time budget of 2 hours… humans currently display better returns to
-   increasing time budgets, narrowly exceeding the top AI agent scores given an 8-hour budget, and
-   achieving 2× the score of the top AI agent when both are given 32 total hours."* **Money is not the
-   binding constraint; the returns-to-time curve differs by actor.**
-8. **PaperBench, an accuracy-per-dollar table.** JudgeEval (macro-avg F1 @ avg $/paper): GPT-4o-mini
-   **0.59 @ $8**; o1-mini 0.78 @ $72; **o3-mini 0.83 @ $66** (chosen as most cost-effective); GPT-4o
-   0.73 @ $120; o1 **0.84 @ $830** → **12.6× the money for +0.01 F1.** The eval itself is priced:
-   *"on average it costs $400 in API credits to run an o1 IterativeAgent 12-hour rollout on a single
-   paper… $8000 USD per eval run"* for 20 papers, +$66/paper grading with o3-mini SimpleJudge (PBCD:
-   ~$4,000/run, grading ~$10/paper).
-9. **MLE-bench, returns in hours not dollars.** GPT-4o **8.7% at 24 h → 11.8% at 100 h** (+3.1 pts for
-   4.2× runtime); o1-preview **16.9% pass@1 → 34.1% pass@8**. Cost is reported as **1,800 GPU-hours +
-   127.5M input / 15.0M output tokens per 75-competition seed**, no USD.
-10. **tau-bench → tau2-bench: a 4.2× cost reduction from a benchmark revision.** tau-bench (arXiv
-    2406.12045): gpt-4o FC agent **$0.38/task** + gpt-4o user sim **$0.23/task** = **$0.61/task**
-    (*"running one trial per task costs around 200 dollars"*; input prompt = 95.9% of the agent price).
-    tau2-bench (arXiv 2506.07982): gpt-4.1 agent **$0.086/task** + sim **$0.059/task** = **$0.145/task**;
-    all domains ≈ **$40**. Same-family benchmark, 4.2× cheaper — a reminder that cost figures are only
-    comparable within a benchmark version.
+7. **RE-Bench reports agent and expert costs.** §6.2 of [2411.15114v2](https://arxiv.org/abs/2411.15114v2)
+   reports about 29M input and 499K output tokens, or $123 per 8h agent run, and an average expert
+   payment of about $1,855. The human-payment denominator is not explicit; the earlier "per 8-hour
+   human expert attempt" wording is withdrawn. The arithmetic ratio is about 15.08, not a same-quality
+   or same-resource cost ratio. Figure 11 plots best score@k against token cost and human payments,
+   excludes H100 costs, and gives agents over 10× the compute at equal plotted spending. Time-budget
+   results differ too: the abstract reports agents ahead at 2h, humans slightly ahead at 8h and
+   about twice the top agent score at 32h. These observations do not identify a sole binding constraint.
+8. **PaperBench separates judge and rollout estimates.** JudgeEval Table 3 of
+   [2504.01848v3](https://arxiv.org/abs/2504.01848v3) gives macro-F1 and mean judge cost per paper:
+   GPT-4o-mini 0.59/$8; o1-mini 0.78/$72; o3-mini 0.83/$66; GPT-4o 0.73/$120; o1 0.84/$830.
+   Thus 830/66 ≈ 12.58 for +0.01 F1. This is judge quality, not agent task performance; Table 8
+   instead prints 0.77 for o1-mini, and footnote 7 names o1 pricing beside the o3-mini estimate.
+   §7 estimates $400 per o1 IterativeAgent 12h rollout, or $8,000 for 20 papers once, plus about
+   $66/paper for o3-mini judging. PBCD's $4,000/run is an expectation from halving runtime, not an
+   observed bill; its judge estimate is about $10/paper. Human judging has a hypothetical price,
+   not reported compensation for the human replication baseline.
+9. **MLE-bench separates time budgets and measured token usage.** GPT-4o scores 8.7% at a 24h
+   budget and 11.8% at 100h; o1-preview pass@1=16.9% and pass@8=34.1%. The 1800 GPU-hours
+   per 75-competition seed is a budget ceiling, not utilization. Mean usage per such seed is
+   127.5M input + 15.0M output tokens. The extra seven dev competitions are outside that denominator.
+10. **Tau papers report two roles' costs within one arm.** τ-retail gives gpt-4o FC agent
+    $0.38/task and gpt-4 user simulation $0.23/task, plus about $200 for one trial per task.
+    τ² gives $0.086/$0.059 per task and about $40 for an all-domain trial, with both roles
+    using gpt-4.1-2025-04-14. Models, domains and benchmark versions differ, so the arithmetic
+    0.61/0.145 is not a measured saving caused by the revision or a multi-vs-single contrast.
 
 ### 5.3 Per-benchmark inventory
 
 | Benchmark | What it measures | Where scores live | Cost reported? | Cost unit | Headroom |
 |---|---|---|---|---|---|
-| **GAIA** ([2311.12983](https://arxiv.org/abs/2311.12983)) 466 q; 165 validation public; 300 test withheld | real-world assistant tasks: reasoning, multi-modality, browsing, tools | HF Space (alive, Gradio submit-only); **HAL/GAIA** readable (165-q validation) — **HAL paused for new models** | **Yes (HAL)** | USD total for all 165 | human 92% vs GPT-4+plugins 15% (paper); HAL top 74.55% |
+| **GAIA** ([2311.12983v1](https://arxiv.org/abs/2311.12983v1)) 466 questions; 166 dev; 300 answers withheld | real-world assistant tasks: reasoning, multi-modality, browsing, tools | HF Space source/config headers inspected; row score denominators unverified; HAL table readable but costs quarantined | No cost/token/time columns in inspected Space source/config; HAL costs are not approved for efficiency use | Do not infer a cost denominator from the v1 split or another board | human 92% vs GPT-4+plugins 15% in v1, not multi-vs-single |
 | **SWE-bench Verified** ([2310.06770](https://arxiv.org/abs/2310.06770)) 500 human-validated (full 2,294; Lite 300) | resolving real GitHub issues, pass/fail on repo tests | [swebench.com](https://www.swebench.com/) — actively maintained | **Yes** | USD total, **$/instance**, calls/instance | top row 79.2% **with `cost: null`** |
 | **tau-bench / tau2-bench** ([2406.12045](https://arxiv.org/abs/2406.12045), [2506.07982](https://arxiv.org/abs/2506.07982)) | tool–agent–user interaction (pass^k); tau2 adds dual-control telecom (Dec-POMDP) | HAL/TAU-bench Airline (50-task public set; paused); tau2 results in-paper | **Yes** | USD per task | tau-bench: *"even gpt-4o solves only 35.2%"*, pass^8 <25% |
 | **BrowseComp** ([2504.12516](https://arxiv.org/abs/2504.12516)) 1,266 q | finding hard-to-find multi-hop facts | paper Table 3; no official standalone leaderboard | **Partially** | browsing effort / samples; human wall-clock | Deep Research 51.5%; o1 9.9%; GPT-4o 0.6% |
-| **HLE** ([2501.14249](https://arxiv.org/abs/2501.14249)) 2,500 (2025-04-03); HLE-Rolling 2025-10-08; Nature 649:1139–1146 (2026-01-28); HLE-Diamond 2026-09-22 | frontier closed-ended academic reasoning + calibration | [lastexam.ai](https://lastexam.ai/); scale.com SEAL (JS-rendered) | **No** — no cost/token column | — | *"accuracy remains low across several frontier models"*; headline table dated 2025-04-03 |
+| **HLE** ([2501.14249v11](https://arxiv.org/abs/2501.14249v11)) 2,500 questions | frontier academic reasoning + calibration | [lastexam.ai](https://lastexam.ai/); live board client-rendered and unread | Partial, completion tokens in paper Fig. 5/6 and §C.4 | Token usage, not dollars; $500K is a prize pool | Board and later variants require their own versioned checks |
 | **Terminal-Bench 4.0** ([tbench.ai](https://www.tbench.ai/)) | agent work in a real terminal/Docker env | tbench.ai/leaderboard, updated 2026-10-06 | **Yes — richest surface found** | USD + tokens (cached/uncached/output) + s/trial | best 64.85% |
-| **OSWorld** ([2404.07972](https://arxiv.org/abs/2404.07972)) 369 tasks (361 w/o Drive) | execution-based success on real computer tasks, 3 OSes | Google Sheet via osworld-v1.xlang.ai (**the sheet is a task-verification tracker, not a score board**) | **No** | — | humans 72.36% vs best model 12.24% (paper) |
+| **OSWorld** ([2404.07972v2](https://arxiv.org/abs/2404.07972v2)) 369 tasks (361 w/o Drive) | execution-based success on real computer tasks | Official root-page score table headers and self-reported sheet checked | Partial, observation token distribution and step budget; board has no money column | Single a11y observation p90=6343.60 tokens; max_steps=15 is a cap, not usage | The task-verification sheet is not the score board; denominators and Avg±Std require alignment |
 | **WebArena** ([2307.13854](https://arxiv.org/abs/2307.13854), NeurIPS 2024 Oral); VisualWebArena 2401.13649; WebArena-Infinity; TheAgentCompany ICML 2025 | task success in self-hosted replicas of real sites | webarena.dev is a **4.3 KB landing page with no leaderboard table in 2026** | **No** | — | not stated; WebArena-Infinity exists to counter static-env saturation |
-| **MLE-bench** ([2410.07095](https://arxiv.org/abs/2410.07095)) 75 Kaggle competitions | end-to-end ML engineering, medal rate | paper Table 2 + repo README; no live leaderboard | **Partially — GPU-h + tokens, no USD** | 1,800 GPU-h + 127.5M in/15.0M out per seed | o1-preview+AIDE 16.9% medals |
-| **PaperBench** ([2504.01848](https://arxiv.org/abs/2504.01848)) 20 papers; PBCD variant | replicating an AI paper's codebase, rubric-graded | paper; no live leaderboard | Original pass reports cost; companion-report conflict awaits primary-table reconciliation | USD per rollout and per-paper grading are distinct | PBCD/full correlation r = 0.48 is an original excerpt, not a new verification |
-| **RE-Bench** ([2411.15114](https://arxiv.org/abs/2411.15114)) 7 environments | ML R&D under fixed time budget, vs 71 eight-hour human expert attempts | paper + METR, Figure 11 | Original pass reports token/USD costs; companion-report conflict awaits reconciliation | Original excerpt: agent ~$123/8 h vs human ~$1,855/8 h; not reused as a verified cost comparison | Time-budget comparisons do not establish equal-cost returns |
+| **MLE-bench** ([2410.07095v6](https://arxiv.org/abs/2410.07095v6)) 75 Kaggle competitions | end-to-end ML engineering, medal rate | Paper Table 2 and README use different aggregates | Partial, resource budget and tokens; no USD in inspected paper | Per 75-competition seed: 1800 GPU-hour ceiling and mean 127.5M input/15.0M output tokens | o1-preview+AIDE paper 16.9% medals; README value not silently substituted |
+| **PaperBench** ([2504.01848v3](https://arxiv.org/abs/2504.01848v3)) 20 papers; PBCD variant | replicating an AI paper's codebase, rubric-graded | paper; no live leaderboard | Yes, author estimates checked in §4.1/§7 and Table 3; complete bills unavailable | o1 rollout $400/paper; o3-mini judging $66/paper, separately | PBCD/full correlation r = 0.48 is an original excerpt, not a new verification |
+| **RE-Bench** ([2411.15114v2](https://arxiv.org/abs/2411.15114v2)) 7 environments | ML R&D under fixed time budget, vs 71 eight-hour human expert attempts | paper + METR, Figure 11 | Yes, §6.2 reports agent tokens/USD and average expert payments | Agent ~$123/8h; expert payment ~$1,855 with unspecified denominator; H100 excluded from Figure 11 | Time and cost comparisons answer different questions; no equal-quality cost ratio established |
 
 ### 5.4 Multi-agent-specific suites
 
 | Suite | Source | What it gives | Cost? |
 |---|---|---|---|
 | **MAST / MAST-Data** | [2503.13657](https://arxiv.org/abs/2503.13657) | 1,600+ annotated traces over 7 MAS frameworks; 14 failure modes; human IAA κ = 0.88; **failure rates 41–86.7%** | **Annotator only, $1.8/trace avg** (AppWorld $0.3740, HyperAgent $0.9695, AG2 $1.1656, ChatDev $2.1272, MetaGPT $2.4455, MagenticOne $1.3056). **MAS run cost not reported.** Do not cite MAST as a cost benchmark |
-| **MultiAgentBench** | [2503.01935](https://arxiv.org/abs/2503.01935) | milestone-based KPIs; coordination topologies **star/chain/tree/graph**; group discussion + cognitive planning. gpt-4o-mini highest avg score; **graph best in research scenario**; cognitive planning **+3%** milestone achievement | **No cost or token usage** |
+| **MultiAgentBench** | [2503.01935](https://arxiv.org/abs/2503.01935) | Original excerpts: milestone KPIs, star/chain/tree/graph topologies, cognitive planning; full-source cost and comparison check remains open | Not fully checked; original "no cost" claim is not an absence result |
 | **MasBench** | [2601.14652](https://arxiv.org/abs/2601.14652) | controlled benchmark over **5 axes: Depth, Horizon, Breadth, Parallel, Robustness**; designed to answer *when* MAS helps | Cost is central (Pareto-frontier figure, >10× efficiency claim) |
 | **AgentRelBench / EnterpriseOps-Gym** | [2608.15286](https://arxiv.org/abs/2608.15286) | reliability instrument: **ground-truth, severity-priced damage from DB state diffs, no LLM in the measurement path**; 2,128 runs, 9 models, 6 families | Damage is priced; token cost not the focus |
 | **MERIT** | [2609.05441](https://arxiv.org/abs/2609.05441), 2026-07-26 | **cost-aware evaluation of long-term memory**; "full token and dollar metering of every memory operation"; **23,440 scored episodes for $42.57** (~$0.0018/episode). Memory lifts dependent-task success from a leak-verified floor of **0.00 to 0.55–1.00**; agents act on a correctly retrieved value only **55%** of the time | **Yes — tokens + USD per episode** |
@@ -1372,20 +1418,18 @@ with the companion cost report; their excerpts below remain pending primary-tabl
 
 ### 5.5 Is there a published multi-agent-vs-single comparison with BOTH score and cost?
 
-This pass has not verified a same-task, same-model pair with both complete quality and cost
-measurements. That is an open evidence requirement, not proof that no such result exists.
+Yes, at the paper-report level. Optima Table 6 explicitly uses Llama 3.2 3B for untrained
+MAD/CoT/SC baselines on the same task columns. ARC-C reports accuracy/#Tok of 37.4/872.4
+for MAD, 51.5/256.1 for CoT and 57.6/2068.6 for SC(n=8). This is not a matched-budget
+advantage or a complete API bill. Exact run configuration and samples remain unknown.
+The [cost report §2.4](benchmarks-and-cost-accounting.md#24-multi-agent-studies-that-publish-both-a-score-delta-and-a-cost-delta)
+owns the detailed pair and its limits; missing dollars or logs do not erase the published pair.
 
-- **SWE-bench Verified:** no multi-agent-vs-single pairing. The page notes results come "from simple LM
-  agent loops to RAG systems to multi-rollout and review type systems" — review/multi-rollout systems
-  are present but **not labelled as multi-agent and not cost-paired**.
-- **GAIA, tau-bench, tau2-bench, BrowseComp, HLE, Terminal-Bench, OSWorld, WebArena, MLE-bench,
-  PaperBench, RE-Bench:** none found with both score and cost for a multi-agent vs single-agent pair.
-  Scaffold names such as Claude Code or Codex alone do not show whether a run used subagents.
-- **MAST** gives multi-agent *failure* data and prices only its annotator. **MultiAgentBench** gives
-  topology comparison with **no cost**.
-- **Anthropic's internal eval is not the required controlled cost pair.** Its token ratios use
-  chats as the denominator, while the score claim compares different agent configurations on an
-  internal eval. The companion cost report §2.4 lists further candidates requiring table-level checks.
+The original suite checklist remains unfinished. Some inspected papers do not contain the
+required contrast, while other suite sources and cross-paper comparisons have not been read.
+Use the cost report §1.3 for per-suite coverage, not a blanket "none found" statement.
+Scaffold names or effort variants alone do not identify multi-agent arms. Anthropic's internal
+eval remains a different object: its token ratios use chats as denominator, not the score arms.
 
 Public score/cost infrastructure can support a Pod experiment. Its contribution would be a
 traceable measurement under declared controls; this search does not establish novelty.
@@ -1401,10 +1445,10 @@ cost report §4, C1–C9.
   **21,730 agent rollouts, 9 models, 9 benchmarks, total cost ≈ $40,000, 2.5B tokens** of released
   agent logs. Every leaderboard carries a **Cost (USD)** column and **"Pareto optimal"** tags; ships a
   "Resolved vs cost limit" style view in the original collection. **Current citation restriction:**
-  that collection alleges an Oct 5, 2026 nested-span issue with nonuniform double counting, but the
-  correction pass could not verify its affected versions, rows or recalculation status. It is a
-  lead to investigate, not a basis to call all HAL costs upper bounds or all rows incomparable.
-  Hold the row-cost comparisons in this report out of decision evidence until verified (§9.1).
+  the Oct 5, 2026 banner is now primary-source checked. Nested spans overcount affected models
+  by exactly 2x; single-span models are unaffected; values are "Not yet re-derived". The affected
+  row set is unknown. Hold row-cost efficiency comparisons out of decisions until those rows'
+  accounting is resolved; do not call all rows uniformly inflated (§9.1).
 - **SWE-bench cost-controlled charts** — the official leaderboard ships
   `resolvedVsAvgCostChart.js`, `resolvedVsCostLimitChart.js`, `cumulativeCostChart.js`: literally
   "resolved vs cost limit" (score at a fixed spend), plus a **bash-only standardized track** where every
@@ -1412,8 +1456,10 @@ cost report §4, C1–C9.
 - **Vals AI** — *"Each leaderboard compares large language models (LLMs) on accuracy, cost, and
   latency"*; 31 benchmarks; Vals Index columns include **Cost/Test**, input/output price, and duration.
 - **RE-Bench Figure 11** — "best score@k results by token cost for AI agents and by money paid to human
-  experts": a published accuracy-per-dollar plot with a human cost baseline.
-- **PaperBench JudgeEval Table 3** — a pure F1-vs-$/paper table.
+  experts": a score-versus-spending plot, not an accuracy ratio. Its caption excludes H100 costs;
+  plotted points were not extracted in this check.
+- **PaperBench JudgeEval Table 3** reports judge F1 and mean dollars per paper, not agent rollout
+  quality. The pricing-footnote limitation in §5.2 applies.
 - **MERIT** — token and dollar metering of every memory operation.
 - **Scale SEAL** ([scale.com/leaderboard](https://scale.com/leaderboard)) — HLE page documents dataset
   design but has **no cost column**; ranking methodology is significance grouping, not cost.
@@ -1437,8 +1483,10 @@ cost report §4, C1–C9.
 - **Cost is not comparable across benchmark versions or providers.** tau-bench $0.61/task → tau2-bench
   $0.145/task is a benchmark-revision effect, not a progress effect. Mas-Orchestra's USD figures are
   Together AI pricing at time of writing; OneFlow's are OpenAI tokenization for GPT-4o-mini.
-- **The cost of evaluating is itself material** and must be budgeted: PaperBench $8,000/eval run
-  (PBCD ~$4,000), HAL ~$40,000 total, MAST $1.8/trace, MERIT $42.57 for 23,440 episodes.
+- **Evaluation has its own cost.** PaperBench estimates $8,000 for one o1 IterativeAgent 12h rollout
+  on each of 20 papers, excluding separate judging; PBCD's ~$4,000 is a runtime-based expectation.
+  Other original excerpts: HAL ~$40,000 total, MAST $1.8/trace, MERIT $42.57 for 23,440 episodes.
+  Their inclusion rules and denominators differ.
 
 ## 6. The "impossible triangle" claim
 
@@ -1829,18 +1877,18 @@ Recorded precisely, because a reconnaissance map's value depends on where its ed
   `openai.com/index/introducing-swe-bench-verified/`, `openai.com/index/mle-bench/`,
   `openai.com/index/paperbench/`. Those claims were verified from the arXiv papers instead; the
   blog-post framings were not read.
-- **`gaia-benchmark.github.io` → 404.** `altera.al`, `blog.altera.al`, `www.altera.al` → all curl exit
-  000 (the company's site is dead). **Project Sid's follow-up work could not be checked at all.**
+- **`gaia-benchmark.github.io` returned 404.** `altera.al`, `blog.altera.al`, `www.altera.al`
+  returned no HTTP status in the original attempts. Access failure does not prove a site is dead;
+  Project Sid's follow-up work remains unchecked.
 - **JS-rendered surfaces not extracted:** `scale.com/leaderboard/humanitys_last_exam` (reached, 226 KB,
   no score table parsed), `epoch.ai/benchmarks` (reached, 134 KB, no cost table extracted),
   `webarena.dev/webarena-infinity` (23 KB JS shell; zero occurrences of "cost", "token" or "success
-  rate" in the HTML), `hal.cs.princeton.edu/swebench_verified_mini` (table body not parsed). A browser
-  with a real session (the `browser-automation` skill path) would likely resolve these.
-- **HAL accounting-issue scope is unverified.** The original collection recorded a purported
-  Oct 5, 2026 notice about nested-span double counting. The correction pass timed out on the site
-  and located only a different cached-token fix, PR #114. Neither source establishes which current
-  rows are affected or recalculated. HAL row costs remain quarantined; do not generalize the clue
-  into an all-table inflation claim. See the correction record §2.
+  rate" in the HTML). HAL is no longer in this category: all nine server-rendered subpages were
+  readable in the cost supplement. The remaining JS-page coverage is still incomplete.
+- **HAL's affected-row set remains unknown.** The follow-up verified the Oct 5 notice and its
+  not-yet-re-derived status; PR #114 fixes a different cached-token issue. Source rows and the
+  notice are now available, but they do not identify each row's required correction. See the
+  [cost field-gap check](supplements/02-gap-rechecks-20261013.md).
 
 ### 9.2 Claims I could not verify, and what would verify them
 
@@ -1884,9 +1932,10 @@ Recorded precisely, because a reconnaissance map's value depends on where its ed
   a *later paper's* re-quoting of MAST, not from MAST's own text in the pass that captured them. The
   taxonomy structure, the κ values, the 1,642 traces and the 41–86.7% failure range **were** verified
   directly from MAST.
-- **Cost-inventory reconciliation remains open.** This report and the companion cost report differed
-  on SWE-bench, PaperBench and RE-Bench. SWE-bench's optional fields are now verified; the latter
-  two need primary-table checks. No cost column was found in the inspected OSWorld/WebArena pages;
+- **Cost-inventory reconciliation is partial.** SWE-bench's optional fields and PaperBench/RE-Bench's
+  paper-level cost reports have been checked. The [cost report §2.5](benchmarks-and-cost-accounting.md#25-other-claims-and-paper-level-costs)
+  records the latter two suites' pricing, aggregation and human-payment gaps. Other entries such as
+  MLE-bench still need paper-side checks. No cost column was found in the inspected OSWorld/WebArena pages;
   inaccessible or unread material does not establish that no such column exists elsewhere.
 
 ### 9.3 What this map deliberately did not do
@@ -1920,7 +1969,7 @@ Recorded precisely, because a reconnaissance map's value depends on where its ed
    任务或合成系统的结果。它们可提示采集哪些变量，不能直接成为 Pod 常量。术语也不替代有效性
    对照。（§4.5、§2.4）
 4. **分开计算选形、搜索与任务内切换。** AdaptOrch 已报告部分路由与合成开销，完整搜索摊销与
-   状态迁移账仍未核。原摘录的 $3.56–$21.75 约差 6.1 倍，3.24M–321.8M tokens 约差 99.3 倍，
+   状态迁移账仍未核。$21.75/$3.56=6.1096倍；321,813,314/3,235,288=99.4698倍prompt tokens，
    且成本对象不同；不能合称美元跨两个数量级或全领域无人报告。（§4.4、§9.2）
 5. **检验角色是否带来独立贡献。** 委员会相似度与单 agent 工作流编译结果可提示消融设计，不能
    直接判断 Pod 角色有效性。测量成本与语义有效性本身也需要验证。（§2.7、§4.6）
@@ -1929,7 +1978,7 @@ Recorded precisely, because a reconnaissance map's value depends on where its ed
 7. **为复核机制选定可观察的失败类型。** MAST 等材料可帮助设计故障分类和反例，但不能用某论文
    的检出率承诺 Pod 减少多少失败。权限与复核点的验收仍需项目内的可执行检查。（§3.4、§3.5）
 8. **受控对照服务本项目，不预宣称填补全球空白。** Terminal-Bench 与 SWE-bench 已核有公开分数
-   和成本；当前成本研究仍未完成同集同模型 multi-vs-single 双数字核验。HAL 争议及旧行 63.9 倍
+   和成本；Optima未训练基线已核有论文层同集同模型双数字，但不等于组织经济增益。HAL旧行63.9倍
    暂停用于决策。公开表可以提供候选口径，不能替代本项目受控实验。（§5.1、§5.5、§5.7）
 
 **使用这些推断时的一条元规则：** 本图中最强的单篇证据（2512.08296 的 1.6–6.2×、≈45% 天花板、
@@ -2040,7 +2089,7 @@ consulted. Every arXiv entry was resolved by `id_list` + `arxiv.org/abs` title c
 - `[P]` HLE, arXiv:2501.14249; Nature 649:1139–1146 (2026-01-28) — https://lastexam.ai/ ; https://scale.com/leaderboard/humanitys_last_exam `[U]` score table JS-rendered
 - `[P]` OSWorld, arXiv:2404.07972 — http://osworld-v1.xlang.ai/ (score sheet is a task-verification tracker, not a leaderboard)
 - `[P]` WebArena, arXiv:2307.13854 (NeurIPS 2024 Oral); VisualWebArena, arXiv:2401.13649 — https://webarena.dev/ (landing page only in 2026)
-- `[P]` MLE-bench, arXiv:2410.07095; PaperBench, arXiv:2504.01848; RE-Bench, arXiv:2411.15114v2
+- `[P]` MLE-bench, arXiv:2410.07095; PaperBench, [2504.01848v3](https://arxiv.org/abs/2504.01848v3), 2025-04-07; RE-Bench, [2411.15114v2](https://arxiv.org/abs/2411.15114v2), 2025-05-27; cost recheck 2026-10-13 in the linked supplement
 - `[P]` MERIT, arXiv:2609.05441 (2026-07-26); *Beyond Success Rate*, arXiv:2607.15263 (2026-07-16)
 - `[P]` *Multi-Agent Routing as Set-Valued Prediction … WildChat … Cost-Aware Evaluation*, arXiv:2606.28925
 - `[P]` Epoch AI — https://epoch.ai/benchmarks — `[U]` cost table not extracted

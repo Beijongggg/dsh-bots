@@ -1,11 +1,11 @@
-# 组织理论、复杂系统与多智能体协调的概念谱系 —— 纯概念侧研究报告
+# 组织理论、复杂系统与多智能体协调的概念谱系
 
 - 日期：**2026-10-13**
 - 票据：[组织理论、复杂系统与控制论（纯理念面）](../issues/03-research-organization-theory-and-concepts.md)。
-- 采集性质：建图前侦察的阶段性结果，已收编为该研究票交付物。研究票仍开放；经典侧只有书目与
-  少量摘要，LLM 侧只读到题名／摘要，不能据此完成原文边界与实际借用方式的核验。
-- 引用前先读票面 `Answer` 的关闭核对表。2026-10-13 修正撤销了对切换节奏、理论迁移及文献覆盖的
-  过强推断；本次未补读经典全文，也未完成 LLM 正文与引用核验。
+- 采集性质：建图侦察加 2026-10-13 有界补核。研究票仍开放; 已核经典机制与边界、三篇 LLM
+  全文样本见下表。其余题录、摘要与未核条目保留原层级, 取得全文不等于逐条内容已核。
+- 引用前读票面 `Answer` 及本节覆盖表; 核对具体引文、页码、版本、哈希时进入相应补核件。
+  本批纠正过强推断, 不裁定理论迁移、形态用词或切换节奏。
 - 主题：为「**按任务相变、塌缩到该任务高效形态**」的 Pod 动态组织设想，检索可借用的理论，
   以及**警示该设想**的理论。本文件只做概念层，不做工程实现选型。
 - 标注约定：
@@ -17,49 +17,39 @@
     综述转述）确认的，就地注明**仅二手核验**。
 - 原采集边界：研究会话只写本交付物；未使用当时不可用的搜索工具（web_search 返回 HTTP 402）。
   §7 的端点状态记录原采集条件，不代表后续补核仍不可达。
-- 权威性分级（贯穿全文）：**一手**（原著／期刊页／arXiv 原文）＞**二手核验**（百科、课程页、
-  综述的转述）＞`[未经一手来源核验]`（模型知识）。三者不混写。
+- 权威性与读取层级分开：原作正文、权威学术二手、百科线索、题录/摘要、未核概念各自标明。
+  大学镜像中的原作仍是原作载体; 百科不冒充权威学术二手。
 - 阅读路由：核对概念与出处读 §1–§4；检查 LLM 借用线索读 §5；讨论设计假设读 §6；补核前读 §7。
+
+| 路径/工作包 | 已核范围 | 原始定位与保留缺口 |
+|---|---|---|
+| 组织路径 5 项 | Galbraith、Gersick、Hannan & Freeman、Simon、Ostrom 讲座 | [经典警告](supplements/03-classic-design-warnings-20261013.md)、[组织余项](supplements/03-org-path-remainder-20261013.md); Ostrom 转述的 1961 定义与 Cox 等统计不冒充她的原始结果 |
+| 复杂系统 5 项 | BTW 1987、Anderson、Dorigo、Holland 1992、Bettencourt | [复杂系统](supplements/03-complex-systems-sources-20261013.md); Holland 七机制列表及未读页不随全文取得自动升级 |
+| 控制论 2/5 项 | Ashby 1956 所引表条件、Wiener 1961 第二版所引页 | [经典警告](supplements/03-classic-design-warnings-20261013.md)、[控制原文](supplements/03-control-sources-20261013.md)、[控制缺口](supplements/03-control-gaps-20261013.md); Beer/von Foerster 只有百科, Varela 只有库载摘要, 均不计达标 |
+| 协调路径 5 项 | Smith、Hearsay-II、Hewitt、Cohen & Levesque 四篇所列机制/边界; ADOPT 由 JAIR 综述核验 | [协调原文](supplements/03-coordination-sources-20261013.md)、[ADOPT 权威二手](supplements/03-coordination-gaps-20261013.md); 原作 ADOPT 的精确定理条件仍未知 |
+| LLM 借用 3 个全文样本 | MacNet v3、Absorbing State v2、LLM-MR-CNP v1 | [借用核对](supplements/03-llm-classic-borrowing-20261013.md); 不据三样本估计全领域借用比例 |
 
 ---
 
-## 0. TL;DR（先给结论，细节在后）
+## 0. 结论与证据上限
 
-1. **任务匹配有可追查的理论线索**：权变理论、信息处理观、互依类型学与判别性对齐可用于提出
-   "形态应与任务匹配"的假设。除 Galbraith 1974 的部分摘要外，相关原文论证和迁移条件尚待核验。
-2. **切换节奏仍是设计假设**：间断平衡、团队中点转变与结构惯性值得补读，但 Gersick 1988 连摘要
-   都未取得。当前不能从这些书目推出"形态只能在里程碑切换"，也不能把人类组织观察直接移作
-   agent 组织的频率限制（§1.7、§6.3）。
-3. **物理意义的相变主张需要形式证据**：序参量、控制参数、尺度标度与零模型是候选核验项。
-   本项目沿用"相变"作为设计用词，还是改称"形态切换"，留给形态决议；研究不代替术语裁定。
-4. **摘要提供了形式化候选，不等于已核验达标**：arXiv:2609.38327 与 2609.17419 可继续查正文。
-   MacNet（arXiv:2406.07155）已读摘要使用 logistic growth 与 collaborative emergence；这只说明
-   摘要措辞，不能代替对全文是否建立相变模型的判断。
-5. **SOC 的边界**：幂律不可辨识、临界≠最优；借用必须连**机制**（慢驱动／阈值／时间尺度分离）
-   与**检验**一起借用，否则是贴标签（§2.2）。
-6. **阿什比定律可启发元层问题**：限制任务入口、提供默认形态、增强探测是候选方案。哪条更便宜
-   需要成本数据；定律原文与向选择器的映射仍待核验（§3.1、§6.5）。
-7. **团队理论值得补读**：信息结构与延迟和本项目问题相近，但同一目标配置不证明成员行为目标一致。
-   未做引用图或正文核验，不能称它"最少被借用"或"最可迁移"（§1.10、§4.3）。
-8. **没有免费午餐的迁移条件待核**：Wolpert & Macready 1997 的书目不构成对组织路由器的定理证明。
-   声明评测的任务分布是可取的方法建议，不由此推出必须冻结现实任务分布（§6.7）。
-9. **承诺机制是候选风险面**：BDI／联合意图在当前题名与摘要样本中缺少明确借用，正文仍待查。
-   应区分任务间独立选形与任务内反复迁移，前者本身不等于抖动（§4.7、§6.11）。
-10. **LLM 摘要中的警告线索**：收益可能很小（MAST 2503.13657），协调可能放大错误传播风险
-    （2605.14892），选择器指标不保证部署收益（RouteGuard 2608.07583）。具体实验与适用条件待核。
-11. **本轮检索空白（标题＋摘要面）**：矩阵组织、双元性、间断平衡、TMS、DCOP、交易成本、actor
-    模型、BDI 在 LLM 多智能体文献中未见明确借用；相邻替代物是拓扑搜索／路由、层级记忆、状态机
-    ＋动态雇佣（§5.2）。**"检索不到"受 §7 的方法限制，不等于不存在。**
-12. **证据上限**：经典侧**只有书目与少量摘要**，无全文；LLM 侧**全部为摘要级作者自述**。本文件
-    是问题清单与判据来源，不是"已确证"依据（§7）。
+1. Galbraith 的信息处理成本、Hannan & Freeman 的重组可靠性、Gersick 的期限样本已核到原文。
+   它们支持提出成本与边界问题, 不直接给 Pod 的形态选择或切换频率。
+2. 经典四路已有三路达到至少五项内容来源, 控制论仅 2/5。其余条目的边界仍待核, 整票不关闭。
+3. 三个 LLM 全文样本呈现不同借用方式：MacNet 借标度关系, Absorbing State 建立带近似条件的
+   搜索相变模型, CNP 扩展经典协议。CNP 未完成组件匹配消融, LLM 独立收益仍不能据此认定。
+4. Ashby 的表条件、Wiener 的回路设计边界与 NFL 的均匀平均前提已核。它们都不能直接转换为
+   "选择器必然失准"、"无 deadband 必然抖动"或"现实任务分布必须冻结"。
+5. 序参量、控制参数、零模型、尺度与度量敏感性可作候选核验面。项目是否沿用"相变"一词由
+   下游形态决议处理, 本报告不改名、不制定硬门。
+6. 未补读的 LLM 文献仍只作题录/摘要线索。原检索的空白受入口和查询范围限制, 不代表全领域没有借用。
 
 ---
 
 ## 1. 组织理论：从权变到多中心
 
-本节核验状态：Crossref／OpenLibrary 多数只核验到篇名、年份与刊社。除明确标出已读摘要引文外，
-各条"核心主张"与"边界"均是待回原文的概念整理。这些条目暂只提供检索线索，原文依据补齐后
-才能支撑下游决议。
+本节已核 Galbraith、Gersick、Simon、Ostrom 讲座的下列机制与边界, 另在 §6.2 核 Hannan & Freeman。
+其余条目仍为待回原文的概念整理; 不因邻近条目补核而升级。迁移到 agent 组织一律另标 INFERENCE。
 
 ### 1.1 权变理论：Burns & Stalker 的机械式／有机式
 
@@ -93,13 +83,11 @@
   四种设计策略：① 冗余资源（slack resources）② 自足任务（self-contained tasks）③ 纵向信息
   系统投入 ④ 横向关系（lateral relations）。
 - **一手**：Galbraith, J. R. (1974). "Organization Design: An Information Processing View",
-  *Interfaces* 4(3):28–36，DOI 10.1287/inte.4.3.28（本轮 Crossref **核验，且摘要原文**：
-  "The purpose of this paper is to explain why task uncertainty is related to organizational form. In so
-  doing the cognitive limits theory of Herbert Simon was the guiding influence."）。另见 Galbraith
-  (1973)《Designing Complex Organizations》`[书目未经一手来源核验]`。
-- **边界整理，原文待核**：四种策略**都有成本**，选择是"在成本约束下最小化信息处理负担"，不存在免费
-  形式；模型以**不确定性可被刻画**、信息处理负担可估为前提；它解释形式差异，不预测哪种形式绝对
-  更优。**这是本设计"按任务选形态"最直接的理论祖先。**
+  *Interfaces* 4(3):28-36, DOI 10.1287/inte.4.3.28。全文副本已读, 定位与引文见
+  [A2](supplements/03-classic-design-warnings-20261013.md)。1973 年书仍未核。
+- **已核边界**：p.28 说选择取决于策略的相对成本; p.31 指自足任务损失资源专业化。
+  p.36 把四策略的穷尽性和环境中最低成本选择写为假设框架, 同页承认可能有未展开的第五策略。
+  因而不能写成已证明的穷尽菜单或 "最小化信息处理负担" 定理, 也不排序其对 Pod 的适用性。
 
 ### 1.4 Thompson：互依类型（pooled / sequential / reciprocal）
 
@@ -140,13 +128,17 @@
 - **一手**：Baldwin, C. Y. & Clark, K. B. (2000). *Design Rules, Volume 1: The Power of Modularity*.
   Cambridge, MA: MIT Press（本轮 OpenLibrary **书目记录核验**：MIT Press，记录年 1999/2000）；
   Simon, H. A. (1962). "The Architecture of Complexity", *Proceedings of the American Philosophical
-  Society* 106(6):467–482（近可分解性、稳定中间形态加速演化）`[书目未经一手来源核验]`；
+  Society* 106(6):467-482, 已核 p.468/470/471/473/474/475 页图, 见[组织余项 S1-S4](supplements/03-org-path-remainder-20261013.md)；
   Langlois, R. N. "Modularity in technology and organization"（Crossref 命中其 2000 年 SSRN 版
   "Modularity in Technology, Organization, and Society"；期刊版 `[未经核验]`）。
 - **边界整理，原文待核**：① 模块化**以一套稳定且被共同遵守的可见设计规则为前提**，规则本身
   的设计与维护是集中成本；② **模块必须可测**——没有模块级测试，就没有模块化的收益（测试成本可能
   吃掉全部收益）；③ 模块化是**要行使的期权**，不行使则不产生价值；④ 分界一旦定错会锁死系统级
   创新（整体式架构在系统级创新上可能更优，Langlois 论点）`[具体论证未经一手核验]`。
+- **Simon 已核部分**：层级指递归子系统, 不等于正式权力树。近可分解指短期近独立、长期只受
+  其他部分聚合影响; epsilon 越小符合者越少, 作者同时说自然中此类结构并不少见。制表匠约
+  4,000 倍来自 p=.01 的演示假设, 作者明确说数值不可认真采用, 不是实测加速。Baldwin & Clark
+  与 Langlois 的上述边界仍未核, 不由 Simon 代证。
 
 ### 1.7 间断平衡与组织转型：Tushman & Romanelli、Gersick
 
@@ -162,8 +154,10 @@
   16(1):10–36，DOI 10.2307/258605（**核验**）；Gersick, C. J. G. (1988). "Time and Transition in Work
   Teams: Toward a New Model of Group Development", *Academy of Management Journal* 31(1):9–41，DOI
   10.2307/256496（**核验**）。
-- **内容核验缺口**：Gersick 1988 只核到书目，未取得摘要或全文。"中点转变"的样本、时间定义、
-  因果解释和边界均 `[未经一手来源核验]`；上列其他文献也未完成全文核验。
+- **Gersick 1988 已核**：8 组来自 6 个组织, 期限 7 天至 6 个月; p.16 观察到首次会面与正式
+  截止日之间的日历中点转变。p.36 自限为假设生成、单一分析者、非随机样本, 适用于有过程调整
+  余地且受期限约束的组, 模型 expressly provisional。见[经典警告 A1](supplements/03-classic-design-warnings-20261013.md)。
+  Tushman/Romanelli 与 Gersick 1991 仍未读正文, 不把 1988 团队观察升级为普遍组织阶段律。
 - **迁移假设（INFERENCE）**：可比较事件触发与持续重估的收益和切换成本。人类团队的期限效应即使
   补核成立，也不能直接推出 agent 组织应每里程碑切换一次，更不能把任务间选形等同于任务内变革。
 
@@ -232,14 +226,18 @@
 
 ### 1.12 Ostrom 的多中心治理
 
-- **核心主张**：**多中心（polycentric）**＝许多相互独立、但彼此纳入考量的决策中心，辖区重叠、
-  规则嵌套；长期存续的公共池塘资源制度既非纯市场也非纯国家，而是多中心的。经验上提炼出边界清晰、
-  规则与本地条件相符、集体选择安排、监督、分级制裁、冲突解决机制、权利被承认、嵌套企业等设计原则。
+- **核心主张**：多中心指多个形式上独立的决策中心; 是否实际独立或构成互依网络须逐例观察。
+  讲座讨论公共资源制度的多中心治理与配置式分析, 不预设所有成功制度都属于同一种形态。
 - **一手**：Ostrom, E. (1990). *Governing the Commons: The Evolution of Institutions for Collective
   Action*. Cambridge University Press（OpenLibrary 命中其德译本与 CUP 记录，**书目记录核验**但
   未逐条核验）；Ostrom, E. (2010). "Beyond Markets and States: Polycentric Governance of Complex
   Economic Systems", *American Economic Review* 100(3):641–672，DOI 10.1257/aer.100.3.641（Crossref
-  **核验**）；设计原则条款 `[未经一手来源核验]`。
+  **题录核验**）。本次实际读取 2009-12-08 诺奖讲座版, 正文 pp.408-435、含参考文献 pp.408-444,
+  不冒充 AER 分页; 1990 年书仍未核。见[组织余项 O1-O4](supplements/03-org-path-remainder-20261013.md)。
+- **讲座已核边界**：p.409 主张配置式分析, 拒绝 one-size-fits-all; p.411 转引 1961 定义,
+  多中心之间实际独立还是互依是经验问题。p.422 的八原则更新清单及 pp.422-423 的 100 余研究、
+  约三分之二确认均归于 Cox/Arnold/Villamayor-Tomás 2009, 是 Ostrom 转述, 不是她的原始数据。
+  她把 design principles 解释为制度存续相关的规律, 并认为 best practices 也许更不易误读。
 - **已读摘要的边界**：Ostrom (2007). "A diagnostic approach for going beyond panaceas",
   *PNAS* 104(39)，DOI 10.1073/pnas.0702288104（Crossref **核验，摘要原文**）：该文明确
   "challenge the presumption that scholars can make simple, predictive models of social–ecological
@@ -257,49 +255,41 @@
 
 ## 2. 复杂系统与自组织：相变、临界、涌现
 
-本节核验状态：物理与网络科学条目（Bak 1987、Bettencourt 2007、West 1997、Beggs & Plenz 2003、
-Anderson 1972、Grassé 1959、Dorigo 1996）本轮经 Crossref DOI 记录核验到**篇名／年份／期刊**
-（部分含摘要原文）；其**内容陈述**除标注处外属通行教科书知识，未逐条回一手全文。
-书籍（Bak 1996、Holland 1975/1995/1998、Nicolis & Prigogine 1977、Prigogine & Stengers 1984）
-书目本轮**未能**经一手书目源确认，按 `[未经一手来源核验]` 处理。
+本节已核 BTW 1987、Anderson 1972、Dorigo 1996、Holland 1992、Bettencourt 2007 的下列机制与
+作者边界, 见[复杂系统补核](supplements/03-complex-systems-sources-20261013.md)。West、Beggs、Grassé
+及其余书籍仍保持题录/摘要或未核状态; 不把五篇的全文载体取得扩展为本节全覆盖。
 
 ### 2.1 相变与序参量：形式含义（本节是全篇类比纪律的基准）
 
-- **形式定义（事实）**：相变指系统宏观态随**控制参数**（温度、密度、阈值、耦合强度）越过
+- **概念整理，尚未逐条回核**：相变指系统宏观态随**控制参数**（温度、密度、阈值、耦合强度）越过
   **临界值**时发生定性改变；其严格标志是某个**序参量**（order parameter，一个在某一相中为
   零、另一相中非零的宏观量）在临界点**非解析**——不连续，或其导数发散。临界点上**关联长度
   发散**，系统无特征尺度，涨落呈幂律；**普适类**（universality class）意味着临界指数只依赖
   对称性与空间维度，不依赖微观细节 `[教科书知识，本轮未逐条回一手文献]`。
-- **形式定义的推论（事实）**：真正的相变只在**热力学极限**（系统尺寸→∞）严格成立。**有限系统
-  没有真正的非解析性**，观测到的是被"抹圆"的 crossover。要在有限数据上主张相变，标准做法是
-  **有限尺度标度**（finite-size scaling）：看转变点的位置/陡度如何随 N 移动，并与**零模型**
-  （独立、随机、无耦合基线）对照。因此"我们观察到相变"这句话，缺少序参量、控制参数、尺度标度
-  与零模型四件套时，只是**隐喻**。
-- **对组织的直接含义（事实层面的约束）**：把"组织形态"当作相，需要回答"序参量是什么"——可测、
-  可复现、在"扁平相"与"层级相"取值不同。§5.4 的 arXiv:2609.38327 是本轮唯一给出形式处理的
-  例子（吸收态相变），而它处理的是**搜索任务的成败**，不是"组织形式"。
-- **边界整理，原文待核**：吸收态相变要求存在**吸收态**（进入即不可离开）。多 agent 组织一般没有
-  吸收态（形态可逆、可再切换），借用该框架需先构造出等价物，否则是**范畴错误**（INFERENCE）。
+- **样本中的形式边界**：§5.3 的 arXiv:2609.38327v2 对搜索过程作 mean-field 近似, 有限 horizon
+  下是 smooth crossover。它处理搜索结果, 不是组织形态本身; 不能把该模型的条件直接当作 Pod 定理。
+- **候选核验面（INFERENCE）**：若要提出形式相变主张, 可检查控制参数、可测宏观量、尺度变化与
+  零模型。组织形态是否有吸收态需要另建映射, 目前未知。这些是讨论项, 不是本报告新增的命名硬门。
 
 ### 2.2 自组织临界性（SOC）
 
 - **核心主张**：Bak, Tang & Wiesenfeld 1987, "Self-Organized Criticality: An Explanation of 1/f
-  Noise", *Physical Review Letters* 59(4):381–384（DOI 10.1103/PhysRevLett.59.381，本轮 Crossref
-  核验篇名／年／刊）。沙堆模型：**慢驱动 + 局部阈值 + 时间尺度分离**，系统自行演化到临界点，
-  **无需调参**，雪崩尺度分布呈幂律。
+  Noise", *Physical Review Letters* 59(4):381-384, DOI 10.1103/PhysRevLett.59.381。已读 PRL 原作
+  副本, 其空间自由度模型通过数值演示达到临界吸引子, 与需调参的平衡临界点区别开; 免 fine tuning
+  是该模型的主张, 不是所有耗散系统的定理。1988 PRA 姊妹篇不作为同版分页引用。
 - **边界整理，原文待核**：SOC 的关键不是幂律本身，而是**机制**（慢驱动、阈值、分离时间尺度）；
   幂律分布**不可辨识**——大量非临界机制也能产生近幂律，故幂律不是 SOC 的证据。更重要的边界：
   **临界 ≠ 最优**；临界态意味着最大雪崩风险，不是最大效率 `[教科书知识；实证批评见 Jensen 1998
   《Self-Organized Criticality》一书，本轮未核验其书目]`。
 - **LLM 侧的正面使用**：arXiv:2609.17419（*World Model Science*，2026-07-12）把 SOC、弱混沌、
   亚稳信念动力学**同时**用于长时程 LLM agent 轨迹，并明确使用 "null models"、"finite-size
-  scaling"、"error avalanches"——即带零模型与尺度标度的用法，是本轮看到的**最规范**的临界语言
-  借用。
+  scaling"、"error avalanches"。这些是摘要中的检验线索, 正文尚未核, 不据此评为最规范。
 
 ### 2.3 涌现（emergence）
 
-- **核心主张**：Anderson 1972, "More Is Different", *Science* 177(4047):393–396（Crossref 核验
-  篇名／年／刊）：宏观性质不能简单由组分性质推出。
+- **已核原文**：Anderson 1972, "More Is Different", *Science* 177(4047):393-396。还原到基本
+  定律的能力不等于从它们重建复杂整体的能力。作者明确不主张新尺度服从不同基本定律, 破缺对称
+  只是说明性例子, 解释自限为 elementary and incomplete; 不是组织设计的形式定理。
 - **形式区分（事实）**：弱涌现＝原则上可由组分＋相互作用**推导**，但只能靠模拟（Bedau 1997
   "Weak Emergence" 提出此区分 `[未经一手来源核验]`）；强涌现＝原则上不可推导，存在哲学争议。
   绝大多数工程语境里的"涌现"是弱涌现，即"我没有预期到"，而不是"原则上不可推出"。
@@ -310,8 +300,7 @@ Anderson 1972、Grassé 1959、Dorigo 1996）本轮经 Crossref DOI 记录核验
 - **LLM 社会的自证式滥用**：arXiv:2606.22203（2026-06-20）直接指出该领域"demonstrations of
   emergent consensus or polarization — with no measurable control parameter, no theory of when
   each regime appears, and no test of whether an outcome is a genuine social dynamic or a model
-  artifact"，并提出耦合增益 γ 作为**可测控制量**与效度诊断。这是本轮最好的"理论被装饰性使用"
-  的一手证词（原文口径）。
+  artifact"，并提出耦合增益 γ 与效度诊断。这是该摘要对部分演示的作者判断, 正文和覆盖范围未核。
 
 ### 2.4 Stigmergy（媒介协调）
 
@@ -320,10 +309,11 @@ Anderson 1972、Grassé 1959、Dorigo 1996）本轮经 Crossref DOI 记录核验
   Sociaux* 6(1):41–80（Crossref 核验篇名／年／刊）：个体通过**改造环境**留下痕迹，痕迹刺激后续
   行动，协调不经直接通信。
 - **算法化**：Dorigo, Maniezzo & Colorni 1996, "Ant system: optimization by a colony of cooperating
-  agents", *IEEE Trans. SMC-B* 26(1):29–41（Crossref 核验）：信息素 + 正反馈 + 挥发。
-- **边界整理，原文待核**：stigmergy 依赖**环境可持久修改、局部可读、读写成本低**；ACO 的已知失效
-  是**停滞与信息素饱和**——正反馈若压过挥发，搜索多样性坍塌。故"共享环境即可自组织"不成立；
-  需要**遗忘机制**（挥发）与**多样性注入**配对。
+  agents", *IEEE Trans. SMC-B* 26(1):29-41。所读作者式副本自编 pp.1-13, 已核正反馈、分布式计算、
+  贪心构造与停滞描述; 原文用 ρ 表示 persistence, 1-ρ 为 evaporation。
+- **已核边界**：作者未推导各情形的最优参数, 而用模拟选择; 部分任务可能输给专用算法, 本篇
+  未考察并行实现。扫描默认 β=1 与最终 ant-cycle 的 β=5 分开, 不把参数当通用常量。
+  Grassé 原文未读; "共享环境需要哪些读写和遗忘条件"留为迁移问题, 不是由 Dorigo 自动证明。
 - **LLM 侧借用**：arXiv:2608.26081（*SwarmWorld*，2026-08-26）让同质 LLM agent 在共享空间中
   无预设角色地留下痕迹并演化出"技术"，明确对照 centralized workflows 与 predefined roles。
 
@@ -339,13 +329,12 @@ Anderson 1972、Grassé 1959、Dorigo 1996）本轮经 Crossref DOI 记录核验
 
 ### 2.6 复杂适应系统（CAS）
 
-- **核心主张**：Holland 1975《Adaptation in Natural and Artificial Systems》、1992 "Complex
-  Adaptive Systems"（*Daedalus* 121(1):17–30）、1995《Hidden Order》（**书目本轮未经一手来源
-  核验**）：由大量适应性主体构成、通过**聚集、标识、非线性、流、多样性、内部模型、积木块**
-  七个基本要素产生整体适应行为。
-- **边界**：CAS 是**描述性框架**而非可反驳理论：它事后解释力强、预测力弱；"适应"预设了适应度
-  或选择压力，在 agent 组织里这个量往往由设计者临时指定（任务奖励），因此"自组织出更适应的
-  形态"容易被循环论证。**CAS 语言不构成对"组织形态会自己变好"的证据。**
+- **已核原文**：Holland 1992, "Complex Adaptive Systems", *Daedalus* 121(1):17-30, 概括
+  evolution、aggregate behavior、anticipation 三特征, 讨论内部模型与 building blocks 的组合。
+  内部模型可能错误, 预测与结果不符时需要修正; 统一理论仍列为挑战。
+- **版本与边界**：七机制列表未在 1992 篇定位, 1975/1995/1998 各书仍未读, 本文不替该列表背书。
+  8×10 积木表示 10^8 张脸是示例, 非实验数据。迁移时如何定义适应与评估改进仍是 INFERENCE,
+  不能由 CAS 用语推出组织形态会自行变好。
 
 ### 2.7 标度律
 
@@ -354,9 +343,9 @@ Anderson 1972、Grassé 1959、Dorigo 1996）本轮经 Crossref DOI 记录核验
   law"与"space-filling fractal networks"假设）：从**空间填充分形输运网络 + 末端单元不随体型
   变化 + 能量耗散最小**推出 3/4 幂律。
 - **城市标度**：Bettencourt, Lobo, Helbing, Kühnert & West 2007, "Growth, innovation, scaling,
-  and the pace of life in cities", *PNAS* 104(17):7301–7306（Crossref 核验）：创新／财富等**超
-  线性**（β≈1.15），基础设施**亚线性**（β≈0.85），并给出"pace of life"随规模加速的表述
-  `[指数数值为学界通行转述，本轮摘要片段未逐字给数]`。
+  and the pace of life in cities", *PNAS* 104(17):7301-7306, PMC 正文已核。摘要概括创新/财富
+  β≈1.2、基础设施 β≈0.8; Table 1 中国 2002 GDP 为 1.15 [1.06,1.23], 具体量不替代类别概括。
+  原稿 0.85 无本篇支持, 已撤回。数据以美国城市系统为主, 作者明说向其他城市与指标推广仍待研究。
 - **边界整理，原文待核**：模型假设很强（分形、末端单元不变、耗散最小）；3/4 指数长期有争议
   `[争议文献本轮未核验]`；**外推到组织没有一手支撑**。更要紧的是：标度律描述**规模效应的形状**，
   不回答"何种组织形态更优"；把它读成"越大越省"或"越大越创新"都是超出其许可的推断。
@@ -378,50 +367,35 @@ Anderson 1972、Grassé 1959、Dorigo 1996）本轮经 Crossref DOI 记录核验
 
 ### 对本设计的取舍含义（INFERENCE）
 
-Pod 若要用"相变"这个词，唯一站得住的做法是把**序参量**（例如"层级深度／通道数／评审点数"或
-"协调轮次占比"）与**控制参数**（任务不确定性、并行度）显式化，并给出零模型与尺度标度检验；
-否则应在文档里改称"形态切换"（switching），不称相变。SOC 与临界语言只在**同时**报告机制
-（慢驱动／阈值／时间尺度分离）与**检验**（幂律＋雪崩＋零模型）时才可借用；"临界＝高效"是理论
-本身不支持的推断。涌现一词在本设计中应当限用于"弱涌现"，并附带度量敏感性检验。
+可把控制参数、宏观量、零模型、尺度与度量敏感性列为候选核验面。已核经典不支持直接把临界性
+等同于任务效率, 但也不代替工程比较。项目用词、具体判据及其是否成为硬门留给 HITL 决议。
 
 ---
 
 ## 3. 控制论、控制与自主
 
-本节核验状态：Aulin-Ahmavaara 1979 与 Varela et al. 1974 经 Crossref **核验**（含摘要原文）；
-Ashby 1956／1958 与 Beer 1972 为**二手／书目记录核验**（Wikipedia "Variety (cybernetics)" 的
-参考文献行、OpenLibrary 记录）；Beer 1979／1985、von Foerster、Wiener、Cannon、Maturana & Varela
-1980、Luhmann 1984 均 `[未经一手来源核验]`。
+本节内容达标 2 项：Ashby 1956 所引表条件与 Wiener 1961 第二版所引页。Beer/von Foerster
+续包只取得百科, 不计权威学术二手; Varela 的 REST 文件是 2019 年生成的单页题录摘要, 非
+pp.187-196 正文。其余条目保持摘要/题录或未核, 见两份控制补核件。
 
 ### 3.1 必要多样性（Ashby）及其对控制器的推论
 
-- **核心主张**：**只有多样性才能吸收多样性**（only variety can absorb variety）。若扰动集合的
-  多样性为 V(D)、调节器可资利用的多样性为 V(C)，则要保证本质变量（essential variables）停留在
-  生存/可行域内，需 V(C) ≥ V(D)；不足的部分必须由**扰动衰减（attenuation）**或**调节器多样性的
-  放大（amplification）**补偿。
-- **一手**：Ashby, W. R. (1956). *An Introduction to Cybernetics*. London: Chapman & Hall；
-  Ashby, W. R. (1958). "Requisite Variety and Its Implications for the Control of Complex Systems",
-  *Cybernetica* 1(2):83–99（两条本轮均**仅二手核验**：Wikipedia "Variety (cybernetics)" 正文与
-  参考文献行；定律的精确表述 `[未经一手来源核验]`）。
-- **对控制器的三条推论（通行解释，`[未经一手来源核验]`）**：① 控制器必须**内建关于扰动的模型**，
-  否则无法预置足够多样性；② 提高控制能力的两个方向是"堵住扰动"（缓冲／衰减）与"扩张控制器"
-  （放大），后者有成本；③ 定律约束的是**实际需要被调节的多样性**，不是环境总多样性——**改变目标
-  或改变边界，使某些多样性不再需要被调节，是候选方案**。其成本排序未在本报告测量。
-- **边界**：定律不保证"更多多样性更好"；它不谈成本最优，只谈可行性（viability）。把"V(C) ≥ V(D)"
-  读成"控制器越复杂越好"是超出其许可的推断（INFERENCE）。同时注意：对"**每任务切换组织形态**"这一
-  元控制问题，Ashby 定律的适用对象是**形态选择器所面对的扰动**（任务分布 + 执行噪声），而不是
-  单一任务的多样性——这一区分是 §6 的关键。
+- **已核原文**：Ashby 1956, *An Introduction to Cybernetics*, §7/7 与 §11/5-11。variety
+  可指可区分元素数或其 log₂。§11/5-6 的矩形表要求同列结果不重复, 选定结果数不能少于 r/c;
+  §11/9 放宽为同列每元素最多 k 次。原公式与页图定位见[经典警告 A4](supplements/03-classic-design-warnings-20261013.md)。
+- **已核边界**：作者称该定理首先是矩形表的排列陈述, 不依赖实验, 且调节能力不超过作为通信
+  通道的能力。所需调节能力还取决于允许的结果集合, 不能无条件改写为 `V(C) ≥ V(D)`。
+- **迁移缺口（INFERENCE）**：把任务分布、执行噪声、选择器动作映射到该表尚未完成。限制入口、
+  增强探测、允许默认形态都是候选, 原文不排序其成本。1958 文章仍只作书目线索。
 
 ### 3.2 反馈、调节与稳态
 
-- **核心主张**：调节＝通过负反馈把本质变量维持在目标区间（homeostasis）；反馈控制需要**可测偏差**、
-  **可比对的设定点（setpoint）**与**可施加的作用量**。
-- **一手**：Cannon, W. B. (1932). *The Wisdom of the Body*（稳态概念来源）；Wiener, N. (1948).
-  *Cybernetics: Or Control and Communication in the Animal and the Machine*；Ashby 1948 年的
-  homeostat（自适应稳态装置）`[三条均未经一手来源核验]`。
-- **边界（对设计的直接约束）**：**没有设定点就没有稳态，只有漂移或振荡**。若本设计要用反馈机制
-  自动调整组织形态，必须先定义"偏差"的测量与容许带（deadband）；否则控制器会追逐噪声，产生
-  形态抖动（§6 详述）。
+- **已核原文**：Wiener, *Cybernetics*, 1961 第二版、1985 刷次, 第二版序 vii-viii 与第 IV 章
+  pp.95-97 页图。负反馈反对受控量偏离控制量; 恒温器例有期望室温与实测比较。
+- **已核边界**：p.97 明说恒温器设计不佳可能剧烈振荡, 稳定性依赖回路设计。序言承认简单线性
+  反馈比起初认识复杂。原稿 "无设定点就无稳态" 撤回; 本页例子不能证明它。
+- **迁移问题（INFERENCE）**：可研究观测噪声、延迟与调整规则对切换的影响, 不能先断言没有
+  deadband 就必然抖动。1948 首版分页、Cannon 1932 和 Ashby homeostat 仍未核。
 
 ### 3.3 可生存系统模型（Beer）
 
@@ -464,37 +438,30 @@ Ashby 1956／1958 与 Beer 1972 为**二手／书目记录核验**（Wikipedia "
 
 ### 3.6 层级控制与"必要层级律"（law of requisite hierarchy）
 
-- **核心主张**：Aulin-Ahmavaara 从 Ashby 的一般调节理论出发，扩展到**放大式调节（amplifying
-  regulation）**，讨论社会层级的**存在条件**：在每层调节能力有界的前提下，调节一个给定规模的
-  系统需要**最小数量的层级**（因此层级不是可随意去除的冗余，而是熵/能力约束下的一种必然）
-  ——该文摘要原文（Crossref **核验**）："A cybernetic theory of hierarchical social systems is
+- **摘要线索**：Aulin-Ahmavaara 从 Ashby 的调节理论出发讨论放大式调节与社会层级存在条件。
+  已读摘要："A cybernetic theory of hierarchical social systems is
   given, starting from an extension of Ashby's general theory of regulation and control to
   amplifying regulation. Regulation and control in human society are then discussed and the
   conditions for the existence of social classes and social hierarchy examined."
 - **一手**：Aulin-Ahmavaara, A. (1979). "The Law of Requisite Hierarchy", *Kybernetes* 8(4)，
   DOI 10.1108/eb005528（Crossref **核验**；**该律的精确数学表述本轮未获一手**，故只引其问题域）。
-- **边界**：该律的假设是"每层调节能力有界"，结论是**层级数量的下界**，而非"层级越多越好"；对
-  agent 组织的具体含义（上下文窗口／注意力即"每层能力有界"）属**类比推理**（INFERENCE）。可与
-  §1.10 的团队理论（延迟与信息成本决定层级深度）并列读作同一约束的两种表述。
+- **未核边界**：正文与精确定理条件未取得, 不能从摘要认定层级数下界, 更不能把上下文窗口
+  直接代入为每层能力或宣布层级不能取消。
 
 ### 对本设计的取舍含义（INFERENCE）
 
-必要多样性律把"形态选择器"也纳入被约束对象：选择器的多样性需求来自**任务分布**，而它本身的实现
-成本（评估、探测、通信）是真实的；因此合法的降负路径有三条——**衰减**（限制任务类型/入口）、
-**放大**（更强的分类与探测）、**改目标**（让部分多样性不必被调节，例如允许某些任务不塌缩到最优
-形态而是走默认形态）。稳态/设定点这一条则给出硬要求：没有"偏差"的定义与容许带，自动切换必然抖动。
-"必要层级律"与团队理论共同说明：**层级深度是信息成本约束下的产物，不能仅凭偏好宣布取消**。
+可分别测量选择器的观测、探测、通信与调整代价, 再检验默认形态、限制入口或增加调节能力等
+候选。Ashby 的条件映射未完成, Wiener 未给本系统稳定性证明, 必要层级律正文未读。
+因此这里保留待测问题, 不产生必须防抖、必须设层级或某条方案最便宜的裁定。
 
 ---
 
 ## 4. 前 LLM 的多智能体计算理论
 
-本节核验状态：Smith 1980、Erman et al. 1980、Modi et al. 2005、Scerri et al. 2002、Wellman 1993、
-Cohen & Levesque 1991、Grosz & Kraus 1996、Horvitz 1999、Wooldridge & Jennings 1995 均经 Crossref
-**核验到篇名／年／刊／DOI**（部分含摘要）。Hewitt et al. 1973、Agha 1986、Bratman 1987、Rao &
-Georgeff 1995、Lesser & Corkill 1981、Vickrey／Groves／Myerson 均 `[未经一手来源核验]`——注意
-Rao & Georgeff 1995 本轮 Crossref 只匹配到同作者 1998 年 *Agent Technology* 章
-（DOI 10.1007/978-3-662-03678-5_8），故 1995 ICMAS 版书目未核验。
+本节已核 Smith、Hearsay-II、Hewitt、Cohen & Levesque 四篇的所列机制与边界, ADOPT 另取得
+Fioretto/Pontelli/Yeoh 2018 JAIR 综述的权威二手核验。各自读取范围见协调补核件。
+其余文献保持题录/摘要或未核状态; 特别是 Agha、Bratman、FA/C 与 1995 ICMAS 版 BDI 未读正文。
+Rao & Georgeff 的 1998 章节题录不能代证 1995 版本。
 
 统一判据：每条给"**它解决了什么问题**"与"**LLM-agent 组织是否面对同一问题**"。后者是本报告的
 推断（INFERENCE），依据是 §5 的一手证据加机制分析，不是文献主张。
@@ -506,38 +473,33 @@ Rao & Georgeff 1995 本轮 Crossref 只匹配到同作者 1998 年 *Agent Techno
   回报。把"分配"从全局知识问题转成**局部报价聚合**问题。
 - **一手**：Smith, R. G. (1980). "The Contract Net Protocol: High-Level Communication and Control in
   a Distributed Problem Solver", *IEEE Transactions on Computers* C-29(12):1104–1113，DOI
-  10.1109/TC.1980.1675516（Crossref **核验**；Wikipedia "Contract Net Protocol" 二手核验其"任务
-  共享协议、近似密封拍卖"的定位）。
-- **同一问题？是。** 但**投标可信度**是新的失效点：LLM 对自身胜任度的估计普遍校准差。本轮一手
-  证据：arXiv:2608.12371（*MAS-DecStream / LLM-MR-CNP*，2026-07-19）明确把经典 CNP 扩展为
-  "semantic CFP formulation, progressive context disclosure, multi-round proposal revision,
-  negotiation memory, and deterministic validation"（摘要原文）——**"deterministic validation"正是
-  为补投标不可信而加的外部校验**。
-- **边界**：CNP 假设投标可比较且自估偏差有界，且通信成本低于集中调度的收益；投标轮次增加会推高
-  通信与延迟（多轮修订尤其如此）。
+  10.1109/TC.1980.1675516。已读作者网站原文副本, 页码与引文见[协调 C1](supplements/03-coordination-sources-20261013.md)。
+- **已核边界**：原文假设全局同步, 同时允许迟到投标造成次优选择; 松耦合要求计算占大部分时间。
+  bids are binding, 管理者可终止合同及未结子合同; 额外确认、落选通知、单标未决在通信量与延迟
+  之间取舍。原文没有本报告旧写的 "自估偏差有界" 前提或集中调度收益不等式。
+- **迁移（INFERENCE）**：LLM 的投标语义与校验需要另测。LLM-MR-CNP 已核协议扩展, 但作者要求
+  组件匹配消融与重复试验, 不能把新增 validation 自动解释成已证明的投标校准补救, 见 §5.4。
 
 ### 4.2 分布式约束优化（DCOP）
 
-- **解决的问题**：多个自治节点各自持有变量、约束跨节点，需要在不共享全部信息的前提下选一组赋值，
-  并给出**质量保证**（最优性或误差界）。ADOPT 用异步搜索 + 界传播，在有限内存下保证最优。
+- **解决的问题**：自治节点持有变量、约束跨节点, 通过分布式搜索求联合赋值。权威综述将 ADOPT
+  列为 complete、asynchronous、memory-bounded best-first, Table 4 标 Optimal 与 Error Bound。
 - **一手**：Modi, P. J., Shen, W.-M., Tambe, M., Yokoo, M. (2005). "ADOPT: Asynchronous distributed
   constraint optimization with quality guarantees", *Artificial Intelligence* 161(1–2):149–180，DOI
-  10.1016/j.artint.2004.09.003（Crossref **核验**）。
-- **同一问题？部分同一，但条件缺失。** LLM-agent 团队确实产生跨 agent 约束（文件归属、接口一致、
-  谁等谁的结果），但：① 约束结构通常是**运行中发现**的，不是事前声明的；② LLM 的成本/收益估计
-  不是可加效用；③ LLM 无法给出 DCOP 意义上的最优性保证。可迁移的是**"带界/随时可停"的协调**
-  与**不对称信息下的分布式搜索**这一形式框架，而非算法本身。**本轮检索未发现 LLM 多智能体文献
-  明确使用 DCOP 框架**（§5 记为空白）。
+  10.1016/j.artint.2004.09.003。原作正文未取; 本次内容来自 Fioretto/Pontelli/Yeoh,
+  *JAIR* 61:623-698, DOI 10.1613/jair.5565, arXiv:1602.06347v4, §4.3.4、Table 4。
+- **二手已核边界**：DFS 伪树, COST 上行、THRESHOLD/VALUE 下行, 以上下界收敛; 仅邻居通信,
+  非 anytime。综述报时间/消息数 O(d^n)、内存 O(n+ld)、消息大小 O(n), 不是本项目运行成本。
+  原作精确定理条件与完成时间界未核, 见[ADOPT 补核](supplements/03-coordination-gaps-20261013.md)。
+- **迁移（INFERENCE）**：先检查变量、约束、代价是否能固定为该模型, 再谈保证。不能把 "随时可停"
+  挂到 ADOPT, 也不能从本轮标题/摘要未命中推论 LLM 领域没有 DCOP 借用。
 
 ### 4.3 团队理论（与 §1.10 同源，此处只记其"计算"面）
 
 - **解决的问题**：目标一致但信息分散时，**决策架构本身**（谁观测、谁上报、谁决策、允许多大延迟）
   的最优化；Radner 1993 进一步把它做成带延迟与差错的并行信息处理模型。
-- **同一问题？是，且几乎未被借用。** LLM-agent 系统的真实预算约束就是**延迟与 token**，而"哪个
-  agent 该看什么、该向谁汇报"正是团队理论的变量。本轮检索（§5）**未发现**明确采用 team theory
-  的 LLM MAS 论文；最接近的是把编排成本显式记账的工程论文（arXiv:2610.00954、2609.15079）。
-  INFERENCE：这是本清单中**性价比最高的未开采理论**——它的假设（共同目标）恰恰是 agent 团队比
-  人类企业更容易满足的。
+- **迁移问题（INFERENCE）**：信息分配、上报与延迟值得比较, 但原作和 LLM 借用关系尚未核。
+  同一目标配置不证明成员行为目标一致; 现有检索不足以称其 "几乎未被借用" 或 "性价比最高"。
 
 ### 4.4 机制设计与拍卖式协调
 
@@ -547,13 +509,11 @@ Rao & Georgeff 1995 本轮 Crossref 只匹配到同作者 1998 年 *Agent Techno
   Wellman, M. P. (1993). "A Market-Oriented Programming Environment and its Application to
   Distributed Multicommodity Flow Problems", *JAIR* 1:1–23，DOI 10.1613/jair.2（Crossref **核验**：
   把市场均衡当作分布式协调的计算机制）；Clearwater 编 (1996)《Market-Based Control》`[未经核验]`。
-- **同一问题？目前多数还不是。** LLM agent 通常**没有私人效用**（目标由外部配置），因此机制设计
-  的核心难题（激励相容、策略性谎报）暂时不成立；被借用的主要是**市场/竞争的隐喻与预算分配**：
-  本轮一手例子 arXiv:2609.02580（"Competitive Market Behavior of LLMs"）、2606.29113（"LLM Semantic
+- **迁移问题（INFERENCE）**：目标由外部配置不足以证明不存在策略行为。可继续检查任务奖励、
+  预算与相互评分是否产生可建模的激励。题录/摘要线索有 arXiv:2609.02580（"Competitive Market Behavior of LLMs"）、2606.29113（"LLM Semantic
   Signaling Game and Mechanism Design"）、2608.14613（"Do LLM Agents Negotiate Rationally? A
-  Mechanism-Design Framework for Verifiable Multi-Agent Interaction"）。**边界**：一旦给 agent 配置
-  预算、声誉或相互评分，私人效用就出现，此时机制设计的假设（拟线性效用、无合谋、共同先验）会
-  立刻变成必须检验的条件，而不是可以忽略的背景。
+  Mechanism-Design Framework for Verifiable Multi-Agent Interaction"）。正文未核; 私人效用和
+  所需假设均需具体建模, 不能仅凭使用了预算或声誉就认定成立。
 
 ### 4.5 黑板系统（Hearsay-II）
 
@@ -562,9 +522,10 @@ Rao & Georgeff 1995 本轮 Crossref 只匹配到同作者 1998 年 *Agent Techno
   彼此不直接通信。解决的正是"没有单一算法能解、需要多种专长交替上场"的问题。
 - **一手**：Erman, L. D., Hayes-Roth, F., Lesser, V. R., Reddy, D. R. (1980). "The Hearsay-II
   Speech-Understanding System: Integrating Knowledge to Resolve Uncertainty", *ACM Computing
-  Surveys* 12(2):213–253，DOI 10.1145/356810.356816（Crossref **核验**；Wikipedia "Blackboard
-  (design pattern)" 二手核验其"整合多样专门模块 + 非确定性控制策略"的定位）。
-- **同一问题？是，而且正被重新发现。** arXiv:2510.01285（2025-09-30，v2 2026-01-31）明确以黑板
+  Surveys* 12(2):213-253, DOI 10.1145/356810.356816。41 页原作副本已取, 机制与边界定向核验,
+  未逐句通读。p.217 给外部时间/空间资源限界; pp.231-232、236 明说无最优保证, 需要启发式停止。
+  admissible 是对照 HWIM 的性质, 不是 Hearsay-II 的性质。同步/通信/承诺仅定向检索未核到。
+- **LLM 摘要线索**：arXiv:2510.01285（2025-09-30，v2 2026-01-31）明确以黑板
   替代 master-slave：其摘要原文指出主从式"rely on a rigid central controller that requires
   precise knowledge of each sub-agent's capabilities, which is not possible in large-scale
   settings where the main agent lacks full observability over sub-agents' knowledge and
@@ -576,18 +537,14 @@ Rao & Georgeff 1995 本轮 Crossref 只匹配到同作者 1998 年 *Agent Techno
 
 ### 4.6 Actor 模型
 
-- **解决的问题**：并发计算中共享可变状态导致的竞态与锁问题。模型规定：一切皆 actor；actor 只通过
-  异步消息通信、不共享状态；收到消息后可①局部决策②创建新 actor③发消息④决定如何处理下一条。
+- **已核原作机制**：Hewitt/Bishop/Steiger 1973 将调用统一为向 actor 发消息, 无论对象表现为
+  递归函数、数据结构还是进程。原文不需要传统 goto/interrupt/semaphore 原语, 但仍在模型内表达
+  同步语义; p.236 说明可表达至少如多重 semaphore P 一样强的机制, 无 busy waiting。
 - **一手**：Hewitt, C., Bishop, P., Steiger, R. (1973). "A Universal Modular ACTOR Formalism for
-  Artificial Intelligence", *IJCAI-73* `[书目未经一手来源核验；Crossref 只匹配到 Hewitt 1973 年
-  POPL 的另一篇]`；Agha, G. (1986)《Actors: A Model of Concurrent Computation in Distributed
-  Systems》`[未经核验]`。
-- **同一问题？结构上同一。** 每个 agent 进程持有独立上下文（≈独立堆）、只能通过消息传递协作，
-  这正是 actor 模型设定；因此 actor 世界的经典风险会原样重现：**消息丢失/乱序、死锁（互相等待）、
-  孤儿 actor（发起者退出后无人回收）、无界创建（spawn 爆炸）**。这些在 Pod 语境中是运维级风险而
-  非理论趣闻（INFERENCE，基于 §4.6 的模型性质与 Pod 的多进程形态）。
-- **边界**：actor 模型给出的是**并发正确性**的语言，不给出协调效率或组织形态的判据；它不解决
-  "谁该做什么"，只解决"如何在不共享内存下安全并行"。
+  Artificial Intelligence", *IJCAI-73*, pp.235-245, 官方 PDF 已核。Agha 1986 书仍未读, 后来的
+  actor 描述不全部归于 1973 原作。
+- **已核边界**：p.236 明说 intent 与 trust 的重要保护问题仍未解决; 原作未给协调效率或组织
+  形态判据。共享工作树与外部工具意味着 agent 上下文独立不等于状态完全隔离, 迁移映射仍待核。
 
 ### 4.7 BDI 架构
 
@@ -598,26 +555,23 @@ Rao & Georgeff 1995 本轮 Crossref 只匹配到同作者 1998 年 *Agent Techno
   University Press `[未经核验]`；Rao, A. S. & Georgeff, M. P. (1995). "BDI Agents: From Theory to
   Practice", *ICMAS-95* `[书目未经一手来源核验]`；同作者 (1998) "Rational Software Agents: From
   Theory to Practice"，收于 *Agent Technology*，DOI 10.1007/978-3-662-03678-5_8（Crossref **核验**）。
-- **同一问题？是，且是该领域最大的理论缺口。** LLM agent 每轮重新推理，天然缺少承诺机制：
-  表现即"目标漂移、重复推翻已定方案、在无关分支上耗预算"。**BDI 的承诺策略直接对应到审查点与
-  任务账本的设计**（何时允许推翻前案、谁来解封）。本轮检索未发现 LLM MAS 文献以 BDI 为框架
-  （§5 空白）。INFERENCE：**没有承诺机制的"按任务切换形态"会把抖动制度化**。
+- **迁移问题（INFERENCE）**：承诺何时持续、何时解除可作为账本与切换讨论的问题。本轮没有
+  正文级覆盖证据可称其领域最大缺口, 也不能由任务间选形推出任务内抖动。BDI 原作仍待核。
 
 ### 4.8 联合意图与共享计划
 
-- **解决的问题**：一群各自有理性的个体，何时才算**像团队一样行动**？Cohen & Levesque 给出形式
-  条件：共同目标要成为**联合意图**，需要相互信念、对计划的共同承诺，以及**在他人子计划受阻时
-  提供帮助的承诺（commitment to support）**；"我意图我们做 X"不等于"我们联合意图做 X"。
-  Grosz & Kraus 进一步给出共享计划（shared plan）的递归构造与**意图形成时的"达成协议"过程**。
+- **Cohen & Levesque 已核机制**：联合意图由联合承诺与相互信念刻画, 持续到共同知晓活动成功、
+  不可达或已无关。个体承诺从属于联合承诺, 后者解除时前者可解除; 个体分歧带来通信需要。
 - **一手**：Cohen, P. R. & Levesque, H. J. (1991). "Teamwork", *Noûs* 25(4):487–512，DOI
-  10.2307/2216075（Crossref **核验**）；Grosz, B. J. & Kraus, S. (1996). "Collaborative plans for
+  10.2307/2216075。已读 21 页作者 PS 版, 未与刊页逐页对齐; §4-5 与 Notes 1 可定位,
+  公式未逐符号核。离散同步建模并允许推广到连续异步, 未给通信成本或调度最优性定理。
+  Grosz, B. J. & Kraus, S. (1996). "Collaborative plans for
   complex group action", *Artificial Intelligence* 86(2):269–357，DOI
   10.1016/0004-3702(95)00103-4（Crossref **核验**）；Bratman, M. (1992) "Shared Cooperative
   Activity" *Philosophical Review* `[未经核验]`。
-- **同一问题？是，且被**隐式**借用。** 本轮一手证据：arXiv:2411.04468（*Magentic-One*）的
-  Orchestrator "plans, tracks progress"（摘要原文）——任务账本在功能上就是共享计划的外部载体；
-  但**"帮助承诺"与"子计划受阻时的修复义务"在 LLM 团队里通常没有对应物**，这正好解释了 §5 中
-  反复出现的交接失败（MAST 类失败）——INFERENCE，机制解释而非文献结论。
+- **迁移问题（INFERENCE）**：Magentic-One 摘要的 plans/tracks progress 可作比较入口, 不能
+  因账本功能相似就认定借用了联合意图, 更不能据此解释所有交接失败。Grosz/Kraus 与 Bratman
+  正文未核, 帮助承诺和修复义务的具体归属待查。
 
 ### 4.9 可调自主性（adjustable autonomy）
 
@@ -639,43 +593,38 @@ Rao & Georgeff 1995 本轮 Crossref 只匹配到同作者 1998 年 *Agent Techno
   结果**、靠冗余与迭代逐步消解不确定性（"functionally accurate"而非"logically correct"）。
 - **一手**：Lesser, V. R. & Corkill, D. D. (1981). "Functionally Accurate, Cooperative Distributed
   Systems", *IEEE Trans. SMC* `[未经一手来源核验]`。
-- **同一问题？几乎是同构的**：LLM agent 的上下文天生是部分且不一致的视图，任何"全局一致状态"都
-  是幻觉。INFERENCE：FA/C 的路线（放弃全局一致性，靠冗余与迭代逼近）比"共享单一真相源"的路线
-  更贴近 LLM 团队的现实——但代价是结果只能"功能上够用"，不能保证一致。
+- **迁移问题（INFERENCE）**：局部上下文可能不同, 但外部账本仍可维护一致的记录。
+  FA/C 原文未核, 当前不比较它与单一事实源的优劣, 撤回 "任何全局一致状态都是幻觉" 的断言。
 
 ### 对本设计的取舍含义（INFERENCE）
 
-前 LLM 理论给出的不是"更聪明的编排"，而是**把编排问题形式化**的四种坐标：CNP 管**任务分配与
-投标可信度**，DCOP/团队理论管**信息结构与延迟**，BDI/联合意图管**承诺与修复义务**，可调自主性
-管**权限转移**。四者在本轮 LLM 文献中的被借用程度差异很大（CNP 已复活并被加外部校验；黑板已
-复活但失去形式结构；BDI 与团队理论基本缺席）。对本设计最要紧的一条：**围栏住"形态切换"的应当是
-承诺机制（何时允许改形态、谁来解封），而不是更频繁的重新优化**。
+已核部分可为任务分配、共享状态、消息调用与承诺解除提供比较对象。哪些条件在 Pod 中成立,
+哪些机制值得采用仍待下游判断。有限标题/摘要检索不支持领域缺席、隐式借用或方案优先级结论。
 
 ---
 
 ## 5. 接口：LLM 多智能体研究实际借用了什么
 
-本节全部为**本轮实采**。检索方式：arXiv 站内检索（HTML 界面）＋逐篇抓取 abs 摘要原文；
-**未使用**引用图（Semantic Scholar 本轮 429 不可达，见 §7），因此"借用"的判据是**标题／摘要
-明文**，不是被引关系。标注：**(A)**＝本轮已核验摘要原文；**(T)**＝仅题录（标题＋编号），未读摘要。
-日期为 arXiv 提交日期。
+原侦察使用 arXiv 标题/摘要检索, 未取得引用图。标注 `(A)` 为摘要、`(T)` 为仅题录、`(F)` 为
+指定版本正文与参考文献补核。MacNet、Absorbing State、LLM-MR-CNP 三样本新增 F, 详见 §5.4。
+其余表项仍只反映作者的题名/摘要声明, 不作为实际机制或全领域借用比例的结论。
 
-### 5.1 确实被借用的（按理论与用法并列）
+### 5.1 借用线索与已核样本
 
-| 理论概念 | 论文（一手） | 怎么用的（摘要级证据） |
+| 理论概念 | 论文（一手，F/A/T 层级） | 借用方式与该读取层级的限制 |
 |---|---|---|
 | 组织理论成为可执行配置 | **2607.25446** (A)，2026-07-28 *Toward an Organizational Science of Multi-Agent LLM Systems* | 把 Belbin 角色、Mintzberg 协调机制、RACI 问责"变成可执行、可校验的配置"；把"谁在队里(organization)／如何对齐(coordination)／用何算法融合(protocol)"拆成三层可独立替换 |
 | 权威与层级（组织理论的直接检验） | **2609.14767** (A)，2026-09-13 *Loop-Back Authority in LLM Agent Teams* | 摘要明写"Organizational theory asserts that authority facilitates decision making"与"some nascent AI research suggests that revision under authority makes LLM output worse"；43 对产品、86 次运行的配对实验检验 manager 的退回权 |
 | 任务自适应拓扑 | **2410.11782** (A) G-Designer；**2310.02170** (T) DyLAN | G-Designer 用 GNN 按任务生成通信拓扑，动机原文即"Which topology is the best choice for my task, avoiding unnecessary communication token overhead"；DyLAN 做动态 agent 网络与团队优化 |
 | 形态/路由的显式选择（=本设计的元层） | **2502.11133** (A) MasRouter；**2608.07583** (A) RouteGuard | MasRouter 提出 MASR："integrates all components of MAS into a unified routing framework"（协作模式＋角色＋模型选择一起路由）；RouteGuard 证明**路由收益不可由 AUC 决定**，需条件 regret Φ 与认证区间 |
 | 自组织团队（动态雇佣/自演化） | **2603.25928** (A) TheBotCompany；**2609.33768** (A) DEALS | TheBotCompany：三阶段状态机（Strategy→Execution→Verification）＋ manager agent 动态雇佣；DEALS：批评集中控制器与固定协调模式，要求 agent"self-organize and self-evolve"以适配任务流 |
-| 规模与"协作涌现" | **2406.07155** (A) MacNet，ICLR-2025 | **用词是 "collaborative scaling law"：性能随 agent 数呈 logistic growth，且 "collaborative emergence" 早于传统神经涌现——摘要中并未出现 "phase transition" 一词**（本轮逐字核验，纠正二手转述） |
-| 统计力学式相变（形式化最好的一篇） | **2609.38327** (A)，2026-09-29 *Absorbing State Phase Transitions in Multi-Agent Search* | 明确以吸收态相变形式化预测多智能体搜索成败：先按组合搜索经典结论把任务分四类，再"theoretically derive a critical c..."；同时点明动机是"designing multi-agent communication topology" |
+| 规模与协作涌现 | **2406.07155v3** (F) MacNet, 2025-03-17 | 神经标度律引用与 logistic 曲线关系已核; 全文 phase transition 零命中, 只限此版本 |
+| 搜索过程的吸收态相变 | **2609.38327v2** (F), 2026-10-07 | mean-field 方程、临界条件与三域对照已核, 每轮实验预算/独立性与有限 horizon 限制见 §5.4 |
 | 临界/混沌/亚稳（含零模型与尺度标度） | **2609.17419** (A)，2026-07-12 *World Model Science* | 用 SOC、weak chaos、metastable belief dynamics 三视角研究长时程 agent，报告 "error avalanches"、"finite-size scaling"、"explicit null models"、"belief-basin transitions" |
 | 自组织的可测化 | **2609.33871** (A)，2026-09-27 *Population Physics, Population Problems* | 提出"safety and emergence in LLM societies"的测量框架，用于 Schelling grid、Moltbook、Twitter 式信息污染模拟三个系统 |
 | Stigmergy | **2608.26081** (A) SwarmWorld，2026-08-26 | 同质 LLM agent 在共享环境中无预设角色、无配方地留下痕迹并演化出"技术"；摘要明确对照"direct conversation, predefined roles, or centralized workflows" |
 | 黑板架构 | **2510.01285** (A)；**2507.01701** (T) | 前者以黑板替代 master-slave，理由原文：主从式需要"precise knowledge of each sub-agent's capabilities"，而大规模下"the main agent lacks full observability" |
-| 合同网协议 | **2608.12371** (A) LLM-MR-CNP，2026-07-19 | 在经典 CNP 上加"semantic CFP、progressive context disclosure、多轮提案修订、negotiation memory、deterministic validation" |
+| 合同网协议 | **2608.12371v1** (F) LLM-MR-CNP, 2026-07-19 | 引 Smith 1980 并扩展协议; 组件混变、单次选优与 token 增长使 LLM 独立收益仍未证 |
 | 机制设计／市场 | **2608.14613** (A)；**2609.02580** (T)；**2606.29113** (T) | 前者以机制设计框架做"可验证的多智能体交互"与谈判理性检验；后两者分别研究 LLM 的市场竞争行为与语义信号博弈 |
 | 控制论／CAS 的分工 | **2608.10153** (A) CASE，2026-08-10 | 明确"agentic AI governance is four problems, not one"：个体给控制论（intent=setpoint，guardrails=feedback，evaluation=observation）、集体给复杂适应系统理论（"emergence makes single-agent assurance non-compositional"）、人机给 supervisory cybernetics |
 | 记忆与组织记忆 | **2506.07398** (A) G-Memory；**2609.36739** (T) Frontier Autolab；**2606.03083** (T) DELTAMEM | G-Memory：为 MAS 引入跨试验、按 agent 定制的层级记忆，批评既有 MAS 记忆"overly simplistic"；Frontier Autolab 标题即含"Organizational Memory, Adversarial Dissent"（**未核验摘要**） |
@@ -686,9 +635,8 @@ Rao & Georgeff 1995 本轮 Crossref 只匹配到同作者 1998 年 *Agent Techno
 
 ### 5.2 装饰性使用、误用与本轮**检索不到**的借用
 
-1. **相变用词与形式化线索**：2609.38327 与 2609.17419 的摘要声称有形式化机制与检验；本轮未
-   核验正文是否足以支撑。MacNet 已读摘要使用 logistic 增长与 collaborative emergence，不能单凭
-   这些词确认相变，也不能因摘要未出现该词就断言全文没有相关论证。
+1. **相变用词与形式化线索**：Absorbing State v2 已核模型及近似条件; World Model Science
+   仍只读摘要。MacNet v3 已核全文标度关系, 该版 phase transition 零命中不扩展到其他版本或领域。
 2. **"涌现"的度量依赖被反复重犯（事实）**：Wei et al. 2022（arXiv:2206.07682，摘要核验）定义
    涌现为"not present in smaller models but present in larger models"；Schaeffer et al. 2023
    （arXiv:2304.15004，摘要核验）给出替代解释："emergent abilities appear due to the researcher's
@@ -707,13 +655,24 @@ Rao & Georgeff 1995 本轮 Crossref 只匹配到同作者 1998 年 *Agent Techno
 
 ### 5.3 明确使用"相变／临界"语言的清单（含形式化程度）
 
-| 论文 | 用语 | 形式化程度（本轮摘要级判断） |
+| 论文 | 用语 | 实读层级与形式化边界 |
 |---|---|---|
-| 2609.38327 | absorbing state phase transitions；critical condition | 摘要声称任务分类与临界条件推导，正文与适用前提待核 |
+| 2609.38327v2 | absorbing state phase transitions; critical condition | F: 已核 Eq.3/5/6 与近似条件, 有限 horizon 为 smooth crossover |
 | 2609.17419 | self-organized criticality、weak chaos、metastable belief dynamics、finite-size scaling、null models | 摘要声称零模型与尺度标度，实际检验待核 |
 | 2609.33871 | self-organisation 的统计测量 | 中：有测量框架与三系统对照，摘要未称"相变" |
-| 2406.07155 | collaborative scaling law、logistic growth、collaborative emergence | 已读摘要是曲线拟合式表述，全文是否建立相变论证待核 |
+| 2406.07155v3 | collaborative scaling law、logistic growth、collaborative emergence | F: 标度关系借用, 不计相变机制实现 |
 | 2606.22203 | 批评"无控制参数"的伪涌现主张 | —（元层面批评） |
+
+### 5.4 三个全文样本的借用分类
+
+原句、参考文献、公式、版本与 SHA 见[LLM 借用补核](supplements/03-llm-classic-borrowing-20261013.md)。
+三个定向选择的样本不能估计领域借用率。
+
+| 样本 | 仅提词/有引用/机制对应 | 已核限制 |
+|---|---|---|
+| MacNet, Chen Qian 等, v3 | 有 Kaplan 2020 引用; 对应的是 agent 数与表现的 logistic 标度关系, 不是经典控制机制实现 | 解释自称 speculate; 相变词未命中只限此版 |
+| Absorbing State, v2 | 引 Hinrichsen 等; 有 mean-field 方程、参数与三域对照, 属机制级 | Eq.3 用满 Nm 次随机独立实验; Eq.5 另需 A_t≫mN、mq_t≪1; Eq.6 需均匀最终选择并保留一个正确候选。LLM 结果 mixed, 不完整报告/重复探索使理论条件失配 |
+| LLM-MR-CNP, v1 | 引 Smith 1980; 保留 announcement/proposal/award/rejection 并加多轮机制 | Scenarios 1/2 同时改上下文与 LLM 解释; Table VI 25 cases, Table VII 30 个配置各一次再选优。固定模型单/多轮 token 19,100/53,452; 作者要求匹配消融与重复试验 |
 
 ### 对本设计的取舍含义（INFERENCE）
 
@@ -730,72 +689,68 @@ Rao & Georgeff 1995 本轮 Crossref 只匹配到同作者 1998 年 *Agent Techno
 
 ### 6.1 选择形态本身的信息成本（不是免费的元层）
 
-- **论证**：要"为任务选最省形态"，先要**知道任务是什么类型、各形态在该类型上的预期成本**。
-  这是团队理论的核心变量：信息结构（谁观测什么）与其成本，决定了决策架构的优劣（Marschak &
-  Radner 1972；Radner 1993，DOI 10.2307/2951495 核验）。Galbraith 1974 亦把"不确定性→信息处理
-  负担→设计策略"写成成本问题（摘要原文已核验）。
+- **已核出处**：Galbraith 1974 pp.28/31/36 把信息需求与策略相对成本相连, 自足任务会损失
+  专业化, 四策略穷尽性只是框架假设。团队理论的原作仍未核, 不能与该论文合并成已证定理。
+- **迁移警告（INFERENCE）**：形态选择所需观测与探测也有成本。比较时需查它是否已包含在收益中,
+  而不是假定元层免费。
 - **一手证据（LLM 侧）**：MasRouter 2502.11133（A）把协作模式＋角色＋模型纳入统一路由，等于承认
   路由决策本身是一个要学的组件；RouteGuard 2608.07583（A）证明**路由收益不可由 gate 的 AUC 决定**，
-  需要条件 regret 与认证区间——即"选形态"的好坏**不能靠选择器自评**。
-- **咬人条件**：任务类型可廉价可靠地观测时，这一成本可忽略；不可观测时，选择器退化为猜测器，
-  且其错误会直接变成形态错配。
+  需要条件 regret 与认证区间。此处只是摘要声明, 不扩写成一切自评无效。
+- **检查条件（INFERENCE）**：分别测量观测成本、预测误差与错配损失; 当前没有这些项目数据。
 
 ### 6.2 切换与迁移成本
 
-- **论证**：切换组织形态要重建接口、迁移上下文、重排权限与信任。TCE 的资产专用性说明：为特定
-  形态投入的关系性资产（共享词汇、记忆、工具链）在切换时贬值（Williamson 1975 书目核验；1985
-  未核验）。组织生态学给出更硬的版本：Hannan, M. T. & Freeman, J. (1984). "Structural Inertia and
-  Organizational Change", *ASR* 49(2):149–164，DOI 10.2307/2095567（**Crossref 核验**）——结构惯性
-  随规模、年限、正式化上升，变革能力下降。
+- **已核出处**：Hannan & Freeman 1984, "Structural Inertia and Organizational Change",
+  *ASR* 49(2):149-164, DOI 10.2307/2095567。惯性相对于环境变化率定义, 不是永不改变; p.159
+  提出重组降低可靠性、提高死亡率的理论命题, 同页称规模与变化率关系 indeterminate。
+  原文变量为 age/size/complexity, 旧稿 "正式化" 未核到。无实测收益数字, 见经典警告 A3。
 - **迁移假设（INFERENCE）**：模块化理论条目尚未回核原文，不是 LLM 实验证据。对应到 agent，
   切换后原先的测试、账本与评审记录是否仍有效，需要逐项验证。
-- **咬人条件**：切换成本随**状态量**（上下文、账本、记忆）与**耦合度**上升；只读任务与短任务
-  成本低，长时程、强互依任务成本高。
+- **待测条件（INFERENCE）**：状态量与耦合度是否提高迁移代价, 需按任务测量; 不先规定其单调关系。
 
 ### 6.3 振荡与迟滞
 
 - **假设（INFERENCE）**：同一执行状态因带噪估计而反复迁移时，可能产生无收益的切换。任务间
   独立选形不自动构成抖动。迟滞、死区与最小驻留时间是可比较的控制策略，不是未经实验的默认答案。
-- **证据边界**：Gersick 1988（DOI 10.2307/256496）只核到书目，不能支撑"每里程碑一次"。
-  2606.22203 的已读摘要批评缺少可测控制参数与 regime 理论，也没有给出 Pod 的切换频率。
+- **已核出处与边界**：Gersick 1988 的 8 组中点观察属假设生成, 限有期限和过程调整余地的团队;
+  Wiener 第二版 p.97 则给设计不佳的反馈可能振荡。两者不推出 Pod "每里程碑一次" 或必须死区。
+  2606.22203 仍只有摘要, 不提供本项目的切换频率。
 - **检查条件**：记录切换次数、状态是否反复迁移、切换耗时／成本与净收益，再判定是否需要防抖。
 
 ### 6.4 路径依赖与锁定
 
-- **论证**：Arthur, W. B. (1989). "Competing Technologies, Increasing Returns, and Lock-In by
-  Historical Events", *The Economic Journal* 99(394):116–131，DOI 10.2307/2234208（Crossref **核验**）：
+- **内容待核**：Arthur, W. B. (1989). "Competing Technologies, Increasing Returns, and Lock-In by
+  Historical Events", *The Economic Journal* 99(394):116–131，DOI 10.2307/2234208（Crossref 仅核书目）：
   收益递增会使早期偶然选择锁定为长期均衡，且**锁定未必是有效率的那个**。David 1985 "Clio and the
-  Economics of QWERTY" `[未经一手来源核验]` 是同一论点的著名案例。
+  Economics of QWERTY" 是相邻候选。两者核心主张与边界均 `[未经一手来源核验]`，不计本批已核警告。
 - **对本设计的读法（INFERENCE）**：形态选择器一旦用**历史成功率**做先验（很自然的实现），就会
   形成自我强化：某形态被选中→积累更多适配它的记忆与工具→下次更可能被选中，即使另一形态在
-  新任务分布上更好。缓解手段是**保留探索配额**与**定期在固定任务集上重测所有形态**。
+  新任务分布上更好。探索配额与独立评估只是候选; 反复使用固定留出集也会产生选择偏差, 见
+  [14 号研究](adaptive-evaluation-and-selection-bias.md), 不把固定集反复重测当作无代价补救。
 
 ### 6.5 阿什比定律用于"切换控制器"（元层的多样性缺口）
 
-- **论证**：切换控制器要吸收的多样性来自**任务分布的多样性**，不是单任务的多样性。若 V(选择器)
-  < V(任务分布)，选择器必然在未覆盖的区域系统性失准（§3.1）。提升选择器多样性的三条路都真实
-  有成本：类目更细（观测成本、样本稀疏）、特征更多（探测成本）、权限更大（风险与误切代价）。
+- **已核出处与缺口**：Ashby 的矩形表条件与可容许结果集已核, 但选择器、任务分布与表中元素的
+  映射未完成。旧稿 `V(选择器)<V(任务分布)` 所以必然系统性失准的推导撤回。
 - **候选方案（INFERENCE）**：限制任务入口、给不可判定任务默认形态，或增强选择器的探测能力。
   成本需包含误判损失、探测及维护，当前没有证据给这些方案排序。
 
 ### 6.6 元层成为新瓶颈
 
-- **论证**：VSM 的 S5/S3* 与二阶控制论都指出：负责"整体方向"与"稽核"的层级会自己变成需要被
-  治理的对象（Beer 1972 书目核验；von Foerster `[未经核验]`）。若每次任务都要经过形态判定，
-  判定环节就成为**串行瓶颈**：所有任务排队等一个判定器，且判定器需要全局视图——恰恰是黑板论文
-  （2510.01285，A）批评主从式时说的"lacks full observability"。
-- **一手证据**：Magentic-One 2411.04468（A）采取的是**单 Orchestrator 计划与跟踪进度**的结构——
-  有效，但它把编排负载集中到一点；MasRouter/RouteGuard 则说明围绕这个点的决策质量与计量本身是
-  研究问题。
-- **咬人条件**：任务到达率高、形态需要全局信息（跨任务资源共享）时，元层瓶颈先于执行层饱和。
+- **待测假设（INFERENCE）**：若所有任务经过同一个串行判定器, 其服务时间可能造成排队瓶颈。
+  是否比执行层先饱和取决于到达率、并发度和服务时间, 目前未测。
+- **证据边界**：Beer 与 von Foerster 未取得原作或权威学术二手, 不能替瓶颈命题背书。
+  Magentic-One、MasRouter、RouteGuard 的摘要只给编排与路由线索, 不证明本项目的吞吐瓶颈。
 
 ### 6.7 "没有免费午餐"式论证
 
-- **待核出处**：Wolpert, D. H. & Macready, W. G. (1997). "No free lunch theorems for optimization",
-  *IEEE Trans. Evolutionary Computation* 1(1):67–82，DOI 10.1109/4235.585893。当前只核到书目，
-  定理的搜索空间、平均方式、算法条件及其向组织路由问题的映射均未复核。
+- **已核出处**：Wolpert & Macready 1997, "No free lunch theorems for optimization",
+  *IEEE Trans. Evolutionary Computation* 1(1):67-82, DOI 10.1109/4235.585893, §II-III/VI。
+  有限搜索空间、有限 cost 值域, 按 distinct oracle calls 计观测, 对全部 cost functions 均匀平均;
+  重访不增加样本。该平均下性能抵消, 不直接给 minimax 结论; 现实问题不必有 flat prior。
+  公式未逐符号重建, 组织路由映射未完成, 见经典警告 A5。
 - **方法建议（INFERENCE）**：报告形态比较适用的任务分布与基线。这个建议不等于现实任务必须
-  稳定、分布必须预先完全已知，或必须冻结现实工作负载；不能把上述要求归给未经核验的定理。
+  稳定、分布必须预先完全已知，或必须冻结现实工作负载; 原文不支持这些要求。
 
 ### 6.8 矩阵／动态组织在管理实践中的已知失败
 
@@ -804,9 +759,9 @@ Rao & Georgeff 1995 本轮 Crossref 只匹配到同作者 1998 年 *Agent Techno
   Ghoshal 的"不是结构而是心态"（HBR，1990，年份 `[未经核验]`）说明矩阵的成败取决于**管理者的
   协商与冲突处理能力**而非结构图。
 - **证据边界**：Ostrom 2007（DOI 10.1073/pnas.0702288104）的已读摘要反对普遍解。间断平衡与
-  Gersick 中点转变的原文仍待核验，不能用这些书目证明动态 agent 组织应按某一节奏切换。
-- **咬人条件**：动态/双重结构在没有（a）冲突协商机制、（b）明确问责归属、（c）能容纳两套逻辑的
-  高层整合时，会退化为**决策瘫痪 + 开销膨胀**——这正是矩阵的经典病理。
+  Gersick 中点观察已核, Tushman/Romanelli 仍待核; 两者都不能直接证明动态 agent 组织的切换节奏。
+- **待核假设（INFERENCE）**：冲突协商、问责归属和高层整合不足可能增加决策延迟与开销。
+  本批未核清这些因素的必要性或充分性，不写成动态/双重结构必然失败的定理。
 
 ### 6.9 直接反面经验证据（LLM 侧，均为摘要级）
 
@@ -846,19 +801,18 @@ Rao & Georgeff 1995 本轮 Crossref 只匹配到同作者 1998 年 *Agent Techno
 
 ## 7. 盲区：本轮未能到达或未能核验的部分
 
-本节区分三类盲区：**工具不可达**（导致覆盖缺口）、**一手不可读**（导致内容只能标未核验）、
-**方法限制**（导致结论强度上限）。
+本节保留原侦察访问失败与当前缺口, 不把旧端点失败当作补核仍不可达。补核已接受的范围见头部表;
+控制论 2/5 仍不足, S4 核心盲区不通过, 不以新增票或改成非核心绕过。
 
-### 7.1 工具不可达与由此产生的覆盖缺口（事实）
+### 7.1 原侦察的端点失败与覆盖缺口
 
 1. **web_search 全轮不可用**（任务书给出：HTTP 402）。已按要求弃用；改用 arXiv 站内检索（HTML）、
    Crossref REST、OpenLibrary、Google Books、Wikipedia REST。**后果**：面向**实践**的文献
    （HBR 档案、咨询报告、企业矩阵制失败复盘、管理学期刊的实务评论）本轮基本没覆盖；§1.5 与
    §6.8 的"已知失败"因此主要来自学术摘要与教科书式共识。
 2. **Semantic Scholar API 全轮 429**（"Too Many Requests"），即使 sleep 后仍 429。**后果**：
-   没有引用图与引用计数，"哪些概念被借用／被装饰性使用"的判据只能是**标题与摘要明文**；无法
-   回答"某论文是否在正文引用了 Wegner／Cohen & Levesque／Smith 1980"。因此 §5.2 第 4 条的
-   "检索不到"**只**在标题/摘要面成立。
+   原侦察没有引用图与计数, §5.2 第 4 条的未命中只在标题/摘要面成立。后续三样本已直接读
+   正文与参考文献, CNP 引 Smith 1980 已核; 不再把引用 API 不可达等同于无法核任何正文引用。
 3. **arXiv export API 全轮 429**（`export.arxiv.org/api/query`），改走 arXiv 站内检索 HTML。
    该界面是**元数据检索**（标题/摘要/作者/comment），不覆盖正文。**后果**：只在正文提到
    "requisite variety""contract net""blackboard""stigmergy"的论文会被漏掉——**这会系统性低估**
@@ -871,41 +825,34 @@ Rao & Georgeff 1995 本轮 Crossref 只匹配到同作者 1998 年 *Agent Techno
 
 ### 7.2 一手不可读：内容只能标"未经一手来源核验"
 
-本轮**没有**任何经典原著的全文或付费墙访问。可核验到的是**书目与摘要**（Crossref／OpenLibrary／
-Wikipedia 参考文献行）。因此以下内容属于模型知识，已在正文就地标注，**引用前必须回一手**：
-Burns & Stalker 1961 的机械式/有机式条目细节；Lawrence & Lorsch 1967 的行业样本与整合装置结论；
-Thompson 1967 的互依—协调方式映射原文；Galbraith 1973 的四策略清单（1974 论文摘要只核验了
-"任务不确定性→组织形式"与 Simon 认知极限这一主旨）；Davis & Lawrence 1977 的矩阵病理清单与
-失败率；Baldwin & Clark 2000 的"模块化期权"与"测试成本"论证；Simon 1962 的近可分解性陈述；
-Tushman & Romanelli 1985 的收敛/再定向表述；Williamson 1971／1985 的原文措辞；
-Marschak & Radner 1972 的定义与定理；Wegner 1985／1987 的 TMS 机制细节；Ostrom 1990 的八项设计
-原则条款原文；Ashby 1956／1958 的定律精确形式；Beer 1979／1985 的 VSM 子系统定义细节；
-Maturana & Varela 1980 的自创生判据；Prigogine 系列与 Holland 系列的原文主张；Bak 1996 的 SOC
-机制表述。
-**另需单独标出（本轮想核验但未成功）**：*Gersick 1988 的"中点转变"具体结论*——本轮只经 Crossref
-核验到篇名／年／刊／DOI（10.2307/256496），**未取得摘要或原文**，其"约在一半时限发生集中转变、
-由时间里程碑触发"的表述 `[未经一手来源核验]`。§6.3／§6.8 已停止以它支撑切换节奏限制。
-同理，Aulin-Ahmavaara 1979 的"必要层级律"**精确数学表述**未获一手（只核验了摘要中"从 Ashby 理论
-扩展到放大式调节、并考察层级存在条件"的问题域）。
+已补核来源不再列为整篇未读。仍未取得原文或未完成内容边界核验的条目包括 Burns & Stalker、
+Lawrence & Lorsch、Thompson、Galbraith 1973、矩阵病理源、Baldwin & Clark、Langlois、
+Tushman/Romanelli、Williamson、Marschak/Radner、Wegner/TMS、Ostrom 1990、Ashby 1958、
+Beer、von Foerster、Maturana/Varela、Prigogine 系列、Holland 1975/1995/1998、Bak 1996。
+各条仍按正文标注引用, 不借用已核邻近来源替代。
+
+已取来源内仍有缺口：Simon pp.477/478/482 未按页图核; Holland 七机制列表未定位;
+Wiener 第二版第 IV 章后续数学分析未读; Hearsay 的同步/通信/解除只定向检索未核到;
+Teamwork 公式未逐符号核且作者 PS 分页未对齐刊本; ADOPT 只有权威二手, 原作精确定理未核。
+Varela 库载 PDF 仅一页题录摘要, 不计全文。Aulin-Ahmavaara 的必要层级律也只有摘要问题域。
 
 ### 7.3 书目核验失败的条目（引用须补核）
 
-Simon 1962（Crossref 命中无关条目）；Rao & Georgeff 1995 ICMAS（Crossref 只匹配到同作者 1998 章）；
-Hewitt, Bishop & Steiger 1973 IJCAI（Crossref 只匹配到 Hewitt 1973 POPL 另一篇）；Tushman &
+Rao & Georgeff 1995 ICMAS（Crossref 只匹配到同作者 1998 章）；Tushman &
 Romanelli 1985（ROB 第 7 卷，无 DOI 命中）；Davis & Lawrence 1977《Matrix》；Bartlett & Ghoshal
 1990 HBR 的年份；Duncan 1976 章节；Langlois 2002 期刊版；Lesser & Corkill 1981；Bratman 1987／
 1992；Clearwater 1996；Vickrey 1961／Groves 1973／Myerson 1981；Nicolis & Prigogine 1977；
-Bak 1996；Holland 1975／1992／1995／1998；Prigogine & Stengers 1984；Maturana & Varela 1980；
+Bak 1996；Holland 1975／1995／1998；Prigogine & Stengers 1984；Maturana & Varela 1980；
 von Foerster 1974／1981；Wiener 1948；Cannon 1932；David 1985；Beer 1979／1985；Galbraith 1973。
 
 ### 7.4 方法限制（结论强度上限）
 
-1. **LLM 侧证据全部是摘要级作者自述**，未复现任何实验、未读正文、未核验代码。§5 中 (T) 标记的
-   条目**只核验了标题**。作者摘要是**主张**，不是独立验证过的事实。
+1. LLM 三样本正文与引用已核, 其余仍按 A/T 层级。未运行论文代码或复现任何实验; 作者的实验
+   报告不等于本项目独立复现, 主会话原文回读也不增加实验强度。
 2. **未核验同行评审状态**（除摘要 comment 字段自述者：MacNet=ICLR-2025、TheBotCompany=ASE 2026、
    Wei et al.=TMLR 2022）；2026 年 10 月前后的 2610.* 条目多为 v1 预印本。
-3. **"借用强度"是本报告的构造**，不是文献计量指标；它由"标题/摘要是否明文使用该概念"定义，
-   分级含判断成分，已在 §5 标注依据。
+3. 借用分类按仅提词、有经典引用、实际机制对应区分, 三个 F 样本均有定位和限制。原侦察的 A/T
+   行不能与 F 行混算, 定向样本也不构成领域代表性统计。
 4. **本文件不含对 Pod 代码库的任何事实主张**（任务范围为纯概念侧）；§1–§6 中所有"对本设计的
    含义"均为 INFERENCE，未经仓库事实核验，也未考虑 Pod 现有实现约束。
 5. **单一采集时点**：2026-10-13。arXiv 列表与 API 状态此后可能变化；引用前回读 §8 端点。
@@ -914,7 +861,8 @@ von Foerster 1974／1981；Wiener 1948；Cannon 1932；David 1985；Beer 1979／
 
 本文件可提供问题与检索线索，不能替代原文核验。经典理论的原文边界、借用与修辞的区分以及 LLM
 正文引用都归现有[组织理论、复杂系统与控制论](../issues/03-research-organization-theory-and-concepts.md)逐项补核。
-这些缺口覆盖原票核心问题，故研究票保持开放；不以另开票或移入雾面绕过当前关闭门。
+控制论及逐条边界缺口覆盖原票核心问题, 研究票保持开放。已核部分可按版本与原句引用,
+不必退回全篇摘要级; 未核部分不以另开票或移入雾面绕过当前关闭门。
 
 ---
 
@@ -922,9 +870,11 @@ von Foerster 1974／1981；Wiener 1948；Cannon 1932；David 1985；Beer 1979／
 
 正文引用一律**就地**给 DOI 或 arXiv 编号；本节是索引与核验方式说明，不重复正文论证。
 
-### 8.1 经典一手：期刊／章节（Crossref 核验到篇名／年／刊／DOI）
+### 8.1 经典期刊／章节索引
 
-- Galbraith 1974, *Interfaces* 4(3):28–36 — `10.1287/inte.4.3.28`（**含摘要原文**）
+题录与内容状态分开。头部表及补核件列出了已核原文范围; 未注明升级的条目仍只有原侦察的题录/摘要。
+
+- Galbraith 1974, *Interfaces* 4(3):28-36, `10.1287/inte.4.3.28`（原文补核）
 - Sy & Côté 2004, *J. Management Development* 23(5) — `10.1108/02621710410537056`（**含摘要原文**）
 - Raisch & Birkinshaw 2008, *J. Management* 34(4):375–409 — `10.1177/0149206308316058`（**含摘要原文**）
 - Ostrom 2007, *PNAS* 104(39) — `10.1073/pnas.0702288104`（**含摘要原文**）
@@ -959,34 +909,44 @@ von Foerster 1974／1981；Wiener 1948；Cannon 1932；David 1985；Beer 1979／
 - Georgeff & Rao 1998, in *Agent Technology* — `10.1007/978-3-662-03678-5_8`
 - Langlois 2000, "Modularity in Technology, Organization, and Society"（工作论文版） — `10.2139/ssrn.204089`
 - Ostrom 2010, *AER* 100(3):641–672 — `10.1257/aer.100.3.641`
+- Simon 1962, *Proc. APS* 106(6):467-482（所列页图已核）; Hewitt/Bishop/Steiger 1973,
+  *IJCAI-73*, pp.235-245（官方 PDF 已核）; Holland 1992, *Daedalus* 121(1):17-30（所列机制已核）。
+- Ostrom 2009-12-08 诺奖讲座, `https://www.nobelprize.org/uploads/2018/06/ostrom_lecture.pdf`,
+  pp.408-444（实际读取版, 不与 AER 分页混用）。
 
-### 8.2 经典一手：书籍（核验方式受限，见 §7.2）
+### 8.2 书籍与其余未核候选
+
+- 原文补核：Ashby 1956 §7/7、§11/5-11; Wiener 1961 第二版、1985 刷次的序 vii-viii 与
+  pp.95-97。逐页定位与版本见相应补核件, 不冒充其他版本或全书核验。
 
 - **书目记录核验**：Burns & Stalker 1961 *The Management of Innovation*（Tavistock；Wikipedia 参考
   文献行＋Crossref 1994 OUP 版）；Thompson 1967 *Organizations in Action*（McGraw-Hill，OpenLibrary）；
   Beer 1972 *Brain of the Firm*（OpenLibrary）；Williamson 1975 *Markets and Hierarchies*（Free Press，
   OpenLibrary）；Baldwin & Clark 2000 *Design Rules Vol. 1*（MIT Press，OpenLibrary 记 1999/2000）；
   Ostrom 1990 *Governing the Commons*（CUP，OpenLibrary 仅命中德译本与 CUP 记录）。
-- **未核验（模型知识）**：Lawrence & Lorsch 1967；Simon 1962；Galbraith 1973；Davis & Lawrence 1977；
-  Tushman & Romanelli 1985；Williamson 1971／1985；Marschak & Radner 1972；Ashby 1956／1958；
+- **未核验（模型知识）**：Lawrence & Lorsch 1967；Galbraith 1973；Davis & Lawrence 1977；
+  Tushman & Romanelli 1985；Williamson 1971／1985；Marschak & Radner 1972；Ashby 1958；
   Beer 1979／1985；von Foerster 1974／1981；Wiener 1948；Cannon 1932；Maturana & Varela 1980；
-  Prigogine 1967／Prigogine & Stengers 1984／Nicolis & Prigogine 1977；Bak 1996；Holland 1975／1992／
-  1995／1998；Bratman 1987／1992；Rao & Georgeff 1995；Hewitt, Bishop & Steiger 1973；Agha 1986；
+  Prigogine 1967／Prigogine & Stengers 1984／Nicolis & Prigogine 1977；Bak 1996；Holland 1975／
+  1995／1998；Bratman 1987／1992；Rao & Georgeff 1995；Agha 1986；
   Lesser & Corkill 1981；Clearwater 1996；Duncan 1976；David 1985；Bartlett & Ghoshal 1990；Vickrey
   1961；Groves 1973；Myerson 1981；Luhmann 1984；Mingers 1995；Jensen 1998。
 
-### 8.3 LLM／agent 侧（arXiv；**(A)**＝摘要原文已核验，**(T)**＝仅题录）
+### 8.3 LLM／agent 侧（F 正文补核、A 摘要、T 题录）
 
-- **(A)** 2607.25446 · 2609.14767 · 2608.07583 · 2609.38327 · 2609.33871 · 2608.26081 · 2608.10153 ·
+- **(F)** 2406.07155v3 · 2609.38327v2 · 2608.12371v1, 版本、作者与读取范围见 §5.4。
+- **(A)** 2607.25446 · 2609.14767 · 2608.07583 · 2609.33871 · 2608.26081 · 2608.10153 ·
   2609.17419 · 2609.33768 · 2603.25928 · 2503.13657 · 2502.11133 · 2410.11782 · 2411.04468 ·
-  2510.01285 · 2608.12371 · 2606.22203 · 2610.00954 · 2605.14892 · 2406.07155 · 2206.07682 ·
+  2510.01285 · 2606.22203 · 2610.00954 · 2605.14892 · 2206.07682 ·
   2304.15004 · 2506.07398
 - **(T)** 2310.02170 · 2507.01701 · 2602.19843 · 2609.36739 · 2606.03083 · 2609.02580 · 2606.29113 ·
   2608.14613 · 2512.18094 · 2608.05956 · 2609.15079 · 2603.12465 · 2605.03986 · 2608.03524 · 2607.13272
 - 说明：以上均为 **2026-10-13 采集时点**的 arXiv 元数据；2610.* 多为 v1 预印本，评审状态未核验
   （摘要 comment 字段自述者除外：2406.07155=ICLR-2025、2603.25928=ASE 2026、2206.07682=TMLR 2022）。
 
-### 8.4 检索与核验端点（含本轮状态）
+### 8.4 原侦察端点状态
+
+本表记录原侦察窗口, 不覆盖后续各补核件已成功的正文入口。
 
 | 端点 | 用途 | 本轮状态 |
 |---|---|---|
@@ -1000,7 +960,11 @@ von Foerster 1974／1981；Wiener 1948；Cannon 1932；David 1985；Beer 1979／
 | `api.semanticscholar.org/graph/v1/paper/search` | 引用图与计数 | **429** 全轮（未使用） |
 | `web_search` 工具 | 通用检索 | **HTTP 402**（按要求弃用） |
 
-### 8.5 二手来源（仅用于方向性定位，不承载理论主张）
+### 8.5 二手来源
+
+可承载有限内容引用的权威学术二手：Fioretto/Pontelli/Yeoh 2018, *JAIR* 61:623-698,
+DOI 10.1613/jair.5565, arXiv:1602.06347v4 §4.3.4、Table 4。只引用其对 ADOPT 的归纳,
+不冒充 ADOPT 原作定理已核。其余以下百科仍只作方向线索。
 
 Wikipedia 条目：Contingency theory · Matrix management · Transaction cost · Transactive memory ·
 Variety (cybernetics) · Viable system model · Second-order cybernetics · Autopoiesis · Self-organized

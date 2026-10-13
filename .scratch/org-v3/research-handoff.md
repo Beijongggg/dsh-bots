@@ -2,11 +2,81 @@
 
 派发或验收本图研究工作包时，先读本文件，再读所属票的「可委派工作包」与原关闭判据。
 本文件只细化本轮研究交付，不改变全局技能、长期纪律、S1–S5 或 HITL 裁定权。
-2026-10-13 本轮完成派发准备，尚未启动 ds、认领或关闭研究票。
+2026-10-13 用户已授权原生子代理，可选 ds4.1；实际派发与验收留在所属票 Comments。
+原生子代理共享工作树，以下文件所有权约束不等于工具级写入隔离；本轮不调用本机 DSH。
 
-## 委派判断
+## 本批结果与接手顺序
 
-本次 ds 交付适合继续用作检索线索和候选清单。来源覆盖较广，也披露了访问限制，
+基线 `a8967ce118c9becfad132159ae50f9a86ba11397`。实际模型为
+`opencode-go/deepseek-v4.1-flash`，effort `max`，原生协作子代理，不是 DSH Delegate。
+16份补核均已落盘，分为形态1、成本5、理论8、生态1、评测复用1；已完成采集任务没有在途写入。
+主会话已回读关键原文、纠正语义并整合报告。收件完成不等于每条结论采纳，更不等于五票全闭。
+
+接手先读所属票当前 Answer 与末尾移交备注，再按下表进入补核件。历史 Comments 保留当时判断，
+例如成本首包的未知 checkpoint 不再作为否定论文双数字对照的门；当前结论以 Answer 为准。
+
+| 补核件 | 本批验收边界 |
+|---|---|
+| [动态对照与回退](research/supplements/01-dynamic-controls-and-fallback-20261013.md) | 三篇已读；保留 AdaptOrch 分母冲突，区分选形、重跑与迁移；完整净收益校准未报告 |
+| [同模型双数字](research/supplements/02-same-model-dual-metrics-20261013.md) | Optima 未训练 MAD 对 CoT/SC 满足论文报告层双数字，不等于等预算经济增益 |
+| [PaperBench/RE-Bench](research/supplements/02-paperbench-rebench-costs-20261013.md) | API估算、judge费、人工支付和预算分开；没有完整账单复原 |
+| [Optima配置](research/supplements/02-optima-config-and-denominators-20261013.md) | 原表与当前代码的计数边界已核，代码未绑定论文逐run配置 |
+| [TB/MLE/HAL字段缺口](research/supplements/02-gap-rechecks-20261013.md) | 更正token包含关系、seed分母与GPU预算；HAL未重算继续隔离 |
+| [GAIA/tau/HLE/OSWorld](research/supplements/02-suite-fields-20261013.md) | 固定PDF版本及已读成本字段；无组织对照仅限所读范围 |
+| [经典设计警告](research/supplements/03-classic-design-warnings-20261013.md) | 所引原文条件已核，理论迁移另标推断 |
+| [复杂系统](research/supplements/03-complex-systems-sources-20261013.md) | 五项所引内容已核，镜像身份与未读页保留 |
+| [控制原文](research/supplements/03-control-sources-20261013.md) | 与经典包合计仅Ashby/Wiener两项达标 |
+| [控制缺口](research/supplements/03-control-gaps-20261013.md) | Beer/von Foerster百科及Varela题录摘要不计内容达标；只收缺口记录 |
+| [协调原文](research/supplements/03-coordination-sources-20261013.md) | 四篇的所引机制与边界已核，形式细节仍有未读项 |
+| [ADOPT权威二手](research/supplements/03-coordination-gaps-20261013.md) | JAIR综述可按原判据计入，不能冒充ADOPT原作精确定理 |
+| [LLM借用](research/supplements/03-llm-classic-borrowing-20261013.md) | 三个全文样本分清标度借用、相变模型与协议扩展，不估计全领域比例 |
+| [组织路径余项](research/supplements/03-org-path-remainder-20261013.md) | Simon与Ostrom所引内容已核，转引统计和演示数字不当独立实测 |
+| [宿主/Claude边界](research/supplements/04-host-and-claude-teams-20261013.md) | 五项文档/符号边界已核，未作运行实测或产品优劣裁定 |
+| [选择偏差与保留集](research/supplements/14-selection-and-holdout-sources-20261013.md) | 三组四篇支撑四项风险及防护候选，统计限制由主会话校正 |
+
+仅[持续演进中的评测过拟合与反复选择偏差](issues/14-research-adaptive-evaluation-and-selection-bias.md)
+满足原关闭项并进入地图决议索引。其余四票为 `ready-for-agent`，已释放认领；核心盲区见各票 Answer。
+S1–S5 与全部 HITL 选择保持，不改既有冻结规格，不运行论文代码、基准或真实模型实验。
+
+## 实际返工与委派判断
+
+本批说明 ds 适合继续做固定来源、限定字段的提取，不适合省略主会话验收。具体返工包括：
+
+- 成本首包把无美元当作不合格并漏核未训练MAD对照，定向返工后仍由主会话纠正两臂、token含义
+  和关闭口径。PaperBench等包也有成本对象、聚合分母及完成时间纠正，不能记作零返修。
+- 组织余项初稿150行超过派发110行上限，路径有误，主会话压到92行并更正定位。经典警告包超时，
+  复杂系统包最初取得1988 PRA而非要求的1987 PRL，后者补得后才按原来源计数。
+- 协调续核修改了已有补核件且未补到ADOPT，未按「独立新增」完成原包；后由另一子代理另交
+  JAIR权威二手。控制续核把百科当合格二手，覆盖计数拒收；Varela的PDF实际为1页题录摘要。
+- 原文抽取并不保证公式正确。评测复用包的Ladder绝对值竖线由主会话按PDF页图纠正，
+  普通重复检验不继承其定理。详细原文验收见所属票，不用机械引文匹配代替含义核对。
+- 子代理曾把四份PDF及`dl4.log`误落仓库根，创建者已移入`/tmp`；控制检索的`sa1.html`
+  也因未先切目录误落，已归因并移至`/tmp/cyb-03-20261013/sa1.html`，4428 B，SHA-256
+  `22fb6ac7a6b8e526bac09b36d42eeda61dc703a63e533181765f45b580120bda`。
+  这些是文件所有权约束的实际失守，不描述为工具强制隔离成功。
+
+可得派发/落盘时刻与定向返工次数见各补核件、票面 Comments；未记精确时刻的包保持未知。
+数值session_id、token用量、主会话主动核验工时与交接token均未计量；没有同任务本地基线，
+不报告净节省。原生子代理未调用本机DSH，运行面、部署、真实配置没有本批写入。
+
+## 剩余可派给 ds 的工作
+
+以下只补原票，不是新增研究面。每包只提取证据，默认20分钟到界交已核项与缺口；
+遇已记录失败入口先查新来源条件，没有新条件不重复抓取。下表未派发，不把候选当在办。
+
+| 所属票 | 下一包可细化的范围 | 完成条件与停止点 |
+|---|---|---|
+| [带成本的公开基准与成本口径](issues/02-research-benchmarks-with-cost.md) | 先补BrowseComp、SWE-Lancer、TheAgentCompany的原清单四栏，再另包查多agent套件 | 每套件独立列成本与组织双臂读取范围；奖金/任务价值、运行费用、人工费用分开，正文不可达即留缺口 |
+| [组织形态谱系、动态架构与成本经济](issues/01-research-org-patterns-and-phase-transition.md) | 从原报告未验收形态/候选中每包选至多三项，核原则、适用条件、成本及固定基线 | 不重派已核三篇；完整切换成本未知限制净收益，不抹去已发表动态对照，不自定S2或路由策略 |
+| [组织理论、复杂系统与控制论](issues/03-research-organization-theory-and-concepts.md) | 控制原清单Beer/Varela/von Foerster有新学术来源时补；另包补原条目边界 | 原作或可定位权威学术二手才计内容；百科、占位PDF与访问失败交回，不降五项要求 |
+| [外部产品与本地DSH生态](issues/04-research-external-products-and-ecosystem.md) | 原报告其余节按产品小包建立主张到原文对应；dots与英文访谈只用新的可用官方/作者入口 | 可达性不等于内容支持；只读资料、不绕访问挑战。不能从首包推出全生态结论 |
+
+架构取舍、理论迁移、因果归因、跨报告冲突裁决和最终验收留主会话；没有新资料的访问缺口
+留在原票，不用新增票或移入雾面绕过S4。后续派发仍需按下节固定实际输入、输出与停止条件。
+
+## 原侦察的验收问题
+
+建图时的 ds 采集适合继续用作检索线索和候选清单。来源覆盖较广，也披露了访问限制，
 但支撑关闭的主张核验未完成。具体失败见形态、成本、理论三票 Comments，以及
 [关键引用纠正](research/evidence-corrections-2026-10-13.md)。
 
@@ -20,6 +90,9 @@
 
 这也包含建图和收口方的验收失守，不能只归因于采集方。判断限于本次交付，
 不据此推断 ds 在所有研究任务上的能力。
+
+首包的派发时刻、定向返工与验收过程，读[成本研究票 Comments](issues/02-research-benchmarks-with-cost.md#comments)。
+原文数字提取可采纳，不等于成本含义、比较条件和关闭结论可以免检。
 
 ds 可承担有界的一手材料提取、表格补核和缺口记录。理论迁移、因果归因、
 跨报告冲突裁决及最终验收留在主会话。若核验需要重做大部分推理，该包直接留在主会话。
@@ -38,15 +111,15 @@ ds 可承担有界的一手材料提取、表格补核和缺口记录。理论�
      文字中的「只读」不能代替执行权限，改变 cwd 也不等于隔离。
    - 所有 DSH 模式都会写会话记录。启动前须有这些写入的明确授权，或验证记录落在获准的
      隔离位置；本轮没有新增运行面授权。条件不满足时不调用，不改真实配置凑条件。
-3. 把简报中的仓库根、票面、来源快照和输出改为绝对路径。每包最多五条决策主张，
+3. 把简报中的仓库根、票面、来源快照和输出改为绝对路径。采集命令先 `cd` 到该包专用的
+   `/tmp` 目录，下载与重定向用绝对路径，不用后台下载；完成时核对仓库外溢件归属与本包文件。
+   每包最多五条决策主张，
    只交一个 Markdown 补核件，正文含表格以 150 行为上限。来源原件不塞进正文。
    超限时交已完成项和剩余缺口，主会话再拆包，不删适用限制换取篇幅达标。
    完成条件是逐条可验收，不是填满行数或凑够来源数。
 
-首次建议派[带成本的公开基准与成本口径](issues/02-research-benchmarks-with-cost.md)的
-「同模型双数字」包，范围仅 BudgetMLAgent、Optima 两个既有候选，核实是否满足同集同模型
-的双数字条件。待核对象和判据明确，适合先校准提取和验收是否有效。两者均不符合也可结束
-工作包，但不能关闭研究票。首包验收通过后再扩量，不同时重跑全部研究票。
+本批已用 BudgetMLAgent、Optima 首包校准提取与验收，结果及返工见上表。后续只派当前
+Answer 仍缺的内容，不重复整票或以再采一遍代替针对性的补核。
 
 ## 自包含简报
 

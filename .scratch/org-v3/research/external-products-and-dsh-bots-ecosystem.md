@@ -1,70 +1,35 @@
 # 外部产品组织原始语与本地 DSH 生态清单 —— 研究报告
 
 - 日期：**2026-10-13**
-- 票据：`TBD (wayfinder research ticket)`
-- 性质：**建图前侦察（pre-chart reconnaissance）**。本文件不是终稿、不是决议；它是
-  `org-v3` wayfinder 建图轮的预研产物，正式建图时该 effort 的 wayfinder map 会把它
-  **收编为一张 research 票的交付物**（届时票号替换本行 `TBD`，结论按票面口径复核后方可引用）。
+- 票据：[外部产品与本地 DSH 生态（收编与复核）](../issues/04-research-external-products-and-ecosystem.md)。
+- 采集性质：建图前侦察已收编为该研究票交付物，当前逐节补核；可引用边界以票面Answer为准。
+  本批只验宿主Agent Teams与Claude Code agent teams的五项边界，见
+  [补核件](supplements/04-host-and-claude-teams-20261013.md)；其余节仍为待逐节复核的事实候选。
 - 快照语义：只证明 **2026-10-13 采集时点**。外部产品迭代快，引用前回读 §14 来源。
 - 标注：`[未经一手来源核验]`＝本轮未落到一手来源；`INFERENCE:`＝推断。事实与推断严格分开，
   推断集中在 §13。正文方括号编号指向 §14 来源表。
 - 路径约定：`$DSH`＝`/usr/lib/node_modules/@deepseek-ai/dsh`（已安装宿主 **0.2.1-alpha.2**）；
   `$DSH_HOME`＝`~/.dsh`。
 - 采集边界：**全程只读**。`~/.dsh` 与安装树零写入；未抄录任何会话、消息或凭据内容。
-- 篇幅说明：**超出任务给定 300–500 行的目标（正文 §0–§13 约 810 行，§14 附录 89 行，合计 899 行）**。
-  原因是本轮实采到的一手组织原语数量远超预期（Claude Code agent teams 落盘路径与限制清单、
-  宿主 Agent Teams 的 CAS／log-only 语义、ADK 状态作用域前缀、Agent Framework checkpoint 与
-  HITL 机制、Cognition 与 OpenAI SDK 的原文口径等）。已做过两轮压缩（删冗余引注、表格化、
-  删重述），继续压缩将开始丢可核验事实。**建议由 wayfinder 票裁定**：或接受现篇幅，
-  或把 §7 框架横向与 §14 附录拆成独立 artifact。
+- 篇幅偏离：原采集超过300–500行目标，本批删去无证全称结论，保留原来源入口。
+  长文存在不等于覆盖已验收；复用时先读票面可引用清单，再进对应原文。
 
 ---
 
 ## 0. TL;DR
 
-1. **OpenAI「dots」是厂商云上的常驻 agent，不是用户自有的进程团队**：每 dot 一台「云电脑」
-   （沙箱 workspace，维护中的 Linux ＋ Chrome），不等 prompt 继续干活；协调与安全强制的系统
-   **在 dot 够不到的地方**运行 `[未经一手来源核验]` [S7][S7t][S7d]。**落地形态与本项目正相反。**
-2. **dots 唯一沾「组织」的是试点 specialist dots**：给 dot 公司身份、凭据、IT 配发硬件与公司
-   系统访问权，由 **OpenAI 工程师与客户共同定义**职责、工具与审批流程 `[未经一手来源核验]` [S7]。
-   →「岗」是厂商交付的定制服务，不是用户可版本化、可审计的编制。
-3. **dots 的组织原语是权限分层**：Custom Rules 三态（allow／require approval／block）
-   ＋ auto-review ＋ Activity View ＋ 内建安全监控 `[未经一手来源核验]` [S7]。授权者是**人**；
-   隐患是 **Pause 只暂停主任务、不自动停所有后台任务**，删 dot 不撤回已发消息、不回滚外部改动
-   `[未经一手来源核验]` [S7d]。
-4. **OpenAI 的多 agent 立场是「去脚手架」**（Noam Brown，Dwarkesh 播客 ≈2026-09-17）：重 scaffold
-   的「协调者分派、sub-agent 交回」有硬伤——**两个拿到相似任务的 sub-agent 通常不能互相通信，
-   这就非常低效**；OpenAI 只给「给另一个 agent 发消息」这一件原始工具，让协调方式涌现，「很像
-   人类在 Slack 上的工作方式」[S6][S6b]。
-5. **同一访谈给出反向证词并自认证据薄**：「**我甚至不会把其中 10% 的功劳记在多智能体头上**」；
-   主因是模型本身够强；规模化只测到 ~16 agent，1 万 agent 是**单个数据点、无消融**，「眼下
-   1 万个人的协调能力强于 1 万个 Agent，完全有可能」[S6][S6b]。
-6. **最强一手反面论证来自 Cognition**（自家博客 2026-04-22）：「multi-agent systems work best today
-   when **writes stay single-threaded** and the additional agents **contribute intelligence rather
-   than actions**」；「the unstructured-swarm approach … **is mostly a distraction**. The practical
-   shape is **map-reduce-and-manage**」；并给出负面结果（跨 agent 通信「doesn't happen by
-   default」、小模型当 primary 时 Smart Friend 方案失败）[S9b]。**《Don't Build Multi-Agents》
-   日期是 ≈2025-06，不是 2025-10**（其后续文自述「10 months ago」）[S9b]。
-7. **本轮最强同构外部产品是 Claude Code `agent teams`**（实验性、默认关闭）：team lead ＋ 各自
-   独立上下文窗的 teammates ＋ 共享 task list（lead 指派或自领、文件锁防抢）＋ mailbox 点对点
-   消息 ＋ 人类可直接找任一 teammate 说话 [S2]。
-8. **但它三条硬限制恰好都在 Pod 的差异化象限里**：① **不做工作区隔离**——「Agent teams don't
-   isolate teammates in worktrees, so partition the work so each teammate owns a different set of
-   files」[S3]；②「**No nested teams**」「**Lead is fixed**… can't transfer leadership」「**One team
-   per session**」[S2]；③ **生成时不能按 teammate 设权限模式** [S2]。反讽的是 **OpenAI 自家 SDK
-   文档把「每个 sub-agent 一个独立 workspace」列为正当用法** [S10]。
-9. **本地已有两条「团队」实现，都不是本项目**：宿主自带实验包族
-   `@deepseek-ai/dsh-experimental-agent-team*`（0.2.1-alpha.2）[L2][L3][L11][L12]，与个人插件
-   `$DSH_HOME/plugins/dsh-team`（0.1.0，「团队模式」preset）[L4][L8]。Pod 是第三条：
-   `$DSH_HOME/plugins/pod`（部署面）／本仓库（开发面），以 `bots` 为 id 接入现役 web profile [L7]。
-10. **宿主团队 vs Pod 一句话**：宿主团队是**会话内的隐式团队**（「每个普通运行时根就是它自己 Team
-    的隐式 Lead」，TeamId＝SessionId，同工作目录协作，明确不支持独立工作目录与跨进程协调）[L3]；
-    Pod 是**跨进程的编制团队**（每 bot 一个 DSH profile 与一个端口，编制落在 `bots.json`）[L5][L10]。
-11. **成本治理是外部同类的共识挂点**（Pod 采集面上最薄）：Anthropic 给 15× 标价＋按复杂度写死的
-    scaling rules [S1]；Claude Code 给「3–5 人起、每人 5–6 任务」＋**约 7× token**（plan 模式
-    teammates）＋ SDK 的 `maxBudgetUsd` [S2][S2c]；宿主 Agent Teams 给四个 fail-loud 上限 [L3][L12]；
-    CrewAI 把 **delegation 默认关闭**、`max_rpm` 写进概念层 [S7c2]；LangGraph 给 `recursion_limit`
-    （默认 **1000** 超步）[S7f2]。
+1. 本批已核的宿主四包均为`0.2.1-alpha.2`。文档承诺同进程、共享checkout、TeamId锚在Lead会话，
+   明确不支持worktree或跨进程协调；roster与task持久化不等于团队进程一直存活。§9其余符号仍按
+   实读层级引用，不把安装树文件当运行健康证据。
+2. Claude Code agent teams有独立会话上下文、共享task list与mailbox；一会话一团队、固定lead、
+   不嵌套。teammate共享主会话目录，但其他subagent可使用worktree，不能外推为整个产品无隔离。
+   in-process/split panes是终端显示模式，不足以证明OS进程拓扑。
+3. 两系统均有持久状态。Claude的team config随会话结束清理，task list可留存；宿主把roster/task
+   追加到Lead日志并要求durable storage。生成时权限、后续修改、恢复与关停限制分别见补核件。
+4. dots核心原文及「贡献不到10%」英文访谈仍未取得，二手材料只作线索。其余产品尚未逐节验收，
+   不能据此得出「只有Pod持久」「只有Pod有权限」「所有团队随run生灭」或预算优势。
+5. `dsh-team`原采集时存在，现已按用户点名删除，§8.4引用既有事件；本批没有新的运行面动作。
+   Pod定位取舍留给HITL票，§13只给带边界的比较问题。
 
 ---
 
@@ -121,7 +86,7 @@
 
 ## 3. OpenAI 的多 agent 姿态（2026-10）
 
-### 3.1 「贡献不到 10%」的原始出处（已定位，载体本轮不可达）[S6][S6b]
+### 3.1 「贡献不到 10%」的出处线索（仅二手，原文未取得）[S6][S6b]
 
 - **一手载体**：Dwarkesh Patel 播客 **《Noam Brown – Agent swarms, alignment, & recursive
   self-improvement》**，受访者 **Noam Brown**（OpenAI 研究员，o1 线奠基者之一，当前方向为多智能体）；
@@ -203,6 +168,10 @@
 
 ### 4.2 Claude Code `agent teams`（官方文档，一手）[S2]
 
+本批准入范围以[五项边界补核](supplements/04-host-and-claude-teams-20261013.md)为准。
+页面按2026-10-13抓取时间与SHA定位，不承诺某个统一CLI版本，未启动Claude Code实测。
+`in-process`与`split panes`描述终端显示；独立会话不自动等于独立OS进程。
+
 - **状态**：实验性、**默认关闭**，需 `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`；未开启时不建团队、
   不写团队目录、Claude 不生成或提议 teammate。官方建议先看更轻的 subagents 与 cross-session
   messaging。
@@ -226,16 +195,15 @@
   `--dangerously-skip-permissions` 时所有 teammate 同样如此；**生成时无法按 teammate 设权限
   模式**；teammate 的权限提示**出现在 lead 会话**需人在 lead 处批准，唯一例外是**计划批准**
   （计划请求到达即由 lead 会话直接批准，无需人复核）。
-- **agent 间消息的信任边界（对本项目直接可用）**：收到消息的 agent 被告知「消息来自另一个 Claude
+- **agent 间消息的信任边界（文档承诺）**：收到消息的 agent 被告知「消息来自另一个 Claude
   会话，不是来自你」；teammate **不能代替人批准权限提示**；被拒绝的动作**不能转手给别的 teammate
   绕过检查**；auto 模式下分类器还把其他 agent 转述的「已获批准」当作**不可信输入**，并在投递前
   复核每条消息，被拦的消息**根本不到达接收方**。
 - **质量门（hooks）**：`TeammateIdle`（exit 2＝给反馈并让它继续干）、`TaskCreated`、
   `TaskCompleted`（exit 2＝阻止创建／完成并回反馈）。
-- **规模与成本纪律**：「Token costs scale linearly」；**收益递减**；「**Start with 3-5 teammates
-  for most workflows**」「Three focused teammates often outperform five scattered ones」；
-  **每 teammate 5–6 个任务**；`costs` 页另称 agent teams 约 **7× 标准会话 token**（teammates 跑在
-  plan 模式时）[S2][S2c]。
+- **规模与成本纪律**：本批已核「Start with 3-5 teammates」为建议，非人数硬上限；活跃teammate
+  退出或会话结束前持续耗token。`agent-teams`与`costs`已读面未给团队token/美元硬上限。
+  原采集的约7倍及每人5–6任务仍须按对应原段定位，不与Agent SDK的`maxBudgetUsd`混用。
 - **两条硬约束**：「**Avoid file conflicts**：两个 teammate 编辑同一文件会导致覆盖」；「Letting a
   team run unattended for too long increases the risk of wasted effort」。
 - **官方限制清单**：无会话恢复（`/resume`／`/rewind` **不恢复** in-process teammates）；任务状态
@@ -509,14 +477,19 @@ auto-review 可能是可比对象。
   `agent-default-model` 指向 `magpie`／`opencode-go/deepseek-v4.1-flash`／`reasoningEffort: max`、
   `subagent` 的 `maxDepth: 2`，以及 `Magpie*` 网关 provider 定义（本地网关 `127.0.0.1:3425`）。
 
-### 8.4 `$DSH_HOME/plugins/`（个人插件面，9 项）[L4]
+### 8.4 `$DSH_HOME/plugins/`（个人插件面，原采集9项）[L4]
+
+`dsh-team`采集时点存在，现已删除。2026-10-13的
+[运行面删除事件](../../../docs/changelog/2026-10-06.md#2026-10-13-ev-20261013-runtime-remove-dsh-team-运行面清理按用户点名删除早期失败插件-dsh-team120k备份留档)
+记录删除后余8项、备份路径与完整SHA。下表保留原采集事实，`dsh-team`一行仅供历史对照；
+本次只引用既有落档，不重做删除或读取真实配置。
 
 | 目录 | name | version | 结构要点 |
 |---|---|---|---|
 | `pod` | `pod` | 0.1.0 | 部署面 Pod：`lib/`（含 `lib/org/`）、`scripts/`、`tests/`、`.scratch/` |
 | `dsh-bots` | `dsh-bots` | 0.1.0 | 旧名留存（含 CHANGELOG／PROJECT_UNDERSTANDING／PLAN／PROPOSAL） |
 | `dsh-bots-backup-20260829` | `dsh-bots` | 0.1.0 | 2026-08-29 备份件 |
-| `dsh-team` | `dsh-team` | 0.1.0 | **带 `presets/team/`（`preset.yml`＋`agent.cordis.yml`）**；peer `dsh-commands`／`dsh-llm`／`cordis` |
+| `dsh-team`，现已删除 | `dsh-team` | 0.1.0 | 原采集带 `presets/team/`（`preset.yml`＋`agent.cordis.yml`）；peer `dsh-commands`／`dsh-llm`／`cordis` |
 | `dsh-browser` | `dsh-browser` | 0.1.0 | 提供 `/browser`；带 `node_modules` |
 | `dsh-restart` | `dsh-restart` | 0.1.0 | 提供 `/restart`；systemd 隔离启动；带 README／tests |
 | `dsh-screenshot` | `dsh-screenshot` | 0.1.0 | 「+」菜单「添加」区的截图工具 |
@@ -571,6 +544,11 @@ shell-env 注入、workflowEngine 的 realm 归属）。
 ---
 
 ## 9. 宿主自带 Agent Teams 包的组织模型（一手 README）
+
+本批复核四包`0.2.1-alpha.2`的README、patch与关键源码符号，未逐行通读或启动运行。
+可引用字段与SHA见[补核件](supplements/04-host-and-claude-teams-20261013.md)；README外链的设计文档
+不在所读安装包内，其内容仍未知。明确限制含no nested Team；领队替换未给承诺，
+不能仅凭TeamId与SessionId相等推导所有替换路径在结构上不可能。
 
 **模型与权威 [L3]**：**Lead**＝**每个普通运行时根就是它自己 Team 的隐式 Lead，`TeamId` 等于
 `SessionId`**，没有创建事件，持久 Team 状态从**第一条 member 或 task 记录**开始存在；
@@ -686,7 +664,7 @@ Team 状态、不注册模型面输入** [L13]。
 | **OpenAI Agents SDK** | **应用侧**；沙箱底座可选本地／Docker／7 家托管 provider [S10] | 应用侧（sessions 持久层，含 Encrypted 实现）；或 OpenAI 托管会话状态 [S10] | 两形态：**agents-as-tools**（manager 拥有最终答案）与 **handoffs**（专家直接接管，默认继承全历史）；handoffs **限制在单次 run**，guardrails 只覆盖链首/链尾 [S10] | `max_turns`＋`MaxTurnsExceeded`＋`error_handlers` 回退；官方给「orchestrate via code」作可预测的成本/速度手段 [S10] | **Session**（SQLite／Redis／Mongo／Encrypted／Conversations API 等）＋**文件式记忆**（`memories/MEMORY.md`、`memory_summary.md`、`rollout_summaries/`，遗忘阈值默认 256）＋ sandbox 快照 [S10] |
 | **Anthropic 多 agent 研究系统** | 应用内编排（官方名 **orchestrator–worker pattern**）[S1] | 未采集到（提到可恢复执行与 checkpoint）[S1] | LeadResearcher＋并行 subagent＋CitationAgent；**lead 不能 steer subagent、subagent 之间不能协调**；计划存 Memory 防 200k 截断 [S1] | 官标价：agent 4×、多 agent **15×** chat token；写死 scaling rules（1 agent/3–10 calls ↔ >10 subagent）；必须「任务价值足够高」[S1] | 未采集到具体单位；强调「外部记忆＋干净上下文 handoff＋artifact 落文件系统」[S1] |
 | **Claude Code subagents** | 用户本机 `.claude/agents/`／`~/.claude/agents/`（**Markdown 文件即定义**，另有 Managed settings 组织级层）[S2s] | 用户本地（`~/.claude`），可用 `memory` 字段给每 agent 一份持久记忆目录 [S2s] | 父会话管全部工作；subagent 只回报结果；**嵌套深度默认 3、并发默认 20**[S2s] | 每 subagent 的 `model`／`effort`／`maxTurns`；SDK **`maxBudgetUsd` 花费上限**；请求计入你的用量额度 [S2s] | 会话记录＋`.claude/agent-memory/<agent>/`（user／project／local 三档）[S2s] |
-| **Claude Code agent teams** | **用户本机**：`~/.claude/teams/{team-name}/`＋`~/.claude/tasks/{team-name}/`（**无项目级团队配置**）[S2] | 用户本地；**任务清单从不上传**；团队配置目录会话结束即删 [S2] | Team lead 固定、不可移交；**不能嵌套团队**；**一会话一团队**；teammate 不能代替人批准权限、不能转手绕过拒绝 [S2] | **约 7× token**（plan 模式 teammates）；官方建议 **3–5 人**、每 teammate 5–6 任务；按角色选模型＋组织 `availableModels` 白名单 [S2][S2c] | **team-name＝session-ID 前 8 位**；团队配置随会话亡，任务清单本地长存 [S2] |
+| **Claude Code agent teams** | 用户本机：`~/.claude/teams/{team-name}/`＋`~/.claude/tasks/{team-name}/`；teammate 共享主会话目录 [S2] | 用户本地；任务清单从不上传；团队配置目录会话结束即删 [S2] | Lead 固定；不嵌套；一会话一团队；权限与跨 agent 批准限制为文档承诺 [S2] | 3–5 人是建议，非硬上限；已读两页未给团队 token/美元硬上限；不混用 SDK 预算字段 [S2][S2c] | `team-name = session-` 加会话 ID 前 8 字符；任务清单在团队配置删除后仍可留存 [S2] |
 | **Cognition（Devin）** | 应用侧；**manager Devin ＋ child Devins 经内部 MCP 协调**[S9b] | 应用侧 [S9b] | **map-reduce-and-manage**：manager 拆活、子级执行、manager 汇总；非结构化 swarm「mostly a distraction」[S9b] | 未采集到预算机制；有跨模型**能力路由**与 generator–verifier 的成本/质量数据 [S9b] | 未采集到（核心约束是「writes stay single-threaded」）[S9b] |
 | **A2A（Linux Foundation／AAIF）** | **协议层**：跨厂商/跨组织通信标准，组织本身不建模；AAIF Growth Stage 项目，与 MCP／goose／AGENTS.md 并列 [S4][S4a] | 各方自持；靠**不透明执行**互不干涉；连续性靠**不透明 `contextId`** 分组 [S4] | **无 supervisor／无 team／无权威层**；只有 Agent Card（能力＋JWS 签名）、任务状态机、认证边界 [S4] | 未采集到（协议不管成本）[S4] | **Task ＋ Artifact ＋ contextId**；长任务用 LRO／SSE／push notification [S4] |
 | **Google ADK** | 用户代码里的 agent 树＋session service（`DatabaseSessionService`／`VertexAiSessionService`），可部署到 **Agent Runtime**（付费托管）[S5a] | 可本地可托管；状态按 `session:`／`user:`／`app:`／`temp:` 前缀分域 [S5a] | coordinator ＋ `sub_agents`；**自动注入以 subagent 命名的 delegation 工具**；`chat`/`task`/`single_turn` 三模式决定交回方式与可否并行；`temp:` 状态**全调用链共享**，各分支 session **互相不可见** [S5a] | 未采集到预算机制；HITL 用**无模型图节点** `RequestInput` 保证可预测；回调被官方定位为 **policy enforcement** 挂点 [S5a] | **Session／State／Events／Memory**（＋Artifacts、Rewind sessions）；`Memory` 为跨会话可检索层 [S5a] |
@@ -696,32 +674,22 @@ Team 状态、不注册模型面输入** [L13]。
 | **CrewAI** | 应用侧 Crew／Flow 对象 [S7c] | 应用侧；Flow 状态用 `@persist`（**默认 SQLiteFlowPersistence**）[S7c] | **Process.hierarchical** ＋ `manager_llm`／`manager_agent`（manager 做 planning／delegation／validation，**任务不预先分配**）；委派是自动加的两个工具；另有一体化 `Memory` [S7c][S7c2] | 罕见地把治理写进概念层：**delegation 默认关闭**、**Max Requests Per Minute**、**Max Iterations**、Context Window Respect、`guardrail_max_retries`(3) [S7c2] | **Checkpoint**（全量 state＋memory/knowledge＋任务进度＋事件历史＋**lineage ID**，可 resume 或 fork）；记忆落**本地 LanceDB** `./.crewai/memory` [S7c2][S7c3] |
 | **OpenAI Swarm** | 已废弃：README 自述「replaced by the OpenAI Agents SDK… for all production use cases」[S10] | 无（库已停更）[S10] | 它普及的原语：**handoff ＝一个返回 agent 的函数**（工具调用返回值）[S10] | 未采集到 [S10] | 未采集到 [S10] |
 | **宿主 DSH Agent Teams** | **同一 DSH 进程内的会话**：TeamId＝Lead 的 SessionId，无项目级配置 [L3] | 用户本地：Lead 会话日志（`team/member`、`team/task`）＋各目标 Agent 自己的 inbox [L3] | **隐式 Lead（每个普通运行时根）**＋teammate；**只有 Lead 能生成/中断/改派**；roster 四态；名字永久不复用 [L3][L11] | fail-loud 上限：`maxMembers` 16（bundle 收窄为 8）、`maxTasks` 256、`maxMessageBytes` 64 KiB、`disposalTimeoutMs` 5 s；任务 CAS 防覆盖 [L3][L12] | Lead **会话日志**（log-only 协调事件，不进对话面）＋任务板 tombstone 保 id 稳定 [L3] |
-| **dsh-team「团队模式」预设** | 用户机器上的一个 agent preset（`$DSH_HOME/plugins/dsh-team/presets/team/`）[L8] | 无独立状态面（复用 DSH 会话／subagent）[L8] | **靠 persona 文本约束**「你只协调、绝不写代码」＋7 步流程；无账本、无权限面、无编制 [L8] | 只有 persona 文本里的软约束（讨论上限 2–3 轮）[L8] | 无（preset 是配置，不是状态）[L8] |
+| **dsh-team「团队模式」预设，历史对照** | 原采集为用户机器上的agent preset；现已删除，见§8.4 [L8] | 原采集无独立状态面，复用DSH会话／subagent [L8] | 原采集靠persona文本约束「只协调、不写代码」及7步流程，无独立账本／权限／编制面 [L8] | 只有persona文本里的软约束，讨论上限2–3轮 [L8] | preset是配置，不是独立持久状态 [L8] |
 | **Pod（dsh-bots）** | **用户机器**：编制＝`$DSH_HOME/pod/bots.json`；每 bot 一个 DSH profile＋一个监听端口＋一个 `pod-workspaces/<bot>/` [L5][L10] | 用户本地：`ledger/`（events＋audit＋epoch＋idempotency＋lock）、`inbox/<bot>/`、`outbox/<bot>/`、`knowledge/`、`capabilities/`（issued＋nonces＋secret）[L10] | 编制字段含 **`post`／`role`／`permission`／`readOnly`／`group`**；权限以 profile patch **按 id 停用工具行**落地；另有 `role-cards`／`permissions`／`op-set`／`capability-*` 与 `org-ledger-authz` 测试面 [L9][L10][L14] | 本轮采集面**未定位到编制级预算/上限的落点**；有 `experiment-cost.js` 与 per-bot 模型配档 [L9][L14] | **台账事件**（`ledger/events.jsonl`＋`audit.jsonl`＋`epoch.json`）＋每 bot 工作目录＋知识索引 `knowledge/index.jsonl` [L10] |
 
-**四条「组织原始语」路线与三条坐标轴（事实归纳）**：① **托管服务侧组织**（OpenAI dots、Foundry
-Hosted agents）——运行时、凭据、会话状态在厂商云，「岗」由厂商与客户共同定义并试点交付，或由平台
-托管沙箱承担 [S7][S7t][S6m4]；② **协议侧组织**（A2A）——只标准化 agent 之间的消息、任务与分组，
-**刻意不建模组织内部**（Opaque Execution）[S4]；③ **会话内／图内组织**（Claude Code agent teams、
-宿主 DSH Agent Teams、ADK、Agent Framework、LangGraph、CrewAI、AutoGen）——组织是**一个会话树
-或一张图的运行期结构**，随会话／run 生灭，且都不做工作区隔离（Claude Code 明说不隔离 teammate
-[S3]，宿主明说不支持独立工作目录与跨进程协调 [L3]，ADK 的隔离是 **session branch 级** [S5a]，
-CrewAI 是 run 级 checkpoint [S7c3]，AutoGen 默认还是**共享黑板** [S6a]）；④ **编制侧组织**（Pod）
-——组织是**用户机器上跨进程的编制**，编制与权限有独立于任何单个会话的落盘形态 [L9][L10]。
-**跨全部样本，真正的分野只有三条轴**：① **上下文是共享还是分区**；② **handoff 是工具调用、图边，
-还是返回值**；③ **耐久状态归谁**（你的 DB／你的机器 vs 平台托管）[S4][S6a][S7f2][S10]。
-**交叉印证**：OpenAI 自家 SDK 文档把「**separate workspaces**」列为多 agent 的正当用法 [S10]，
-Cognition 把「**writes stay single-threaded**」立为今天的成败线 [S9b]，两者合起来正好指向「每
-agent 一个工作区 ＋ 单线写入」——即 Pod 的每 bot 一 workspace 形态；而 Claude Code agent teams
-恰好两条都不满足 [S2][S3]。
+表中各行保留各自来源层级，不能据表概括成「团队都随run生灭」或「都无工作区隔离」。
+角色定义、任务清单、checkpoint与跨线程store可以持久，活动团队与持久状态不是同一对象。
+已核的共享checkout限制只适用于宿主四包与Claude的teammate原语，后者的其他subagent支持worktree。
+每bot一workspace也不自动保证写入串行、权限隔离或无共享外部副作用。
+跨产品定位推断集中在§13；此表没有证明Claude不满足single-threaded writes，也没有证明Pod独有这些能力。
 
 ---
 
 ## 12. 盲区清单
 
-1. **OpenAI 一手来源全线不可达（最大盲区）**：openai.com 与 help.openai.com 文章页一律 403
-   （Cloudflare）；`developers.openai.com` 403；`learn.chatgpt.com` 连接永不完成；archive.org／
-   archive.ph／r.jina.ai 代理 502；本机无 CDP 浏览器。**后果**：§2 全部功能断言为二手，dots 的
+1. **dots核心原文未取得**：原采集的官方文章入口失败，SDK文档的可读面另列，不能概括为全部
+   OpenAI来源不可达。本批两个dots官方入口亦在有界等待后`curl code=000`，没有正文；这是
+   访问失败，不是空结果。**后果**：§2功能断言仍为二手，dots 的
    运行时实现细节（容器/VM、文件系统是持久卷还是可恢复快照、记忆存储格式、dot 间是否可能有协议）
    **无一手依据**。
 2. **dots 价格数字冲突**：二手源分别出现「$100 起」与「$200/月」，均非一手；官方 Pro 500 价位未
@@ -740,14 +708,14 @@ agent 一个工作区 ＋ 单线写入」——即 Pod 的每 bot 一 workspace 
 7. **Microsoft 侧两处未核验**：① 「AutoGen 处于维护模式」的明文表述（`microsoft/autogen` README
    因 GitHub 不可达未取）；② Agent Framework 的 **GA 日期**（官方 what's-new 页 404）→ 均
    `[未经一手来源核验]` [S6m2][S6a]。
-8. **Claude Code 若干相关页只读到索引级描述**（llms.txt 一句话摘要），正文未逐页读：
-   cross-session messaging、agent-view、workflows、costs（细节）、routines、channels、goal、
-   analytics [S5]。其中 costs 页与 cross-session-messaging 的跨机器/云端能力对本项目价值最高。
+8. **Claude Code其余相关页未逐页复核**：本批已读agent-teams、agents、costs、sub-agents的指定
+   边界字段。cross-session messaging、agent-view、workflows、routines、channels、goal、analytics
+   仍保留原索引级或未验收状态；本批不由costs定性文字推出计费总账。
 9. **Anthropic 平台文档域被区域拦截**：`platform.claude.com/docs/...` 经 curl 落到
    `claude.com/app-unavailable-in-region`，故 Claude Agent SDK 部分页与 API 侧 memory／tool 权限
    文档未采。
-10. **GitHub 全域不可达（HTTP 000）**：无法克隆任何源码仓库、读 issue／discussion 历史，也无法
-    核验 `langgraph-swarm` 等库的维护状态；`openai/swarm` README 只能经 CDN 镜像取得 [S10]。
+10. **原采集的GitHub入口访问失败**：这不是当前全域状态，本批其他研究已取到部分官方仓库。
+    本报告尚未补核`langgraph-swarm`等库的维护状态；原Swarm README的CDN来源层级保留 [S10]。
 11. **宿主 22 个 `dsh-experimental-*` 中只读了 4 个 agent-team 包**；其余 18 个只记包名。其中
     **`dsh-experimental-auto-review`**（与 dots 的 auto-review 可能可比）、
     `dsh-experimental-tool-worktree`、`dsh-experimental-session-search`、
@@ -769,47 +737,25 @@ agent 一个工作区 ＋ 单线写入」——即 Pod 的每 bot 一 workspace 
 
 ## 13. 对 Pod 的差异化定位（推断）
 
-> 以下 6 条**全部是推断**，不是采集到的事实；括号内注明依据的采集事实。
+以下是供定位票讨论的比较问题，不是架构裁定或产品排名。已核事实仅限
+[宿主与 Claude 五项边界](supplements/04-host-and-claude-teams-20261013.md)；Pod 一侧仍按原采集
+的静态清单 [L9][L10][L14] 引用，不把目录存在当成运行保证。
 
-- `INFERENCE:` 1. **外部同类的「团队」都随会话或 run 生灭，Pod 的「编制」跨会话、跨进程长存**。
-  Claude Code agent teams 的 team-name 由 session ID 派生、团队配置目录会话结束即删、且**无项目级
-  团队配置** [S2]；宿主 DSH Agent Teams 的 TeamId 等于 Lead 的 SessionId、明确不支持跨进程协调
-  [L3]；ADK 的隔离只到 session branch，CrewAI 的持久单位是一次 run 的 checkpoint，AutoGen 的持久
-  单位是 Team 对象 [S5a][S7c3][S6a]。而 Pod 的编制落在 `$DSH_HOME/pod/bots.json`，每 bot 一个
-  profile／端口／工作目录 [L10]。→ 差异化不在「有没有团队」，而在**组织本身是不是一等持久对象**。
-- `INFERENCE:` 2. **Pod 是「编制＋权限分层」，不是「人格＋工具遮蔽」「编排模式枚举」「Markdown
-  文件」或「进程开关」**。同类实现都走后者：宿主 Agent Teams 靠上限与 Lead 独占权威 [L3]；
-  `dsh-team` 靠 persona 文本 [L8]；Microsoft 做成五种编排模式之一 [S6m]；CrewAI 做成
-  `Process.hierarchical` 开关 [S7c]；Claude Code 把角色做成 `.claude/agents/*.md` ＋ frontmatter
-  [S2s]。只有 Pod 把 `post`／`role`／`permission`／`readOnly` 写成编制字段，并把只读落到「按 id
-  停用工具行」的 profile patch [L9][L10]。→ 可主张的差异是**权限是编制的属性，而非生成时或文件级
-  的一次性参数**（对照 Claude Code 官方限制「生成时无法按 teammate 设权限模式」[S2]）。
-- `INFERENCE:` 3. **「跨进程 ＋ 每 bot 一工作区」是 Pod 相对所有同类本地方案的硬差异，且与两条
-  最强外部证据同向**。宿主官方列明不支持独立工作目录与跨进程协调 [L3]；Claude Code agent teams
-  明确不做 worktree 隔离并要求人工切分文件归属 [S2][S3]；而 **OpenAI 自家 SDK 文档**把「每个
-  reviewer／coding sub-agent 一个 workspace」列为正当用法 [S10]，**Cognition** 把「writes stay
-  single-threaded」立为成败线 [S9b]。Pod 的每 bot 一 workspace ＋ 一端口 [L10] 正落在这两条的
-  交叉点上。
-- `INFERENCE:` 4. **成本治理是 Pod 目前最薄的一环，也是最好补的一环**。外部同类都给了明确挂点：
-  Anthropic 的 15× 标价＋按复杂度写死的 scaling rules [S1]；Claude Code 的「3–5 人起、每人 5–6
-  任务」＋约 7× token＋SDK `maxBudgetUsd`＋嵌套/并发硬上限 [S2][S2s][S2c]；宿主 Agent Teams 的四
-  个 fail-loud 上限 [L3][L12]；CrewAI 的 **delegation 默认关闭**＋`max_rpm`＋`max_iter` [S7c2]；
-  LangGraph 的 `recursion_limit`（默认 1000）[S7f2]；AutoGen 的 termination 组合 [S6a]。Pod 采集
-  面上只有 per-bot 模型配档与 `experiment-cost.js` [L9][L14]，**未定位到编制级预算/上限的落点**。
-- `INFERENCE:` 5. **「审查点」必须能拦住动作，而不只是触发提示**。Claude Code 的 hooks 给出可拦
-  可退的语义（`TaskCreated`／`TaskCompleted` exit 2 阻止创建/完成并回反馈，`TeammateIdle` 让它继续
-  干）[S2]；Microsoft 给出 **approval-required tools**（执行前暂停等人工复核）与 `RequestPort`
-  [S6m]；OpenAI Agents SDK 的 `needs_approval`＋`RunResult.interruptions`＋**fail closed** [S10]；
-  dots 给出 Custom Rules 三态与 auto-review `[未经一手来源核验]` [S7]。Pod 侧对应面是
-  `brief-gate.js`、`review-kit.js`、`review-artifacts.js` 与 `org-ledger-authz` 测试 [L14]。
-  → 若要走「组织级质量门」定位，需要在**台账写入口**具备与 hooks 同级的「拒绝并回反馈」语义。
-- `INFERENCE:` 6. **最强同构件是 Claude Code agent teams，而它也是「本地、用户自有」——Pod 的
-  时间窗不宽**。它已具备 lead／teammate／共享任务板／mailbox／人类直连 teammate／agent 间消息的
-  信任边界（不能代替人批准、不能转手绕过拒绝）[S2]，同族的 cross-session messaging 已能做跨机器与
-  云端的会话间消息 [S3]，且**尚无成本上限与文件隔离两处短板**——这两处正是 Pod 的强项 [L10][L14]。
-  Pod 若只做「同一台机器上的多 agent 协作」会与之正面重叠；可守的差异是**编制与权限的持久化落盘
-  形态**、**跨进程（含跨 profile／跨模型供应商）**、以及**可审计的授权与证据链**
-  （`capabilities/issued.jsonl`＋`ledger/audit.jsonl`＋证据包机制）[L10][L14]。
+1. `INFERENCE:` 分开比较团队身份、活动生命周期和持久状态。宿主 TeamId 锚在 Lead 会话，
+   Claude 团队也归属会话，但两者都有持久任务状态；角色定义与 checkpoint 另有生命周期。
+   Pod 编制是否提供所需的跨会话连续性，要在这些对象上逐项对照，不能简化成「只有 Pod 持久」。
+2. `INFERENCE:` 权限字段、角色文本、执行期授权和人工批准是不同机制。宿主明确区分协调政策
+   与强制隔离，Claude 有生成后的权限调整及人工批准规则。Pod 的编制字段和工具停用记录
+   只提供比较入口；权限强度须另核具体操作的强制路径，不能从字段名推出安全优势。
+3. `INFERENCE:` 工作目录分开不等于写入串行。已核的共享 checkout 限制适用于宿主团队与
+   Claude teammate，后者的其他 subagent 可用 worktree。Pod 的每 bot 工作区也不能单独证明
+   无共享文件冲突或外部副作用，进程数与目录数不替代冲突、合并和恢复行为证据。
+4. `INFERENCE:` 成本比较需区分人数、消息、步数上限与 token/美元预算。Claude 两页未给团队
+   货币硬上限，宿主给的是成员等资源上限；Pod 原采集也未定位到编制级预算落点。
+   三者都不支持「Pod 预算治理更强」或「最容易补」的结论。是否新增预算机制留给对应决议票。
+5. `INFERENCE:` Lead、任务板与消息等已核重叠可作为定位讨论输入，不能据此排序最强竞争者、
+   预测产品时间窗或宣布独有能力。审查拒绝、恢复和审计链的实际差异仍需同条件证据；
+   dots 与其余未逐节验收的材料暂不承担此类定位结论。
 
 ---
 
