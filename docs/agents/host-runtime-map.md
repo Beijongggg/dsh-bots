@@ -3,6 +3,10 @@
 何时读：要探官方宿主的行为、找某个机制住在安装包哪里、或宿主升级后核对缝
 是否还在。安装包是全局只读件：`/usr/lib/node_modules/@deepseek-ai/dsh`。
 
+> 宿主版本更新（升级＋插件适配＋部署）的端到端流程已固化为技能
+> `~/.agents/skills/dsh-host-update/SKILL.md`（`/dsh-host-update`，EV-20261013-
+> dsh-host-update-skill）——那条链优先走技能；本文档仍是坐标、缝与实证手法的事实源。
+
 ## 先查登记表，再逆向
 
 - `lib/host-faces.js`（HF-* 登记表）记录已知的宿主坐标（`hostCoordinate` 与
