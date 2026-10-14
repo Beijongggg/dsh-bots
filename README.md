@@ -26,7 +26,8 @@
 
 | 文件 | 职责与维护方式 |
 |---|---|
-| [AGENTS.md](AGENTS.md) | 长期纪律与指针；harness 自动加载 |
+| [AGENTS.md](AGENTS.md) | 长期纪律、硬边界与触发表；harness 自动加载 |
+| [CODING_STANDARDS.md](CODING_STANDARDS.md) | 书写、评审、落档提交、远端操作与证据纪律，含旧 `AGENTS.md §N` 引用对照；按 `AGENTS.md` 触发词读取 |
 | [README.md](README.md) | 本导航与落档规则 |
 | [CHANGELOG.md](CHANGELOG.md) | 固定长度的日志入口；事件归属月度分卷，近期查询自动跨卷 |
 | [CHANGELOG-legacy-2026-09-28.md](CHANGELOG-legacy-2026-09-28.md) | 迁移前日志的逐字节归档；留在根目录以保留文内相对链接的含义，只读 |
@@ -122,7 +123,8 @@ node scripts/project-context.mjs --logs                  # 分卷及历史原文
 ```
 
 当前状态在 §1 指定的归属处更新。需要跨文件概览时即时生成带来源的查询视图，
-不新增人工同步的状态文档。冻结件、证据链与 sourceManifest 的约束见 AGENTS §3。
+不新增人工同步的状态文档。冻结件、证据链与 `sourceManifest` 的约束见
+[CODING_STANDARDS.md 证据纪律](CODING_STANDARDS.md#证据纪律)。
 
 ## 6. 维护与落档规范
 
