@@ -77,7 +77,7 @@ function exportNames(src) {
 
 /**
  * 存量基线（2026-10-09 锁定 68；findSessionLogFile 被轨迹投影复用后移除一项；
- * 邮局导出形状测试消费 responsesDirFor／compareConversationMessages 后移除两项，
+ * 邮局导出形状断言枚举 responsesDirFor／compareConversationMessages，按词面引用口径移除两项，
  * 当前 65＝冻结 20＋暂缓 45）。
  * 只减不增；处置边界见组注释。
  */
