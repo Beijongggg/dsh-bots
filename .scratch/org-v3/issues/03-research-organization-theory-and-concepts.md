@@ -47,13 +47,14 @@ Ashby 的条件与 NFL 的任务假设未核清前，不把它们写成切换节
 ### 阶段性结果，尚待补核
 
 2026-10-13 八份补核已交回；2026-10-14 控制论三缺口续件
-[控制权威二手](../research/supplements/03-control-authoritative-sources-20261013.md)验收整合。
+[控制权威二手](../research/supplements/03-control-authoritative-sources-20261013.md)及第三批
+[作者边界](../research/supplements/03-author-boundaries-20261014.md)已验收整合，累计十份。
 已核机制与边界见[报告头部覆盖表](../research/organization-theory-and-concepts.md)。
 下表只计列明来源及所引内容，不把取得整本文件等同于逐页读完，也不升级原报告其余概念。
 
 | 路径 | 已核计数与层级 | 保留限制 |
 |---|---|---|
-| 组织理论 | 5/5：Galbraith、Gersick、Hannan & Freeman、Simon、Ostrom 讲座的原文内容 | Simon 未读页仍缺；Ostrom 转引的1961定义与 Cox 等统计按二手转述，不冒充她的原始结果 |
+| 组织理论 | 至少五项已达：Galbraith、Gersick、Hannan & Freeman、Simon、Ostrom 讲座；本批另核原列作者 Williamson 2009、Baldwin & Clark 2006 的指定内容 | 后两者为作者后期文本，不冒充旧著直读；Simon 未读页仍缺，Ostrom 转引定义与统计不当她的原始结果 |
 | 复杂系统 | 5/5：BTW 1987、Anderson、Dorigo、Holland 1992、Bettencourt 的原文内容 | 区分原作与镜像载体；Holland 七机制清单未定位，城市标度不是 agent 规模定律 |
 | 控制论 | 4/5：Ashby 1956 所引表条件、Wiener 1961 第二版所引页、Beer（权威学术二手×2）、von Foerster（权威学术二手×1） | Beer/von Foerster 原作未直读，边界按转述方自述分层；Varela 的 BioSystems 正文仍缺，库载 PDF 只有1页题录摘要 |
 | 前 LLM 协调 | 5/5：Smith、Hearsay-II、Hewitt、Cohen & Levesque 四篇原文；ADOPT 经 JAIR 权威综述 | ADOPT 非直读原作，精确定理未核；Hearsay 同步/通信及 Teamwork 公式的未核范围保留 |
@@ -63,6 +64,12 @@ Galbraith 的信息处理策略有相对成本；Hannan & Freeman 的重组可�
 Gersick 的中点观察来自8组有期限团队，作者限定为假设生成；Wiener 只说明设计不佳的反馈可能振荡。
 这些不推出「每里程碑一次」或必须设置死区。Ashby 的表条件不能省略为选择器必然失准，
 NFL 的全部 cost functions 均匀平均也不要求现实任务分布冻结。
+第三批新增两条有原文的边界：Williamson 的比较治理纳入混合形式与替代安排实施费用；
+Baldwin & Clark 的设计规则、实验和测试成本可抵消模块化价值。原稿「混合治理未定位」及
+「无模块测试就无任何收益」等表述已纠正，应用到 Pod 仍是推断。
+Bartlett & Ghoshal 的 HBR 年份已核为 1990 年 7–8 月，正文未读；Davis & Lawrence 1978
+摘要只支持一般设计可能自带问题，不能证明具体矩阵病理全非执行失误。Burns & Stalker、
+Thompson 的访问失败仍是未核验，不是空结果。上述补核不消除 Varela 的控制论缺口。
 
 [LLM 借用补核](../research/supplements/03-llm-classic-borrowing-20261013.md)给出三个正文与引用样本。
 MacNet v3 借用标度关系，不计经典相变机制实现；Absorbing State v2 有 mean-field 模型和三域对照，
@@ -74,9 +81,9 @@ MacNet v3 借用标度关系，不计经典相变机制实现；Absorbing State 
 | 原关闭项 | 当前证据状态 | 补核完成条件 |
 |---|---|---|
 | 四路各至少五条经典出处 | 三路已达五项；控制论4/5，Varela 仍缺口 | 控制原清单仍需1项合格内容来源（Varela 的 BioSystems 正文或可定位的等效权威来源）；百科与题录不计 |
-| 边界与至少三条设计警告 | 已核警告达到三条；原报告其余条目仍有边界缺口 | 补原条目的作者边界，已核范围与未核概念分开，项目迁移始终标推断 |
+| 边界与至少三条设计警告 | 已核警告达到三条；第三批补 Williamson／Baldwin & Clark 的成本边界及矩阵书目层级 | Burns & Stalker、Thompson、矩阵正文及其他原条目边界仍缺；已核与未核分开，项目迁移始终标推断 |
 | 借用与修辞区分 | 三个已读全文样本已分类，满足声明样本内区分 | 保留机制、引用与词语的不同层级；不能外推领域借用比例或全称否定 |
-| 交付物与盲区 | 报告及八份补核已落盘，正文层级和盲区已对齐 | 引用前按具体来源读取，不重复派发本批已核项 |
+| 交付物与盲区 | 报告及十份补核已落盘，正文层级和盲区已对齐 | 引用前按具体来源读取，不重复派发本批已核项 |
 
 控制论覆盖和逐条边界仍触及 S4。原关闭判据保持，不以降低到百科、书目或摘要级的方式结案。
 补核结果交给[形态库与相变判定](06-decision-form-library-and-phase-trigger.md)和
@@ -160,3 +167,20 @@ Beer（VSM）、Varela（autopoiesis）、von Foerster（二阶控制论），�
 - 关键证据：[控制权威二手](../research/supplements/03-control-authoritative-sources-20261013.md)、
   [报告头部覆盖表](../research/organization-theory-and-concepts.md)。
   本批无在途采集，释放认领，整票保持开放。
+
+### 2026-10-14 第三批作者边界验收与移交备注
+
+- 派发范围：沿用户的 ds 可处理任务授权，基线 `b4fa51da2c2f316e0513382276d286669aa8a25e`，
+  只补 Burns & Stalker、Thompson、Williamson、Baldwin & Clark、矩阵组织五条原有条目。
+  交件已结束，本轮不重新派发，也不扩大理论扫描。
+- 验收：主会话回读 Williamson 印刷 pp.463–465/468–469、Baldwin & Clark pp.180–181/
+  189/199–200 及两篇 HBR 元数据／摘要。纠正「hybrid 未定位」，不把 lecture 未单列
+  frequency 判为旧著矛盾；撤回模块化收益的绝对句，限定矩阵摘要支持范围。
+- 未过门：控制论仍 4/5，Varela 不在本包新增来源内；Burns & Stalker、Thompson 没有合格
+  内容来源，矩阵正文及其余原条目边界仍缺。访问失败不是有界空结果，整票继续受 S4 阻塞。
+- 下一步：优先补原条目尚未读到的作者边界；Varela 和已失败书目仅在新学术入口出现时续查。
+  后期作者文本只在列明范围引用，不替旧著全书或 LLM 实验背书；不改五项要求或 HITL 选择。
+- 关键证据：[作者边界补核](../research/supplements/03-author-boundaries-20261014.md)、
+  报告 §1.5/§1.6/§1.9/§6.2/§6.8/§7。该包无在途采集，释放本票认领，生态并行面保持独立。
+  实际模型为 `opencode-go/deepseek-v4.1-flash`、effort `max`；精确工时、session_id、token
+  未计量，主会话一轮原文与语义修正不记零返修或净节省。

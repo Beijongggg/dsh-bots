@@ -2,7 +2,7 @@
 
 - 日期：**2026-10-13**
 - 票据：[组织理论、复杂系统与控制论（纯理念面）](../issues/03-research-organization-theory-and-concepts.md)。
-- 采集性质：建图侦察加 2026-10-13 有界补核。研究票仍开放; 已核经典机制与边界、三篇 LLM
+- 采集性质：建图侦察加 2026-10-13/14 有界补核。研究票仍开放; 已核经典机制与边界、三篇 LLM
   全文样本见下表。其余题录、摘要与未核条目保留原层级, 取得全文不等于逐条内容已核。
 - 引用前读票面 `Answer` 及本节覆盖表; 核对具体引文、页码、版本、哈希时进入相应补核件。
   本批纠正过强推断, 不裁定理论迁移、形态用词或切换节奏。
@@ -23,7 +23,7 @@
 
 | 路径/工作包 | 已核范围 | 原始定位与保留缺口 |
 |---|---|---|
-| 组织路径 5 项 | Galbraith、Gersick、Hannan & Freeman、Simon、Ostrom 讲座 | [经典警告](supplements/03-classic-design-warnings-20261013.md)、[组织余项](supplements/03-org-path-remainder-20261013.md); Ostrom 转述的 1961 定义与 Cox 等统计不冒充她的原始结果 |
+| 组织路径 | Galbraith、Gersick、Hannan & Freeman、Simon、Ostrom 讲座五项；另补原清单 Williamson 与 Baldwin & Clark 的作者后期文本 | [经典警告](supplements/03-classic-design-warnings-20261013.md)、[组织余项](supplements/03-org-path-remainder-20261013.md)、[作者边界](supplements/03-author-boundaries-20261014.md); 后期文本不冒充旧著直读，Ostrom 转述的定义与统计不冒充她的原始结果 |
 | 复杂系统 5 项 | BTW 1987、Anderson、Dorigo、Holland 1992、Bettencourt | [复杂系统](supplements/03-complex-systems-sources-20261013.md); Holland 七机制列表及未读页不随全文取得自动升级 |
 | 控制论 4/5 项 | Ashby 1956 所引表条件、Wiener 1961 第二版所引页、Beer 权威学术二手×2（VSM）、von Foerster 权威学术二手×1（概念层） | [经典警告](supplements/03-classic-design-warnings-20261013.md)、[控制原文](supplements/03-control-sources-20261013.md)、[控制缺口](supplements/03-control-gaps-20261013.md)、[控制权威二手](supplements/03-control-authoritative-sources-20261013.md); Beer/von Foerster 原作未直读, Varela 仍缺口（库载摘要不达标） |
 | 协调路径 5 项 | Smith、Hearsay-II、Hewitt、Cohen & Levesque 四篇所列机制/边界; ADOPT 由 JAIR 综述核验 | [协调原文](supplements/03-coordination-sources-20261013.md)、[ADOPT 权威二手](supplements/03-coordination-gaps-20261013.md); 原作 ADOPT 的精确定理条件仍未知 |
@@ -50,6 +50,7 @@
 ## 1. 组织理论：从权变到多中心
 
 本节已核 Galbraith、Gersick、Simon、Ostrom 讲座的下列机制与边界, 另在 §6.2 核 Hannan & Freeman。
+2026-10-14 补读原列作者 Williamson 2009 讲座与 Baldwin & Clark 2006 章节，核验范围见各条。
 其余条目仍为待回原文的概念整理; 不因邻近条目补核而升级。迁移到 agent 组织一律另标 INFERENCE。
 
 ### 1.1 权变理论：Burns & Stalker 的机械式／有机式
@@ -64,6 +65,8 @@
   原著基于英国电子业若干企业的比较案例，样本小、行业单一（细节 `[未经一手来源核验]`）；有机式
   并非"更好"，其代价是角色模糊、控制力弱、对成员自主性与承诺要求高。**该理论给出的是"匹配"，
   不是"升级路径"。**
+- 2026-10-14 续查仍未取得合格内容来源，上述边界保持未核验。访问失败不支持空结果或反证，见
+  [作者边界 E1](supplements/03-author-boundaries-20261014.md#e1-burns--stalker)。
 
 ### 1.2 Lawrence & Lorsch：分化与整合
 
@@ -102,44 +105,46 @@
 - **边界整理，原文待核**：三类互依按复杂度**有序**，互惠式最贵；理论推导的方向是**减少**
   互依（缓冲、解耦、局部化）而非无限加强协调；高不确定性下相互调整不可替代，但需要相应支撑条件。
   该类型学是**分析工具**，原著未提供把真实任务干净归类的方法。
+- 2026-10-14 续查只有题录／书评及失败入口，复杂度次序、成本与归类条件仍未核验，见
+  [作者边界 E2](supplements/03-author-boundaries-20261014.md#e2-thompson)。
 
 ### 1.5 矩阵组织及其已知病理
 
-- **核心主张**：当**两个维度同时真实且持续竞争资源**（如职能效率 × 项目／产品响应）时，用双重
-  汇报线（solid + dotted line）同时满足两者。理论定位是"用结构承载无法归约的双重压力"。
-- **一手**：Davis, S. M. & Lawrence, P. R. (1977). *Matrix*. Reading, MA: Addison-Wesley
-  `[书目未经一手来源核验]`；Bartlett, C. A. & Ghoshal, S. "Matrix Management: Not a Structure, a
-  Frame of Mind", *Harvard Business Review*，1990 年 7–8 月号 `[年份未经一手核验；Crossref 仅匹配
-  到 1988 年他刊条目]`；Sy, T. & Côté, S. (2004). "Emotional intelligence: A key ability to succeed
-  in the matrix organization", *Journal of Management Development* 23(5)，DOI
-  10.1108/02621710410537056（本轮 **Crossref 核验，摘要原文**："Despite its strengths, the matrix
-  has inherent problems."）。
-- **病理（文献一致口径）**：双上司导致的**权限冲突与决策瘫痪**、问责归属模糊、会议与协调开销高、
-  资源争夺与权力失衡、**"矩阵失败多因管理能力而非结构"**（故有"不是结构而是心态"之说）。Sy &
-  Côté 摘要明确把早期研究归为"集中在结构性解释"，并转向个体能力（情商）解释（原文口径）。
-- **边界整理，原文待核**：矩阵**仅**在两个维度都真实、都需长期存在、且不确定性高、信息处理
-  需求大时才成立；当某一维度占主导、成本压力大、或管理者缺乏协商能力时**禁忌**。矩阵不是"更多
-  协调"，而是**用冲突换响应速度**——它把冲突制度化，而不是消除冲突。
+- **待核概念**：双线汇报如何处理职能与项目等两个维度的压力，以及权限、问责和协调成本。
+  具体成立／禁忌条件尚无已读正文支持，不把这些问题写成必要或充分条件。
+- **书目与读取范围**：Davis, S. M. & Lawrence, P. R. (1977). *Matrix*. Reading, MA:
+  Addison-Wesley，书目仍未核。Bartlett, C. A. & Ghoshal, S. (1990), "Matrix Management:
+  Not a Structure, a Frame of Mind"，HBR 官方页已确认 July–August 1990，实读限元数据与
+  摘要首段，全文未读。Davis & Lawrence 1978 "Problems of Matrix Organizations" 只读官方摘要。
+  定位见[作者边界 E5](supplements/03-author-boundaries-20261014.md#e5-矩阵组织已核书目与未核正文)。
+- **摘要支持的范围**：Davis & Lawrence 1978 说一般组织设计可能因设计本身产生问题，不能据此
+  把具体矩阵病理全归为结构缺陷或排除执行失误。Sy & Côté 2004，DOI 10.1108/02621710410537056，
+  摘要说矩阵有内在问题，并将关注点转向个体情商；这不证明管理能力比结构更重要。
+- **仍待核**：双上司与决策瘫痪、资源争夺、问责模糊的具体因果条件，以及协商能力的作用。
+  原稿的"文献一致口径"、"仅在……才成立"与"禁忌"不作为已核结论。
 
 ### 1.6 模块化：Baldwin & Clark（与 Simon 的近可分解性）
 
-- **核心主张**：把复杂系统分解为**可独立设计**的模块，模块间仅由**可见设计规则（design rules /
-  architecture）**耦合，从而把"一个难的全局设计问题"变成"多个可并行的局部设计问题 + 一套接口"，
-  并因此获得**选择权价值**（大量并行实验、低耦合、可替换）。
+- **已核定义**：Baldwin & Clark 2006 把 architecture、interfaces、tests 纳入模块化设计。
+  `modular-in-design` 要求设计可拆分，并由 design rules 而非设计者持续协商来协调；任务拆分
+  本身不等于设计模块化。p.189 区分共知规则、相互独立的 hidden modules、集成与测试模块。
 - **一手**：Baldwin, C. Y. & Clark, K. B. (2000). *Design Rules, Volume 1: The Power of Modularity*.
-  Cambridge, MA: MIT Press（本轮 OpenLibrary **书目记录核验**：MIT Press，记录年 1999/2000）；
+  Cambridge, MA: MIT Press（仅书目记录核验，1999/2000，未直读）。内容来源为两位作者 2006 年
+  "Modularity in the Design of Complex Engineering Systems"，*Complex Engineered Systems*
+  ch.9, pp.175–205，DOI 10.1007/3-540-32834-3_9；实读 pp.180–181、189、199–200，见
+  [作者边界 E4](supplements/03-author-boundaries-20261014.md#e4-baldwin--clark-的设计规则与模块化成本)。
   Simon, H. A. (1962). "The Architecture of Complexity", *Proceedings of the American Philosophical
   Society* 106(6):467-482, 已核 p.468/470/471/473/474/475 页图, 见[组织余项 S1-S4](supplements/03-org-path-remainder-20261013.md)；
   Langlois, R. N. "Modularity in technology and organization"（Crossref 命中其 2000 年 SSRN 版
   "Modularity in Technology, Organization, and Society"；期刊版 `[未经核验]`）。
-- **边界整理，原文待核**：① 模块化**以一套稳定且被共同遵守的可见设计规则为前提**，规则本身
-  的设计与维护是集中成本；② **模块必须可测**——没有模块级测试，就没有模块化的收益（测试成本可能
-  吃掉全部收益）；③ 模块化是**要行使的期权**，不行使则不产生价值；④ 分界一旦定错会锁死系统级
-  创新（整体式架构在系统级创新上可能更优，Langlois 论点）`[具体论证未经一手核验]`。
+- **已核成本边界**：创建／传播规则、实验及测试的费用会抵消模块化价值；重要跨模块依赖须由
+  规则处理，依赖密度与可分解性影响成本，接口需处于依赖较稀疏的位置。原文不支持所有系统都
+  适合切分，也不支持"没有模块级测试就没有任何收益"或"不行使期权就完全没有价值"。
+- **未核边界**：Langlois 的模块分界与系统级创新论证仍未回读，不能由本章或 Simon 代证。
 - **Simon 已核部分**：层级指递归子系统, 不等于正式权力树。近可分解指短期近独立、长期只受
   其他部分聚合影响; epsilon 越小符合者越少, 作者同时说自然中此类结构并不少见。制表匠约
-  4,000 倍来自 p=.01 的演示假设, 作者明确说数值不可认真采用, 不是实测加速。Baldwin & Clark
-  与 Langlois 的上述边界仍未核, 不由 Simon 代证。
+  4,000 倍来自 p=.01 的演示假设, 作者明确说数值不可认真采用, 不是实测加速。上述来源均不提供
+  LLM 组织模块化的实测收益；Pod 的职责划分、测试责任和重组成本属于应用推断。
 
 ### 1.7 间断平衡与组织转型：Tushman & Romanelli、Gersick
 
@@ -182,17 +187,21 @@
 
 ### 1.9 交易成本经济学：市场 vs 层级（Williamson）
 
-- **核心主张**：治理结构（市场／混合／层级）应与交易属性**判别性对齐**（discriminating alignment），
-  以节约交易成本。关键属性是**资产专用性**（asset specificity）、不确定性、频率；行为假设是
-  **有限理性 + 机会主义**。资产专用性高 → 市场治理易被套牢 → 层级（内部化）更省。
+- **已核主张**：2009 讲座按交易属性比较可行治理安排，市场与层级并非穷尽清单。资产专用性、
+  不完全契约与适应需求影响选择，不是资产专用性越低越好或层级普遍更省的单调结论。
 - **一手**：Williamson, O. E. (1975). *Markets and Hierarchies: Analysis and Antitrust Implications*.
   New York: Free Press（OpenLibrary **书目记录核验**：1975，The Free Press）；(1985)《The Economic
   Institutions of Capitalism》`[未经一手来源核验]`；(1971) "The Vertical Integration of Production:
   Market Failure Considerations", *AER* 61(2) `[未经核验]`。
-- **边界整理，原文待核**：① 理论自身**承认市场与层级并非穷尽**——混合形态与关系型契约是其
-  一部分，"二元对立"是对该理论的常见简化；② 分析单位是可分离的交易，对不可分离、长期、高频互动的
-  情形，理论给出的恰恰是内部化／关系治理；③ 该理论是**比较成本**论证，不是"层级更高级"的目的论。
-  批评（本轮**核验标题与出处**）：Ghoshal, S. & Moran, P. (1996). "Bad for Practice: A Critique of
+- **内容来源**：Williamson 2009-12-08 Nobel Lecture，"Transaction Cost Economics: The Natural
+  Progression"，实读印刷 pp.463–465、468–469，见[作者边界 E3](supplements/03-author-boundaries-20261014.md#e3-williamson-的比较治理边界)。
+  作者后期综述不等于 1975/1985 原著直读。
+- **已核边界**：p.464 n.11 明说降低资产专用性可能牺牲性能；p.465 明列 hybrid mode。
+  pp.468–469 要比较可行、可实施且各有缺陷的治理安排，p.469 把替代安排的实施费用计入预期
+  净收益。零交易成本的理想安排不是现实对照。
+- **保留缺口**：旧著中"资产专用性／不确定性／频率"三维和具体关系型契约论证未直读。
+  2009 讲座未单列 frequency 不构成与旧著矛盾。Pod 按任务选形与阈值仍是应用推断。
+  批评仅核标题与出处：Ghoshal, S. & Moran, P. (1996). "Bad for Practice: A Critique of
   the Transaction Cost Theory", *AMR* 21(1)，DOI 10.2307/258627（其论点内容 `[未经一手核验]`）。
 
 ### 1.10 团队理论（Marschak & Radner）
@@ -722,8 +731,9 @@ Rao & Georgeff 的 1998 章节题录不能代证 1995 版本。
   *ASR* 49(2):149-164, DOI 10.2307/2095567。惯性相对于环境变化率定义, 不是永不改变; p.159
   提出重组降低可靠性、提高死亡率的理论命题, 同页称规模与变化率关系 indeterminate。
   原文变量为 age/size/complexity, 旧稿 "正式化" 未核到。无实测收益数字, 见经典警告 A3。
-- **迁移假设（INFERENCE）**：模块化理论条目尚未回核原文，不是 LLM 实验证据。对应到 agent，
-  切换后原先的测试、账本与评审记录是否仍有效，需要逐项验证。
+- **补核边界**：Williamson 2009 要求把替代治理实施费计入预期净收益；Baldwin & Clark 2006
+  明列规则、实验与测试成本，见 §1.9／§1.6。两者不是 LLM 切换实验。
+- **迁移假设（INFERENCE）**：切换后原先的测试、账本与评审记录是否仍有效，需要逐项验证。
 - **待测条件（INFERENCE）**：状态量与耦合度是否提高迁移代价, 需按任务测量; 不先规定其单调关系。
 
 ### 6.3 振荡与迟滞
@@ -773,10 +783,9 @@ Rao & Georgeff 的 1998 章节题录不能代证 1995 版本。
 
 ### 6.8 矩阵／动态组织在管理实践中的已知失败
 
-- **一手证据**：Sy & Côté 2004（DOI 10.1108/02621710410537056，摘要核验）"Despite its strengths,
-  the matrix has inherent problems"，并把早期解释归为结构主义、转向个体能力（情商）；Bartlett &
-  Ghoshal 的"不是结构而是心态"（HBR，1990，年份 `[未经核验]`）说明矩阵的成败取决于**管理者的
-  协商与冲突处理能力**而非结构图。
+- **摘要证据**：Sy & Côté 2004 的矩阵内在问题与情商关注点、Davis & Lawrence 1978 的一般
+  设计问题表述均只核到摘要。Bartlett & Ghoshal 的 HBR 年份已核为 1990 年 7–8 月，全文未读。
+  这些证据不足以认定矩阵失败主要来自管理能力，也不能把具体病理全归为结构，见 §1.5。
 - **证据边界**：Ostrom 2007（DOI 10.1073/pnas.0702288104）的已读摘要反对普遍解。间断平衡与
   Gersick 中点观察已核, Tushman/Romanelli 仍待核; 两者都不能直接证明动态 agent 组织的切换节奏。
 - **待核假设（INFERENCE）**：冲突协商、问责归属和高层整合不足可能增加决策延迟与开销。
@@ -827,8 +836,8 @@ Rao & Georgeff 的 1998 章节题录不能代证 1995 版本。
 
 1. **web_search 全轮不可用**（任务书给出：HTTP 402）。已按要求弃用；改用 arXiv 站内检索（HTML）、
    Crossref REST、OpenLibrary、Google Books、Wikipedia REST。**后果**：面向**实践**的文献
-   （HBR 档案、咨询报告、企业矩阵制失败复盘、管理学期刊的实务评论）本轮基本没覆盖；§1.5 与
-   §6.8 的"已知失败"因此主要来自学术摘要与教科书式共识。
+   （HBR 档案、咨询报告、企业矩阵制失败复盘、管理学期刊的实务评论）原侦察基本没覆盖。
+   2026-10-14 的两篇 HBR 补核仍限书目与摘要，不建立具体矩阵病理的因果结论。
 2. **Semantic Scholar API 全轮 429**（"Too Many Requests"），即使 sleep 后仍 429。**后果**：
    原侦察没有引用图与计数, §5.2 第 4 条的未命中只在标题/摘要面成立。后续三样本已直接读
    正文与参考文献, CNP 引 Smith 1980 已核; 不再把引用 API 不可达等同于无法核任何正文引用。
@@ -845,8 +854,8 @@ Rao & Georgeff 的 1998 章节题录不能代证 1995 版本。
 ### 7.2 一手不可读：内容只能标"未经一手来源核验"
 
 已补核来源不再列为整篇未读。仍未取得原文或未完成内容边界核验的条目包括 Burns & Stalker、
-Lawrence & Lorsch、Thompson、Galbraith 1973、矩阵病理源、Baldwin & Clark、Langlois、
-Tushman/Romanelli、Williamson、Marschak/Radner、Wegner/TMS、Ostrom 1990、Ashby 1958、
+Lawrence & Lorsch、Thompson、Galbraith 1973、矩阵病理正文、Baldwin & Clark 2000 全书、Langlois、
+Tushman/Romanelli、Williamson 1971/1975/1985、Marschak/Radner、Wegner/TMS、Ostrom 1990、Ashby 1958、
 Beer（原作未直读, 已有两条权威学术二手）、von Foerster（原作未直读, 已有一条概念层权威
 学术二手）、Maturana/Varela（*BioSystems* 正文未取得）、Prigogine 系列、Holland
 1975/1995/1998、Bak 1996。各条仍按正文标注引用, 不借用已核邻近来源替代。
@@ -856,16 +865,19 @@ Wiener 第二版第 IV 章后续数学分析未读; Hearsay 的同步/通信/解
 Teamwork 公式未逐符号核且作者 PS 分页未对齐刊本; ADOPT 只有权威二手, 原作精确定理未核。
 Varela 的 *BioSystems* 正文续查仍缺, 库载 PDF 仅一页题录摘要, 不计全文。
 Aulin-Ahmavaara 的必要层级律也只有摘要问题域。
+Williamson 2009 与 Baldwin & Clark 2006 已核范围见 §1.9／§1.6，不再全列未读。
+Burns & Stalker、Thompson 的本批访问失败归未核验，不计有界空结果。
 
 ### 7.3 书目核验失败的条目（引用须补核）
 
 Rao & Georgeff 1995 ICMAS（Crossref 只匹配到同作者 1998 章）；Tushman &
-Romanelli 1985（ROB 第 7 卷，无 DOI 命中）；Davis & Lawrence 1977《Matrix》；Bartlett & Ghoshal
-1990 HBR 的年份；Duncan 1976 章节；Langlois 2002 期刊版；Lesser & Corkill 1981；Bratman 1987／
+Romanelli 1985（ROB 第 7 卷，无 DOI 命中）；Davis & Lawrence 1977《Matrix》；
+Duncan 1976 章节；Langlois 2002 期刊版；Lesser & Corkill 1981；Bratman 1987／
 1992；Clearwater 1996；Vickrey 1961／Groves 1973／Myerson 1981；Nicolis & Prigogine 1977；
 Bak 1996；Holland 1975／1995／1998；Prigogine & Stengers 1984；Maturana & Varela 1980；
 von Foerster 1974／1981；Wiener 1948；Cannon 1932；David 1985；Beer 1979／1985；Galbraith 1973。
 其中 Beer 与 von Foerster 已另有内容层权威二手（§8.5）, 但各自书目与本体仍待一手核验。
+Bartlett & Ghoshal 的年份已由 HBR 官方页核实，不再列为书目缺口；其全文仍未读。
 
 ### 7.4 方法限制（结论强度上限）
 
@@ -877,7 +889,8 @@ von Foerster 1974／1981；Wiener 1948；Cannon 1932；David 1985；Beer 1979／
    行不能与 F 行混算, 定向样本也不构成领域代表性统计。
 4. **本文件不含对 Pod 代码库的任何事实主张**（任务范围为纯概念侧）；§1–§6 中所有"对本设计的
    含义"均为 INFERENCE，未经仓库事实核验，也未考虑 Pod 现有实现约束。
-5. **单一采集时点**：2026-10-13。arXiv 列表与 API 状态此后可能变化；引用前回读 §8 端点。
+5. **采集时点**：原侦察为 2026-10-13，作者边界补核为 2026-10-14。列表与可达性可能变化；
+   来源版本、实际读取范围和端点失败均按各补核件分开，不把旧失败当作当前不可达。
 
 ### 对本设计的取舍含义（INFERENCE）
 
@@ -936,6 +949,13 @@ von Foerster 1974／1981；Wiener 1948；Cannon 1932；David 1985；Beer 1979／
   *IJCAI-73*, pp.235-245（官方 PDF 已核）; Holland 1992, *Daedalus* 121(1):17-30（所列机制已核）。
 - Ostrom 2009-12-08 诺奖讲座, `https://www.nobelprize.org/uploads/2018/06/ostrom_lecture.pdf`,
   pp.408-444（实际读取版, 不与 AER 分页混用）。
+- Williamson 2009-12-08 诺奖讲座，[官方 PDF](https://www.nobelprize.org/uploads/2018/06/williamson_lecture.pdf)，
+  实读印刷 pp.463–465、468–469；作者后期综述，非旧著直读。
+- Baldwin & Clark 2006，*Complex Engineered Systems* ch.9, pp.175–205，
+  `10.1007/3-540-32834-3_9`，实读 pp.180–181、189、199–200；非 2000 全书直读。
+- Bartlett & Ghoshal 1990，[HBR 官方页](https://hbr.org/1990/07/matrix-management-not-a-structure-a-frame-of-mind)，
+  July–August，元数据／摘要首段；Davis & Lawrence 1978，[HBR 官方页](https://hbr.org/1978/05/problems-of-matrix-organizations)，
+  元数据／摘要。来源哈希与限制见[作者边界](supplements/03-author-boundaries-20261014.md)。
 
 ### 8.2 书籍与其余未核候选
 
@@ -954,7 +974,7 @@ von Foerster 1974／1981；Wiener 1948；Cannon 1932；David 1985；Beer 1979／
   Beer 1979／1985；von Foerster 1974／1981；Wiener 1948；Cannon 1932；Maturana & Varela 1980；
   Prigogine 1967／Prigogine & Stengers 1984／Nicolis & Prigogine 1977；Bak 1996；Holland 1975／
   1995／1998；Bratman 1987／1992；Rao & Georgeff 1995；Agha 1986；
-  Lesser & Corkill 1981；Clearwater 1996；Duncan 1976；David 1985；Bartlett & Ghoshal 1990；Vickrey
+  Lesser & Corkill 1981；Clearwater 1996；Duncan 1976；David 1985；Vickrey
   1961；Groves 1973；Myerson 1981；Luhmann 1984；Mingers 1995；Jensen 1998。
 
 ### 8.3 LLM／agent 侧（F 正文补核、A 摘要、T 题录）

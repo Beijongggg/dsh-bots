@@ -38,8 +38,8 @@ output／cache read／cache write）是否可得，币值换算是否可比；�
 
 ## 可委派工作包
 
-派发前读[研究补核与委派](../research-handoff.md)。本批五件已交回并完成限定验收，
-下表保留工作包边界；下一包只补 Answer 覆盖表里的缺口，已核项不重派。
+派发前读[研究补核与委派](../research-handoff.md)。已交补核件及验收见 Answer 与 Comments；
+下表保留工作包边界，下一包只补覆盖表里的缺口，已核项不重派。
 
 | 工作包 | 有界范围与交付 | 验收与停止条件 |
 |---|---|---|
@@ -53,7 +53,7 @@ output／cache read／cache write）是否可得，币值换算是否可比；�
 
 ### 阶段性结果，尚待补核
 
-2026-10-13 校正。本票提供指标候选和可比条件，不替「划算」票裁定主指标。
+截至 2026-10-14 第三批补核，本票提供指标候选和可比条件，不替「划算」票裁定主指标。
 
 1. 公开分数与成本同时可得。Terminal-Bench 4.0 官方嵌入数据确认两种不同模型配置
    `Codex + GPT-6 Astra`、`Codex + GPT-6.1 Sol` 均为 58.18%，各 330 trials，公布成本为
@@ -61,7 +61,8 @@ output／cache read／cache write）是否可得，币值换算是否可比；�
    续包已核4.0为66任务、35行均报330 trials；34行满足 uncached+output=total，
    Grok 4.7行则加cached才相等。字段恒等式不是计费语义，美元仍为公布值而非账单复算。
 2. 「只有两个套件报成本」撤回。SWE-bench 官方 Verified 数据也有 `cost`、`instance_cost`
-   和逐实例成本；本次 180 行中 45 行成本非空。逐行标明成本来源与缺失，不能把未读到写成不存在。
+   和逐实例成本；2026-10-14 的 180 行中 45 行成本非空，全部在 47 行 bash-only 中，非空包含零。
+   整轨有 11 个 mini 版本和不同 effort，不能写成只换模型的受控对照。逐行标明来源与缺失。
 3. HAL 的 63.9 倍继续隔离。九个服务端表和2026-10-05公告已读：嵌套span导致受影响模型
    恰好高估2倍，单span不受影响，尚未重算。SciCode两行已核为9.23%/$1.74与9.23%/$111.11，
    模型和scaffold不同；受影响行集合仍未知。不是全表统一污染，也没有恢复效率引用的依据。
@@ -101,6 +102,16 @@ output／cache read／cache write）是否可得，币值换算是否可比；�
    （OpenHands 单 8.6%／16.7%／$1.3 对 OWL RolePlay 多 4.0%／11.3%／N/A），
    多臂含 o3-mini 且正文「Both using GPT-4o」与表列冲突，原样并记，不构成同模型分＋成本
    双数字。三套件均未新增满足原关闭项第 2 条的双数字（仍由 Optima 支撑）。
+10. [多 agent 套件补核](../research/supplements/02-multiagent-suites-and-swebench-20261014.md)
+    已核 MultiAgentBench 与 MasBench 四栏。MultiAgentBench §5/Fig. 8 有 1/3/5/7-agent 臂，
+    但 Fig. 5 token 归一化不能反推绝对成本。MAS-Orchestra v5 Table 3 五列及 D.2 原值已核，
+    D.4 给出 prompt+completion 与写作时 Together AI 价目；质量 Avg@8 与资源表重复聚合
+    尚未绑定。AFlow/Mas 的 146 倍美元比只由已舍入打印值相除，不是精确账单比。
+11. 同包对 SWE-bench Verified 前 15 行按固定提交 README 与 mini v2.0.0 源码分类，得到
+    单 agent 结构 7、明确子 agent 1、生成选择／test-time scaling 管线 2、未定 5。
+    EPAM 的单结构可重试，TRAE Doubao 的 30 候选和 Rovo 双模型补丁不凭多调用直接归多 agent。
+    Warp 的 README 379/500=75.8 与榜单 75.6 冲突并记。分类不是受控双臂；余 165 行在本包
+    范围外，不追加全榜分类为关票门。该包未新增同模型双数字或非美元代价观测。
 
 ### 非美元代价
 
@@ -115,7 +126,7 @@ output／cache read／cache write）是否可得，币值换算是否可比；�
 
 | 原关闭项 | 当前证据状态 | 补核完成条件 |
 |---|---|---|
-| 套件四栏、来源与盲区 | 已核原表与补核范围见§1.3；TB/MLE资源分母、HAL公告及BrowseComp、SWE-Lancer、TheAgentCompany三套件已补（12/12栏，0项来源不可达） | 余下多agent套件仍需逐项核成本与已发表对照；SWE-bench组织双臂未分类；已核套件的未知字段继续保留 |
+| 套件四栏、来源与盲区 | 原表与覆盖见 §1.3；本批补 MultiAgentBench、MasBench 四栏及 SWE-bench 前 15 行有界结构分类 | AgentBench、MAEBE、CoffeeBench、MedAgentBoard 等余项仍待四栏核验；SWE 未定结构、Warp 冲突和各源未知字段继续保留，不另加全榜分类门 |
 | 同集同模型 multi-vs-single 双数字 | 通过，论文报告层：Optima Table 6的未训练MAD对CoT／SC，同为Llama 3.2 3B、同行任务列 | 保留#Tok而非美元账单、非等预算、未复现和未核运行配置限制；不追加原判据没有的硬门 |
 | 可比性判据 | C1–C9 已纠正，处理与控制变量分开 | 下游沿用该编号和边界，不再写「组织对裸臂必不可比」 |
 | S3 公开分数与成本及核算口径 | 公开字段已核，复算候选式见 §3.4 | 保留公布值与独立账单复算的区别，源字段未知不补零 |
@@ -243,3 +254,21 @@ TheAgentCompany（arXiv 2412.14161），逐套件核「测量对象／分数入�
   奖金或预算上限当实耗，不改主指标与 C1–C9。
 - 关键证据：[三套件四栏续核](../research/supplements/02-suite-fields-remainder-20261013.md)
   与报告 §1.3／§6。本批无在途采集，释放认领，整票保持开放，下游依赖按当前 Answer 的限制引用。
+
+### 2026-10-14 第三批验收与移交备注
+
+- 派发范围：沿用户的 ds 可处理任务授权，基线 `b4fa51da2c2f316e0513382276d286669aa8a25e`，
+  只核 MultiAgentBench、MasBench 和 SWE-bench 字段／有界组织分类。交件已结束，未重新派返工。
+- 验收：主会话回读论文表图、官网 180 行数据、11 份固定提交 README、mini v2.0.0 代码与
+  成本图字段。拒收 MultiAgentBench「无单 agent 臂」；纠正 MAS-Orchestra 五列映射、
+  AFlow 调用倍数与 CoT 比值方向；SWE 多尝试、选择管线和明确子 agent 分开，不凭名称分类。
+- 当前结果：两套件四栏与前 15 行分组进入报告 §1.3/§1.4；45 个非空成本不等于正价格。
+  Warp 的 75.8/75.6 冲突、5 个未定结构、资源／质量聚合绑定与训练账缺口保留。
+  S3 和同模型双数字仍按当前 Answer，未由本包建立新的受控组织经济结论。
+- 未过门：S4，原套件清单 AgentBench、MAEBE、CoffeeBench、MedAgentBoard 等仍未核。
+  下一包优先从此表选至多三套件，逐项核四栏；SWE 未定项仅在取得新架构证据时定向补，
+  不重采已核榜单、不把全榜结构分类加成关票门。C1–C9、主指标和 HITL 选择不变。
+- 关键证据：[多 agent 套件与 SWE-bench 补核](../research/supplements/02-multiagent-suites-and-swebench-20261014.md)。
+  该包无在途采集，释放本票认领；其他会话以在办登记为准。实际模型为
+  `opencode-go/deepseek-v4.1-flash`、effort `max`；精确工时、session_id、token 未计量，
+  主会话一轮回读、分类补证与语义修正不记零返修或净节省。

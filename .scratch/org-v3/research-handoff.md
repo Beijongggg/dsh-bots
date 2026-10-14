@@ -5,27 +5,31 @@
 2026-10-13 用户已授权原生子代理，可选 ds4.1；实际派发与验收留在所属票 Comments。
 原生子代理共享工作树，以下文件所有权约束不等于工具级写入隔离；本轮不调用本机 DSH。
 
-## 本批结果与接手顺序
+## ds 三批补核结果与接手顺序
 
-基线 `a8967ce118c9becfad132159ae50f9a86ba11397`（第二批 `41e59b5`）。实际模型为
+首批基线 `a8967ce118c9becfad132159ae50f9a86ba11397`，第二批基线
+`41e59b598d74e09797bb3f0637ae31cbe6425718`，第三批基线
+`b4fa51da2c2f316e0513382276d286669aa8a25e`。实际模型为
 `opencode-go/deepseek-v4.1-flash`，effort `max`，原生协作子代理，不是 DSH Delegate。
-16 份首包补核与第二批 3 份均已落盘，合计分为形态 2、成本 6、理论 9、生态 1、评测复用 1；
-已完成采集任务没有在途写入。
+首批 16 份、第二批 3 份与第三批 3 份均已落盘，本节累计 22 份：形态 3、成本 7、理论 10、
+生态旧包 1、评测复用 1。此计数只含本节所列 ds 补核件，不含其他会话交件；全图在办以登记为准。
 主会话已回读关键原文、纠正语义并整合报告。收件完成不等于每条结论采纳，更不等于五票全闭。
 
 接手先读所属票当前 Answer 与末尾移交备注，再按下表进入补核件。历史 Comments 保留当时判断，
 例如成本首包的未知 checkpoint 不再作为否定论文双数字对照的门；当前结论以 Answer 为准。
 
-| 补核件 | 本批验收边界 |
+| 补核件 | 验收边界 |
 |---|---|
 | [动态对照与回退](research/supplements/01-dynamic-controls-and-fallback-20261013.md) | 三篇已读；保留 AdaptOrch 分母冲突，区分选形、重跑与迁移；完整净收益校准未报告 |
 | [在线动态候选](research/supplements/01-online-successors-20261013.md) | MANTA/AgentConductor/MACA 固定对照与消融已核；固定/静态对照条件判满足 S2，切换成本按实报范围，未单列项保留 |
+| [AFlow／MASS／GPTSwarm](research/supplements/01-unchecked-candidates-20261014.md) | AFlow 执行与逐轮美元费、MASS 阶段差与训练／query 费分列；GPTSwarm 节点优化不作边迁移证据，未定位数字撤出 |
 | [同模型双数字](research/supplements/02-same-model-dual-metrics-20261013.md) | Optima 未训练 MAD 对 CoT/SC 满足论文报告层双数字，不等于等预算经济增益 |
 | [PaperBench/RE-Bench](research/supplements/02-paperbench-rebench-costs-20261013.md) | API估算、judge费、人工支付和预算分开；没有完整账单复原 |
 | [Optima配置](research/supplements/02-optima-config-and-denominators-20261013.md) | 原表与当前代码的计数边界已核，代码未绑定论文逐run配置 |
 | [TB/MLE/HAL字段缺口](research/supplements/02-gap-rechecks-20261013.md) | 更正token包含关系、seed分母与GPU预算；HAL未重算继续隔离 |
 | [GAIA/tau/HLE/OSWorld](research/supplements/02-suite-fields-20261013.md) | 固定PDF版本及已读成本字段；无组织对照仅限所读范围 |
 | [三套件四栏余项](research/supplements/02-suite-fields-remainder-20261013.md) | BrowseComp/SWE-Lancer/TheAgentCompany 12/12 栏；无新同模型双数字，任务价值与 API 费分列，TAC 双臂异构 |
+| [多 agent 套件与 SWE-bench](research/supplements/02-multiagent-suites-and-swebench-20261014.md) | 两套件四栏、180 行成本字段与前 15 行结构分类已核；多尝试不等于多 agent，资源聚合未绑定、Warp 冲突及未定结构保留 |
 | [经典设计警告](research/supplements/03-classic-design-warnings-20261013.md) | 所引原文条件已核，理论迁移另标推断 |
 | [复杂系统](research/supplements/03-complex-systems-sources-20261013.md) | 五项所引内容已核，镜像身份与未读页保留 |
 | [控制原文](research/supplements/03-control-sources-20261013.md) | 与经典包合计仅Ashby/Wiener两项达标 |
@@ -35,16 +39,18 @@
 | [ADOPT权威二手](research/supplements/03-coordination-gaps-20261013.md) | JAIR综述可按原判据计入，不能冒充ADOPT原作精确定理 |
 | [LLM借用](research/supplements/03-llm-classic-borrowing-20261013.md) | 三个全文样本分清标度借用、相变模型与协议扩展，不估计全领域比例 |
 | [组织路径余项](research/supplements/03-org-path-remainder-20261013.md) | Simon与Ostrom所引内容已核，转引统计和演示数字不当独立实测 |
+| [经典作者边界](research/supplements/03-author-boundaries-20261014.md) | Williamson／Baldwin & Clark 后期文本的成本边界已核；矩阵限书目／摘要，Burns & Stalker、Thompson 仍未核验，控制论仍 4/5 |
 | [宿主/Claude边界](research/supplements/04-host-and-claude-teams-20261013.md) | 五项文档/符号边界已核，未作运行实测或产品优劣裁定 |
 | [选择偏差与保留集](research/supplements/14-selection-and-holdout-sources-20261013.md) | 三组四篇支撑四项风险及防护候选，统计限制由主会话校正 |
 
 仅[持续演进中的评测过拟合与反复选择偏差](issues/14-research-adaptive-evaluation-and-selection-bias.md)
-满足原关闭项并进入地图决议索引。其余四票为 `ready-for-agent`，已释放认领；核心盲区见各票 Answer。
+满足原关闭项并进入地图决议索引。形态、成本、理论三票本批释放为 `ready-for-agent`，
+核心盲区见各票 Answer。生态票由并行会话负责，其状态与在办范围读票面及在办登记。
 S1–S5 与全部 HITL 选择保持，不改既有冻结规格，不运行论文代码、基准或真实模型实验。
 
 ## 实际返工与委派判断
 
-本批说明 ds 适合继续做固定来源、限定字段的提取，不适合省略主会话验收。具体返工包括：
+三批交付支持继续把固定来源、限定字段的提取交给 ds，主会话验收仍有实际工作量。具体返工包括：
 
 - 成本首包把无美元当作不合格并漏核未训练MAD对照，定向返工后仍由主会话纠正两臂、token含义
   和关闭口径。PaperBench等包也有成本对象、聚合分母及完成时间纠正，不能记作零返修。
@@ -54,6 +60,11 @@ S1–S5 与全部 HITL 选择保持，不改既有冻结规格，不运行论文
   JAIR权威二手。控制续核把百科当合格二手，覆盖计数拒收；Varela的PDF实际为1页题录摘要。
 - 原文抽取并不保证公式正确。评测复用包的Ladder绝对值竖线由主会话按PDF页图纠正，
   普通重复检验不继承其定理。详细原文验收见所属票，不用机械引文匹配代替含义核对。
+- 第三批漏读 AFlow 的逐轮美元费用及 MultiAgentBench 的单 agent 臂，主会话补回并纠正
+  MASS 差值与 MAS-Orchestra 表列。SWE-bench 的重试、候选选择和明确子 agent 分组，
+  不能从多次调用直接判为多 agent；打印费用比也不作精确账单比。
+- 理论第三批把 Williamson 的 hybrid 写成未定位，并把模块化收益和矩阵摘要写得过强。
+  主会话按作者原文限定支持范围；访问失败、书目和摘要仍分别留界，没有升级为正文已核。
 - 子代理曾把四份PDF及`dl4.log`误落仓库根，创建者已移入`/tmp`；控制检索的`sa1.html`
   也因未先切目录误落，已归因并移至`/tmp/cyb-03-20261013/sa1.html`，4428 B，SHA-256
   `22fb6ac7a6b8e526bac09b36d42eeda61dc703a63e533181765f45b580120bda`。
@@ -65,15 +76,17 @@ S1–S5 与全部 HITL 选择保持，不改既有冻结规格，不运行论文
 
 ## 剩余可派给 ds 的工作
 
-以下只补原票，不是新增研究面。每包只提取证据，默认20分钟到界交已核项与缺口；
+以下三包只补本会话三票，不是新增研究面。每包只提取证据，默认20分钟到界交已核项与缺口；
 遇已记录失败入口先查新来源条件，没有新条件不重复抓取。下表未派发，不把候选当在办。
 
 | 所属票 | 下一包可细化的范围 | 完成条件与停止点 |
 |---|---|---|
-| [带成本的公开基准与成本口径](issues/02-research-benchmarks-with-cost.md) | 三套件四栏已核；下一包查多agent专用套件与SWE-bench组织双臂分类 | 每套件独立列成本与组织双臂读取范围；奖金/任务价值、运行费用、人工费用分开，正文不可达即留缺口 |
-| [组织形态谱系、动态架构与成本经济](issues/01-research-org-patterns-and-phase-transition.md) | 从原报告未验收形态/候选中每包选至多三项，核原则、适用条件、成本及固定基线 | 不重派已核六篇；完整切换成本未知限制净收益，不抹去已发表动态对照，不自定S2或路由策略 |
-| [组织理论、复杂系统与控制论](issues/03-research-organization-theory-and-concepts.md) | 控制路仅Varela仍缺，有新学术来源时再补；另包补原条目边界 | 原作或可定位权威学术二手才计内容；百科、占位PDF与访问失败交回，不降五项要求 |
-| [外部产品与本地DSH生态](issues/04-research-external-products-and-ecosystem.md) | 原报告其余节按产品小包建立主张到原文对应；dots与英文访谈只用新的可用官方/作者入口 | 可达性不等于内容支持；只读资料、不绕访问挑战。不能从首包推出全生态结论 |
+| [带成本的公开基准与成本口径](issues/02-research-benchmarks-with-cost.md) | 从 AgentBench、MAEBE、CoffeeBench、MedAgentBoard 等原清单选至多三套件，补四栏 | 成本与组织双臂独立列读取范围；任务价值、运行及人工费分开。SWE 未定项有新结构证据才续核，不另加全榜分类门 |
+| [组织形态谱系、动态架构与成本经济](issues/01-research-org-patterns-and-phase-transition.md) | 从未验候选选至多三项，例如 AgentSquare、AgentPrune、ScoreFlow，核原则、适用条件、成本及固定基线 | 已核九候选不整包重派；完整费用未知限制净收益，不抹去已发表动态对照，不选择 Pod 路由策略 |
+| [组织理论、复杂系统与控制论](issues/03-research-organization-theory-and-concepts.md) | 补原条目尚缺的作者边界；Varela、Burns & Stalker、Thompson 及矩阵正文有新学术入口时再核 | 原作或可定位权威学术二手才计内容；后期作者文本只支持列明范围，百科、题录和访问失败交回，不降五项要求 |
+
+生态续包由并行会话按[外部产品与本地DSH生态](issues/04-research-external-products-and-ecosystem.md)
+及在办登记推进，本表不重复领票。
 
 架构取舍、理论迁移、因果归因、跨报告冲突裁决和最终验收留主会话；没有新资料的访问缺口
 留在原票，不用新增票或移入雾面绕过S4。后续派发仍需按下节固定实际输入、输出与停止条件。

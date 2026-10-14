@@ -30,6 +30,10 @@ and [GAIA/tau/HLE/OSWorld checks](supplements/02-suite-fields-20261013.md).
 The [BrowseComp/SWE-Lancer/TheAgentCompany check](supplements/02-suite-fields-remainder-20261013.md)
 closes those three §1.3 rows' four-field pass; none of the three adds a same-model
 score+cost organizational pair.
+The [2026-10-14 multi-agent suite and SWE-bench check](supplements/02-multiagent-suites-and-swebench-20261014.md)
+adds MultiAgentBench's 1/3/5/7-agent comparison, MAS-Orchestra's score and resource tables,
+and a bounded classification of the top 15 Verified entries. Multiple attempts are not
+automatically multiple agents; none of these additions replaces the Optima pair.
 Uninspected suites and organization comparisons remain open; this is not a field-wide
 claim that costs or comparisons do not exist.
 
@@ -54,7 +58,7 @@ the suite has no published cost elsewhere. **Unverified** marks unread or confli
 | Suite | What it measures | Task count | Where scores live | Cost reported? | Version / contamination caveats |
 |---|---|---|---|---|---|
 | **GAIA** | Real-world assistant questions needing reasoning + web browsing + multimodality + tool use | 466 questions; answers withheld for 300 to power the leaderboard | HF Space `gaia-benchmark/leaderboard` (submission = JSONL of answers) | No cost/token/time column in the inspected Space source and config | Paper v1 reports human 92% vs GPT-4+plugins 15%, not multi-vs-single; Space main is pinned only by retrieval date and SHA; row denominators remain unverified |
-| **SWE-bench Verified** | Resolving real GitHub issues in Python repos with execution-based tests | 500 human-validated instances (subset of SWE-bench's 2,294) | `swebench.com`, official `leaderboard-data` JSON | **yes, optional**: `cost`, `instance_cost`, per-instance cost; 45/180 Verified rows non-null in this snapshot | Example: Claude 4.5 Opus high / mini-SWE-agent 2.0.0, 76.8%, $376.9539985 total, $0.753907997/instance; splits and scaffold versions are not interchangeable |
+| **SWE-bench Verified** | Resolving real GitHub issues in Python repos with execution-based tests | 500 human-validated instances (subset of SWE-bench's 2,294) | `swebench.com`, official `leaderboard-data` JSON | **yes, optional**: 45/180 `cost` values non-null on 2026-10-14, all within 47 bash-only rows; non-null includes zero. 40 rows have per-instance details | Example: mini-SWE-agent 2.0.0 / Claude Opus 4.5 high, 76.8%, $376.9539985 total, $0.753907997/instance. The bash-only track spans 11 mini versions; it does not hold scaffold/version fixed across all rows |
 | **τ-bench / τ²-bench** | Tool–agent–user interaction under domain policy; τ² adds dual-control (user also acts) | τ: airline/retail; τ²: airline/retail/telecom | Papers, `github.com/sierra-research/tau2-bench`, `taubench.com` | **yes (paper)**: agent/user-simulator dollars per task and approximate total-trial cost; §1.3 | Paper versions and repo grading versions are separate; inspected repo `fc0055dc…` already documents τ³. Pre-v1.0.1 results are not comparable with newer grading |
 | **BrowseComp** | Persistently navigating the web for hard-to-find, entangled facts | 1,266 questions | Paper v1 Table 3 + `github.com/openai/simple-evals` (no official board) | **no** cost/token fields in the inspected v1 paper or harness; browsing-effort and parallel-sample axes are not priced | v1 paper and repo snapshot checked: no published multi-vs-single arm; Table 3 denominators undeclared; repo is rolling main |
 | **HLE (Humanity's Last Exam)** | Closed-ended expert academic questions at the knowledge frontier | 2,500 questions, dozens of subjects | `lastexam.ai` | **partial**: completion tokens in paper v11, Fig. 5/6 and §C.4; leaderboard cost fields unread | $500K is the question-contribution prize pool, not evaluation spending; calibrated accuracy and token quantities require their own denominators |
@@ -67,7 +71,8 @@ the suite has no published cost elsewhere. **Unverified** marks unread or confli
 | **SWE-Lancer** | Real Upwork freelance tasks + managerial decisions, valued in real payouts | 1,488 tasks; $1M total payout value (Diamond 502, $500,800) | Paper v4 Table 1; repo merged into `github.com/openai/frontier-evals` (`project/swelancer`) | **yes (paper)**: §3.6 prints API cost for the 237-task Diamond IC run, 5 runs (GPT-4o $194.31±$17.31; o1 $1,623.76±$56.68), separate from payout value | All inspected arms are single-agent scaffolds; retries included, batch discount excluded; no per-task dollars printed |
 | **TheAgentCompany** | Simulated small-software-company work: browsing, coding, running programs, messaging coworkers | 175 tasks; best baseline agent completes ~30% | Paper v3 Table 1; `the-agent-company.com` (board is client-rendered, unread) | **yes (paper)**: Table 1 Costs column, average USD/task (OpenHands+GPT-4o $1.3; Gemini-2.5-Pro $4.2); NPC interaction cost is a separate assumed ceiling | One partial two-arm row (OpenHands 8.6%/$1.3 vs OWL RolePlay 4.0%/N/A) is heterogeneous and conflicts with the prose "Both using GPT-4o"; not a same-model pair |
 | **HAL (Holistic Agent Leaderboard)** | Meta-leaderboard: accuracy **and** cost across 9 benchmarks, 9 models, many scaffolds | 21,730 rollouts, 9 models × 9 benchmarks over 9 suites (see §2) | `hal.cs.princeton.edu` (+ arXiv 2510.11977) | **yes (suite)** — required metric schema includes `total_cost_usd`, `total_tokens`, `cached_input_tokens`, `uncached_input_tokens`, `output_tokens`, `n_trials`, `pass@k`, `avg_trial_duration_sec` | One of its 9 suites is **SWE-bench Verified *Mini***, not the full 500; site note says leaderboard updates are **paused** (focus shifted to reliability measurement) |
-| **MultiAgentBench** | Multi-agent collaboration *and* competition; milestone-based KPIs; coordination topologies (star/chain/tree/graph) | Interactive scenarios; code+data in `github.com/MultiagentBench/MARBLE` | Paper + repo | Unverified in this supplement batch | Topology is a treatment variable; the cost scan has not covered the full paper/code |
+| **MultiAgentBench** | Collaboration/competition, milestone KPIs and coordination topology | Four task scenarios each have 100 cases; §5 uses a 20-paper research subset | v1 paper §3.2/§4/§5, Fig. 5/6/8; MARBLE code/data unread | **partial**: Fig. 5 token usage normalized to 0–100; no reconstructible absolute cost located in the read experiments | Fig. 8 includes 1/3/5/7-agent arms, not only multi-agent topology comparisons. Their absolute cost and budget matching remain unverified |
+| **MasBench / MAS-Orchestra** | Controlled task structure: Depth, Horizon, Breadth, Parallel, Robustness; five additional public benchmarks | Five axes; AIME24/AIME25/HotpotQA/BrowseComp+/GPQA in Table 3 | v5 paper Fig. 3/C.1 and Table 3; code/HF data unread | **yes (paper)**: D.2 reports calls, tokens, USD and time on AIME24/GPQA | Table 3 quality is Avg@8; D.2 repetition/aggregation alignment is unspecified. Standalone strategies include debate and self-consistency; a shared candidate model pool is not identical system configuration |
 | **AgentBench** | LLM-as-agent across 8 distinct interactive environments | 8 environments | `github.com/THUDM/AgentBench` | Unverified in this supplement batch | Mixed API/OSS model cohort; not yet a checked organization-cost comparison |
 | **MAEBE** | Emergent behaviour of multi-agent systems (safety-flavoured) | Framework + benchmark | arXiv 2506.03053 | Unverified in this supplement batch | Emergent-behaviour focus; that focus alone cannot prove the absence of cost data |
 | **CoffeeBench / MedAgentBoard / alem-env / DebateLLM / elimination_game / step_game / pgg_bench** | Domain or interaction-specific multi-agent suites (heterogeneous economies, medical tasks, long-horizon coordination, debate truthfulness, social reasoning/deception, public-goods cooperation) | Varies | See §7 references | Unverified in this supplement batch | Each suite still needs its own cost and published-comparison coverage record |
@@ -93,11 +98,16 @@ cost, yet comparisons across scaffolds are rare" (arXiv 2510.11977 §1).
 ### 1.2 Suites purpose-built for organization-level evaluation
 
 This pass has not verified a suite covering all of roles, ledger, permissions,
-review gates and memory with unit cost. The original inventory's candidates include:
+review gates and memory with unit cost. The checked candidates and remaining scope are:
 
-- **MultiAgentBench** (arXiv 2503.01935) — closest in spirit: scores collaboration and
-  competition with milestone KPIs and varies coordination topology, which is the
-  structural variable an organization plugin changes. Full cost coverage remains unread.
+- **MultiAgentBench v1** measures task and coordination performance, varies topology
+  and planning, and compares 1/3/5/7 agents in Fig. 8. The read experiments report
+  normalized token usage rather than a reconstructible absolute bill. Its single-agent
+  arm is established; a score/absolute-cost pair is not.
+- **MasBench / MAS-Orchestra v5** varies five task-structure axes and publishes separate
+  public-benchmark quality and resource tables. D.4 defines tokens as prompt plus
+  completion and uses Together AI prices at writing time. Rounded fees, unbound
+  repetition counts and asynchronous implementation limit cross-table comparisons.
 - **MAEBE** (arXiv 2506.03053) studies emergent behaviour of multi-agent systems;
   cost coverage remains unread.
 - **HAL** evaluates model/scaffold configurations and offers a methodological template.
@@ -117,7 +127,7 @@ score/cost pairs. "Not found in the inspected source" does not cover other publi
 | Suite | Comparison coverage and remaining work |
 |---|---|
 | GAIA | v1 paper and Space source/config inspected; human-vs-model is not multi-vs-single. Board rows and other GAIA cost papers are not fully checked |
-| SWE-bench Verified | Score/cost fields checked in the correction record; published organization contrasts are not yet classified arm by arm |
+| SWE-bench Verified | All 180 rows checked for cost fields; top 15 classified from fixed submission READMEs and mini v2.0.0 code (§1.4). These descriptive groups are not controlled arms; 5 architectures remain undetermined and the remaining 165 rows are outside this package |
 | τ-bench / τ²-bench | v1 papers inspected; agent and user simulator are two billed roles in one arm, not multi-vs-single. τ-retail reports $0.38/$0.23 per task and about $200 for one trial per task; τ² reports $0.086/$0.059 and about $40 for one all-domain trial, both roles using gpt-4.1-2025-04-14. These are paper estimates, not matched organizational contrasts |
 | HLE | v11 token sections inspected; no organization contrast established there. Client-rendered leaderboard remains unread |
 | Terminal-Bench 4.0 | 35 official rows inspected; same-model effort variants exist but are not thereby multi-vs-single arms |
@@ -129,10 +139,38 @@ score/cost pairs. "Not found in the inspected source" does not cover other publi
 | BrowseComp | v1 paper and simple-evals snapshot checked: 1,266 tasks; bounded full-text search found no cost/token field and no multi-vs-single arm; scores live in paper Table 3 with undeclared denominators |
 | SWE-Lancer | v4 paper and repo chain checked: §3.6 prints API cost for the 237-task Diamond IC SWE run (GPT-4o $194.31±$17.31; o1 $1,623.76±$56.68, 5 runs) separate from task value; all arms are single-agent scaffolds |
 | TheAgentCompany | v3 paper checked: Table 1 Costs column averages per-task USD; one partial two-arm row (OpenHands 8.6%/$1.3 vs OWL RolePlay 4.0%/N/A) is heterogeneous and conflicts with the prose "Both using GPT-4o"; not a same-model pair. Site board is client-rendered and unread |
-| MultiAgentBench / AgentBench / MAEBE / CoffeeBench / MedAgentBoard / alem-env / DebateLLM / elimination_game / step_game / pgg_bench | Original inventory only; per-suite full-source and comparison checks remain unfinished |
+| MultiAgentBench | v1 §3.2/§4/§5 and Fig. 5/6/8 checked; 1/3/5/7-agent comparison exists, but normalized tokens do not establish absolute cost. MARBLE code/data and fee inclusion remain unread |
+| MasBench / MAS-Orchestra | v5 §4.1/§6, Fig. 3/C.1 and D.4/D.2 checked; Table 3 quality and D.2 resource columns are mapped. Aggregation binding, training cost and strictly matched-model/budget attribution remain unresolved |
+| AgentBench / MAEBE / CoffeeBench / MedAgentBoard / alem-env / DebateLLM / elimination_game / step_game / pgg_bench | Original inventory only; per-suite full-source and comparison checks remain unfinished |
 
 The owning ticket's published-pair requirement is met at the paper-report level by
 Optima's ARC-C/GSM8K baselines (§2.4). Its original suite-coverage requirement remains open.
+
+### 1.4 SWE-bench: fields do not establish organizational arms
+
+The 2026-10-14 Verified snapshot has 180 rows. The `trajs` prefixes are verified 121,
+bash-only 47, empty 11 and evaluation 1. All 45 non-null costs occur in bash-only;
+the 133 rows outside that track have no cost. The two bash-only missing costs are
+Devstral Small (2512) and Devstral (2512). Non-null is not the same as positive cost.
+For 44 divisible rows, total cost divided by per-instance cost is 500; Gemini 2.0
+Flash is zero/zero and cannot establish either a denominator or free execution.
+The chart labels its metric `Average Cost per Instance ($)`.
+
+All 47 bash-only rows say Attempts=1, but span 11 mini versions from 0.0.0 to 2.0.0
+and differing effort settings. They are not one scaffold-controlled experiment.
+Sorted by resolved descending and then date descending, the top 15 contain 7
+single-agent structures, 1 explicit subagent system, 2 generation/selection or
+test-time-scaling pipelines, and 5 undetermined structures. These are this check's
+evidence groups, not a classification supplied by the leaderboard.
+
+EPAM's single CodeAct structure allows up to 3 retries after reaching its iteration
+limit. TRAE Doubao selects among 30 candidates; Rovo generates and refines patches
+using the same core agent with two models. Multiple attempts or calls alone do not
+establish multiple agents. ACoder explicitly documents independent-context subagents.
+The [bounded classification](supplements/02-multiagent-suites-and-swebench-20261014.md#b2-verified-前-15-行分类)
+records each row's source. Warp's README gives 379/500=75.8%, conflicting with the
+board's 75.6%; both are retained. No full-board architecture census is added as a
+closure requirement, and no controlled same-model score/cost pair is inferred here.
 
 ## 2. Published multi-agent vs single-agent numbers with score AND cost
 
@@ -311,8 +349,8 @@ establishes that adding agents alone causes an economic gain.
 
 ### 2.5 Other claims and paper-level costs
 
-The original pass read the following as score-only evidence. The two suite checks below
-replace that classification where full-text evidence is now available.
+The original pass read several of the following as score-only evidence. Full-text
+checks replace that classification where cost evidence is now available.
 
 - **MAST / "Why Do Multi-Agent LLM Systems Fail?"** (arXiv 2503.13657) — its only dollar
   table (Appendix K, Table 9) is the **LLM-annotator** cost of labelling traces, *not*
@@ -326,6 +364,14 @@ replace that classification where full-text evidence is now available.
   scenarios. No cost or token figure.
 - **"More Agents Is All You Need"** (arXiv 2402.05120) — sampling-and-voting scales with
   the number of instantiated agents; no monetary or token cost reported.
+- **MAS-Orchestra v5** reports AIME24/GPQA quality of 66.25/65.21 vs CoTAgent's
+  50.00/60.54 in Table 3, with Avg@8 aggregation. D.2 separately prints dollars
+  of $0.01/$0.07 vs $0.03/$0.06. The repetition/aggregation binding between those
+  tables is unspecified, so these are not complete same-run quality/cost pairs.
+  AFlow/Mas call ratios are 25.2549/28.3678; token ratios 115.6667/56.2727;
+  printed-dollar ratios 146/64.5714. The 146 ratio uses rounded printed amounts,
+  not exact bills. "More than 10×" does not hold across all baselines and metrics.
+  Raw values, price basis and limitations are in the [suite supplement](supplements/02-multiagent-suites-and-swebench-20261014.md).
 - **PaperBench** reports 24.4±0.7% replication for o1 IterativeAgent at 12h (Table 5)
   and estimates $400 per paper, or $8,000 for one rollout on each of 20 papers (§7).
   These are separately reported score and cost quantities, not a matched per-run ledger.
@@ -652,9 +698,10 @@ Gaps that remain, each a real limitation rather than a caveat:
    cost column, but the score denominator and organization contrasts remain unverified.
    The Space main source is bound by date/SHA, not a commit. WebArena's 812 examples
    are now primary-source verified; other versions and publications are outside that read.
-6. **openai.com returns 403 to curl**, so the BrowseComp page, the SWE-bench Verified
-   announcement and the PaperBench blog were not read directly; arXiv abstracts and
-   GitHub sources were used instead. SWE-bench Verified's count of **500** *was*
+6. **The initial pass encountered openai.com HTTP 403**, so the BrowseComp page,
+   SWE-bench Verified announcement and PaperBench blog were not read directly.
+   Later paper/GitHub checks have the reading levels recorded in their supplements.
+   SWE-bench Verified's count of **500** was
    confirmed, from the official SWE-bench repository README.
 7. **Suite-version and cost gaps remain.** OSWorld's root page/table headers are readable;
    its observation p90 and step budget are not run costs. HLE v11 reports completion
@@ -666,13 +713,11 @@ Gaps that remain, each a real limitation rather than a caveat:
 9. **§3.4's candidates are untested on Pod.** This research has not computed a Pod cost-of-pass
    figure or selected an acceptance metric; fixed/variable cost refers to when a charge
    recurs, not whether its prompt text was written once.
-10. **The original suite checklist is partly closed.** BrowseComp, SWE-Lancer and
-    TheAgentCompany now have four-field checks
-    (§1.3; [supplement](supplements/02-suite-fields-remainder-20261013.md)); none of the
-    three adds a same-model score+cost pair. The multi-agent suites still need per-suite
-    cost/comparison checks and SWE-bench's published organizational arms are not
-    classified. These are core coverage gaps, not bounded empty results; the owning
-    ticket stays open.
+10. **The original suite checklist is partly closed.** BrowseComp, SWE-Lancer,
+    TheAgentCompany, MultiAgentBench and MasBench have four-field checks (§1.3).
+    AgentBench, MAEBE, CoffeeBench, MedAgentBoard and the remaining listed suites
+    still need per-suite checks. These are core coverage gaps, not bounded empty
+    results; the owning ticket stays open.
 11. **The same-model published pair is established, not independently reproduced.**
     Optima's untrained MAD/CoT/SC rows satisfy the paper-level pair requirement, but
     exact samples, decoding settings, complete token accounting and uncertainty are
@@ -682,13 +727,19 @@ Gaps that remain, each a real limitation rather than a caveat:
     footnote, repetition/aggregation details and human replication payments remain unresolved.
     RE-Bench's price date, per-configuration costs and human-payment denominator are unknown;
     Figure 11 excludes H100 costs. Neither supplies a same-model multi-vs-single experiment.
+13. **The third-batch evidence is bounded.** MultiAgentBench's normalized tokens cannot
+    recover absolute cost. MAS-Orchestra's quality/resource aggregation binding and
+    training bill remain unknown. SWE-bench's top-15 classification leaves 5 structures
+    undetermined, preserves the Warp score conflict and does not cover the other 165
+    entries. These checks add no tail-latency, intervention or review-cost observations.
 
 ## 7. Reference list
 
 Sources consulted for this ticket, with URL, classification and date/version.
 "primary" = the artefact or its authors' own publication; "vendor" = a company
 publishing about its own product; "secondary" = commentary or aggregation by others.
-All URLs retrieved **2026-10-13**. Within a row, sources are separated by `‖`.
+The original inventory was retrieved **2026-10-13**; later checks carry their own dates.
+Within a row, sources are separated by `‖`.
 For corrected reading levels, fixed versions and cached-file hashes, the supplements
 linked at the top override the original inventory below. The suite follow-up used
 GAIA `2311.12983v1` (2023-11-21), tau `2406.12045v1` (2024-06-17), tau2
@@ -698,6 +749,10 @@ and MLE-bench `2410.07095v6` (2025-02-26). The three-suite follow-up used Browse
 `2504.12516v1` (2025-04-16), SWE-Lancer `2502.12115v4` (2025-05-29) and TheAgentCompany
 `2412.14161v3` (2025-09-10); PDF hashes are in the supplement. No cached source is
 promised permanent availability in `/tmp`.
+The third-batch check on 2026-10-14 used MultiAgentBench `2503.01935v1`, MAS-Orchestra
+`2601.14652v5`, SWE-bench experiments commit `40f164d5b8f1d249bf95a6df8b74b577fd8e519d`
+and mini-SWE-agent v2.0.0 commit `ce91a8c6449bc5a686df8f6b7ee8ca9433d893bc`.
+The supplement lists the 11 submission READMEs, mini source, chart script and full hashes.
 
 | Refs | Sources (URL · classification · date/version) |
 |---|---|
@@ -708,6 +763,7 @@ promised permanent availability in `/tmp`.
 | B11–B14 | WebArena · arxiv/2307.13854 · primary · 2023-07-25 ‖ MLE-bench (75 competitions; Low split 22; README reports running time) · arxiv/2410.07095 · primary · github.com/openai/mle-bench README ‖ PaperBench · [2504.01848v3](https://arxiv.org/abs/2504.01848v3) · primary · 2025-04-07 · Tables 3–5, §4.1, §7, Appendix G/H ‖ RE-Bench · [2411.15114v2](https://arxiv.org/abs/2411.15114v2) · primary · 2025-05-27 · §6.2, Figure 11; full-text cost checks in §2.5 |
 | B15–B18 | SWE-Lancer ($1M task value; §3.6 API-cost check) · [2502.12115v4](https://arxiv.org/abs/2502.12115) · primary · 2025-05-29 · [suite remainder supplement](supplements/02-suite-fields-remainder-20261013.md) ‖ TheAgentCompany · [2412.14161v3](https://arxiv.org/abs/2412.14161) · primary · 2025-09-10 · the-agent-company.com · same supplement ‖ **HAL site** (cost-aware; landing previews; updates paused) · hal.cs.princeton.edu · primary · retrieved 2026-10-13 ‖ HAL paper · arxiv/2510.11977 · primary · 2025-10-13 |
 | B19–B22 | MultiAgentBench · arxiv/2503.01935 · primary · 2025-03-03 · github.com/MultiagentBench/MARBLE ‖ AgentBench · arxiv/2308.03688 · primary · 2023-08-07 · github.com/THUDM/AgentBench ‖ MAEBE · arxiv/2506.03053 · primary · 2025-06-03 ‖ multi-agent suite sweep · api.github.com/search/repositories?q=multi-agent+benchmark+LLM · secondary index · 2026-10-13 — covering CoffeeBench github.com/SakanaAI/CoffeeBench · MedAgentBoard github.com/yhzhu99/MedAgentBoard · alem-env github.com/alem-world/alem-env · DebateLLM github.com/instadeepai/DebateLLM · elimination_game / step_game / pgg_bench github.com/lechmazur |
+| B23 | MAS-Orchestra / MasBench · [2601.14652v5](https://arxiv.org/html/2601.14652v5) · primary · retrieved 2026-10-14 · Table 3 and D.2/D.4 checked; [third-batch supplement](supplements/02-multiagent-suites-and-swebench-20261014.md) |
 | P1–P3 | **AI Agents That Matter** (cost-controlled eval; Pareto; fixed vs variable cost; ~2 orders-of-magnitude spread; LATS >50× warming) · arxiv/2407.01502 · primary · 2024-07-01 ‖ **MAST / Why Do Multi-Agent LLM Systems Fail?** (Appendix K = *annotator* cost, not MAS cost) · arxiv/2503.13657 · primary · 2025-03-17 ‖ Towards Effective GenAI Multi-Agent Collaboration (+70%, no cost) · arxiv/2412.05449 · primary · 2024-12-06 |
 | P4–P6 | More Agents Is All You Need (no cost) · arxiv/2402.05120 · primary · 2024-02-03 ‖ **BudgetMLAgent** · [2411.07464v2](https://arxiv.org/abs/2411.07464v2) · primary · 2025-01-08 · full-text check and limitations in §2.4 ‖ **AgentPrune / "Cut the Crap"** ($5.6 vs $43.7) · arxiv/2410.02506 · primary · 2024-10-03 |
 | P7–P9 | Optima · [2410.08115v2](https://arxiv.org/abs/2410.08115v2) · primary · 2025-02-18 · full-text Table 1 check in §2.4, including prose/table conflict ‖ MasRouter (−52.07% HumanEval; +1.8–8.2% MBPP) · arxiv/2502.11133 · primary · 2025-02-16 ‖ **BAMAS** — metadata `Comments: Accepted by AAAI 2026 (oral paper)` · arxiv/2511.21572 · primary · 2025-11-26 |
