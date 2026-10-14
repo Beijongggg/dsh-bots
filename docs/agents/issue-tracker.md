@@ -10,7 +10,7 @@ New issues, specs and wayfinder maps live in GitHub Issues for
 - Read the body, comments, labels, state and close reason, assignees and dependencies.
 - State vocabulary and GitHub representations are defined in [triage-labels.md](triage-labels.md).
 - Append discussion, implementation evidence and handoffs as Issue comments.
-- Before publishing with a label, check `gh label list`; create only missing configured labels with `gh label create`, using the same repository.
+- Before publishing with a label, check `gh label list`; create only missing labels defined here or in triage-labels.md with `gh label create`, using the same repository.
 
 ## GitHub operations
 

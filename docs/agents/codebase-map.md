@@ -10,8 +10,8 @@
 
 - 找导出：`grep -n "^export" lib/org/<模块>.js`；找定义：`grep -n "function <名>" lib/**/*.js`。
 - 本地旧规格的判据 ID 位置：`node scripts/project-context.mjs --spec-index <feature>`。
-- 触碰冻结面前，按 AGENTS §3 读取最新包的
-  `executionEvidence.provenance.sourceManifest`；复验由 preflight ②门执行。
+- 触碰冻结面前，按 README §1 定位最新包并读取其
+  `executionEvidence.provenance.sourceManifest`；边界见 AGENTS §3，复验由 preflight ②门执行。
 - 全库文本搜索先排除 `.scratch/`（实验装配快照内嵌整文件文本，非代码引用面；
   死码判定以 lib／scripts／tests／preview 为准）。
 
