@@ -20,7 +20,7 @@
 ## 落档提交
 
 落档提交一律显式 pathspec；changelog 事件用 `scripts/changelog-add-event.mjs --stage`
-按 HEAD 基线精确暂存，防裹挟并行会话预暂存件。
+按 HEAD 基线精确暂存。
 
 ## 证据纪律
 

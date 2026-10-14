@@ -36,14 +36,12 @@ failures as blockers; new work remains on GitHub.
 ## Worktrees and closure
 
 - 实施前核对 `git worktree list` 与 `git status`，使用本会话的工作树和分支。
-  已有工作树不能仅凭干净或无独有提交判为无主。
 - `/implement` 按任务既定交付目标完成验证、技能内评审、提交与例行 push，直接收口。
   `/implement-spec` 按技能由主会话推进任务图，子代理成果汇入集成分支后统一评审与收口。
 - 收口后确认本会话所建工作树干净、成果已保存，再拆工作树与已并入的本地分支。
-  保留其他会话的在制品；远端操作边界见 AGENTS §3。
+  远端操作边界见 AGENTS §3。
 - 隔离快照或补丁基线用 `git archive <显式 commit>`。
-- GitHub 正文与日志仍可能被并行修改。编辑前回读并保留他人内容，失配时重读后合并，
-  GitHub 正文写后回读确认；提交边界见 AGENTS §2。
+- GitHub 正文写后回读确认；提交边界见 AGENTS §2。
 
 ## 移交与 blocker 登记（接手会话的事实义务）
 
