@@ -1,14 +1,16 @@
 # 外部产品组织原始语与本地 DSH 生态清单 —— 研究报告
 
-- 日期：**2026-10-13**
+- 原采集日期：2026-10-13；本次补核：2026-10-14。
 - 票据：[外部产品与本地 DSH 生态（收编与复核）](../issues/04-research-external-products-and-ecosystem.md)。
 - 采集性质：建图前侦察已收编为该研究票交付物，当前逐节补核；可引用边界以票面Answer为准。
-  本批只验宿主Agent Teams与Claude Code agent teams的五项边界，见
-  [补核件](supplements/04-host-and-claude-teams-20261013.md)；其余节仍为待逐节复核的事实候选。
-- 快照语义：只证明 **2026-10-13 采集时点**。外部产品迭代快，引用前回读 §14 来源。
+  已核[宿主与Claude五项边界](supplements/04-host-and-claude-teams-20261013.md)，
+  2026-10-14另补[Anthropic余项](supplements/04-anthropic-remaining-facts-20261014.md)及
+  [Google/Microsoft指定字段](supplements/04-google-microsoft-facts-20261014.md)。未列字段仍待验收。
+- 快照语义：原采集为2026-10-13；补核条目按各补件的日期、版本与SHA引用。新补件不使整篇
+  自动成为当前产品事实，引用前回读 §14 来源。
 - 标注：`[未经一手来源核验]`＝本轮未落到一手来源；`INFERENCE:`＝推断。事实与推断严格分开，
   推断集中在 §13。正文方括号编号指向 §14 来源表。
-- 路径约定：`$DSH`＝`/usr/lib/node_modules/@deepseek-ai/dsh`（已安装宿主 **0.2.1-alpha.2**）；
+- 路径约定：`$DSH`＝`/usr/lib/node_modules/@deepseek-ai/dsh`（原采集宿主版本 **0.2.1-alpha.2**）；
   `$DSH_HOME`＝`~/.dsh`。
 - 采集边界：**全程只读**。`~/.dsh` 与安装树零写入；未抄录任何会话、消息或凭据内容。
 - 篇幅偏离：原采集超过300–500行目标，本批删去无证全称结论，保留原来源入口。
@@ -18,7 +20,7 @@
 
 ## 0. TL;DR
 
-1. 本批已核的宿主四包均为`0.2.1-alpha.2`。文档承诺同进程、共享checkout、TeamId锚在Lead会话，
+1. 宿主补核记录的四包均为`0.2.1-alpha.2`，绑定2026-10-13快照。文档承诺同进程、共享checkout、TeamId锚在Lead会话，
    明确不支持worktree或跨进程协调；roster与task持久化不等于团队进程一直存活。§9其余符号仍按
    实读层级引用，不把安装树文件当运行健康证据。
 2. Claude Code agent teams有独立会话上下文、共享task list与mailbox；一会话一团队、固定lead、
@@ -26,9 +28,11 @@
    in-process/split panes是终端显示模式，不足以证明OS进程拓扑。
 3. 两系统均有持久状态。Claude的team config随会话结束清理，task list可留存；宿主把roster/task
    追加到Lead日志并要求durable storage。生成时权限、后续修改、恢复与关停限制分别见补核件。
-4. dots核心原文及「贡献不到10%」英文访谈仍未取得，二手材料只作线索。其余产品尚未逐节验收，
-   不能据此得出「只有Pod持久」「只有Pod有权限」「所有团队随run生灭」或预算优势。
-5. `dsh-team`原采集时存在，现已按用户点名删除，§8.4引用既有事件；本批没有新的运行面动作。
+4. Anthropic的90.2%是异构配置内部研究评测的作者报告；BrowseComp方差分析、4×/15× token
+   经验倍数、Claude计划模式团队约7×各有口径，不能合为等预算组织收益或美元报价。
+5. dots核心原文及「贡献不到10%」英文访谈仍未取得，二手材料只作线索。Google/Microsoft只补核
+   指定字段，整篇尚未验完；不据此断言Pod独有持久性、权限、工作区或预算优势。
+6. `dsh-team`原采集时存在，现已按用户点名删除，§8.4引用既有事件；本批没有新的运行面动作。
    Pod定位取舍留给HITL票，§13只给带边界的比较问题。
 
 ---
@@ -55,18 +59,16 @@
 
 ## 2. OpenAI「dots」（DevDay 2026）
 
-**采集状态（先声明）**：openai.com 与 help.openai.com 文章页一律 **403**（Cloudflare，含浏览器 UA
-与多语言路径的 curl 与 web_fetch）；`developers.openai.com/api/docs/guides/agents/orchestration` 403；
-`platform.openai.com` 403；`learn.chatgpt.com/docs/dots*` **DNS 可解析但连接永不完成**（直连与第三方
-代理均败，代理返回 522）；archive.org／archive.ph／r.jina.ai 全为 **502**；本机无 CDP 浏览器
-（`127.0.0.1:9222` 无监听）；`cdn.openai.com` 可达但不镜像文章正文。**因此本节全部功能断言为二手**，
-逐条带 `[未经一手来源核验]`。
+2026-10-13采集未取得dots官方正文，失败入口保留在§14.1，不代表当前全域可达性。
+2026-10-14的[原文缺口补核](supplements/04-openai-primary-gaps-20261014.md)仅取得搜索索引；
+命中的Learn URL已在原来源表，随后官方页请求在权限交互期间中断，没有HTTP结果或正文。
+本节全部功能断言仍为二手，带`[未经一手来源核验]`；SDK文档不能补位为dots的产品证据。
 
 | 维度 | 采集到的内容（[S7] MediaNama 2026-10-01 逐条转述官方公告与 FAQ；[S7b] GIGAZINE；[S7t] Tech Bytes，细节最深；[S7d] 七牛云，引官方 doc URL） |
 |---|---|
 | 功能 | 常驻 agent，**不需要 prompt 就继续任务**；底座 **GPT-6 Astra**；示例：发现 Slack 里的 bug 报告 → 调查 → 写并测试修复 → 开 PR（OpenAI 称自家工程师的 dots 每天修数十个 bug）`[未经一手来源核验]` |
 | always-on 机制 | **「Proactive research」**：空闲时扫描已连接应用、把发现写成**只给自己的私人笔记**；此状态可用工具**只读**（不能发消息、不能改已连接应用、不能驱动浏览器）`[未经一手来源核验]` [S7t] |
-| 云运行时 | 每 dot **自己的「云电脑」**（沙箱 workspace，维护中的 Linux ＋ Chrome），可进去实时看它干活；**代码与工具被限制在 workspace 内、每个用户环境互相隔离、协调与安全强制系统在 dot 够不到的地方**（dot 关不掉自己的检查）`[未经一手来源核验]` [S7t]。**容器 vs VM 未定**：仅二手单源（4sysops，Cloudflare 403 未取正文）称 9 vCPU AMD EPYC VM `[未经一手来源核验]` → 按「OS 级隔离的每用户云 workspace」建模 |
+| 云运行时 | 每 dot **自己的「云电脑」**（沙箱 workspace，维护中的 Linux ＋ Chrome），可进去实时看它干活；**代码与工具被限制在 workspace 内、每个用户环境互相隔离、协调与安全强制系统在 dot 够不到的地方**（dot 关不掉自己的检查）`[未经一手来源核验]` [S7t]。**容器 vs VM 未定**：仅二手单源（4sysops，Cloudflare 403 未取正文）称 9 vCPU AMD EPYC VM；OS 级隔离仍是二手待核描述 `[未经一手来源核验]` |
 | 与本机关系 | 默认分离；连接本机**默认关闭**、须显式 Allow、可随时撤销；连上后解锁本地文件、本地编码工具、Work 与 Codex 任务、以及站点拦云浏览器时的**本地浏览器**；**同时只能连 1 台个人电脑**，本地任务要求该机**在线并运行 ChatGPT 桌面端** `[未经一手来源核验]` [S7t][S7d] |
 | 凭据 | 受支持登录会**暂停模型**让你在安全表单登录，密码**直接进浏览器环境、永不进入模型上下文**；已保存密码走**专用加密凭据服务**；**粘贴进聊天/文档**的密码无此保护；dot 上下文**不保留凭据、图像或截图** `[未经一手来源核验]` [S7t] |
 | 组合面 | 可创建与管理 **Codex 任务**（含已配置的 Codex 云环境）与 **ChatGPT Work** 任务，检查结果、补指令、带回决策 `[未经一手来源核验]` [S7t] |
@@ -88,14 +90,18 @@
 
 ### 3.1 「贡献不到 10%」的出处线索（仅二手，原文未取得）[S6][S6b]
 
-- **一手载体**：Dwarkesh Patel 播客 **《Noam Brown – Agent swarms, alignment, & recursive
+本节的出处、引语和资源数字均未获作者原文确认。2026-10-14补核没有新访谈正文，
+详见[OAI04-03、OAI04-04](supplements/04-openai-primary-gaps-20261014.md)。其中10%不能当作
+消融结果或一般多agent收益上限，万agent算例与数学结果的定义亦未核实。
+
+- **一手出处候选，尚未确认**：二手来源指向Dwarkesh Patel 播客 **《Noam Brown – Agent swarms, alignment, & recursive
   self-improvement》**，受访者 **Noam Brown**（OpenAI 研究员，o1 线奠基者之一，当前方向为多智能体）；
   形态＝**视频＋音频＋已发布文字稿**（Substack 帖），日期 **≈2026-09-17**（Techmeme `260917/p43`；
   36kr 英文版 2026-09-18）[S6]。
-- **可达性**：`dwarkesh.com/p/noam-brown` 本轮 curl `code=000`、web_fetch fetch failed。引语经
-  **两处独立中文逐字转载交叉核验**（[S6] 量子位 2026-09-30／[S6b] BAAI hub 镜像，正文一致）。
-  → **原始出处已定位、原始载体未读，无逐字英文**。
-- 逐字要点：① 「解出千禧年大奖难题，靠的不是多智能体。**我甚至不会把其中 10% 的功劳记在多智能体
+- **可达性**：2026-10-13请求`dwarkesh.com/p/noam-brown`返回curl `code=000`、web_fetch失败。
+  两处中文转载文字一致（[S6]量子位／[S6b]BAAI hub镜像），不构成两份独立一手证据。
+  原始载体仍未读，没有可核验的逐字英文；本次未重新请求作者站。
+- 中文转载要点，未获英文原文确认：① 「解出千禧年大奖难题，靠的不是多智能体。**我甚至不会把其中 10% 的功劳记在多智能体
   头上。**」「归根结底我们能做成这件事，是因为手上有一个通用且极强的模型」「多智能体这类东西新奇、
   抢眼，因此可能获得了与其贡献不成比例的好评」；② 「多智能体是把推理时的计算量由**纯串行扩展**
   改为**并行扩展**的方式。它的效率会低一些，因为不像单个 Agent 那样独享全部上下文。但只要做得好，
@@ -146,13 +152,19 @@
 
 ### 4.1 多 agent 研究系统（工程博客，一手 **2025-06-13**）[S1]
 
+本节所列作者报告与工程经验已按[Anthropic补核A1、A5](supplements/04-anthropic-remaining-facts-20261014.md)
+回读。量化结果没有独立实验复现；2025年的系统实现不代表当前Claude Code能力。
+
 - **官方命名「orchestrator–worker pattern」**：`LeadResearcher` 先**把计划存进 Memory**（因「if the
   context window exceeds 200,000 tokens it will be truncated」）→ 并行创建 subagent → 综合 →
   按需再起 → 末尾 `CitationAgent` 做引用归属。
-- 效能与代价：多 agent（Opus 4 lead ＋ Sonnet 4 subagents）比单 agent Opus 4 **高 90.2%**；
-  BrowseComp 上**token 用量单独解释 80% 方差**（三因素 95%）；**agent 约 4× chat token，多 agent
-  约 15×**，且「require tasks where the value of the task is high enough to pay for the increased
-  performance」。
+- 效能：作者称Opus 4 lead＋Sonnet 4 subagents在**内部research eval**上比单agent Opus 4
+  高90.2%。未给该比较的原始两分、样本数、预算或不确定性，不能独立复算，也不是同模型、
+  等预算的组织消融。
+- BrowseComp分析另称token用量解释80%的**性能方差**，加上工具调用数与模型选择共解释95%。
+  这不是准确率，也不是增加token导致收益的因果估计；不与内部eval的90.2%合成同一实验。
+- 代价：作者经验数据称agent约用chat的4倍token，多agent约15倍。任务、模型与token明细未知，
+  不能把15/4当同任务多/单agent倍率，也不能换成美元价格。作者要求任务价值足以覆盖额外成本。
 - **适用边界（原话）**：擅长「heavy parallelization, information that exceeds single context
   windows, and interfacing with numerous complex tools」；且「**most coding tasks involve fewer
   truly parallelizable tasks than research, and LLM agents are not yet great at coordinating and
@@ -161,8 +173,8 @@
   边界；描述含糊导致重复劳动）；**按复杂度配资源**（简单查证 1 agent／3–10 calls；直接比较
   2–4 subagent／各 10–15 calls；复杂研究 >10 subagent）；**编排层是「传话游戏」的税**（建议
   subagent 输出落文件系统、只回传轻量引用）；**长程会话**（阶段摘要入外部记忆，接近上限时用
-  **干净上下文的新 subagent ＋ careful handoff** 续接）；**同步执行是瓶颈**（「the lead agent
-  can't steer subagents, subagents can't coordinate」）；可靠性需可持久执行、**从断点恢复**、
+  **干净上下文的新 subagent ＋ careful handoff** 续接）；当时的同步批次实现使lead不能中途引导
+  subagent、subagent之间不能协调，不是对所有多agent产品的限制；可靠性需可持久执行、**从断点恢复**、
   确定性护栏与 **rainbow deployment**。
 - 自评结语：「the gap between prototype and production is often wider than anticipated」。
 
@@ -171,6 +183,7 @@
 本批准入范围以[五项边界补核](supplements/04-host-and-claude-teams-20261013.md)为准。
 页面按2026-10-13抓取时间与SHA定位，不承诺某个统一CLI版本，未启动Claude Code实测。
 `in-process`与`split panes`描述终端显示；独立会话不自动等于独立OS进程。
+成本与任务分配建议另按2026-10-14的[Anthropic补核A2](supplements/04-anthropic-remaining-facts-20261014.md)引用。
 
 - **状态**：实验性、**默认关闭**，需 `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`；未开启时不建团队、
   不写团队目录、Claude 不生成或提议 teammate。官方建议先看更轻的 subagents 与 cross-session
@@ -201,9 +214,11 @@
   复核每条消息，被拦的消息**根本不到达接收方**。
 - **质量门（hooks）**：`TeammateIdle`（exit 2＝给反馈并让它继续干）、`TaskCreated`、
   `TaskCompleted`（exit 2＝阻止创建／完成并回反馈）。
-- **规模与成本纪律**：本批已核「Start with 3-5 teammates」为建议，非人数硬上限；活跃teammate
-  退出或会话结束前持续耗token。`agent-teams`与`costs`已读面未给团队token/美元硬上限。
-  原采集的约7倍及每人5–6任务仍须按对应原段定位，不与Agent SDK的`maxBudgetUsd`混用。
+- **规模与成本纪律**：3–5个teammate和每人5–6项任务均为建议，不是硬上限。
+  `costs`的约7倍token比较明确限于**teammates运行于plan mode**，基线为standard sessions；
+  未给模型、人数、任务配对或token明细。不是通用团队费用倍率，不与4×/15×或美元串算。
+  活跃teammate退出或会话结束前持续耗token；已读两页未给团队token/美元硬上限，
+  Agent SDK的`maxBudgetUsd`属于另一配置入口。
 - **两条硬约束**：「**Avoid file conflicts**：两个 teammate 编辑同一文件会导致覆盖」；「Letting a
   team run unattended for too long increases the risk of wasted effort」。
 - **官方限制清单**：无会话恢复（`/resume`／`/rewind` **不恢复** in-process teammates）；任务状态
@@ -212,29 +227,40 @@
 
 ### 4.3 Claude Code subagents、skills、memory、其余组织面 [S2s][S2k][S2m][S3]
 
+以下修正按2026-10-14的[Anthropic补核A3–A5](supplements/04-anthropic-remaining-facts-20261014.md)
+定位。CLI定义、SDK查询选项与总览描述分开；没有产品运行或权限强制路径的实测。
+
 | 维度 | 官方表述 |
 |---|---|
 | subagent 定义单位 | **一个 Markdown 文件**：`.claude/agents/`（项目）或 `~/.claude/agents/`（用户），YAML frontmatter ＋ body 作 system prompt |
-| 作用域优先级 | 高→低：Managed settings（组织级）→ `--agents` CLI（会话）→ `.claude/agents/`（项目）→ `~/.claude/agents/`（全项目）→ plugin `agents/` 目录 |
-| 组织性 frontmatter | `description`（「When Claude should delegate to this subagent」）、`tools`／`disallowedTools`、`model`（含 `inherit`）、`permissionMode`（`default`／`acceptEdits`／`auto`／`dontAsk`／`bypassPermissions`／`plan`／`manual`）、`maxTurns`（超限产出标记为 partial 且可 resume）、`skills`（**全文注入**）、`mcpServers`、`hooks`、**`memory`（`user`／`project`／`local`）**、`background`、`effort`、**`isolation: worktree`** |
-| 每 subagent 持久记忆 | `user`→`~/.claude/agent-memory/<agent>/`；`project`→`.claude/agent-memory/<agent>/`；`local`→`.claude/agent-memory-local/<agent>/` |
-| 上下文隔离（逐字） | 「Each subagent runs in its own context window with a custom system prompt, specific tool access, and independent permissions. It also sends its own requests, which count toward the same usage limits as your main conversation.」父会话历史**不继承** |
-| 嵌套与并发硬上限 | 深度默认 **3 层**（`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`，设 `1` 关闭嵌套）、并发默认 **20**（`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`）、**花费上限** `maxBudgetUsd`（超限拒绝 spawn，报 `error_max_budget_usd`）；极高扇出时官方改推 `Workflow` 工具（脚本化编排、在会话上下文之外执行） |
-| skills | `SKILL.md` ＋ frontmatter（`name`／`description`／`when_to_use`／`allowed-tools`／`model`／`effort`／`context: fork`／`hooks`／`paths`…），遵循 **agentskills.io** 的 Agent Skills 规范；**渐进披露**明确到数字：「the combined `description` and `when_to_use` text is truncated at **1,536 characters** in the skill listing」；`context: fork` 让技能在自己的 subagent 上下文里跑 |
-| memory／CLAUDE.md | 四层作用域 **Managed policy**（`/etc/claude-code/CLAUDE.md` 等）／**User** `~/.claude/CLAUDE.md`／**Project** `./CLAUDE.md`／**Local** `./CLAUDE.local.md`；加载是**拼接而非覆盖**（「All discovered files are concatenated into context rather than overriding each other」，从文件系统根向下到工作目录）；子目录 CLAUDE.md 惰性加载；`AGENTS.md` **仅当** cwd 及其上层无 `CLAUDE.md`／`CLAUDE.local.md` 时才读 |
+| 同名定义优先级 | Managed settings高于`--agents` CLI、项目、用户、plugin；这是同名解析顺序，不是所有配置的统一覆盖规则。plugin定义忽略`hooks`、`mcpServers`、`permissionMode` |
+| 组织性 frontmatter | 已核字段含`description`、`tools`／`disallowedTools`、`model`含`inherit`、`permissionMode`、`maxTurns`、`skills`、`mcpServers`、`hooks`、`memory`、`background`、`effort`、`isolation: worktree`。`maxTurns`的partial标记需v2.1.246+；skills启动预载全文限前32个不同名称，不是技能访问白名单 |
+| 权限边界 | 六种配置值为`default`、`acceptEdits`、`auto`、`dontAsk`、`bypassPermissions`、`plan`；`manual`是`default`别名。父会话为bypass/acceptEdits/auto时忽略子`permissionMode`；其余模式的例外与版本见补核A3。独立上下文不等于完全独立授权 |
+| 每subagent持久记忆 | `user`为`~/.claude/agent-memory/<agent>/`，`project`为`.claude/agent-memory/<agent>/`，`local`为`.claude/agent-memory-local/<agent>/`。关闭auto memory时字段无效；启用时启动注入MEMORY.md前200行或25KB，先到者为限 |
+| 上下文隔离 | 普通subagent从独立上下文和委派提示起步，不继承父会话历史；**conversation fork例外，会继承父历史**。普通实例还可加载项目指令与预载skills，请求计入同一用量额度 |
+| CLI嵌套与并发 | v2.1.219+深度默认3层，由`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`配置，1关闭嵌套。v2.1.217+的`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`默认20，只阻止Agent工具的新spawn；ultracode豁免，人工`/subtask`和resume不受该拒绝门控制。teammate/workflow另有各自限制，不是全产品硬上限 |
+| SDK查询预算 | TS `maxBudgetUsd`／Python `max_budget_usd`是**整个query的估算美元上限**，含subagent请求，默认不设。文档条件为TS v0.3.219/Python v0.2.127及以上、捆绑CLI v2.1.219+。到限拒绝spawn返回`Budget limit reached`，停止仍运行的后台subagent，query以`error_max_budget_usd`结束；不是CLI frontmatter或每成员预算，也不保证实际账单绝不超额 |
+| 高扇出建议 | SDK页在数十至数百agent的场景建议`Workflow`脚本编排，在会话上下文外执行；该页只确认TS SDK v0.3.149+，不是强制切换阈值或Python功能证明 |
+| skills | `SKILL.md`与frontmatter采用Agent Skills规范并加CLI扩展。列表中每技能`description`＋`when_to_use`默认限1,536**字符**，可用`skillListingMaxDescChars`调整；不是正文/token总预算。技能的`context: fork`启动新subagent且**不继承父历史**，与conversation fork不同 |
+| memory／CLAUDE.md | Managed policy、User、Project、Local四层；Project可为`./CLAUDE.md`或`./.claude/CLAUDE.md`。发现的文件按层级拼接，不是相互覆盖；子目录文件按需加载 |
+| AGENTS.md默认策略 | 直接读取需v2.1.277+及功能可用。默认在cwd和祖先没有计入检查的CLAUDE文件时加载；用户级、managed指令不阻断。可配置两者都读，也可在CLAUDE.md中import，故原文的无条件「仅当」不成立 |
 | 五种并行方式 | **Subagents**（单会话内受委派工人）／**Agent view**（`claude agents` 一屏派发与监控后台会话；research preview）／**Agent teams**／**Projects**（持续对话，Claude 起并行 **threads**，云端或按需经 Remote Control 在你机器上跑）／**Dynamic workflows**（脚本跑多 subagent 并交叉核验） |
 | 三个支撑件 | **Worktrees**（每会话独立 git checkout；**你生成的 subagent 也可各得一个**）／**Cross-session messaging**（给本机／另一台机器／云端的其他会话发消息）／**`/batch`**（切成 5–30 个 worktree 隔离 subagent 的技能） |
 | 关键原话 | 「**Agent teams don't isolate teammates in worktrees**, so partition the work so each teammate owns a different set of files」；多会话／多 subagent **成倍放大 token** |
-| hooks 与权限模式 | hooks 30+ 事件（含 `SubagentStart`／`SubagentStop`／`TaskCreated`／`TaskCompleted`／`TeammateIdle`／`PreCompact`／`SessionEnd`）；六种 permission mode 的层级语义 [S2h][S2p] |
+| hooks与权限全貌 | 原采集的「hooks 30+事件」及完整权限层级仍待逐页验收；本包只核subagent权限字段及列明条件，不据此接受总数 [S2h][S2p] |
 
-仅采到索引级描述（正文未逐页读，见 §12）：cross-session messaging、agent-view、scheduled tasks
-（`/loop`＋cron）、routines、channels、goal、analytics [S5]。
+五种协作方式与三个支撑件已核官方总览，不等于细页或实现验收。cross-session messaging、
+agent-view、projects、workflows细页，以及scheduled tasks、routines、channels、goal、analytics
+仍保留索引级或未核状态，见 §12 [S5]。
 
 ---
 
 ## 5. Google
 
 ### 5.1 A2A（官方协议站与官方博客，一手）[S4][S4a]
+
+本节按2026-10-14的[04-GM1](supplements/04-google-microsoft-facts-20261014.md)核对指定规范条目。
+规范要求、项目方采用声明与具体实现分开引用，未核全部规范或厂商部署。
 
 - **治理**：2026-08-27 官方公告称 A2A 被接受为 **Agentic AI Foundation（AAIF）Growth Stage
   项目**，运行在 **Linux Foundation 指导的 AAIF** 之下，与 **MCP、goose、AGENTS.md** 并列，
@@ -245,34 +271,36 @@
   AgentCore Runtime、Microsoft Azure AI Foundry** 均已有原生 A2A 支持；点名的框架有 LangGraph、
   CrewAI、Pydantic AI、AG2、IBM BeeAI。规范页标注 **「Latest Released Version 1.0.0」**，
   线上字段 `protocolVersion: "1.0"`。
-- **核心对象**：`AgentCard`（name／description／**supportedInterfaces**
-  `[{protocolBinding: JSONRPC|GRPC|HTTP+JSON, protocolVersion, url}]`／provider／version／
-  capabilities／securitySchemes／**skills**（`AgentSkill`）／**JWS signatures**）；`Task` 状态机
-  `TASK_STATE_*`（SUBMITTED／WORKING／COMPLETED(terminal)／FAILED…）；**`contextId`**＝「an
-  identifier that logically groups multiple related Task and Message objects, providing
-  continuity across a series of interactions」，服务端生成的 contextId 对客户端**不透明**；
-  agent 可据它保存「internal state, conversational history, or LLM context」；**mid-task 追加
-  输入**：把任务转为 `input-required` 状态。
+- **核心对象**：`AgentCard`声明能力与接口，`supportedInterfaces`有序且首项优先。
+  `protocolBinding`是开放字符串，JSONRPC、GRPC、HTTP+JSON是核心绑定而非封闭枚举；
+  `signatures`是可选JWS字段。`Task`的COMPLETED、FAILED、CANCELED、REJECTED为终态，
+  INPUT_REQUIRED、AUTH_REQUIRED为中断态。
+- **连续性**：`contextId`把相关Task与Message分组。服务端生成的值SHOULD被客户端视为不透明；
+  服务端MAY接受客户端值，也MAY据此保留历史或内部状态并设置清理策略。
+  任务需补充输入时进入INPUT_REQUIRED，客户端用原taskId/contextId继续。
 - **发现**：规范 well-known URI ＝ **`https://{agent-server-domain}/.well-known/agent-card.json`**
   （遵循 RFC 8615 原则），另有策展注册表与直接/私有配置；Agent Card 可受保护、可签名、可缓存。
 - **设计原则（逐字）**含「**Opaque Execution**: Agents collaborate based on declared capabilities
   and exchanged information, without needing to share their internal thoughts, plans, or tool
   implementations」；MCP 关系被官方表述为「**MCP 是纵向集成层**，**A2A 是横向协议**」。
-- **组织含义（事实层面）**：A2A 把「组织」外置为**能力声明＋任务生命周期＋认证边界＋分组
-  contextId**；**不定义角色、汇报线、编制或审批岗**——没有 supervisor、没有 team、没有内部权威层。
+- **合同范围**：A2A规定外部互操作，不要求参与方暴露内部编排。官方示例本身有orchestrator，
+  因此不能从不透明执行推出没有supervisor、team或内部权威层；Pod如何使用该合同属于§13的讨论。
 
 ### 5.2 ADK（官方文档，一手；宿主已迁 `adk.dev`）[S5a]
 
+已核字段见[04-GM2](supplements/04-google-microsoft-facts-20261014.md)。模式页标注Python/Go
+v2.0.0，HITL示例另含TypeScript；本节不保证各语言、版本功能齐平。表中未核行仍是原采集线索。
+
 | 维度 | 官方表述 |
 |---|---|
-| 工作流 taxonomy | **Graph-based**（2.0+）、**Dynamic**（2.0+）、**Collaborative**（2.0+，「a single agent to act in a dynamic **coordinator** role to accomplish tasks with a set of specified sub-agents」）、**Template**＝`SequentialAgent`／`ParallelAgent`／`LoopAgent`；**Agent Routing**（`RoutedAgent`）**experimental**。官方动因含「**limiting data contexts for given tasks**」；站点横幅称「ADK TypeScript 2.0 GA … with **graph workflows** support」 |
+| 工作流分类 | Graph-based、Dynamic、Collaborative标注ADK 2.0+；Template为固定序列、循环和并行逻辑；Agent Routing标为experimental。分类不证明所有SDK支持相同模式 |
 | sub-agents／handoff | 在 coordinator 上声明 `sub_agents=[...]` → **「Auto-inject delegation tools named after each subagent」**；subagent 带 `mode`：**`chat`**（默认，完整用户交互，**manual** 经 `transfer_to_agent` 交回）、**`task`**（澄清型 HITL，**automatic** 经 `finish_task` 交回）、**`single_turn`**（无用户交互，自动交回，**可并行**） |
-| 上下文隔离（逐字） | 「Each `task` or `single-turn` mode agent operates in its own **isolated session branch** … each agent only sees events from its own branch when building context for AI model calls, **and cannot see what its peer agents are doing**. Once all parallel branches complete, the parent agent receives the collected results」；已知限制含「`Task` mode agents must be leaf agents and cannot have subagents」 |
-| Session／State／Memory | `Session`＝「a single, ongoing interaction」持 `Events`；`State`＝会话内草稿板；`Memory`＝「searchable, cross-session information」；服务为 **`SessionService`** 与 **`MemoryService`**；实现有 `InMemorySessionService`（重启即失）、`DatabaseSessionService`、`VertexAiSessionService` |
-| 状态作用域前缀 | 无前缀＝当前 session；**`user:`**＝该 `user_id` 跨全部 session；**`app:`**＝该应用**全部用户与 session** 共享；**`temp:`**＝仅当次调用。且「When a parent agent calls a sub-agent… it passes its `InvocationContext` … the entire chain of agent calls **shares the same invocation ID and, therefore, the same `temp:` state**」 |
-| HITL 是图节点 | `yield RequestInput(...)` 暂停工作流；官方称「These nodes do not require artificial intelligence (AI) models to run, which can make the input process **more predictable and reliable**」；默认 `rerunOnResume: false` |
-| Callbacks | 六个钩子——Before/After **Agent**、Before/After **Model**、Before/After **Tool**；官方把 `before_model`／`before_tool` 描述为实现「safety, validation, **policy enforcement**」的钩子 |
-| managed 面 | `ManagedAgent`（**Preview**）「connects to a managed agent … that runs in a **specialized, server-side execution environment**」；部署到 **Google Cloud Agent Runtime** 即把 sessions／state 交给托管基础设施（「Agent Runtime is a paid service」）。**Vertex AI「Agent Engine」现以 Agent Runtime／Agent Platform 出现**；**「Agent Garden」在现行 adk.dev 导航中不存在** `[未经一手来源核验]` |
+| 分支上下文与限制 | task/single-turn的模型调用仅见本分支事件，并行结束后父agent收集结果；这是事件/模型上下文隔离，不是共享状态、文件系统或OS隔离。task agent须为叶子；ADK Python v2.0.0的graph-based workflow暂禁task行为 |
+| Session／State／Memory | 状态持久性依SessionService；InMemory重启丢失，Database/VertexAi声明持久。原采集的Session/Events定义、跨会话Memory及MemoryService未在本包逐项复核 |
+| 状态作用域前缀 | 无前缀为当前session，不是`session:`前缀；`user:`限同一`app_name`下同一`user_id`的各session；`app:`限该应用所有用户/session；`temp:`限invocation。子调用传InvocationContext，因此调用链共享invocation ID和`temp:`状态 |
+| HITL是图节点 | `yield RequestInput(...)`暂停等输入后继续，节点无需模型。`rerunOnResume: false`为TypeScript示例的叶节点默认值；调用`ctx.runNode()`须设true，不能扩成所有SDK通用默认值 |
+| Callbacks，未复核 | 原采集列Before/After Agent、Model、Tool六类钩子及policy enforcement用途；本包未验总数、版本或执行语义 |
+| managed面，未复核 | 原采集列ManagedAgent Preview、付费Agent Runtime；Agent Engine命名变化与Agent Garden导航缺席亦未核。保留为来源线索，不据此断言产品改名或功能不存在 |
 | Google 自己的「别用 A2A」准则 | 「**When NOT to use A2A** … prefer local sub-agents」用于内部代码组织、性能关键的内部操作、以及「**Shared Memory/Context**」；并称本地 sub-agent「are like internal modules or libraries … Communication … is very fast because it happens directly in memory, without network overhead」 |
 
 ---
@@ -281,55 +309,60 @@
 
 ### 6.1 AutoGen（官方渲染文档，一手）[S6a]
 
+本节按[04-GM3](supplements/04-google-microsoft-facts-20261014.md)核对team状态、RoundRobin与
+Swarm指定段落，绑定2026-10-14的stable文档快照。分层、Magentic-One及全部termination语义仍未验收。
+
 | 维度 | 官方表述 |
 |---|---|
-| 分层 | `autogen-core`＝「An event-driven programming framework for building scalable multi-agent AI systems」；`autogen-agentchat`＝高层 API，提供「Agents with preset behaviors and **Teams** with predefined multi-agent design patterns」 |
-| Team 目录（逐字） | `RoundRobinGroupChat`／`SelectorGroupChat`（用模型选下一个发言者）／`MagenticOneGroupChat`／**`Swarm`**（用 `HandoffMessage` 表示 agent 间转移）；导航另有 **GraphFlow（Workflows）** |
-| 默认是共享黑板 | 「`RoundRobinGroupChat` … **all agents share the same context** and take turns responding… Each agent, during its turn, broadcasts its response to all other agents」 |
-| 控制流原语 | termination condition：`TextMentionTermination`、`TextMessageTermination`、`ExternalTermination`、`HandoffTermination`，可用 `|`／`&` 组合（教程另有 max-message／token 两类条件） |
-| 持久单位 | 「Teams are stateful and maintains the conversation history and context after each run, unless you reset the team. You can resume a team … by calling the `run()` or `run_stream()` method again without a new task」；`team.reset()` 清空 |
-| Swarm 的 handoff（逐字，含风险） | 「The `AssistantAgent` uses the **tool calling** capability of the model to generate handoffs… If the model does parallel tool calling, **multiple handoffs may be generated at the same time. This can lead to unexpected behavior.**」（修法：`parallel_tool_calls=False`） |
-| 人怎么进拓扑 | 把 `"user"` 当 handoff 目标——用户回复以 `HandoffMessage` 送回团队并**定向到原本请求人工输入的那个 agent**（`HandoffTermination`） |
-| Magentic-One（逐字） | 「Magentic-One's Orchestrator agent creates a plan, delegates tasks to other agents, and tracks progress towards the goal, dynamically revising the plan as needed」；可派给 `FileSurfer`／`WebSurfer`／`Coder`／`Computer Terminal`；风险提示含「**Human Oversight**: Run the examples with a human in the loop」「Limit Access」 |
+| 分层，未复核 | `autogen-core`＝「An event-driven programming framework for building scalable multi-agent AI systems」；`autogen-agentchat`＝高层 API，提供「Agents with preset behaviors and **Teams** with predefined multi-agent design patterns」 |
+| Team 目录，未完整复核 | `RoundRobinGroupChat`／`SelectorGroupChat`（用模型选下一个发言者）／`MagenticOneGroupChat`／**`Swarm`**（用 `HandoffMessage` 表示 agent 间转移）；导航另有 **GraphFlow（Workflows）** |
+| RoundRobin共享上下文 | 该配置内所有agent轮流响应并向其他成员广播，不能扩为所有AutoGen配置的默认行为 |
+| 控制流原语，未完整复核 | termination condition：`TextMentionTermination`、`TextMessageTermination`、`ExternalTermination`、`HandoffTermination`，可用 `|`／`&` 组合（教程另有 max-message／token 两类条件） |
+| 跨run状态 | team在run结束后保留历史与上下文，可再次调用run/run_stream继续；reset清team与各agent状态。这不单独证明进程重启后的持久恢复。ExternalTermination等待当前agent轮次结束，未必立即停止 |
+| Swarm handoff风险 | 模型并行工具调用可能同时产生多个handoff并出现unexpected behavior；文档对OpenAI/AzureOpenAI客户端给出`parallel_tool_calls=False`，不推广为所有客户端参数 |
+| 人工输入示例 | 示例用`HandoffTermination(target="user")`停等输入，再把用户回复作为HandoffMessage定向原请求者；是示例控制流，不是所有应用自带人工审批 |
+| Magentic-One，未复核 | 「Magentic-One's Orchestrator agent creates a plan, delegates tasks to other agents, and tracks progress towards the goal, dynamically revising the plan as needed」；可派给 `FileSurfer`／`WebSurfer`／`Coder`／`Computer Terminal`；风险提示含「**Human Oversight**: Run the examples with a human in the loop」「Limit Access」 |
 | 从简准则（逐字） | 「**start with a single agent for simpler tasks, and transition to a multi-agent team when a single agent proves inadequate.**」 |
 
 ### 6.2 Microsoft 是否把用户引离 AutoGen、以及 Agent Framework 的组织原语 [S6m][S6m2][S6m3][S6m4]
 
-- **是，转向 Microsoft Agent Framework。**迁移指南逐字：「It represents a significant evolution of
-  the ideas pioneered in AutoGen … developed by **the core AutoGen and Semantic Kernel teams** …
-  designed to be a **new foundation**」；架构差异「AutoGen pairs an **event-driven core** with a
-  high-level **Team**. Agent Framework centers on a **typed, graph-based Workflow**」；「AutoGen
-  offers embedded and **experimental distributed runtimes**. Agent Framework focuses on
-  **single-process composition today; distributed execution is planned.**」；概览页称
-  「**Agent Framework is the next generation of both Semantic Kernel and AutoGen**」。
-  **「AutoGen 处于维护模式」的明文表述未在渲染文档中找到**（`microsoft/autogen` README 因 GitHub
-  不可达未取）→ `[未经一手来源核验]`；**Agent Framework 的 GA 日期亦未核验**。
+- AutoGen官方README已明确maintenance mode、停止新增功能并交社区维护，建议新用户采用
+  Agent Framework并鼓励现有用户迁移。2026-10-14经官方GitHub API取得，blob为
+  `25f7cc162ae92c3988966d85cce173ff6df48020`，补齐原报告的维护模式缺口。
+- Framework概览称它是同团队开发的AutoGen/Semantic Kernel直接继承者。迁移页更新于
+  2026-08-25，称其聚焦single-process composition、distributed execution仍在计划中。
+  2026-09-21更新的checkpoint页则说明Cosmos跨进程持久化；保存/恢复与分布式执行不同，
+  不能把两句合成当前执行拓扑已核或实际矛盾。README的durable扩展只核链接存在。
+- README的production-ready表述不提供准确GA日期，也不证明全部SDK稳定，概览仍列Go public
+  preview。已核原文及日期见[04-GM4](supplements/04-google-microsoft-facts-20261014.md)。
 - **Agent Framework 组织原语**：
+
+下表已核五种模式目录、checkpoint与人工暂停概述；其余API参数和Hosted agents仍待逐项验收。
 
 | 维度 | 官方表述 |
 |---|---|
 | 五种编排模式 | **Sequential**／**Concurrent**／**Handoff**（按上下文互相转移控制）／**Group Chat**（共享会话协作）／**Magentic**（「A manager agent dynamically coordinates specialized agents」） |
-| handoff vs agent-as-tool | 「In handoff orchestration, the conversation is handed off to another agent entirely. **The receiving agent has full context of what has been done so far.** In agent-as-tools, the primary agent manages the overall context…」默认交互式（把控制权交回你），`WithAutonomousMode()` 才自动跑，**默认每 agent 上限 50 个自主回合**；**持久 handoff 需要 checkpointing ＋ 稳定 agent id** |
-| Group Chat | `GroupChatBuilder(participants=…, termination_condition=…, selection_func=…)`，也可换成**用完整 agent 当编排者**（`orchestrator_agent`，「a full Agent with access to tools, context, and observability」） |
-| Magentic | `MagenticWorkflowBuilder(managerAgent).AddParticipants([...])`，暴露内环上限（`WithMaxRounds`／`WithMaxStalls`／`WithMaxResets`）与 **HITL 计划签核**（`RequirePlanSignoff`）；自定义 `progress_ledger_prompt` **必须保留内建 JSON schema** → **progress ledger 就是编排者的共享状态产物**；该类型标记为实验性 |
-| Checkpoint ＝耐久单位 | 「workflows are executed in **supersteps**… Checkpoints are created at the end of each superstep」；checkpoint 捕获「current state of all executors… all pending messages… pending requests and responses… **shared states**」；provider：`InMemoryCheckpointStorage`／`FileCheckpointStorage`／`CosmosCheckpointStorage`；Python ≥1.13.0 起 entry checkpoint 使运行**可回放** |
-| HITL 两条机制 | ① **tool approval**（「Agents can use **approval-required tools** that pause the workflow for human review before execution」；Harness Agent 另有 don't-ask-again tool approval）；② **`RequestPort`**——executor 向外发请求并等响应，`RequestPort` 发 **`RequestInfoEvent`**，框架**按原始请求把响应自动路由回对应 executor** |
-| 组织也住服务端 | Foundry Agent Service **Hosted agents** 跑「containerized agentic AI applications」（可用 Agent Framework／LangGraph／Semantic Kernel／自研），「Hosted agents run in **per-session VM-isolated sandboxes**. Each session gets a dedicated sandbox with a persistent filesystem (`$HOME` and `/files`)… **The platform handles scaling, session state persistence, observability, and lifecycle management**」 |
+| handoff vs agent-as-tool，细节未复核 | 「In handoff orchestration, the conversation is handed off to another agent entirely. **The receiving agent has full context of what has been done so far.** In agent-as-tools, the primary agent manages the overall context…」默认交互式（把控制权交回你），`WithAutonomousMode()` 才自动跑，**默认每 agent 上限 50 个自主回合**；**持久 handoff 需要 checkpointing ＋ 稳定 agent id** |
+| Group Chat，参数未复核 | `GroupChatBuilder(participants=…, termination_condition=…, selection_func=…)`，也可换成**用完整 agent 当编排者**（`orchestrator_agent`，「a full Agent with access to tools, context, and observability」） |
+| Magentic，参数未复核 | `MagenticWorkflowBuilder(managerAgent).AddParticipants([...])`，暴露内环上限（`WithMaxRounds`／`WithMaxStalls`／`WithMaxResets`）与 **HITL 计划签核**（`RequirePlanSignoff`）；自定义 `progress_ledger_prompt` **必须保留内建 JSON schema** → **progress ledger 就是编排者的共享状态产物**；该类型标记为实验性 |
+| Checkpoint | superstep完成后保存executor状态、下步pending messages、requests/responses与shared states；Python 1.13.0起增加entry checkpoint以支持完整回放。InMemory仅进程内、File落本地盘、Cosmos提供跨进程持久保存/恢复；文档功能未作独立恢复实验 |
+| HITL 两条机制，细节未复核 | ① **tool approval**（「Agents can use **approval-required tools** that pause the workflow for human review before execution」；Harness Agent 另有 don't-ask-again tool approval）；② **`RequestPort`**——executor 向外发请求并等响应，`RequestPort` 发 **`RequestInfoEvent`**，框架**按原始请求把响应自动路由回对应 executor** |
+| 服务端托管，未复核 | Foundry Agent Service **Hosted agents** 跑「containerized agentic AI applications」（可用 Agent Framework／LangGraph／Semantic Kernel／自研），「Hosted agents run in **per-session VM-isolated sandboxes**. Each session gets a dedicated sandbox with a persistent filesystem (`$HOME` and `/files`)… **The platform handles scaling, session state persistence, observability, and lifecycle management**」 |
 
 ### 6.3 Copilot Studio 与复杂度治理（官方文档，一手）[S6c][S6g]
 
-- **何时拆（逐字）**：当 agent 区分工具的能力开始退化时考虑拆成多个 connected agents——「As a rule
-  of thumb, this degradation in performance can happen when your main agent has **more than 30-40
-  choices of action**」；其他理由含多团队独立维护、**各自专属设置（如模型）**、独立 ALM、可复用。
-  拓扑＝父「main agent」编排，子级分 **child agents**（内部）与 **connected agents**（单独发布）。
-  **组织的代价（逐字）**：「Increase latency due to the extra orchestration hops… Increase the
-  testing, management, and governance surface area for a solution」。
-- **最优复杂度准则（逐字）**：「Before you adopt a multiagent orchestration pattern, evaluate whether
+- 按[04-GM5](supplements/04-google-microsoft-facts-20261014.md)核对，30–40 choices of action是
+  rule of thumb，包含tools、topics和其他agents，不是工具数单项或拆分硬阈值。
+  较少但描述相似也会退化；文档要求先改善描述，再依据自己的评测判断是否拆分。未报告实验模型、
+  任务分母、成功率或置信区间。
+- 文档明确额外编排跳转会增加延迟以及测试、管理和治理工作量，没有量化这些代价。
+  原采集的child/connected完整拓扑、独立ALM/模型设置及功能限制未在本包逐项核完。
+- **复杂度选择建议（逐字）**：「Before you adopt a multiagent orchestration pattern, evaluate whether
   your scenario requires one… **Use the lowest level of complexity that reliably meets your
   requirements.**」阶梯＝Direct model call → Single agent with tools（「Often the right default for
   enterprise use cases… To guard against infinite tool-call loops, set iteration limits」）→
   Multiagent orchestration（「Adds coordination overhead, latency, and failure modes…」）；每个模式
-  另有 "When to avoid"。
+  另有 "When to avoid"。这是Microsoft的架构建议，不是多agent普遍更省钱或更有效的实测结论。
 
 ---
 
@@ -656,20 +689,21 @@ Team 状态、不注册模型面输入** [L13]。
 
 ## 11. 对照表：组织住在哪、谁拥有状态、权威怎么建模、成本怎么治理、持久单位是什么
 
-> 「权威建模」「成本治理」只填**采集到的官方表述**；无一手依据写 `未采集到`，不臆测。
+本表用于定位比较字段，不代表整表验收。可引用范围以票面Answer及对应补核件为准；
+未验收字段只作来源线索，未采集到不等于功能不存在，二手内容保留来源级别。
 
 | 产品／方案 | 组织住在哪 | 状态归谁 | 角色／权威建模 | 成本治理 | 持久单位 |
 |---|---|---|---|---|---|
-| **OpenAI dots** | **厂商侧云服务**（每 dot 一台「云电脑」；协调与安全强制在 dot 够不到的地方）`[未经一手来源核验]` [S7t] | 厂商（云电脑、dot 的 notes）；用户只控连接与规则 [S7t] | 无组织内权威层；人是唯一授权者（Custom Rules 三态＋auto-review）；specialist dots 有公司身份/凭据但职责与审批由 OpenAI 工程师与客户共同定义 `[未经一手来源核验]` [S7] | 首 dot 含在套餐、对话不计 ChatGPT 上限、Codex/Work 任务计入；按 speed 或月度 workload 扩容（未上线）`[未经一手来源核验]` [S7][S7d]；**无公开的 token 预算/终止条件机制** | 未采集到（dot 的 notes 不可逐条审计，只能 Reset）[S7t] |
+| **OpenAI dots，全行未获一手核验** | 二手称每dot一台云电脑 [S7t] | 二手称厂商保存workspace与notes [S7t] | Custom Rules、auto-review与specialist身份均仅有二手转述，不能断言完整权威结构 [S7] | 套餐与用量描述仅二手；预算/终止机制未核，不写成不存在 [S7][S7d] | notes、Reset及任务寿命均待官方原文 [S7t] |
 | **OpenAI Agents SDK** | **应用侧**；沙箱底座可选本地／Docker／7 家托管 provider [S10] | 应用侧（sessions 持久层，含 Encrypted 实现）；或 OpenAI 托管会话状态 [S10] | 两形态：**agents-as-tools**（manager 拥有最终答案）与 **handoffs**（专家直接接管，默认继承全历史）；handoffs **限制在单次 run**，guardrails 只覆盖链首/链尾 [S10] | `max_turns`＋`MaxTurnsExceeded`＋`error_handlers` 回退；官方给「orchestrate via code」作可预测的成本/速度手段 [S10] | **Session**（SQLite／Redis／Mongo／Encrypted／Conversations API 等）＋**文件式记忆**（`memories/MEMORY.md`、`memory_summary.md`、`rollout_summaries/`，遗忘阈值默认 256）＋ sandbox 快照 [S10] |
-| **Anthropic 多 agent 研究系统** | 应用内编排（官方名 **orchestrator–worker pattern**）[S1] | 未采集到（提到可恢复执行与 checkpoint）[S1] | LeadResearcher＋并行 subagent＋CitationAgent；**lead 不能 steer subagent、subagent 之间不能协调**；计划存 Memory 防 200k 截断 [S1] | 官标价：agent 4×、多 agent **15×** chat token；写死 scaling rules（1 agent/3–10 calls ↔ >10 subagent）；必须「任务价值足够高」[S1] | 未采集到具体单位；强调「外部记忆＋干净上下文 handoff＋artifact 落文件系统」[S1] |
-| **Claude Code subagents** | 用户本机 `.claude/agents/`／`~/.claude/agents/`（**Markdown 文件即定义**，另有 Managed settings 组织级层）[S2s] | 用户本地（`~/.claude`），可用 `memory` 字段给每 agent 一份持久记忆目录 [S2s] | 父会话管全部工作；subagent 只回报结果；**嵌套深度默认 3、并发默认 20**[S2s] | 每 subagent 的 `model`／`effort`／`maxTurns`；SDK **`maxBudgetUsd` 花费上限**；请求计入你的用量额度 [S2s] | 会话记录＋`.claude/agent-memory/<agent>/`（user／project／local 三档）[S2s] |
-| **Claude Code agent teams** | 用户本机：`~/.claude/teams/{team-name}/`＋`~/.claude/tasks/{team-name}/`；teammate 共享主会话目录 [S2] | 用户本地；任务清单从不上传；团队配置目录会话结束即删 [S2] | Lead 固定；不嵌套；一会话一团队；权限与跨 agent 批准限制为文档承诺 [S2] | 3–5 人是建议，非硬上限；已读两页未给团队 token/美元硬上限；不混用 SDK 预算字段 [S2][S2c] | `team-name = session-` 加会话 ID 前 8 字符；任务清单在团队配置删除后仍可留存 [S2] |
+| **Anthropic多agent研究系统** | 2025工程博客的orchestrator-worker系统 [S1] | 状态部署位置未采；文中描述checkpoint [S1] | LeadResearcher、subagents与CitationAgent；同步批次限制只说明当时系统，不代表当前CLI [S1] | 作者经验值为chat的约4×/15× token，不是美元报价或配对组织收益；90.2%属异构内部eval，详见§4.1 [S1] | 外部记忆、干净上下文handoff与文件产物；未核具体存储实现 [S1] |
+| **Claude Code subagents** | 项目/用户Markdown定义与Managed settings层 [S2s] | `memory`可配user/project/local；需auto memory启用 [S2s] | 普通实例不继承父历史，conversation fork例外；CLI深度3、并发20有版本与豁免条件，见§4.3 [S2s] | CLI的model/effort/maxTurns与SDK预算分开；`maxBudgetUsd`为含subagent的query级估算美元上限，默认不设 [S2sdk] | 三档记忆目录及启动注入界限见§4.3；目录定义不证明权限隔离 [S2s] |
+| **Claude Code agent teams** | 用户本机teams/tasks目录；teammate共享主会话目录 [S2] | 任务清单本地持久；团队配置会话结束清理 [S2] | Lead固定、不嵌套、一会话一团队；权限边界为文档承诺 [S2] | 人数/任务数为建议；约7× token限plan-mode teammates对standard sessions，非通用费用倍率；未核团队硬预算 [S2][S2c] | team-name归属会话；task list可在config删除后留存 [S2] |
 | **Cognition（Devin）** | 应用侧；**manager Devin ＋ child Devins 经内部 MCP 协调**[S9b] | 应用侧 [S9b] | **map-reduce-and-manage**：manager 拆活、子级执行、manager 汇总；非结构化 swarm「mostly a distraction」[S9b] | 未采集到预算机制；有跨模型**能力路由**与 generator–verifier 的成本/质量数据 [S9b] | 未采集到（核心约束是「writes stay single-threaded」）[S9b] |
-| **A2A（Linux Foundation／AAIF）** | **协议层**：跨厂商/跨组织通信标准，组织本身不建模；AAIF Growth Stage 项目，与 MCP／goose／AGENTS.md 并列 [S4][S4a] | 各方自持；靠**不透明执行**互不干涉；连续性靠**不透明 `contextId`** 分组 [S4] | **无 supervisor／无 team／无权威层**；只有 Agent Card（能力＋JWS 签名）、任务状态机、认证边界 [S4] | 未采集到（协议不管成本）[S4] | **Task ＋ Artifact ＋ contextId**；长任务用 LRO／SSE／push notification [S4] |
-| **Google ADK** | 用户代码里的 agent 树＋session service（`DatabaseSessionService`／`VertexAiSessionService`），可部署到 **Agent Runtime**（付费托管）[S5a] | 可本地可托管；状态按 `session:`／`user:`／`app:`／`temp:` 前缀分域 [S5a] | coordinator ＋ `sub_agents`；**自动注入以 subagent 命名的 delegation 工具**；`chat`/`task`/`single_turn` 三模式决定交回方式与可否并行；`temp:` 状态**全调用链共享**，各分支 session **互相不可见** [S5a] | 未采集到预算机制；HITL 用**无模型图节点** `RequestInput` 保证可预测；回调被官方定位为 **policy enforcement** 挂点 [S5a] | **Session／State／Events／Memory**（＋Artifacts、Rewind sessions）；`Memory` 为跨会话可检索层 [S5a] |
-| **Microsoft AutoGen（AgentChat）** | **代码里的 Team 对象**；有嵌入与**实验性分布式 runtime**[S6a][S6m2] | 应用侧；**Team 对象本身有状态**，`run()` 续跑、`reset()` 清空 [S6a] | Team 即编排：`RoundRobinGroupChat`／`SelectorGroupChat`／`Swarm`／`MagenticOneGroupChat`；**默认所有 agent 共享同一上下文（共享黑板）** [S6a] | 控制流原语＝termination condition 组合（text／handoff／external／max-message／token）；官方要求「start with a single agent」[S6a] | **Team 的会话历史与上下文**（`run()` 续、`reset()` 清）[S6a] |
-| **Microsoft Agent Framework** | 代码＋你自己的容器；**Foundry Hosted agents** 可跑在**每会话 VM 隔离沙箱**（平台管扩缩、会话状态持久化、可观测）[S6m][S6m4] | 应用侧；handoff 持久化需 checkpoint＋稳定 agent id [S6m3] | 五种编排枚举：Sequential／Concurrent／**Handoff**（接收方拿全部上下文）／**Group Chat**／**Magentic**（manager 动态协调，暴露 maxRounds／maxStalls／maxResets 与计划签核）；progress ledger 即共享状态产物 [S6m][S6m3] | Magentic 内环上限；handoff 自主模式**默认 50 回合**；HITL 用 **approval-required tools** 与 `RequestPort`／`RequestInfoEvent` [S6m][S6m3] | **Checkpoint**（每个 superstep 末写入，含所有 executor 状态、待处理消息与请求、**shared states**）；provider：InMemory／File／Cosmos；≥1.13.0 起可回放 [S6m3] |
+| **A2A（Linux Foundation／AAIF）** | 外部互操作协议；治理与采用情况为项目公告归因 [S4][S4a] | 可用contextId分组并保留内部状态；客户端对服务端值应视为不透明 [S4] | 合同不要求公开内部编排，不等于没有team/supervisor；JWS签名可选 [S4] | 已读条目未核费用机制 [S4] | Task/Message由contextId关联；清理和存储策略由实现选择 [S4] |
+| **Google ADK** | 应用内agent与SessionService；托管部署细节仍待验 [S5a] | 无前缀为session；user:限同一app_name，app:限应用，temp:限共享invocation [S5a] | coordinator和委派工具；task/single-turn只隔离模型所见分支事件，非共享状态/OS隔离；版本限制见§5.2 [S5a] | 预算未核；RequestInput可由无模型节点等人，未保证可靠性数值；callbacks仍待验 [S5a] | 持久性依SessionService，InMemory重启丢失；Memory/Rewind原采集未验 [S5a] |
+| **Microsoft AutoGen（AgentChat）** | Team对象；官方已明确维护模式并鼓励迁移，见§6.2 [S6a][S6r] | Team跨run有状态，reset清空 [S6a] | RoundRobin及Swarm已读共享上下文行为，不能概括所有配置；其他模式细节待验 [S6a] | 官方建议先优化单agent；已核ExternalTermination轮末停止与示例handoff，全部计量条件待验 [S6a] | 跨run历史与上下文不等于进程重启恢复 [S6a] |
+| **Microsoft Agent Framework** | 2026-08-25迁移页称single-process；截至采集日的分布式执行与Hosted VM细节仍未验 [S6m2][S6m4] | checkpoint存储可为进程内、本地盘或Cosmos；保存/恢复不等于分布式调度 [S6m3] | 已核Sequential、Concurrent、Handoff、Group Chat、Magentic模式目录；参数及progress ledger细节待验 [S6m] | 人工暂停概述已核；50回合、各内环上限和RequestPort精确规则仍待验 [S6m][S6m3] | superstep checkpoint含executor与pending/shared状态；Python 1.13.0起entry checkpoint支持回放，未做独立实验 [S6m3] |
 | **LangGraph／LangChain** | 自定位 **orchestration runtime**；**你的 repo ＋ 你的数据库**（Agent Server 才由平台管持久化）[S7f][S7f2] | 应用侧：checkpointer（线程）＋ store（跨线程）[S7f2] | 官方把 **subagents 放在 Deep Agents 这一层**；**supervisor 已降级为模式**（官方建议直接用工具而非 `langgraph-supervisor` 库）；subagent 默认**无状态、干净上下文**[S7f2] | **`recursion_limit` 默认 1000 超步**（v1.0.6+）→ `GraphRecursionError`；`RemainingSteps` 做优雅降级 [S7f2] | **Checkpointer（线程级）＋ Store（跨线程）**；`MemorySaver` 重启即失，生产用 Postgres／SQLite [S7f2] |
 | **CrewAI** | 应用侧 Crew／Flow 对象 [S7c] | 应用侧；Flow 状态用 `@persist`（**默认 SQLiteFlowPersistence**）[S7c] | **Process.hierarchical** ＋ `manager_llm`／`manager_agent`（manager 做 planning／delegation／validation，**任务不预先分配**）；委派是自动加的两个工具；另有一体化 `Memory` [S7c][S7c2] | 罕见地把治理写进概念层：**delegation 默认关闭**、**Max Requests Per Minute**、**Max Iterations**、Context Window Respect、`guardrail_max_retries`(3) [S7c2] | **Checkpoint**（全量 state＋memory/knowledge＋任务进度＋事件历史＋**lineage ID**，可 resume 或 fork）；记忆落**本地 LanceDB** `./.crewai/memory` [S7c2][S7c3] |
 | **OpenAI Swarm** | 已废弃：README 自述「replaced by the OpenAI Agents SDK… for all production use cases」[S10] | 无（库已停更）[S10] | 它普及的原语：**handoff ＝一个返回 agent 的函数**（工具调用返回值）[S10] | 未采集到 [S10] | 未采集到 [S10] |
@@ -687,33 +721,33 @@ Team 状态、不注册模型面输入** [L13]。
 
 ## 12. 盲区清单
 
-1. **dots核心原文未取得**：原采集的官方文章入口失败，SDK文档的可读面另列，不能概括为全部
-   OpenAI来源不可达。本批两个dots官方入口亦在有界等待后`curl code=000`，没有正文；这是
-   访问失败，不是空结果。**后果**：§2功能断言仍为二手，dots 的
+1. **dots核心原文未取得**：2026-10-13的官方入口失败，不能概括为当前全部OpenAI来源不可达。
+   2026-10-14只新增搜索索引；官方页请求在权限交互期间中断，没有HTTP结果，不记为再次超时。
+   SDK文档不能补位；访问失败或中断都不是有界空结果，见[缺口补核](supplements/04-openai-primary-gaps-20261014.md)。
+   **后果**：§2功能断言仍为二手，dots的
    运行时实现细节（容器/VM、文件系统是持久卷还是可恢复快照、记忆存储格式、dot 间是否可能有协议）
    **无一手依据**。
 2. **dots 价格数字冲突**：二手源分别出现「$100 起」与「$200/月」，均非一手；官方 Pro 500 价位未
    采集到。**本报告不采用任何具体价位。**
-3. **Dwarkesh 播客一手页面不可达**（curl `code=000`）。§3.1／§3.2 经两处独立中文逐字转载交叉核验，
-   但**未读到英文原文**，逐字英文措辞与时间戳未核验。
+3. **Dwarkesh播客原文仍缺**：2026-10-13请求失败；本次没有新作者正文，也未重试作者站。
+   两处中文转载一致不等于独立一手核验。英文措辞、上下文、时间戳及资源数字定义仍未知。
 4. **AgentKit／Agent Builder 零可用材料**：cookbook 路径不可达、notebook 超时、
    `platform.openai.com/docs/guides/agent-builder` 403 → **任何 AgentKit 能力断言都不应从本报告
    得出**；OpenAI 官方「何时该用多 agent」独立指南页亦未找到（只有 SDK 的 orchestration 取舍
    文档 [S10]）。
 5. **LangGraph 的 durability 模式名未核验**：官方 `/langgraph/durability` 页 **404**，只有
    `#durability-modes` 锚点存在 → `exit`／`async`／`sync` 语义无一手依据 [S7f2]。
-6. **Google「Agent Garden」在现行 adk.dev 导航中不存在**；Vertex AI「Agent Engine」现以 Agent
-   Runtime／Agent Platform 出现（部署页仍链 `agent-engine` URL）→ 命名与存活状态
-   `[未经一手来源核验]` [S5a]。
-7. **Microsoft 侧两处未核验**：① 「AutoGen 处于维护模式」的明文表述（`microsoft/autogen` README
-   因 GitHub 不可达未取）；② Agent Framework 的 **GA 日期**（官方 what's-new 页 404）→ 均
-   `[未经一手来源核验]` [S6m2][S6a]。
-8. **Claude Code其余相关页未逐页复核**：本批已读agent-teams、agents、costs、sub-agents的指定
-   边界字段。cross-session messaging、agent-view、workflows、routines、channels、goal、analytics
-   仍保留原索引级或未验收状态；本批不由costs定性文字推出计费总账。
-9. **Anthropic 平台文档域被区域拦截**：`platform.claude.com/docs/...` 经 curl 落到
-   `claude.com/app-unavailable-in-region`，故 Claude Agent SDK 部分页与 API 侧 memory／tool 权限
-   文档未采。
+6. **Google命名与未覆盖字段**：Agent Garden导航缺席、Agent Engine/Runtime改名、ManagedAgent、
+   callbacks总数及MemoryService仍未验收，不从目录检索推出产品不存在或改名 [S5a]。
+7. **Microsoft剩余缺口**：AutoGen维护模式已由2026-10-14官方README补齐 [S6r]；Framework准确
+   GA日期、当前分布式执行范围与各SDK稳定性仍未核。checkpoint持久化不能代替执行拓扑证据。
+   Magentic-One、默认50回合、稳定ID、progress ledger与Hosted agents等余项见补核覆盖表。
+8. **Claude Code其余相关页未逐页复核**：已核subagents、SDK预算、skills、memory及总览的列明
+   条目；完整hooks事件数和权限层级仍缺。cross-session messaging、agent-view、projects、
+   workflows、routines、channels、goal、analytics细页仍为索引级或未验收状态，未核计费总账。
+9. **Anthropic平台旧入口区域受限**：2026-10-13的`platform.claude.com/docs/...`转到区域不可用页。
+   本次`code.claude.com/docs/en/agent-sdk/subagents.md`直接返回200，补核仅覆盖该SDK页，
+   没有重试旧入口；API侧memory/tool权限等其余缺口保留 [S2sdk]。
 10. **原采集的GitHub入口访问失败**：这不是当前全域状态，本批其他研究已取到部分官方仓库。
     本报告尚未补核`langgraph-swarm`等库的维护状态；原Swarm README的CDN来源层级保留 [S10]。
 11. **宿主 22 个 `dsh-experimental-*` 中只读了 4 个 agent-team 包**；其余 18 个只记包名。其中
@@ -731,15 +765,19 @@ Team 状态、不注册模型面输入** [L13]。
 16. **未采集社区插件生态**：`$DSH_HOME/plugins/` 只反映本机个人插件；宿主是否有「社区 add-on
     registry」本轮零一手材料。
 17. **搜索工具中途失效**：web_search 后端 `HTTP 402 Insufficient Balance`，后半程纯 fetch，部分
-    追查（如 dots 安全白皮书是否存在）未做。
+    追查（如 dots 安全白皮书是否存在）未做。这是2026-10-13的工具记录，不代表本次搜索状态。
+18. **其余节未完成逐项验收**：§3.3、§7及§8–§10超出宿主五项边界的原采集仍不能当作整节已核。
+    §4–§6也仅准入补核件明确定位的句子；当前清单见所属票Answer。核心缺口继续触发S4。
 
 ---
 
 ## 13. 对 Pod 的差异化定位（推断）
 
-以下是供定位票讨论的比较问题，不是架构裁定或产品排名。已核事实仅限
-[宿主与 Claude 五项边界](supplements/04-host-and-claude-teams-20261013.md)；Pod 一侧仍按原采集
-的静态清单 [L9][L10][L14] 引用，不把目录存在当成运行保证。
+以下是供定位票讨论的比较问题，不是架构裁定或产品排名。已核输入限票面Answer及
+[宿主与Claude边界](supplements/04-host-and-claude-teams-20261013.md)、
+[Anthropic余项](supplements/04-anthropic-remaining-facts-20261014.md)、
+[Google/Microsoft字段](supplements/04-google-microsoft-facts-20261014.md)列明的内容。
+Pod一侧仍按原采集静态清单[L9][L10][L14]引用，不把目录存在当成运行保证。
 
 1. `INFERENCE:` 分开比较团队身份、活动生命周期和持久状态。宿主 TeamId 锚在 Lead 会话，
    Claude 团队也归属会话，但两者都有持久任务状态；角色定义与 checkpoint 另有生命周期。
@@ -750,9 +788,9 @@ Team 状态、不注册模型面输入** [L13]。
 3. `INFERENCE:` 工作目录分开不等于写入串行。已核的共享 checkout 限制适用于宿主团队与
    Claude teammate，后者的其他 subagent 可用 worktree。Pod 的每 bot 工作区也不能单独证明
    无共享文件冲突或外部副作用，进程数与目录数不替代冲突、合并和恢复行为证据。
-4. `INFERENCE:` 成本比较需区分人数、消息、步数上限与 token/美元预算。Claude 两页未给团队
-   货币硬上限，宿主给的是成员等资源上限；Pod 原采集也未定位到编制级预算落点。
-   三者都不支持「Pod 预算治理更强」或「最容易补」的结论。是否新增预算机制留给对应决议票。
+4. `INFERENCE:` 成本比较需区分人数、消息、步数与token/美元。Claude团队页未核货币硬上限，
+   SDK另有query级估算预算；4×/15×与plan-mode约7×各有口径，不是可直接对比的美元成本。
+   宿主资源上限和Pod静态清单均不支持预算优势判断。是否新增预算机制留给对应决议票。
 5. `INFERENCE:` Lead、任务板与消息等已核重叠可作为定位讨论输入，不能据此排序最强竞争者、
    预测产品时间窗或宣布独有能力。审查拒绝、恢复和审计链的实际差异仍需同条件证据；
    dots 与其余未逐节验收的材料暂不承担此类定位结论。
@@ -761,8 +799,15 @@ Team 状态、不注册模型面输入** [L13]。
 
 ## 14. 来源列表（URL／类型／日期）
 
-类型口径：**一手**＝厂商自己的文档／公告／工程博客／源码／官方协议站；**二手**＝新闻报道、地区
-转载、聚合站。**协作代理采集**＝由并行调研代理取回、本会话未直读。
+类型口径：一手为厂商文档、公告、工程博客、源码或官方协议站；二手为新闻、转载、聚合站。
+下表未另标日期的读取记录属于2026-10-13原采集；「协作代理采集」保留当时取得方式，
+不代表主会话已经验收。2026-10-14的准入范围、原文定位与快照SHA以以下补件为准。
+
+| 补核件 | 来源层级与本次结果 |
+|---|---|
+| [Anthropic余项](supplements/04-anthropic-remaining-facts-20261014.md) | A1–A5的官方正文指定条目；9份快照SHA复算一致，版本与数量限制逐项引用 |
+| [Google/Microsoft字段](supplements/04-google-microsoft-facts-20261014.md) | 04-GM1–5的规范、文档与官方README；23份快照SHA复算一致，其中两份只是失败/跳转记录 |
+| [OpenAI原文缺口](supplements/04-openai-primary-gaps-20261014.md) | 搜索索引及响应头两份SHA复算一致，没有新官方正文；请求中断不计服务器失败或空结果 |
 
 **外部一手（厂商自有面）**
 
@@ -770,15 +815,17 @@ Team 状态、不注册模型面输入** [L13]。
 |---|---|---|---|
 | S1 | anthropic.com/engineering/multi-agent-research-system | 2025-06-13（页面标注） | 200，正文已读 |
 | S2 | code.claude.com/docs/en/agent-teams | 未标；引用 v2.1.281 等版本 | 200，正文已读 |
-| S2s／S2k／S2m／S2h／S2p／S2c | code.claude.com/docs/en/{sub-agents,agent-sdk/subagents,skills,memory,hooks,permission-modes,costs} | 未标 | 协作代理直读（**约 7× token** 数字出自 costs） |
+| S2s／S2k／S2m／S2h／S2p／S2c | code.claude.com/docs/en/{sub-agents,skills,memory,hooks,permission-modes,costs} | 未标；2026-10-14补核版本见A2–A5 | 指定subagents/skills/memory/costs字段已回读；hooks及完整权限页仍未验；约7×限plan mode |
+| S2sdk | https://code.claude.com/docs/en/agent-sdk/subagents.md | 2026-10-14快照；SDK/CLI版本见A3 | 200；query预算与高扇出建议已回读，不代表其他平台SDK页可达 |
 | S3 | code.claude.com/docs/en/agents | 未标 | 200，正文已读 |
 | S5 | code.claude.com/docs/llms.txt（官方文档索引） | 采集时点 2026-10-13 | 200，566 行，仅作索引 |
 | S4／S4a | a2a-protocol.org/latest/{topics/what-is-a2a,specification,topics/agent-discovery}；/latest/blog/2026/08/27/a-new-chapter-for-a2a-joining-the-agentic-ai-foundation/（S4a，**2026-08-27**） | 规范标注 Latest Released Version 1.0.0 | S4 正文已读（渲染 HTML）；S4a 协作代理直读 |
 | S5a | adk.dev/{workflows,workflows/collaboration,agents/routing,sessions,sessions/state,graphs/human-input,callbacks/types-of-callbacks,a2a/intro,agents/managed-agents,deploy/agent-runtime,tutorials/agent-team,sitemap.xml} | ADK 2.0.0／2.4.0 preview | 本会话读 workflows／collaboration／tutorial／sitemap；其余协作代理直读 |
 | S6a | microsoft.github.io/autogen/stable/…（tutorial/teams、swarm、magentic-one）＋ pypi.org/pypi/autogen-agentchat/json | 未标 | 协作代理直读 |
+| S6r | https://api.github.com/repos/microsoft/autogen/readme；https://api.github.com/repos/microsoft/agent-framework/readme | 2026-10-14；Git blob与SHA见04-GM4 | 官方API正文已读；AutoGen维护/迁移明确，Framework仅核README发布措辞与durable链接，不给GA日期 |
 | S6m | learn.microsoft.com/en-us/agent-framework/{overview,workflows,workflows/orchestrations,workflows/human-in-the-loop} | Last updated 2026-08-25 | 200，正文已读 |
-| S6m2／S6m3／S6m4 | learn.microsoft.com/en-us/agent-framework/{migration-guide/from-autogen,user-guide/workflows/orchestrations/*,user-guide/workflows/checkpoints}；azure/foundry/agents/concepts/hosted-agents | 未标 | 协作代理直读 |
-| S6c／S6g | learn.microsoft.com/en-us/microsoft-copilot-studio/authoring-add-other-agents；azure/architecture/ai-ml/guide/ai-agent-design-patterns | 未标 | 协作代理直读 |
+| S6m2／S6m3／S6m4 | learn.microsoft.com/en-us/agent-framework/{migration-guide/from-autogen,user-guide/workflows/orchestrations/*,workflows/checkpoints}；azure/foundry/agents/concepts/hosted-agents | migration更新2026-08-25；checkpoints更新2026-09-21 | 本次已回读执行措辞与checkpoint字段；编排细参数及Hosted agents未验 |
+| S6c／S6g | learn.microsoft.com/en-us/microsoft-copilot-studio/authoring-add-other-agents；azure/architecture/ai-ml/guide/ai-agent-design-patterns | 分别更新2026-10-01、2026-09-21 | 本次已回读复杂度建议及其适用条件，不作量化收益证据 |
 | S7c／S7c2／S7c3 | docs.crewai.com/en/concepts/{crews,flows,processes,memory,collaboration,tasks}；/learn/hierarchical-process；/concepts/checkpointing | 文档版本 v1.15.27 | 本会话读 crews／processes／hierarchical／checkpointing；其余协作代理直读 |
 | S7f／S7f2 | docs.langchain.com/oss/python/langgraph/overview；/oss/python/langchain/multi-agent(+subagents)；/langgraph/{graph-api,persistence,interrupts}；pypi.org/pypi/langgraph-supervisor/json | 未标；文中引用 v1.0.6 起默认值 | 本会话读 overview；其余协作代理直读（`/langgraph/multi-agent` 与 `/langgraph/durability` 均 **404**） |
 | S9b | cognition.com/blog/multi-agents-working（Walden Yan）；关联 cognition.ai/blog/dont-build-multi-agents | **2026-04-22**（原文 **≈2025-06**） | 200，正文已读 |
@@ -792,10 +839,12 @@ Team 状态、不注册模型面输入** [L13]。
 | S7b | gigazine.net/news/20260930-openai-dots/ | 2026-09-30 | 协作代理采集（含官方 doc URL 线索） |
 | S7t | blogs.techbytes.app/posts/what-are-openai-dots-complete-guide/ | 2026-09-29（09-30 更新） | 协作代理采集 |
 | S7d | news.qiniu.com/archives/1790734403378 | 2026-09-30 | 协作代理采集 |
-| S6／S6b | qbitai.com/2026/09/499654.html（量子位：Noam Brown 访谈中文逐字转载，原出处 dwarkesh.com/p/noam-brown）；hub.baai.ac.cn/view/58369（独立镜像，交叉核验） | 2026-09-30 | 200，正文已读，两处一致 |
+| S6／S6b | qbitai.com/2026/09/499654.html（量子位：Noam Brown访谈中文转载，指向dwarkesh.com/p/noam-brown）；hub.baai.ac.cn/view/58369（转载镜像） | 2026-09-30 | 原采集200、两处文字一致；不是独立一手核验 |
 | S9 | subscriptioninsider.com/blog/openai-starts-dots-at-100-… | 未标 | **未取正文**，仅标题（价格口径与 S7 冲突，不采用） |
 
-**OpenAI 一手但本轮不可达（引用其存在性）**
+**OpenAI官方候选入口，正文未取得**
+
+下列是2026-10-13的访问记录，不保证正文存在、URL标题或当前可达性。本次S13请求中断，见缺口补件。
 
 | 编号 | 来源（URL） | 可达性 |
 |---|---|---|
@@ -822,7 +871,9 @@ Team 状态、不注册模型面输入** [L13]。
 | L13 | `$DSH/node_modules/@deepseek-ai/dsh-experimental-client-ui-agent-team/README.md` | 同上 | 已读（摘要与实现段） |
 | L14 | 本仓库 `/home/beijong/project/dsh-bots`：`package.json`、`README.md`、`lib/` 与 `lib/org/` 清单、`scripts/`、`tests/`、`docs/`、只读 `git log -1`／`status --short`／`worktree list` | HEAD 2026-10-13 15:32:34 +0800 | 已读 |
 
-### 14.1 本轮已尝试但失败的采集路径（供后续轮次复用）
+### 14.1 2026-10-13失败路径与2026-10-14补核结果
+
+以下项目符号保留原采集观察，只描述已试入口；补核取得的新官方入口不覆盖旧失败记录。
 
 - **OpenAI**：`openai.com/index/*` 与本地化变体、`help.openai.com` 各语言路径、
   `developers.openai.com/api/docs/guides/agents/orchestration`（含 `.md`）、
@@ -831,7 +882,7 @@ Team 状态、不注册模型面输入** [L13]。
   → **404 BlobNotFound**（根路径 404 而非 403，说明该域可达）。
 - **镜像通路**：`r.jina.ai/...` 502；`archive.org/wayback/available?...` **502**；
   `web.archive.org/web/2026/...` **unsupported content type "unknown"**；`archive.ph` 502。
-- **代码托管**：`github.com` 与 `raw.githubusercontent.com` **全域 HTTP 000**；`openai/swarm`
+- **代码托管**：原采集请求的`github.com`与`raw.githubusercontent.com`入口返回HTTP 000；`openai/swarm`
   README 只能经 jsDelivr CDN 镜像取得。
 - **播客**：`dwarkesh.com/p/noam-brown`（含 `/archive`、`/api/v1/posts/by-slug/...`）→ curl
   `code=000`／CONNECT tunnel 502。
@@ -846,5 +897,10 @@ Team 状态、不注册模型面输入** [L13]。
   `microsoft-copilot-studio/{advanced-multi-agent,authoring-connect-agent}` → **404**。
 - **搜索工具**：`web_search` 后端 `HTTP 402 Insufficient Balance`（中途失效，后半程纯 fetch）；
   DuckDuckGo HTML 端点亦 fetch failed。
-- **浏览器通路**：`http://127.0.0.1:9222/json/version` → 连接失败（无监听），故无法用带真实登录态
-  的浏览器绕开 Cloudflare。
+- **浏览器通路**：`http://127.0.0.1:9222/json/version`连接失败；这是原采集观察，本次未重测浏览器、
+  未读取登录态或绕过访问挑战。
+
+2026-10-14新增结果：Anthropic的code.claude.com SDK页与Microsoft官方GitHub API取得正文；
+原平台区域拒绝不重试。Google/Microsoft的重定向、404及最终入口见补件。
+OpenAI仅取得搜索索引；官方页请求在权限交互期间中断且未产生HTTP响应文件，不能写成再次超时。
+Noam Brown作者站本次未请求。两个核心缺口均保持未核，不计有界检索空结果。
