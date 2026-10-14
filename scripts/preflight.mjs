@@ -71,7 +71,7 @@ export function verifyFrozenFace(pkgPath, repoRoot) {
 
 const STATUS_VOCAB = new Set([
   "needs-triage", "needs-info", "ready-for-agent", "ready-for-human",
-  "wontfix", "resolved", "claimed",
+  "wontfix", "resolved", "claimed", "shelved",
 ]);
 
 /** 历史异词豁免基线（约定不回改历史件，见 docs/agents/triage-labels.md Terminal states）。 */

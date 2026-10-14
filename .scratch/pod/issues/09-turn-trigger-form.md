@@ -1,5 +1,6 @@
 # 09: 形制统一：Pod 自有信息改官方 `turn-trigger` 形制
 
+GitHub: https://github.com/Beijongggg/dsh-bots/issues/21
 **What to build:** Pod 会话流里属于它自己的信息（外部触发事件、讨论组折叠组）改用官方
 `turn-trigger` 形制呈现——与官方同一套「可折叠、带时间、展开看正文」的读法。
 

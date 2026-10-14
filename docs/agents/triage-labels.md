@@ -30,6 +30,10 @@ When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the 
   历史件**。
 - `wontfix` 仍是唯一终态-拒绝（不做／已另行消化，不实施）。
 
+**搁置态（本仓库扩展，2026-10-14 用户裁定 pod 前端三票时收编）**：
+`shelved` ＝ 长久搁置、待指定批并入——非排程态、非终态；票保持开放，
+等并入批开启时整体转入该批。重跑 /setup-matt-pocock-skills 时勿覆盖本段。
+
 ## GitHub representation
 
 | 词表语义 | GitHub 表示 |
@@ -38,6 +42,7 @@ When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the 
 | `resolved` | Issue 已关闭，关闭原因为 completed |
 | wayfinder 的 `claimed` | 开放子 Issue 已有 assignee |
 | `wontfix` | 同名 label，关闭原因为 not planned |
+| `shelved` | 同名 label；Issue 保持开放、无 assignee，待并入批认领 |
 
 未迁移本地票以 Comments 保存实施证据，wayfinder 以 Answer 节与 map.md 索引保存决议。
 迁移入口与后续读取见 issue-tracker.md。

@@ -1,5 +1,6 @@
 # 08: L3 专用行：bash／文件改动／读取／检索
 
+GitHub: https://github.com/Beijongggg/dsh-bots/issues/20
 **What to build:** 在通用行之上补四类高频工具专用行，让「执行了什么命令、改了哪些文件、
 读了什么、搜到什么」一眼可读。
 

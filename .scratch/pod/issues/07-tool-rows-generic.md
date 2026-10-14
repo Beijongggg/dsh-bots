@@ -1,5 +1,6 @@
 # 07: L3 工具显示：通用行＋回合折叠头
 
+GitHub: https://github.com/Beijongggg/dsh-bots/issues/19
 **What to build:** Pod 会话流里能像官方那样看到「这一步调用了什么工具」：按回合拼装工具行，
 回合结束后收成「N 次工具调用」折叠头。
 

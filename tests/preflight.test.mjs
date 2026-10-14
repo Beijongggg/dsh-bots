@@ -126,6 +126,22 @@ test("statusLint：词表内合法、词表外违例", () => {
   }
 });
 
+test("statusLint：shelved（搁置态）合法，供迁移票与搁置地图登记", () => {
+  const root = makeFixture();
+  try {
+    const sc = makeScratchFixture(root);
+    const featC = join(sc, "feat-c");
+    mkdirSync(join(featC, "issues"), { recursive: true });
+    writeFileSync(join(featC, "map.md"), "# C map\n\nStatus: shelved（长久搁置）\n");
+    writeFileSync(join(featC, "issues", "01-c.md"), "# 01\n\n**Status:** shelved\n");
+    const r = statusLint(sc);
+    assert.equal(r.violations.length, 1);
+    assert.match(r.violations[0], /bogus-word/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("statusLint：claimed 仅限 wayfinder 票（effort 有 map.md）；列表形态 Status 亦被扫描", () => {
   const root = makeFixture();
   try {
