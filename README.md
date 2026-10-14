@@ -27,6 +27,7 @@
 | 文件 | 职责与维护方式 |
 |---|---|
 | [AGENTS.md](AGENTS.md) | 长期纪律与指针；harness 自动加载 |
+| [CODING_STANDARDS.md](CODING_STANDARDS.md) | 书写、评审、落档提交与证据纪律细则；改仓库内容前经 `AGENTS.md` 指针读取 |
 | [README.md](README.md) | 本导航与落档规则 |
 | [CHANGELOG.md](CHANGELOG.md) | 固定长度的日志入口；事件归属月度分卷，近期查询自动跨卷 |
 | [CHANGELOG-legacy-2026-09-28.md](CHANGELOG-legacy-2026-09-28.md) | 迁移前日志的逐字节归档；留在根目录以保留文内相对链接的含义，只读 |

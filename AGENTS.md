@@ -5,14 +5,12 @@
 
 ## 1. 技能调用
 
-- 技能流程之外的额外评审须由用户逐项点名。
+- 技能流程之外的额外评审，见 `CODING_STANDARDS.md` §评审。
 
 ## 2. 项目落档
 
-项目变更、裁定或豁免落档前，读 `README.md` §6.2。
-
-- 落档提交一律显式 pathspec；changelog 事件用 `scripts/changelog-add-event.mjs --stage`
-  按 HEAD 基线精确暂存，防裹挟并行会话预暂存件。
+项目变更、裁定或豁免落档前，读 `README.md` §6.2；落档提交与暂存纪律见
+`CODING_STANDARDS.md` §落档提交。
 
 ## 3. 工作边界
 
@@ -22,11 +20,9 @@
   例行执行，无需点名；force push、删除远端分支、推送收口批次之外的分支仍须点名。
 - 对账时 `dsh web` 手动 host 自注册行按用户常规操作归因后不追查，
   完整归因规则见 `README.md` §6.2。
-- 证据包链、`docs/TEMP-guidance-*`、`docs/CLOSURE-*` 均为冻结件，不得覆盖或重写。
-  包从 `0001` 起递增编号，文件名内嵌自身 SHA。
-- 触碰当前终版包 `sourceManifest` 所列文件，须以新 `runId` 重采集并生成新序号增量包。
-- 证据依次经过定稿、实现、测试、证据生成、账实核验、冻结。旧包、raw、ledger 只读；
-  测试与探针经隔离子进程执行。
+- 证据包链、`docs/TEMP-guidance-*`、`docs/CLOSURE-*` 均为冻结件，只读；触碰当前终版包
+  `sourceManifest` 所列文件，须以新 `runId` 重采集并生成新序号增量包。
+- 包编号、证据流水与隔离执行纪律见 `CODING_STANDARDS.md` §证据纪律。
 
 ## 4. 事实源
 
@@ -39,12 +35,8 @@
 
 ## 6. 书写纪律
 
-- **书写面按读者分流**：agent 面（技能、本文件、`docs/agents/*` 及一切指针文档）写完过
-  `/writing-for-agents`；人面（client 文案、通知与邮件措辞、报告行文）面向人写，不套该
-  技能。判据是读取由谁触发：agent 经指针或装载读的算 agent 面，人打开看的算人面；共用件
-  （票面、CHANGELOG）以事实陈述为底线。
-- **禁止 LLM 自陈**：文档、票面、日志卷、brief、mail 与 client 文案以对象与动作为主语、
-  直接陈述；「作为 AI／模型／助手」类开场、身份自述与能力免责一律不写。
+写技能、指针文档或面向 agent／人的文案前，读 `CODING_STANDARDS.md` §书写
+（读者分流、禁止 LLM 自陈）。
 
 ## Agent skills
 
