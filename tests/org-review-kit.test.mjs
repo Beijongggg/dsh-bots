@@ -32,6 +32,16 @@ import {
   createReviewFaceGate
 } from "../lib/org/review-kit.js";
 
+test("复核件套导出形状：移除三键透传包装，其余成员保留", async () => {
+  const face = await import("../lib/org/review-kit.js");
+  assert.deepEqual(Object.keys(face).sort(), [
+    "GAP_SEVERITIES", "REPORT_KEYS", "REVIEW_BOUNDARIES", "REVIEW_BOUNDARY_IDS",
+    "REVIEW_VERDICTS", "UNCLOSED_ROUNDS_TO_ESCALATE", "collectReviewState",
+    "createReviewFaceGate", "openMandatorySubjects", "reviewHandoff", "selectReviewer",
+    "taskReviewScope", "validateReviewReport", "verifyReviewHat"
+  ]);
+});
+
 test("必审清单＝三条客观判据的封闭枚举（不可逆／对外可见／跨实例移交）", () => {
   assert.deepEqual(REVIEW_BOUNDARY_IDS, [
     "before-irreversible-write",

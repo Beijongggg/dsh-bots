@@ -12,6 +12,19 @@ import { deadPid } from "./helpers/dead-pid-fixture.mjs";
 
 const { internals } = await import("../lib/index.js");
 
+const mailPlane = await import("../lib/mail-plane.js");
+assert.deepEqual(Object.keys(mailPlane).sort(), [
+  "BOT_ERROR_PREFIX", "DEFAULT_INBOX_LIMIT", "RECEIPTS_KEEP", "USER_RECIPIENT",
+  "appendMessage", "appendOutbox", "claimResponse", "compareConversationMessages",
+  "finalizeResponse", "inboxDirFor", "inboxResponseTo", "initialMailCursor",
+  "listMailAnomalies", "maxSeqInFile", "messageIdFor", "messagesPathFor",
+  "outboxDirFor", "outboxHasReply", "parseJsonlLines", "parseTimestamp",
+  "pruneReceipts", "readAllInboxLines", "readConversation", "readConversationCached",
+  "readInbox", "readLastMessage", "readMaxReceiptSeq", "readOutbox", "readReceipts",
+  "receiptsDirFor", "responseState", "responsesDirFor", "writeBaselineReceipt", "writeReceipt"
+], "邮局导出形状：移除闲置 nextSeq，其余成员保留");
+assert.equal(Object.hasOwn(internals, "nextSeq"), false, "测试插槽不再转发 nextSeq");
+
 const home = fs.mkdtempSync(path.join(os.tmpdir(), "pod-jsonl-"));
 // exit 钩子清理临时目录：正常退出、显式 exit 与断言失败后都会运行
 process.on("exit", () => fs.rmSync(home, { recursive: true, force: true }));

@@ -76,8 +76,9 @@ function exportNames(src) {
 }
 
 /**
- * 存量基线（2026-10-09 锁定 68＝冻结 20＋暂缓 48；同日 pod 06 号票复用
- * `lib/stats.js:findSessionLogFile` 后棘轮放行一项 → **67＝冻结 20＋暂缓 47**）。
+ * 存量基线（2026-10-09 锁定 68；findSessionLogFile 被轨迹投影复用后移除一项；
+ * 邮局导出形状测试消费 responsesDirFor／compareConversationMessages 后移除两项，
+ * 当前 65＝冻结 20＋暂缓 45）。
  * 只减不增；处置边界见组注释。
  */
 const BASELINE = [
@@ -103,7 +104,7 @@ const BASELINE = [
   "lib/org/store-base.js:canonicalValue",
   "lib/org/store-base.js:EVENT_CORE_REQUIRED",
   "lib/org/store-base.js:EVENT_FILE_RE",
-  // ── 暂缓收窄件（47）：内部在用、导出无人。机械取消 export 即可收窄，但本批
+  // ── 暂缓收窄件（45）：内部在用、导出无人。机械取消 export 即可收窄，但本批
   //    不动（见 docs/PROJECT_UNDERSTANDING.md「仍可选题」零引用导出收窄项）。
   //    findSessionLogFile 已由 pod 06 的 lib/trace-projection.js 复用 → 移出基线。
   //    其中 VERDICT_INPUT_KEYS 等被 docs/agents/codebase-map.md 当不变量名字载体，
@@ -111,8 +112,6 @@ const BASELINE = [
   "lib/bot-supervisor.js:READINESS_INTERVAL_MS",
   "lib/bot-supervisor.js:READINESS_DEADLINE_MS",
   "lib/host-faces.js:HOST_FACE_FAILURE_MODES",
-  "lib/mail-plane.js:responsesDirFor",
-  "lib/mail-plane.js:compareConversationMessages",
   "lib/org/acceptance-coordinates.js:acceptanceSemanticsDigest",
   "lib/org/acceptance-coordinates.js:ACCEPTANCE_SEMANTICS_BASELINE",
   "lib/org/acceptance-coordinates.js:GATE_IDS",
