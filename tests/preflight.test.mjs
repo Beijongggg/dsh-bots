@@ -12,7 +12,6 @@ import { join } from "node:path";
 import {
   latestPackage,
   verifyFrozenFace,
-  statusLint,
   namingLint,
   codeMapLint,
   tautologyLint,
@@ -99,79 +98,6 @@ test("verifyFrozenFace：sha 或 byteLength 漂移记入 failures", () => {
   }
 });
 
-function makeScratchFixture(root) {
-  const sc = join(root, ".scratch");
-  const featA = join(sc, "feat-a");
-  const featB = join(sc, "feat-b");
-  const issuesA = join(featA, "issues");
-  mkdirSync(issuesA, { recursive: true });
-  mkdirSync(featB, { recursive: true });
-  writeFileSync(join(featA, "spec.md"), "# A\n\nStatus: ready-for-agent（待实施）\n");
-  writeFileSync(join(issuesA, "01-x.md"), "# 01\n\n**Status:** resolved\n\nType: task\n");
-  writeFileSync(join(featB, "spec.md"), "# B\n\nStatus: bogus-word（异词）\n");
-  return sc;
-}
-
-test("statusLint：词表内合法、词表外违例", () => {
-  const root = makeFixture();
-  try {
-    const sc = makeScratchFixture(root);
-    const r = statusLint(sc);
-    assert.equal(r.violations.length, 1);
-    assert.match(r.violations[0], /feat-b\/spec\.md/);
-    assert.match(r.violations[0], /bogus-word/);
-    assert.equal(r.scanned >= 2, true);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("statusLint：shelved（搁置态）合法，供迁移票与搁置地图登记", () => {
-  const root = makeFixture();
-  try {
-    const sc = makeScratchFixture(root);
-    const featC = join(sc, "feat-c");
-    mkdirSync(join(featC, "issues"), { recursive: true });
-    writeFileSync(join(featC, "map.md"), "# C map\n\nStatus: shelved（长久搁置）\n");
-    writeFileSync(join(featC, "issues", "01-c.md"), "# 01\n\n**Status:** shelved\n");
-    const r = statusLint(sc);
-    assert.equal(r.violations.length, 1);
-    assert.match(r.violations[0], /bogus-word/);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("statusLint：claimed 仅限 wayfinder 票（effort 有 map.md）；列表形态 Status 亦被扫描", () => {
-  const root = makeFixture();
-  try {
-    const sc = join(root, ".scratch");
-    const feat = join(sc, "feat-c");
-    const wf = join(sc, "feat-wayfinder");
-    const issues = join(feat, "issues");
-    const wfIssues = join(wf, "issues");
-    mkdirSync(issues, { recursive: true });
-    mkdirSync(wfIssues, { recursive: true });
-    writeFileSync(join(wf, "map.md"), "# map\n\n## Notes\n");
-    // 非 wayfinder effort：spec 与 issues 票用 claimed 均违例
-    writeFileSync(join(feat, "spec.md"), "# C\n\nStatus: claimed\n");
-    writeFileSync(join(issues, "01-y.md"), "# 01\n\n**Status:** claimed\n");
-    writeFileSync(join(issues, "02-z.md"), "# 02\n\n- Status: resolved\n");
-    // wayfinder effort（有 map.md）：claimed 合法；列表形态异词仍被抓
-    writeFileSync(join(wfIssues, "01-w.md"), "# 01\n\n**Status:** claimed\n\n**Type:** task\n");
-    writeFileSync(join(wfIssues, "02-v.md"), "# 02\n\n- Status: not-a-word\n");
-    const r = statusLint(sc);
-    // feat-c 两个 claimed＝2 违例；feat-wayfinder/02-v 列表异词＝1 违例；01-w 合法
-    assert.equal(r.violations.length, 3);
-    assert.ok(r.violations.filter((v) => v.includes("claimed")).length === 2);
-    assert.ok(r.violations.some((v) => v.includes("feat-c/spec.md")));
-    assert.ok(r.violations.some((v) => v.includes("not-a-word")));
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-
 test("namingLint：活文件引用领域文档旧名即违例，历史面与 GLOSSARY 注记豁免", () => {
   const root = makeFixture();
   // 旧名在本文件里拆写：本文件自身也在命名 lint 的扫描面内
@@ -204,7 +130,7 @@ test("namingLint：活文件引用领域文档旧名即违例，历史面与 GLO
   }
 });
 
-test("preflight 第③门：Status 与知识写者违例汇入同一出口", () => {
+test("preflight 第③门：知识写者违例汇入 repository-lint 出口", () => {
   const root = makeFixture();
   try {
     const lib = join(root, "lib");
@@ -222,11 +148,6 @@ test("preflight 第③门：Status 与知识写者违例汇入同一出口", () 
       assert.equal(bad.violations.length, 1);
       assert.match(bad.violations[0], /lib\/rogue\.CJS/);
     }
-    makeScratchFixture(root);
-    const both = repositoryLint(root);
-    assert.equal(both.violations.length, 2);
-    assert.ok(both.violations.some((v) => v.includes("bogus-word")));
-    assert.ok(both.violations.some((v) => v.includes("lib/rogue.CJS")));
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -295,20 +216,6 @@ test("codeMapLint：地图缺失即全违例，且汇入 repositoryLint 出口",
   }
 });
 
-test("statusLint：历史豁免基线不报警", () => {
-  const root = makeFixture();
-  try {
-    const sc = join(root, ".scratch");
-    const feat = join(sc, "b5-sse-replay");
-    mkdirSync(feat, { recursive: true });
-    writeFileSync(join(feat, "spec.md"), "# B5\n\nStatus: done（历史异词）\n");
-    const r = statusLint(sc);
-    assert.equal(r.violations.length, 0);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
 /**
  * retro R1②（EV-20261011-retro-pod-impl）：恒真断言 lint。pod 批 04 号票复核
  * 先例——四门计数全绿的同时，票面判据 V-P2.9／V-P2.2 由 `children.length >= 0`、
@@ -371,7 +278,7 @@ test("tautologyLint：汇入 repositoryLint 出口与扫描计数", () => {
 /**
  * 门序（org-v2 14 号票加固 `V-A6.5`）：宿主契约门必须挂在**冻结面门之后**。
  * 此前该判据只有「脚本实读＋运行输出」形态（recon 记为可加固项）——本用例把
- * 四道门的挂载顺序变成可断言的机械事实：源码里 ① 回归 → ② 冻结面 → ③ status-lint
+ * 四道门的挂载顺序变成可断言的机械事实：源码里 ① 回归 → ② 冻结面 → ③ repository-lint
  * → ④ 宿主契约 的**结论文本行压入顺序**即门序（结论行按门序 push，最后一行是
  * `preflight: PASS/FAIL` 的 AND 合并）。门序被人换过即红——冻结面复验先于宿主
  * 探针的意义是：冻结面（证据链）坏了就不必再探宿主面。
@@ -381,7 +288,7 @@ test("门序（V-A6.5）：宿主契约门挂在冻结面门之后——四道�
   const order = [
     ["① 全量回归", "preflight ①回归:"],
     ["② 冻结面", "preflight ②冻结面"],
-    ["③ status-lint", "preflight ③status-lint:"],
+    ["③ repository-lint", "preflight ③repository-lint:"],
     ["④ 宿主契约", "preflight ④宿主契约:"]
   ];
   const positions = order.map(([label, marker]) => {

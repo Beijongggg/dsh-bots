@@ -48,7 +48,7 @@ test("列表保留已迁移入口，不按快照状态筛除或统计为当前�
     ".scratch/build/issues/04-local-closed.md": "# local closed task\nStatus: resolved\n",
   });
   const output = projectContext(root, ["build"]);
-  assert.match(output, /本地未关闭票与迁移入口/);
+  assert.match(output, /本地快照与迁移入口/);
   assert.match(output, /### migrated closed snapshot[\s\S]*GitHub：https:\/\/github\.com\/example\/project\/issues\/4/);
   assert.match(output, /### migrated open snapshot[\s\S]*GitHub：https:\/\/github\.com\/example\/project\/issues\/5/);
   assert.match(output, /### local open task[\s\S]*Status：ready-for-human/);

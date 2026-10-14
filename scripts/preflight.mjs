@@ -8,13 +8,14 @@
  *   ② 冻结面 sha 复验（动态取 artifacts/packages/ 最新序号包的
  *      executionEvidence.provenance.sourceManifest，逐文件 sha256＋byteLength；
  *      包文件只读，零写入）
- *   ③ 三组 lint ＋代码地图覆盖共用违例出口：.scratch Status 词表（五排程词＋resolved；
- *      claimed 仅限有 Type: 行的 wayfinder 票；两个历史异词件显式豁免不回改）
- *      ＋知识库文件直写、登记／废弃调用者名单与日志分卷／归档完整性
+ *   ③ 各组 lint 共用违例出口：
+ *      知识库文件直写、登记／废弃调用者名单与日志分卷／归档完整性
  *      ＋旧名命名（领域文档旧名自 mattpocock/skills v1.3 起更名 `GLOSSARY.md`，
  *      活文件不得再引用旧名；历史面与 GLOSSARY 更名注记豁免）
  *      ＋代码地图覆盖（`lib/org/*.js` 须在 `docs/agents/codebase-map.md`
- *      的 lib/org 表内有行，retro3），任一违例即拒绝
+ *      的 lib/org 表内有行，retro3）
+ *      ＋恒真断言与 session-log 名域限，任一违例即拒绝
+ *      工单状态词表由 GitHub label／state 承担，本地 `.scratch` 只读快照不再设门。
  *   ④ 宿主契约门（独立探针脚本，挂在冻结面门之后、不并入测试套件——探针
  *      三态 PASS/FAIL/SKIP，SKIP 分列计数可见；本门以 dev 面运行：SKIP 不
  *      阻断但可见，部署面由 scripts/host-contract-probe.mjs --face=deploy 把
@@ -67,60 +68,6 @@ export function verifyFrozenFace(pkgPath, repoRoot) {
     }
   }
   return { total: manifest.length, ok, failures };
-}
-
-const STATUS_VOCAB = new Set([
-  "needs-triage", "needs-info", "ready-for-agent", "ready-for-human",
-  "wontfix", "resolved", "claimed", "shelved",
-]);
-
-/** 历史异词豁免基线（约定不回改历史件，见 docs/agents/triage-labels.md Terminal states）。 */
-const HISTORICAL_EXEMPTIONS = new Set([
-  "b5-sse-replay/spec.md::done",
-  "arch-client-fetch-exports/spec.md::implemented",
-]);
-
-function walkMd(root, out = []) {
-  for (const e of readdirSync(root, { withFileTypes: true })) {
-    const p = join(root, e.name);
-    if (e.isDirectory()) walkMd(p, out);
-    else if (e.name.endsWith(".md")) out.push(p);
-  }
-  return out;
-}
-
-/** wayfinder effort 结构标志：feature-slug 根（.scratch 直下目录）有 map.md。 */
-function isWayfinderEffort(mdFile, scratchRoot) {
-  const relParts = relative(scratchRoot, mdFile).split(/[\\/]/);
-  const effortDir = relParts.length > 1 ? relParts[0] : null;
-  return effortDir !== null && existsSync(join(scratchRoot, effortDir, "map.md"));
-}
-
-/** 扫 .scratch 全部 md 的 Status: 行，词表外即违例；claimed 仅限 wayfinder 票（effort 有 map.md）。 */
-export function statusLint(scratchRoot) {
-  const violations = [];
-  let scanned = 0;
-  const files = existsSync(scratchRoot) ? walkMd(scratchRoot) : [];
-  for (const file of files) {
-    const text = readFileSync(file, "utf8");
-    const rel = relative(scratchRoot, file).split(/[\\/]/).join("/");
-    scanned += 1;
-    const wayfinder = isWayfinderEffort(file, scratchRoot);
-    for (const line of text.split("\n")) {
-      const m = line.match(/^\s*(?:[-*+>]\s*)?\**\s*Status:\s*\**\s*([A-Za-z-]+)/);
-      if (!m) continue;
-      const word = m[1];
-      if (STATUS_VOCAB.has(word)) {
-        if (word === "claimed" && !wayfinder) {
-          violations.push(`${rel}: claimed 仅限 wayfinder 票（effort 有 map.md）`);
-        }
-        continue;
-      }
-      if (HISTORICAL_EXEMPTIONS.has(`${rel}::${word}`)) continue;
-      violations.push(`${rel}: Status 首词「${word}」不在词表`);
-    }
-  }
-  return { scanned, violations };
 }
 
 /**
@@ -289,12 +236,11 @@ export function sessionLogNameLint(repoRoot) {
 
 /** ③门成功行摘要：preflight 主块与 ci-gates 共用单源，防两处格式串漂移（retro3 评审处置）。 */
 export function lintSummary(lint) {
-  return `扫 ${lint.scanned} 个 md；命名扫描 ${lint.namingScanned} 个活文件；知识库扫描 ${lint.knowledgeScanned} 个脚本，登记／废弃调用者 ${lint.knowledgeCallers.length} 个；地图覆盖 ${lint.mapScanned} 个 lib/org 件；恒真断言扫描 ${lint.tautScanned} 个测试件；session-log 名域限 ${lint.sessionNameScanned} 个代码件`;
+  return `命名扫描 ${lint.namingScanned} 个活文件；知识库扫描 ${lint.knowledgeScanned} 个脚本，登记／废弃调用者 ${lint.knowledgeCallers.length} 个；地图覆盖 ${lint.mapScanned} 个 lib/org 件；恒真断言扫描 ${lint.tautScanned} 个测试件；session-log 名域限 ${lint.sessionNameScanned} 个代码件`;
 }
 
-/** 第③门：状态词表、知识库写者、日志、命名、代码地图覆盖、恒真断言与 session-log 名域限检查共用违例出口，独立于回归和宿主探针。 */
+/** 第③门：知识库写者、日志、命名、代码地图覆盖、恒真断言与 session-log 名域限检查共用违例出口，独立于回归和宿主探针。 */
 export function repositoryLint(repoRoot) {
-  const status = statusLint(join(repoRoot, ".scratch"));
   const knowledge = scanKnowledgeLayerFace(repoRoot);
   const writers = scanKnowledgeRegisterWriters(repoRoot);
   const changelog = checkChangelog(repoRoot);
@@ -303,14 +249,13 @@ export function repositoryLint(repoRoot) {
   const taut = tautologyLint(repoRoot);
   const sessionName = sessionLogNameLint(repoRoot);
   return {
-    scanned: status.scanned,
     namingScanned: naming.scanned,
     knowledgeScanned: knowledge.scanned,
     knowledgeCallers: writers.callers,
     mapScanned: codeMap.scanned,
     tautScanned: taut.scanned,
     sessionNameScanned: sessionName.scanned,
-    violations: [...status.violations, ...knowledge.violations, ...writers.violations, ...changelog.violations, ...naming.violations, ...codeMap.violations, ...taut.violations, ...sessionName.violations]
+    violations: [...knowledge.violations, ...writers.violations, ...changelog.violations, ...naming.violations, ...codeMap.violations, ...taut.violations, ...sessionName.violations]
   };
 }
 
@@ -362,12 +307,12 @@ if (isMain) {
     }
   }
 
-  // ③ Status 词表与知识库写者扫描，共用违例出口。
+  // ③ 知识库写者、命名、代码地图、恒真断言与 session-log 名域限，共用违例出口。
   const lint = repositoryLint(repoRoot);
   if (lint.violations.length === 0) {
-    lines.push(`preflight ③status-lint: 0 违例（${lintSummary(lint)}） ✅`);
+    lines.push(`preflight ③repository-lint: 0 违例（${lintSummary(lint)}） ✅`);
   } else {
-    lines.push(`preflight ③status-lint: ${lint.violations.length} 违例 ❌`);
+    lines.push(`preflight ③repository-lint: ${lint.violations.length} 违例 ❌`);
     for (const v of lint.violations) lines.push(`  - ${v}`);
     pass = false;
   }

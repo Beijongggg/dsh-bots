@@ -52,7 +52,7 @@ failures as blockers; new work remains on GitHub.
   不许裸结论落票面——接手会话会把票面结论当基线（16 号票 19 步推翻
   错误归因、codex 接手沿旧归因空转的先例）。
 - 实施中断或交付未完成且需要接手时，在 Issue 评论追加移交备注，带当前假设、
-  下一步与关键证据指针。正常完成只记录实施与验证证据；未迁移票写入 Comments。
+  下一步与关键证据指针。正常完成只记录实施与验证证据。
 
 ## 立票与留痕纪律（票链写法，retro3）
 
@@ -79,7 +79,7 @@ failures as blockers; new work remains on GitHub.
 
 - 落点：`.scratch/<feature-slug>/attachments/<票号>-independent/`，需要区分
   模型时可加后缀（先例：`11-independent-dsh-v41-flash`）。不要另起目录名。
-  GitHub 票用原生编号，未迁移票用原 NN；已有附件目录不改名。
+  GitHub 票用原生编号；历史附件目录沿用原 NN，不改名。
 - 必含 `README.md`：授权依据（用户指令原文摘录）、基线（显式 commit）、
   判据出处、验证声明。镜像放 `files/`（按仓库路径镜像），统一差异放
   `patches/<slug>.patch`。
@@ -96,23 +96,27 @@ failures as blockers; new work remains on GitHub.
 Read a GitHub ticket with its comments and native fields, then follow its spec,
 dependency and evidence pointers.
 When given a local path or `<feature>/<NN>`, follow its `GitHub:` redirect if present.
-Otherwise read the existing local ticket and its confirmed Comments.
+Otherwise read the local file as a historical snapshot; it is not a live tracker.
 
 `node scripts/project-context.mjs <feature> [NN]` and `--spec-index <feature>`
-query local files only. For migrated tickets, the local content is a migration
-snapshot, not the current state. Query GitHub for subsequent decisions and progress.
+query local files only. Local content is a read-only snapshot, not the current state;
+query GitHub for decisions, dependencies and progress.
 Read GitHub specs from their Issue bodies; `--spec-index` remains a local-spec query.
 Check scheduling and authorization in the source before starting. Project-wide
 reading and history lookup follow [README §4](../../README.md#4-任务阅读路径).
 
-## Existing local tickets and attachments
+## Local snapshots and attachments
+
+All tickets live on GitHub. `.scratch/` holds read-only snapshots and attachment landings;
+historical tickets without a `GitHub:` redirect (closed before the migration) keep their
+original text as reference material.
 
 - Keep existing `.scratch/` sources in place. A `GitHub:` redirect marks the remote
   Issue as authoritative; the remaining local text records the migration snapshot.
-- Unmigrated local tickets retain their original `Status`, `Blocked by` and Comments
-  conventions. Local wayfinder completion requires Answer and map back-write.
-- Put `Delivery: <commit or artifact URL>` in the GitHub Issue body;
-  unmigrated local tickets place it beside `Status:`. Preserve existing attachment paths.
+- Snapshot `Status:`, `Blocked by` and Comments are frozen text, not a live state.
+  Read current state, dependencies, decisions and evidence from the GitHub Issue.
+- Put `Delivery: <commit or artifact URL>` in the GitHub Issue body. Preserve
+  existing attachment paths.
 - Observation registration and document navigation follow
   [README §2](../../README.md#2-文档地图); project archival follows
   [README §6.2](../../README.md#6-维护与落档规范).

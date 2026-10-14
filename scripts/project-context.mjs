@@ -11,9 +11,9 @@ const HELP = `Usage: node scripts/project-context.mjs [feature [NN]] [--all]
        node scripts/project-context.mjs --logs | --check-log
        node scripts/project-context.mjs --spec-index <feature>
 
-无参数：按 feature 列出本地票态、迁移入口数与本地规格指针。
-feature：列出本地未关闭票与迁移入口；--all 包含本地 resolved、wontfix。
-feature NN：读取本地单票或 GitHub 迁移入口。
+无参数：按 feature 列出本地快照状态、迁移入口数与本地规格指针。
+feature：列出本地快照与迁移入口；--all 包含本地 resolved、wontfix 快照。
+feature NN：读取本地单票快照或 GitHub 迁移入口。
 --recent：跨月卷读取最近变更，默认 3 条；不足时回读已校验的历史原文。
 --logs：列出日志分卷与历史归档位置。
 --check-log：检查入口／分卷体积、事件编号及历史归档完整性。
@@ -194,7 +194,7 @@ export function projectContext(repoRoot, args = []) {
       const states = [...counts].sort().map(([state, count]) => `${state}: ${count}`).join("；") || "无工单";
       body.push(`| ${cell(group.feature)} | ${cell(states)} | ${cell(group.specs.map(specLabel).join("；") || "回读票面／map")} |`);
     }
-    body.push("", "本地票态来自未迁移票的 Status 字段；已迁移只计入口数，不判断 GitHub 状态。",
+    body.push("", "本地票态来自快照 Status 字段，只反映快照；已迁移只计入口数，当前状态从 GitHub Issue 读取。",
       "展开任务：node scripts/project-context.mjs <feature> [NN]；含本地关闭票加 --all。");
     return finish(body);
   }
@@ -204,7 +204,7 @@ export function projectContext(repoRoot, args = []) {
     ? Number(ticket.id) === Number(opts.ticket)
     : ticket.github || opts.all || !["resolved", "wontfix"].includes(ticket.state));
   if (opts.ticket && tickets.length !== 1) throw new Error(`票号不存在或不唯一：${opts.feature}/${opts.ticket}`);
-  body.push(`## ${opts.feature}${opts.ticket ? `/${opts.ticket}` : opts.all ? " 本地票与迁移入口" : " 本地未关闭票与迁移入口"}`, "");
+  body.push(`## ${opts.feature}${opts.ticket ? `/${opts.ticket}` : opts.all ? " 本地票与迁移入口" : " 本地快照与迁移入口"}`, "");
   if (!tickets.length) body.push("未找到符合筛选条件的工单。");
   for (const ticket of tickets) {
     if (ticket.github) {

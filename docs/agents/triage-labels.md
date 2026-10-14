@@ -25,9 +25,9 @@ When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the 
 | `resolved`                       | wayfinder ticket       | 决议完成     | 答案评论＋父 Issue 的 Decisions so far 索引（见 issue-tracker.md Wayfinding 段） |
 | `claimed`                        | wayfinder ticket **only** | 已认领执行中 | 实现票不得使用（2026-09-08 同步批评审曾纠正一例）                                  |
 
-- 未迁移本地票与 spec.md 的 `Status:` 行同用本文件词表（五排程词＋`resolved`）。历史件中
-  出现的 `done`／`implemented` 为已观测同义词，按 `resolved` 解读，**不回改
-  历史件**。
+- 词表只约束 GitHub label 与 Issue 状态。本地 `.scratch` 快照的 `Status:` 行是迁移时
+  冻结的文本，不设门、不作当前状态；历史件中出现的 `done`／`implemented` 为已观测
+  同义词，按 `resolved` 解读，**不回改历史件**。
 - `wontfix` 仍是唯一终态-拒绝（不做／已另行消化，不实施）。
 
 **搁置态（本仓库扩展，2026-10-14 用户裁定 pod 前端三票时收编）**：
@@ -44,5 +44,5 @@ When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the 
 | `wontfix` | 同名 label，关闭原因为 not planned |
 | `shelved` | 同名 label；Issue 保持开放、无 assignee，待并入批认领 |
 
-未迁移本地票以 Comments 保存实施证据，wayfinder 以 Answer 节与 map.md 索引保存决议。
-迁移入口与后续读取见 issue-tracker.md。
+工单实施证据保存在 Issue Comments；wayfinder 以 Answer 节与父 Issue 索引保存决议。
+本地 `.scratch` 只读，读取规则见 issue-tracker.md。

@@ -1,5 +1,6 @@
 # 架构候选 2：bot-mail-agent —— handleIncoming 的编排 seam
 
+GitHub: https://github.com/Beijongggg/dsh-bots/issues/22
 Status: needs-triage
 
 - **来源**：/tmp/architecture-review-20260907-085926.html（候选 2，Strong）。

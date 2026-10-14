@@ -7,7 +7,7 @@
 
 | 要回答的问题 | 权威位置 | 读取范围 |
 |---|---|---|
-| 当前任务做到哪里、依赖什么 | GitHub Issue 的正文、评论、标签、关闭状态、assignee 与依赖；现存本地票先按 [工单路由](docs/agents/issue-tracker.md) 检查迁移入口 | 使用仓库名＋GitHub 编号；本地旧编号带 feature；状态按 [词表](docs/agents/triage-labels.md) 区分 |
+| 当前任务做到哪里、依赖什么 | GitHub Issue 的正文、评论、标签、关闭状态、assignee 与依赖（工单只在 GitHub；本地 `.scratch` 为只读快照，读取规则见 [工单路由](docs/agents/issue-tracker.md)） | 使用仓库名＋GitHub 编号；本地旧编号带 feature，只作快照定位；状态按 [词表](docs/agents/triage-labels.md) 区分 |
 | 这次应实现什么、怎样验收 | 票面指出的规格章节与已确认裁定 | 规格可以位于另一 feature；按票面来源跳转 |
 | 最近发生了什么 | [CHANGELOG.md](CHANGELOG.md) 入口所指的日志分卷 | 默认查询最近 2～3 条；历史按事件编号、票号或主题检索 |
 | 某阶段是否验收、部署或放行 | 该阶段的验收／切换票及其证据；旧 v3 批次见 [PLAN 阅读入口](PLAN-expanded-engineering.md#阅读入口) | 结论绑定对象、版本、环境和时点 |
@@ -64,11 +64,11 @@
 `tests/` 的入口、跑法与书写惯例见 [tests/README.md](tests/README.md)。
 
 新工单、规格与路标使用 GitHub Issues，读写遵循 [issue-tracker.md](docs/agents/issue-tracker.md)。
-`.scratch/` 保留现存本地票、迁移入口与附件，不维护已迁移票的第二套状态。长期观察项仍在领域总览
+`.scratch/` 只保留本地快照（已迁移票带 `GitHub:` 入口行）与附件，不维护第二套状态。长期观察项仍在领域总览
 的「仍可选题」登记，并在 CHANGELOG 留界。既有实现工单在
 `.scratch/org-v2-build/issues/`；`.scratch/org-v2/issues/` 是前置研究与决议票，只读。
 当前 wayfinder 地图为 [org-v3：组织形式 vNext](https://github.com/Beijongggg/dsh-bots/issues/3)；
-子票、依赖和后续裁定从该 GitHub 地图读取，本地旧编号只作迁移入口。
+子票、依赖和后续裁定从该 GitHub 地图读取，本地旧编号只作快照定位。
 
 ### docs/history/
 
@@ -86,8 +86,8 @@
 ## 3. 任务编号解码表
 
 旧批次编号按 [历史任务编号索引](docs/history/task-number-guide.md) 查询。
-GitHub 工单使用 `Beijongggg/dsh-bots#<number>`；本地旧票使用 `feature/NN`，
-例如 `org-v2-build/34`。迁移后旧编号只用于定位原文与对应 GitHub 入口。
+GitHub 工单使用 `Beijongggg/dsh-bots#<number>`；本地旧编号使用 `feature/NN`，
+例如 `org-v2-build/34`，只用于定位快照原文与对应 GitHub 入口。
 
 ## 4. 任务阅读路径
 
@@ -101,8 +101,8 @@ GitHub 工单使用 `Beijongggg/dsh-bots#<number>`；本地旧票使用 `feature
 gh issue list -R Beijongggg/dsh-bots --state open        # 当前 GitHub 工单
 gh issue view <number> -R Beijongggg/dsh-bots --comments # GitHub 单票
 node scripts/project-context.mjs                         # 本地旧票快照，不查询 GitHub
-node scripts/project-context.mjs org-v2-build            # 本地未关闭票与迁移入口
-node scripts/project-context.mjs org-v2-build 34         # 本地单票或 GitHub 迁移入口
+node scripts/project-context.mjs org-v2-build            # 本地快照与迁移入口
+node scripts/project-context.mjs org-v2-build 34         # 本地单票快照或 GitHub 迁移入口
 node scripts/project-context.mjs --recent 3              # 最近三条变更
 node scripts/project-context.mjs --logs                  # 分卷及历史原文位置
 ```
@@ -143,7 +143,7 @@ node scripts/project-context.mjs --logs                  # 分卷及历史原文
 | 项目事件 | 落档位置 |
 |---|---|
 | 实质变更、返修或修复批 | 当月日志卷顶部新事件，写范围、变化、验证结果、授权依据；详细处置链接票面／报告 |
-| 工单证据与日常调度 | GitHub Issue 原生状态与评论，或未迁移本地票的 `Status` 与 `Comments`；完成凭据遵循 triage 词表。常规认领、释放、标签与调度只记工单，实质项目变更按对应事件类型落档 |
+| 工单证据与日常调度 | GitHub Issue 原生状态与评论；完成凭据遵循 triage 词表。本地 `.scratch` 快照不承载状态与凭据。常规认领、释放、标签与调度只记工单，实质项目变更按对应事件类型落档 |
 | 冻结合同或设计语义改变 | 同步对应权威规格；旧工程行为归 PLAN，冻结 TEMP／CLOSURE 以新版本和新 SHA 承接，不覆盖原件 |
 | 新方案／合同确认冻结 | 冻结文本落入 `docs/TEMP-guidance-<主题>-<版本>.md` 并记录完整 SHA-256；工单规格按其冻结条款执行 |
 | 正式项目文档新增／移动／重命名 | 同步 README §2 与 CHANGELOG |
