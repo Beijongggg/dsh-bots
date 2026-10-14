@@ -12,7 +12,7 @@
 项目变更、裁定或豁免落档前，读 `README.md` §6.2。
 
 - 落档提交一律显式 pathspec；changelog 事件用 `scripts/changelog-add-event.mjs --stage`
-  按 HEAD 基线精确暂存，防裹挟并行会话预暂存件。
+  按 HEAD 基线精确暂存。
 
 ## 3. 工作边界
 

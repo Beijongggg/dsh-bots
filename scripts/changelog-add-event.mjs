@@ -1,12 +1,12 @@
 /**
  * changelog 事件原子落档（retro2 导航批，EV-20261005-retro2-nav）。
  *
- * 解决两个会话反复付过的税：
- *  - 「新事件置顶」编辑窗口被并行会话插入打断（Edit→sed→行号连环失效的先例）
- *    ——本脚本把「读卷→插块→写回」压进单进程，窗口毫秒级；
- *  - 整 index 提交裹挟并行会话预暂存件（aec01c0 返工先例）——`--stage` 按
+ * 解决两类既有返工：
+ *  - 「新事件置顶」直接 Edit 易因行号漂移连环失效（先例）——本脚本把
+ *    「读卷→插块→写回」压进单进程，窗口毫秒级；
+ *  - 整 index 提交裹挟无关预暂存件（aec01c0 返工先例）——`--stage` 按
  *    HEAD 基线生成只含本事件的 hunk，`git apply --cached` 精确暂存，不碰
- *    工作树他批改动。
+ *    工作树其他改动。
  *
  * 用法：
  *   node scripts/changelog-add-event.mjs --id EV-YYYYMMDD-slug --title 标题 \
