@@ -23,9 +23,9 @@
 
 | 路径/工作包 | 已核范围 | 原始定位与保留缺口 |
 |---|---|---|
-| 组织路径 | Galbraith、Gersick、Hannan & Freeman、Simon、Ostrom 讲座五项；另补原清单 Williamson 与 Baldwin & Clark 的作者后期文本 | [经典警告](supplements/03-classic-design-warnings-20261013.md)、[组织余项](supplements/03-org-path-remainder-20261013.md)、[作者边界](supplements/03-author-boundaries-20261014.md); 后期文本不冒充旧著直读，Ostrom 转述的定义与统计不冒充她的原始结果 |
+| 组织路径 | Galbraith、Gersick、Hannan & Freeman、Simon、Ostrom 讲座五项；另核 Williamson、Baldwin & Clark 后期文本及 Langlois 1999 工作稿的指定内容 | [经典警告](supplements/03-classic-design-warnings-20261013.md)、[组织余项](supplements/03-org-path-remainder-20261013.md)、[作者边界](supplements/03-author-boundaries-20261014.md)、[第四批边界](supplements/03-autopoiesis-and-org-boundaries-20261014.md)；后期文本不冒充旧著直读，Langlois 2002 正文未读，Ostrom 转引不冒充她的原始结果 |
 | 复杂系统 5 项 | BTW 1987、Anderson、Dorigo、Holland 1992、Bettencourt | [复杂系统](supplements/03-complex-systems-sources-20261013.md); Holland 七机制列表及未读页不随全文取得自动升级 |
-| 控制论 4/5 项 | Ashby 1956 所引表条件、Wiener 1961 第二版所引页、Beer 权威学术二手×2（VSM）、von Foerster 权威学术二手×1（概念层） | [经典警告](supplements/03-classic-design-warnings-20261013.md)、[控制原文](supplements/03-control-sources-20261013.md)、[控制缺口](supplements/03-control-gaps-20261013.md)、[控制权威二手](supplements/03-control-authoritative-sources-20261013.md); Beer/von Foerster 原作未直读, Varela 仍缺口（库载摘要不达标） |
+| 控制论 5/5 项 | Ashby 1956、Wiener 1961 所引内容；Beer、von Foerster 的权威学术二手；autopoiesis 经 Di Paolo 2005 的定义及原作转述定位 | [经典警告](supplements/03-classic-design-warnings-20261013.md)、[控制原文](supplements/03-control-sources-20261013.md)、[控制权威二手](supplements/03-control-authoritative-sources-20261013.md)、[第四批 T1/T2](supplements/03-autopoiesis-and-org-boundaries-20261014.md)；后三项经典原作未直读，2005 评注与经典作者原话分开 |
 | 协调路径 5 项 | Smith、Hearsay-II、Hewitt、Cohen & Levesque 四篇所列机制/边界; ADOPT 由 JAIR 综述核验 | [协调原文](supplements/03-coordination-sources-20261013.md)、[ADOPT 权威二手](supplements/03-coordination-gaps-20261013.md); 原作 ADOPT 的精确定理条件仍未知 |
 | LLM 借用 3 个全文样本 | MacNet v3、Absorbing State v2、LLM-MR-CNP v1 | [借用核对](supplements/03-llm-classic-borrowing-20261013.md); 不据三样本估计全领域借用比例 |
 
@@ -35,8 +35,9 @@
 
 1. Galbraith 的信息处理成本、Hannan & Freeman 的重组可靠性、Gersick 的期限样本已核到原文。
    它们支持提出成本与边界问题, 不直接给 Pod 的形态选择或切换频率。
-2. 经典四路已有三路达到至少五项内容来源, 控制论达到 4/5（Beer 权威二手×2、von Foerster
-   权威二手×1; Varela 仍缺口）。其余条目的边界仍待核, 整票不关闭。
+2. 经典四路均达到至少五项的最低内容覆盖。控制论的第五项为 Di Paolo 2005 对 autopoiesis
+   的权威学术转述，符合原判据允许二手的条件，不冒充 1974 原作直读。其余原条目边界仍待核，
+   四路计数满足不等于整票关闭。
 3. 三个 LLM 全文样本呈现不同借用方式：MacNet 借标度关系, Absorbing State 建立带近似条件的
    搜索相变模型, CNP 扩展经典协议。CNP 未完成组件匹配消融, LLM 独立收益仍不能据此认定。
 4. Ashby 的表条件、Wiener 的回路设计边界与 NFL 的均匀平均前提已核。它们都不能直接转换为
@@ -51,6 +52,7 @@
 
 本节已核 Galbraith、Gersick、Simon、Ostrom 讲座的下列机制与边界, 另在 §6.2 核 Hannan & Freeman。
 2026-10-14 补读原列作者 Williamson 2009 讲座与 Baldwin & Clark 2006 章节，核验范围见各条。
+第四批另核 Langlois 1999 工作稿；Lawrence & Lorsch 只新增文章元数据，未取得文章或书的正文。
 其余条目仍为待回原文的概念整理; 不因邻近条目补核而升级。迁移到 agent 组织一律另标 INFERENCE。
 
 ### 1.1 权变理论：Burns & Stalker 的机械式／有机式
@@ -70,7 +72,7 @@
 
 ### 1.2 Lawrence & Lorsch：分化与整合
 
-- **核心主张**：组织须**同时**做到分化（differentiation：各子单元在结构、时间视野、目标取向、
+- **待核概念整理**：组织须**同时**做到分化（differentiation：各子单元在结构、时间视野、目标取向、
   人际导向上产生差异）与整合（integration：跨单元协作的质量）；绩效取决于二者与**各子环境不确定性**
   的匹配，而非某一维度的极值。
 - **一手**：Lawrence, P. R. & Lorsch, J. W. (1967). *Organization and Environment: Managing
@@ -79,6 +81,9 @@
 - **边界整理，原文待核**：分化越高，整合成本越高——理论**同时**给出「必须分化」与「分化的
   代价」，并不承诺"整合越多越好"；成功企业的整合装置与所需分化程度**相称**，且整合者靠专业能力
   而非正式职权获得影响力（细节 `[未经一手来源核验]`）。它所断言的是**拟合（fit）**，不是最优点。
+- 第四批仅确认同年文章 "Differentiation and Integration in Complex Organizations"，
+  *Administrative Science Quarterly*，DOI `10.2307/2391211`。文章与上列书分开，二者正文均未取得，
+  不据元数据升级样本、因果或边界主张。见[第四批 T4](supplements/03-autopoiesis-and-org-boundaries-20261014.md)。
 
 ### 1.3 Galbraith：信息处理观
 
@@ -135,12 +140,17 @@
   [作者边界 E4](supplements/03-author-boundaries-20261014.md#e4-baldwin--clark-的设计规则与模块化成本)。
   Simon, H. A. (1962). "The Architecture of Complexity", *Proceedings of the American Philosophical
   Society* 106(6):467-482, 已核 p.468/470/471/473/474/475 页图, 见[组织余项 S1-S4](supplements/03-org-path-remainder-20261013.md)；
-  Langlois, R. N. "Modularity in technology and organization"（Crossref 命中其 2000 年 SSRN 版
-  "Modularity in Technology, Organization, and Society"；期刊版 `[未经核验]`）。
+  Langlois, R. N. (1999), "Modularity in Technology, Organization, and Society"，UConn Working
+  Paper 1999-05，August 1999，作者机构公开稿已读。2000 SSRN 与 2002 JEBO 只核元数据，后者
+  DOI `10.1016/S0167-2681(02)00056-2`；版本差异未核。定位与哈希见[第四批 T3](supplements/03-autopoiesis-and-org-boundaries-20261014.md)。
 - **已核成本边界**：创建／传播规则、实验及测试的费用会抵消模块化价值；重要跨模块依赖须由
   规则处理，依赖密度与可分解性影响成本，接口需处于依赖较稀疏的位置。原文不支持所有系统都
   适合切分，也不支持"没有模块级测试就没有任何收益"或"不行使期权就完全没有价值"。
-- **未核边界**：Langlois 的模块分界与系统级创新论证仍未回读，不能由本章或 Simon 代证。
+- **Langlois 已核边界**：模块分界由架构、接口、标准定义，设计规则需事先确定，集成时才可能
+  暴露分界缺陷；该段部分转述 Baldwin & Clark 1997。模块化有固定成本，稳定或慢变环境可能
+  不值得承担。创新项目的任务可能不能事先划分，重模块化会使旧模块库存不兼容或失效；规则
+  流动限制重组创新，过早冻结也可能固化劣质分界，取舍依情境。以上为 1999 工作稿的概念论证，
+  不是 agent 实测或切换阈值；价格接口之外的协调需求也不能简化为纯市场与纯层级二选一。
 - **Simon 已核部分**：层级指递归子系统, 不等于正式权力树。近可分解指短期近独立、长期只受
   其他部分聚合影响; epsilon 越小符合者越少, 作者同时说自然中此类结构并不少见。制表匠约
   4,000 倍来自 p=.01 的演示假设, 作者明确说数值不可认真采用, 不是实测加速。上述来源均不提供
@@ -384,11 +394,11 @@
 
 ## 3. 控制论、控制与自主
 
-本节内容达标 4 项：Ashby 1956 所引表条件、Wiener 1961 第二版所引页、Beer 的 VSM 与
-von Foerster 的二阶控制论（后两项到可定位权威学术二手, 原作未直读；见
-[控制权威二手](supplements/03-control-authoritative-sources-20261013.md)）。Varela 的
-*BioSystems* pp.187-196 正文仍缺, 库载文件是 2019 年生成的单页题录摘要, 不计达标。
-其余条目保持摘要/题录或未核, 见各控制补核件。
+本节达到原判据的 5 项最低覆盖：Ashby、Wiener 所引原文；Beer、von Foerster 的权威学术二手；
+autopoiesis 经 Di Paolo 2005 已刊全文的定义与 1974 原作转述定位。后三项不冒充经典直读。
+1974 *BioSystems* pp.187–196 正文仍未取得，旧库载单页题录摘要仍不计内容。新增第五项的依据
+是原判据允许的权威学术二手，不是放宽为题录。范围见[第四批 T1/T2](supplements/03-autopoiesis-and-org-boundaries-20261014.md)，
+其余条目保持各自层级。
 
 ### 3.1 必要多样性（Ashby）及其对控制器的推论
 
@@ -432,21 +442,23 @@ von Foerster 的二阶控制论（后两项到可定位权威学术二手, 原�
 
 ### 3.4 自创生（autopoiesis）
 
-- **核心主张**：生命系统是**自我生产**的网络：系统自身的组分持续生产出构成该网络的组分，从而维持
-  其**组织闭合（organizational closure）**；与环境的关系是"结构耦合"，环境只触发、不指定系统变化。
-- **一手**：Maturana, H. & Varela, F. (1972／1980). *Autopoiesis and Cognition: The Realization of
+- **已核定义转述**：Di Paolo 2005 pp.434–435 引 Weber & Varela 2002 p.115，将自创生定义为
+  组分生产过程的网络，组分持续再生并实现生产它们的网络，同时构成可区分的系统统一体。
+  同文说明物理空间中的物质生产与半透膜是额外解释，不全由形式定义直接蕴含。
+- **经典书目与读取层级**：Maturana, H. & Varela, F. (1972／1980). *Autopoiesis and Cognition: The Realization of
   the Living*（Dordrecht: Reidel；Wikipedia "Autopoiesis" 二手核验其 1972 年首版）；
   Varela, F., Maturana, H. & Uribe, R. (1974). "Autopoiesis: The organization of living systems, its
   characterization and a model", *BioSystems* 5(4):187–196，DOI 10.1016/0303-2647(74)90031-8
-  （Crossref **核验**，该记录无摘要）。正文仍缺：2026-10-13 续查 OpenAlex 与 Europe PMC,
-  唯一 OA 位置仍是 UChile 单页题录; 两条候选权威二手（Martínez, *Síntesis* 2024;
-  Rodríguez & Torres, *Sociologias* 2003）都落到西语专著《De máquinas y seres vivos》版本,
-  不能替代 *BioSystems* pp.187-196, 见
-  [控制权威二手](supplements/03-control-authoritative-sources-20261013.md)。
-- **边界整理，原文待核**：自创生定义在**分子／生物**层面（组分由系统自身生产）；作者们反对把
-  它直接照搬到社会系统。Luhmann 用自创生重构社会系统理论（1984《Soziale Systeme》`[未经核验]`）
-  属**独立理论建构**，不等同于原作者的生物学主张。对软件/agent 组织：系统不能"生产自己的组分"
-  到生物学意义，故自创生在此**几乎只能作隐喻**；可借用的只是"闭合"与"结构耦合"两个弱概念。
+  （Crossref 已核书目，正文仍未直读）。旧单页题录与二手候选的失败记录保留，不冒充正文。
+- **权威学术二手**：Di Paolo, E. A. (2005), "Autopoiesis, adaptivity, teleology, agency"，
+  *Phenomenology and the Cognitive Sciences* 4:429–452，DOI `10.1007/s11097-005-9002-y`，作者自存
+  已刊版已读。定义句引 2002 来源，脚注 6 则明确转述 Varela 等 1974 极简模型无显式监测、
+  容忍扰动而非适应；两处可按原判据支持第五项，不假称定义句来自 1974。
+- **转述方的评估边界**：Di Paolo pp.436–437 认为定义只蕴含无程度的守恒，不能独自说明主动稳态
+  或改善；脚注 8 进一步区分 adaptivity 与 agency。此为 2005 作者对原理论的批评，不是
+  Maturana/Varela 自认的全部边界。原稿"原作者反对社会迁移"未由本次来源核实，撤出肯定陈述。
+- **项目迁移边界（INFERENCE）**：本文未研究软件或 agent 组织，不能直接证明其自我生产、自治
+  或演进能力。Luhmann 1984 的社会理论仍未核；也不据生物定义先断言软件"几乎只能作隐喻"。
 
 ### 3.5 二阶控制论
 
@@ -733,6 +745,8 @@ Rao & Georgeff 的 1998 章节题录不能代证 1995 版本。
   原文变量为 age/size/complexity, 旧稿 "正式化" 未核到。无实测收益数字, 见经典警告 A3。
 - **补核边界**：Williamson 2009 要求把替代治理实施费计入预期净收益；Baldwin & Clark 2006
   明列规则、实验与测试成本，见 §1.9／§1.6。两者不是 LLM 切换实验。
+  Langlois 1999 工作稿另说明重模块化会使旧模块库存不兼容或失效，规则流动与过早冻结各有损失，
+  取舍依情境；其概念论证不给 Pod 迁移费数值或切换频率。
 - **迁移假设（INFERENCE）**：切换后原先的测试、账本与评审记录是否仍有效，需要逐项验证。
 - **待测条件（INFERENCE）**：状态量与耦合度是否提高迁移代价, 需按任务测量; 不先规定其单调关系。
 
@@ -830,7 +844,8 @@ Rao & Georgeff 的 1998 章节题录不能代证 1995 版本。
 ## 7. 盲区：本轮未能到达或未能核验的部分
 
 本节保留原侦察访问失败与当前缺口, 不把旧端点失败当作补核仍不可达。补核已接受的范围见头部表;
-控制论 4/5（Varela 仍缺口）, 逐条边界与 S4 覆盖未全, 不以新增票或改成非核心绕过。
+控制论已按权威学术二手达 5/5，经典原作直读与其他原条目边界仍有缺口。最低计数满足不消除 S4，
+不以新增票或改成非核心绕过。
 
 ### 7.1 原侦察的端点失败与覆盖缺口
 
@@ -854,30 +869,33 @@ Rao & Georgeff 的 1998 章节题录不能代证 1995 版本。
 ### 7.2 一手不可读：内容只能标"未经一手来源核验"
 
 已补核来源不再列为整篇未读。仍未取得原文或未完成内容边界核验的条目包括 Burns & Stalker、
-Lawrence & Lorsch、Thompson、Galbraith 1973、矩阵病理正文、Baldwin & Clark 2000 全书、Langlois、
+Lawrence & Lorsch、Thompson、Galbraith 1973、矩阵病理正文、Baldwin & Clark 2000 全书、Langlois 2000/2002、
 Tushman/Romanelli、Williamson 1971/1975/1985、Marschak/Radner、Wegner/TMS、Ostrom 1990、Ashby 1958、
 Beer（原作未直读, 已有两条权威学术二手）、von Foerster（原作未直读, 已有一条概念层权威
-学术二手）、Maturana/Varela（*BioSystems* 正文未取得）、Prigogine 系列、Holland
+学术二手）、Maturana/Varela（*BioSystems* 原作未取得，已有 Di Paolo 2005 转述）、Prigogine 系列、Holland
 1975/1995/1998、Bak 1996。各条仍按正文标注引用, 不借用已核邻近来源替代。
 
 已取来源内仍有缺口：Simon pp.477/478/482 未按页图核; Holland 七机制列表未定位;
 Wiener 第二版第 IV 章后续数学分析未读; Hearsay 的同步/通信/解除只定向检索未核到;
 Teamwork 公式未逐符号核且作者 PS 分页未对齐刊本; ADOPT 只有权威二手, 原作精确定理未核。
-Varela 的 *BioSystems* 正文续查仍缺, 库载 PDF 仅一页题录摘要, 不计全文。
+Varela 的 *BioSystems* 正文仍未直读；Di Paolo 2005 的可定位转述支持概念计项，不升级为原作全文。
 Aulin-Ahmavaara 的必要层级律也只有摘要问题域。
 Williamson 2009 与 Baldwin & Clark 2006 已核范围见 §1.9／§1.6，不再全列未读。
+Langlois 1999 作者机构工作稿已核模块分界与成本边界，不能写成 2000 SSRN 或 2002 期刊版直读。
 Burns & Stalker、Thompson 的本批访问失败归未核验，不计有界空结果。
 
 ### 7.3 书目核验失败的条目（引用须补核）
 
 Rao & Georgeff 1995 ICMAS（Crossref 只匹配到同作者 1998 章）；Tushman &
 Romanelli 1985（ROB 第 7 卷，无 DOI 命中）；Davis & Lawrence 1977《Matrix》；
-Duncan 1976 章节；Langlois 2002 期刊版；Lesser & Corkill 1981；Bratman 1987／
+Duncan 1976 章节；Lesser & Corkill 1981；Bratman 1987／
 1992；Clearwater 1996；Vickrey 1961／Groves 1973／Myerson 1981；Nicolis & Prigogine 1977；
 Bak 1996；Holland 1975／1995／1998；Prigogine & Stengers 1984；Maturana & Varela 1980；
 von Foerster 1974／1981；Wiener 1948；Cannon 1932；David 1985；Beer 1979／1985；Galbraith 1973。
 其中 Beer 与 von Foerster 已另有内容层权威二手（§8.5）, 但各自书目与本体仍待一手核验。
 Bartlett & Ghoshal 的年份已由 HBR 官方页核实，不再列为书目缺口；其全文仍未读。
+Langlois 2002 JEBO 的题名和 DOI、Lawrence & Lorsch 1967 文章题名与 DOI 本批已核元数据，
+不再列为书目失败；二者正文及 Lawrence & Lorsch 同年书仍未核。
 
 ### 7.4 方法限制（结论强度上限）
 
@@ -896,7 +914,7 @@ Bartlett & Ghoshal 的年份已由 HBR 官方页核实，不再列为书目缺�
 
 本文件可提供问题与检索线索，不能替代原文核验。经典理论的原文边界、借用与修辞的区分以及 LLM
 正文引用都归现有[组织理论、复杂系统与控制论](../issues/03-research-organization-theory-and-concepts.md)逐项补核。
-控制论及逐条边界缺口覆盖原票核心问题, 研究票保持开放。已核部分可按版本与原句引用,
+其他原条目的边界缺口仍覆盖原票核心问题，研究票保持开放。控制论最低计数已满足，已核部分可按版本与原句引用，
 不必退回全篇摘要级; 未核部分不以另开票或移入雾面绕过当前关闭门。
 
 ---
@@ -940,10 +958,14 @@ Bartlett & Ghoshal 的年份已由 HBR 官方页核实，不再列为书目缺�
 - Grassé 1959, *Insectes Sociaux* 6(1):41–80 — `10.1007/BF02223791`；Dorigo, Maniezzo & Colorni 1996,
   *IEEE Trans. SMC-B* 26(1):29–41 — `10.1109/3477.484436`
 - Varela, Maturana & Uribe 1974, *BioSystems* 5(4):187–196 — `10.1016/0303-2647(74)90031-8`
-  （书目核验；正文未取得, 续查位置与候选二手见 §3.4 与控制权威二手补核件）
+  （书目核验，原作正文未直读；Di Paolo 2005 的定义与原作转述定位见 §3.4）
 - Anderson 1972, *Science* 177(4047):393–396 — `10.1126/science.177.4047.393`
 - Georgeff & Rao 1998, in *Agent Technology* — `10.1007/978-3-662-03678-5_8`
 - Langlois 2000, "Modularity in Technology, Organization, and Society"（工作论文版） — `10.2139/ssrn.204089`
+- Langlois 1999，UConn Working Paper 1999-05，[作者机构 PDF](https://media.economics.uconn.edu/working/1999-05.pdf)，
+  模块分界及成本边界已核；2002 JEBO `10.1016/S0167-2681(02)00056-2` 仅元数据，版本差异未核。
+- Lawrence & Lorsch 1967，"Differentiation and Integration in Complex Organizations"，ASQ，
+  `10.2307/2391211`，仅元数据；与同年书分开，二者正文未读。
 - Ostrom 2010, *AER* 100(3):641–672 — `10.1257/aer.100.3.641`
 - Simon 1962, *Proc. APS* 106(6):467-482（所列页图已核）; Hewitt/Bishop/Steiger 1973,
   *IJCAI-73*, pp.235-245（官方 PDF 已核）; Holland 1992, *Daedalus* 121(1):17-30（所列机制已核）。
@@ -1020,6 +1042,12 @@ to attack organisations", *Australasian Journal of Information Systems* 9(2), 20
 Cybernetics, and Transactional Causality", *Integrative Psychological and Behavioral
 Science*, DOI 10.1007/s12124-024-09867-3（PMC11711560; 二阶控制论概念层转述, 引 von Foerster
 1984/2003 转载版本）。三者只承载各自转述句, 不冒充经典原作。
+
+第四批新增 Di Paolo 2005，*Phenomenology and the Cognitive Sciences* 4:429–452，
+DOI `10.1007/s11097-005-9002-y`，[作者自存已刊版](https://ezequieldipaolo.net/wp-content/uploads/2011/10/autopoiesis_teleology_2005.pdf)。
+定义引 Weber & Varela 2002 p.115，脚注 6 转述 1974 极简模型，pp.436–437 与脚注 8 是转述方评估。
+来源身份、SHA 与定位见[第四批边界](supplements/03-autopoiesis-and-org-boundaries-20261014.md)，
+该范围符合原判据的权威二手条件，不冒充 Maturana/Varela 的原话或全部边界。
 
 Wikipedia 条目：Contingency theory · Matrix management · Transaction cost · Transactive memory ·
 Variety (cybernetics) · Viable system model · Second-order cybernetics · Autopoiesis · Self-organized

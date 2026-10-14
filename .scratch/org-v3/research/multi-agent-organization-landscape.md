@@ -40,6 +40,9 @@ For AFlow, MASS and GPTSwarm, the [third-batch check](supplements/01-unchecked-c
 corrects the baseline arithmetic, separates execution and per-iteration fees, and distinguishes
 online prompt optimization from online topology change. For MultiAgentBench, MasBench and
 SWE-bench classifications, use the [suite and submission check](supplements/02-multiagent-suites-and-swebench-20261014.md).
+The [fourth-batch optimizer check](supplements/01-remaining-optimizers-20261014.md) adds AgentSquare,
+AgentPrune and ScoreFlow. Their optimization objects, stages and fee denominators differ; none
+establishes an equal-budget, topology-only gain or an in-task state-migration benefit.
 
 ## 0. Executive digest
 
@@ -76,10 +79,12 @@ acceptance; the remaining entries still need source-level verification before a 
    capability ceiling, verification dose-vs-delay (inverse golden ratio at delay 2), effective team size,
    role-library semantic overlap, and the model-capability threshold below which self-organization loses
    to rigid structure.
-7. **The dominant dynamic-organization family is offline search, not per-task transition.** AFlow,
-   AgentSquare, MASS, ScoreFlow, EvoAgent search once and deploy frozen; only MANTA, AgentConductor,
-   AdaptOrch, DyLAN and ZEBRA include per-task adaptation (§4.1–4.3). DyLAN separates preliminary
-   team selection from within-query reformation; selection can occur per subject, not per query.
+7. **Offline optimization and runtime adaptation are different stages.** AFlow, AgentSquare and MASS
+   search reusable designs. ScoreFlow instead trains a generator offline and generates a workflow
+   for each query. AgentPrune has both initial-round pruning within a query and early-query training
+   followed by a fixed graph (§4.1–4.3). DyLAN separates preliminary team selection from within-query
+   reformation; selection can occur per subject, not per query. These are not interchangeable
+   examples of migrating live organizational state.
    The cited MATH search costs differ by about **6.1× in dollars** ($3.56 to $21.75) and
    **99.47× in prompt tokens** (3,235,288 to 321,813,314). AdaptOrch reports some routing and synthesis overhead, but complete search,
    rerouting and migration costs have not been verified (§4.4).
@@ -219,13 +224,17 @@ and OpenAI's Agents SDK handoffs.
   coordination overhead** relative to single-agent at matched performance, and **21.5 successes per
   1,000 tokens vs 67.7 for the single agent (3.1× worse)**.
 - **[primary] Mas-Orchestra**, Ke et al., arXiv [2601.14652](https://arxiv.org/abs/2601.14652) —
-  orchestrator synthesized by function-calling RL, >10× efficiency in LLM calls/tokens/cost over
-  strong inference-time baselines (AFlow, MAS-Zero); see §4.
+  orchestrator synthesized by function-calling RL. The checked v5 D.2 cells show more than 10×
+  lower calls, tokens and printed fees than AFlow on AIME24/GPQA, not than every baseline on
+  every metric. CoTAgent uses fewer calls in both tasks and fewer tokens on GPQA; see §4.4.
 
-**Economic shape.** Supervisor form buys *parallel wall-clock* and *context isolation*; it pays
-roughly 3–4× tokens for that. It is the only form with a large, well-documented industrial win
-(Anthropic's +90.2%), and that win is explicitly attributed to token spend and parallelizable research
-tasks — i.e. it is a *budget* mechanism as much as a *coordination* mechanism.
+**Economic shape.** Supervisors allow parallel work and isolated contexts, with additional
+delegation and aggregation costs. Anthropic's 4× and 15× figures both use chat as the reference;
+15/4 is not a controlled multi-agent/single-agent ratio. Its 90.2% internal-eval result uses an
+Opus 4 lead with Sonnet 4 workers against one Opus 4 agent, with raw scores and budgets unreported.
+It supports that named configuration on parallelizable research, not a topology-only gain or a
+claim that no other form has industrial evidence. The [Anthropic check A1](supplements/04-anthropic-remaining-facts-20261014.md)
+records these separate measurement objects.
 
 ### 1.2 Hierarchical
 
@@ -467,11 +476,35 @@ in LLM teams is the opposite — centralized verification reduces error propagat
 | Hybrid (mixed) | **+515%** (6.2×) | -2.4% vs centralized, n.s.; 13.6 succ./1K tok | 2512.08296 |
 | Industrial supervisor | **~15× tokens vs chat**; ~4× for single agent | **+90.2%** on Anthropic internal research eval | Anthropic blog |
 | Blackboard (lazy invalidation, modeled) | up to **95% saving** vs full rebroadcast (simulation) | not measured | 2603.15183 |
-| Dynamic (learned orchestration) | **>10× cheaper** than inference-time search baselines; SC-MAS -11.2%…-16.4% tokens | SC-MAS +1.46%…+3.34%; Mas-Orchestra Pareto-frontier | 2601.14652; 2601.09434 |
+| Dynamic (learned orchestration) | MAS-Orchestra v5 D.2: AFlow/Mas calls 25.25×/28.37×, tokens 115.67×/56.27× on AIME24/GPQA; not single-agent ratios. SC-MAS token claim remains unchecked | Separate quality/resource aggregation not bound (§4.4); SC-MAS +1.46%…+3.34% remains unchecked | 2601.14652v5; 2601.09434 |
 
 The table's shape is the finding: **overhead is structural and quantified; quality is conditional.**
-The two industrial-scale positives (Anthropic, HieraMAS) are both cases where coordination bought
-*parallel context capacity* or *sparser communication*, not "more intelligence from more agents".
+Anthropic reports a deployed research system; HieraMAS is a paper experiment, not established here
+as an industrial deployment. Their settings and denominators differ, so this table is not a
+ranking of organizational forms at a common budget.
+
+### 1.11 Original ten-form checklist: accepted and remaining scope
+
+This is a coverage check against the original principle/applicability/cost requirement, not a new
+closure gate. A source tagged primary in §1 is a source type, not a declaration that its claims
+have completed acceptance. The table identifies what still needs bounded source checks.
+
+| Form | Principle and applicability | Cost evidence accepted so far | Remaining scope |
+|---|---|---|---|
+| Single-agent-first | Matched-budget reasoning and workflow-compilation claims remain at the original survey reading level | Optima's CoT/SC controls are checked in the cost report, not the general §1.0 claims | Check the named §1.0 claims and their task/budget limits |
+| Supervisor | Anthropic's named research architecture and applicability are checked in the linked A1/A5 | 4×/15× use chat denominators; heterogeneous 90.2% result is not an equal-budget gain | Kim centralized overhead remains unchecked; do not derive 15/4 as a controlled ratio |
+| Hierarchical | MetaGPT/ChatDev/HieraMAS claims remain survey candidates | HieraMAS dollars and training ratio not yet accepted | Check hierarchy versus sparse communication and model selection separately |
+| Flat peer | CAMEL and sparse-debate claims remain survey candidates | Kim decentralized overhead not yet accepted | Check the original comparisons before ranking this form as least efficient |
+| Blackboard | Hearsay-II's classical mechanism is checked in the theory supplement | Token Coherence's LLM-cost simulation not yet accepted | Check modern costs and governance claims; classical mechanism does not certify them |
+| Market | Smith's allocation protocol and communication limits are checked in the theory supplement | No accepted shared-benchmark cost comparison in this pass | Check the named LLM candidates and the original bounded-search claim |
+| Swarm | Classical stigmergy is checked in the theory supplement, not the named LLM systems | No accepted LLM cost result in this pass | Check source content rather than deriving a finding from a title or framework name |
+| Dynamic teaming | DyLAN's selection/reformation stages and task domains are checked | Calls and omitted Team Optimization costs are separated in §4.8 | Other §1.7 candidates retain their stated reading levels |
+| Voting | Optima's fixed MAD and SC arms are checked in the cost report | Score/token pairs exist, without equal-budget economic attribution | Theorems and broad cheapest/only claims in §1.8 remain unaccepted |
+| Matrix | Dual-authority concept remains a research candidate; theory sources are metadata/abstract only | No accepted measured LLM cost comparison in this pass | Preserve the original bounded query; check definitions and specific pathology claims |
+
+Accepted classical sources are in the [theory report](organization-theory-and-concepts.md) and its
+supplements. This checklist does not certify every supporting paper in a form or turn an unread
+source into an absence result. The owning ticket remains open under S4.
 
 ## 2. Cost structure and economics
 
@@ -1034,15 +1067,19 @@ over-coordination burns — and 2512.08296 supplies the measured shape of that c
 Nearly every paper in this family is described as "adaptive", but they divide sharply on **when the
 adaptation happens**:
 
-- **Offline / design-time search** — the organization is searched against a validation set, then
-  deployed. Execution fees and amortized search fees are separate cost objects. Most of the named
-  family (AFlow, AgentSquare, MASS, ScoreFlow, EvoAgent, GPTSwarm in its main setting) is here.
-- **Online / per-task at inference** — the organization is chosen or rebuilt *for this task, now*.
-  This is the owner's "dynamic organization / phase transition per task". Much rarer: **MANTA,
-  AgentConductor, AdaptOrch, DyLAN, ZEBRA, 2601.04748's skill routing.**
-- **Hybrid** — offline prior + online refinement: **TopoPrior, FlowBank, MACA, MasRouter**
-  (offline-trained controller, online per-query routing). GPTSwarm also tests online adaptation,
-  but the checked HumanEval experiment optimizes node prompts, not online edge topology (§4.2).
+- **Offline / design-time search.** AFlow, AgentSquare and MASS optimize reusable designs before
+  execution. EvoAgent and GPTSwarm's main setting remain at their stated survey reading levels.
+  Execution fees and amortized search fees are separate cost objects.
+- **Online / inference-time selection or revision.** MANTA and AgentConductor revise structures
+  within a task; AdaptOrch selects before execution and reruns after synthesis failure. DyLAN
+  separates team selection from within-query reformation. These timings are not state migration.
+- **Offline training followed by online use.** MasRouter routes per query with a trained controller;
+  ScoreFlow generates a workflow per query with a trained generator, rather than deploying one
+  frozen workflow. TopoPrior, FlowBank and MACA have distinct prior/reuse/refinement arrangements.
+  GPTSwarm's checked online HumanEval experiment changes node prompts, not edges (§4.2).
+- **AgentPrune has two schedules.** It can train masks in the first K′ dialogue rounds of a query,
+  then prune for the remaining rounds, or train on Q′ queries and reuse the pruned graph (§3.3).
+  Neither schedule should be collapsed into a claim that all pruning is offline.
 
 **The distinction is load-bearing because the cost structure is completely different.** An offline
 searcher can spend $21.75 and 321.8M prompt tokens once (AFlow on MATH, reported by MasRouter Table 12)
@@ -1056,12 +1093,12 @@ partial routing costs must be kept separate from search and state migration (§4
 |---|---|---|---|---|---|
 | **MASS** | [2502.02533v2](https://arxiv.org/html/2502.02533v2) `[primary]` | prompts and workflow topology in 3 stages | validation performance; MIPRO + topology search | Table 6 Pro Avg 67.44→74.56→77.55→78.40; increments 7.12/2.99/0.85pp. Prose says 6%/~3%/~2%, not fully reconciled | Offline; optimized workflow stored |
 | **AFlow** | [2410.10762v4](https://arxiv.org/html/2410.10762v4) `[primary]` | workflow DAG as code, MCTS over operators | execution feedback + tree-structured experience | Table 1 Avg 80.3 vs CoT SC 76.0: +4.3pp or +5.66% relative. Appendix D says parity with GPT-4o IO; $0.0291/$0.6371=4.5676%, not exactly the prose 4.55% | Offline search, then workflow execution |
-| **AgentSquare** | [2410.06153](https://arxiv.org/abs/2410.06153), ICLR 2025 `[primary]` | **agent modules (Planning/Reasoning/Tool/Memory) — NOT topology** | LLM-driven module evolution + recombination, with in-context surrogate performance predictor | **+17.2%** avg over best human-designed agents, six benchmarks | Offline, explicitly |
+| **AgentSquare** | [2410.06153v3](https://arxiv.org/abs/2410.06153v3) `[primary]` | single-agent Planning/Reasoning/Tool/Memory modules, not multi-agent topology | module evolution/recombination and a surrogate performance predictor | About 17.2% mean relative gain over each task/model's best handcrafted arm across six tasks and two models, not 17.2pp | Offline module search, reusable designs |
 | **GPTSwarm** | [2402.16823v3](https://arxiv.org/html/2402.16823v3), ICML 2024 `[primary]` | node prompts and edge distribution, evaluated separately | task scores and prompt optimization | HumanEval online node optimization 0.76→0.88±0.007, mean/SE over 3 repeats; MMLU collaborative gain 2.1%±1.1%, author wording | Online connectivity is a design claim; checked online experiment is node-level. Former GSM8K 89.7% not located, withdrawn |
 | **DyLAN** | [2310.02170v2](https://arxiv.org/abs/2310.02170v2), COLM 2024 `[primary]` | preliminary team selection + within-query reformation | Agent Importance selects a team; an LLM ranker deactivates agents during solving | CG selection: 76.2→82.9%; removing reformation also gives 76.2%, with a different cost denominator (§4.8) | Select by task/subject/category, then adapt during solving |
 | **MasRouter** | [2502.11133](https://arxiv.org/abs/2502.11133), ACL 2025 Main `[primary]` | collaboration mode + role allocation + per-agent LLM choice | trained cascaded controller network, per query | **+1.8–8.2%** over SOTA on MBPP; **52.07%** overhead reduction on HumanEval; 17.21–28.17% as a plug-in | Offline train → **online per-query routing** (one forward pass) |
-| **AgentPrune** | [2410.02506](https://arxiv.org/abs/2410.02506) `[primary]` | communication topology (graph mask → one-shot magnitude pruning) | **structural redundancy criterion (low-rank + sparsity), NOT performance** | comparable to SOTA at **$5.6 vs $43.7**; **28.1–72.8%** token reduction as a plug-in; +3.5–10.8% adversarial robustness | Offline one-shot, amortized across queries |
-| **ScoreFlow** | [2502.04306](https://arxiv.org/abs/2502.04306) `[primary]` | workflow structure via continuous-space generator | gradient-based (Score-DPO) on quantitative scores | **+8.2%** over baselines, six benchmarks | Offline generator → per-query generation |
+| **AgentPrune** | [2410.02506v1](https://arxiv.org/abs/2410.02506v1) `[primary]` | spatial/temporal graph masks and one-shot pruning | utility-based mask training plus low-rank regularization, then TopK mask magnitude | MMLU $5.6 vs GPTSwarm $43.56 in H.1, abstract $43.7; plug-in prompt reductions 28.0744% on MMLU/AutoGen and 72.7493% on HumanEval/GPTSwarm; GSM8K printed ratios conflict | Initial dialogue rounds per query, or a few training queries followed by a fixed graph |
+| **ScoreFlow** | [2502.04306v1](https://arxiv.org/abs/2502.04306v1) `[primary]` | per-query workflow structure via a trained generator | Score-DPO uses quantitative workflow feedback | Six-task mean 85.3 vs strongest baseline Aflow 80.6, +4.7pp; headline 8.2% has an unspecified aggregation | Offline generator training, then online per-query workflow generation |
 | **EvoAgent** | [2406.14228](https://arxiv.org/abs/2406.14228), NAACL 2025 `[primary]` | **agent set** via mutation/crossover/selection | evolutionary search, fitness = task performance | Logic: EvoAgent **67.00** vs AutoAgents 61.50, AgentVerse 60.00 (Llama-3.1-70B) | Offline |
 
 **Reading of the table.** "Topology adaptation" and "role adaptation" are routinely conflated. Only
@@ -1102,7 +1139,9 @@ This is the most decision-relevant table in §4, because it prices the *act of a
 | **MasRouter** | **$3.56 / 3.24M prompt tokens** (MATH) — ~100× fewer tokens than AFlow | MasRouter Table 12 |
 | **GPTSwarm** | $7.63 (MATH) / $4.70 (MMLU); GSM8K training 5.5e6 tokens / 2.1h, inference 8.4e6 / 2.8h | MasRouter Table 12; G-Designer Table 2 |
 | **G-Designer** | **2.7e5 tokens / 0.3h** training (vs GPTSwarm 5.5e6/2.1h, DyLAN 9.6e6/2.8h); cost scales $0.60/$1.28/$2.67 at 5/10/20 agents vs GPTSwarm $4.22/$12.50/$41.42 | G-Designer Table 2 |
-| **AgentSquare** | per-iteration API cost $3.16–$4.25 (GPT-3.5) and $10.51–$42.14 (GPT-4o) across 8–23 iterations; explicit "search cost is a one-time expense and the searched modules can be reused" | AgentSquare Table A.6 |
+| **AgentSquare** | per-iteration API cost $1.84–$4.25 (GPT-3.5) and $10.51–$42.14 (GPT-4o) across 8–23 iterations; search costs excluded from final-agent cost plots. Component inclusion and complete bill unknown | v3 Table A.6, §4.2; fourth-batch O1/O2 |
+| **AgentPrune** | MMLU overall fee $5.6 vs GPTSwarm $43.56, abstract $43.7. This is a dataset-level topology comparison, not per-query fees or the separate Table 3 plug-in experiment | v1 H.1/Fig. 19; fourth-batch O3 |
+| **ScoreFlow** | Optimization fees 2.2570/1.4124/1.3966 vs Aflow 4.6081/2.9160/2.8664 USD for three executors. Inference fees are separate and not uniformly lower than Aflow; training GPU dollars not separately priced | v1 Tables 5/6; fourth-batch O4 |
 | **HieraMAS** | training cost **18.41× cheaper than AFlow** on HumanEval++ | 2602.20229 |
 | **Mas-Orchestra** | v5 D.2 has AIME24/GPQA calls, tokens and dollars. AFlow/Mas call ratios 25.2549/28.3678, token ratios 115.6667/56.2727, printed-dollar ratios 146/64.5714; not every baseline or metric exceeds 10× | [Suite check A2](supplements/02-multiagent-suites-and-swebench-20261014.md#a2-masbenchmas-orchestra-四栏); rounded fees and Avg@8 aggregation limit interpretation |
 | **W4S** | 7B meta-agent trained in **1 GPU hour** | 2504.04785 |
@@ -1299,7 +1338,7 @@ the measured degradation regime.
 
 ### 4.8 Checked strong baselines and budget boundaries
 
-This table covers the checked claims in nine candidates across three supplement batches, not the entire inventory.
+This table covers the checked claims in twelve candidates across four supplement batches, not the entire inventory.
 Values are author-reported; differences and ratios are independently recomputed. No experiment was run.
 
 | Source | Single-agent, multi-sample and fixed controls | Published comparison | Budget and attribution limit |
@@ -1313,6 +1352,9 @@ Values are author-reported; differences and ratios are independently recomputed.
 | AFlow v4, Table 1 | IO/CoT, SC with 5 answers, MedPrompt, Self-Refine, ADAS | Six-task Avg 80.3 vs SC 76.0 and ADAS 67.2 | Validation:test 1:4; 5 validation runs/3 test runs; AFlow 20 search rounds vs ADAS 30, not equal budget |
 | MASS v2, Table 6 | Single-agent APO and successive block/topology/workflow stages | Pro Avg 67.44→74.56→77.55→78.40 | Prose increments conflict with cells; Table 7 costs cannot be attached to arbitrary main-table scores |
 | GPTSwarm v3, §3.1–3.3 | Single IO, initial/same-edge-count graphs, ToT, no node optimization | Mini Crosswords 0.575 vs 0.465/0.510; HumanEval 0.76→0.88±0.007 | Online HumanEval changes node prompts; model/compute differences and incomplete fees limit topology-only attribution |
+| AgentSquare v3, Tables 1/A.3/A.6 | Twelve handcrafted single-agent designs, including CoT-SC; random/Bayesian/OPRO/ADAS search | Twelve task/model relative gains average 17.1888%, about 17.2% | Same few-shot counts; claimed token budget is operationalized as equal search iterations, not an independently reconciled token/dollar ledger. Not a multi-agent topology contrast |
+| AgentPrune v1, Tables 1/3 and §3.2–3.4 | CoT/SC, fixed graphs and pruning plug-in controls | Prompt reductions 28.0744% MMLU/AutoGen and 72.7493% HumanEval/GPTSwarm | Utility participates in mask training; pruning is not performance-free. No matched-budget statement located; GSM8K token cells conflict with percentages |
+| ScoreFlow v1, Tables 1/5/6 | IO/CoT, SC with 5 responses, MedPrompt, fixed manual workflows and Aflow | 85.3 vs 80.6 average, +4.7pp; optimization and inference fees separated | No equal-budget claim located; 8.2% denominator unexplained. Per-query generation is not an in-task migration experiment |
 
 MasRouter's search/training costs in Table 12 are separate from Table 10 inference costs.
 Its MBPP Table 10 and main-text values also differ; the supplement keeps comparisons within one table.
@@ -1333,6 +1375,9 @@ The supplement records search terms, exact scopes, unavailable sources and repor
 No Pod detector, fallback form, threshold or calibration method is selected here.
 The AFlow/MASS/GPTSwarm check also found no refusal or drift-net-benefit experiment in its named
 sections. It does not expand this three-source table into a full-field absence claim.
+The fourth-batch AgentSquare/AgentPrune/ScoreFlow full-text check likewise located no such
+experiment in its declared search scope. AgentPrune's prompt/replacement attacks are not time
+drift, and ScoreFlow's discussion of DPO's unseen responses is not a refusal/calibration result.
 
 ## 5. Benchmarks with concrete numbers
 
@@ -1949,6 +1994,12 @@ Recorded precisely, because a reconnaissance map's value depends on where its ed
   increments and Table 6 cells differ, and Table 7 lacks an aligned task/model denominator.
   GPTSwarm's former GSM8K 89.7% attribution is withdrawn; its checked online result changes prompts,
   not edge topology. See the [candidate check](supplements/01-unchecked-candidates-20261014.md).
+- **Fourth-batch limits remain explicit.** AgentSquare's 17.2% combines two models and six tasks;
+  equal search iterations do not independently prove equal tokens. AgentPrune's utility-trained
+  masks, two pruning schedules and prompt-token endpoints are distinct; its GSM8K ratios conflict.
+  ScoreFlow generates per query, but its 8.2% aggregation, training-dollar cost and complete
+  fee inclusion remain unknown. See the [optimizer check](supplements/01-remaining-optimizers-20261014.md).
+  The original ten-form coverage still has unchecked claims, itemized in §1.11; no new survey is required.
 - **Several systems are title-level only** in this map and were not characterized: arXiv 2607.27429,
   2609.34136, 2510.10047, 2404.02183, 2606.00655, 2603.24676, 2607.06001, 2603.15968, 2603.18043,
   2510.26352. Marked `[未经一手来源核验]` where used.

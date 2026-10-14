@@ -34,6 +34,11 @@ The [2026-10-14 multi-agent suite and SWE-bench check](supplements/02-multiagent
 adds MultiAgentBench's 1/3/5/7-agent comparison, MAS-Orchestra's score and resource tables,
 and a bounded classification of the top 15 Verified entries. Multiple attempts are not
 automatically multiple agents; none of these additions replaces the Optima pair.
+The [fourth-batch AgentBench/MAEBE/CoffeeBench check](supplements/02-agentbench-maebe-coffeebench-20261014.md)
+adds three four-field records and bounded non-dollar observations. CoffeeBench publishes
+net income and API fees, but changes the focal model in a fixed multi-agent economy;
+it is not a multi-vs-single organizational contrast. MAEBE has a homogeneous same-model
+contrast for preference behaviour, without a cost column.
 Uninspected suites and organization comparisons remain open; this is not a field-wide
 claim that costs or comparisons do not exist.
 
@@ -73,9 +78,10 @@ the suite has no published cost elsewhere. **Unverified** marks unread or confli
 | **HAL (Holistic Agent Leaderboard)** | Meta-leaderboard: accuracy **and** cost across 9 benchmarks, 9 models, many scaffolds | 21,730 rollouts, 9 models × 9 benchmarks over 9 suites (see §2) | `hal.cs.princeton.edu` (+ arXiv 2510.11977) | **yes (suite)** — required metric schema includes `total_cost_usd`, `total_tokens`, `cached_input_tokens`, `uncached_input_tokens`, `output_tokens`, `n_trials`, `pass@k`, `avg_trial_duration_sec` | One of its 9 suites is **SWE-bench Verified *Mini***, not the full 500; site note says leaderboard updates are **paused** (focus shifted to reliability measurement) |
 | **MultiAgentBench** | Collaboration/competition, milestone KPIs and coordination topology | Four task scenarios each have 100 cases; §5 uses a 20-paper research subset | v1 paper §3.2/§4/§5, Fig. 5/6/8; MARBLE code/data unread | **partial**: Fig. 5 token usage normalized to 0–100; no reconstructible absolute cost located in the read experiments | Fig. 8 includes 1/3/5/7-agent arms, not only multi-agent topology comparisons. Their absolute cost and budget matching remain unverified |
 | **MasBench / MAS-Orchestra** | Controlled task structure: Depth, Horizon, Breadth, Parallel, Robustness; five additional public benchmarks | Five axes; AIME24/AIME25/HotpotQA/BrowseComp+/GPQA in Table 3 | v5 paper Fig. 3/C.1 and Table 3; code/HF data unread | **yes (paper)**: D.2 reports calls, tokens, USD and time on AIME24/GPQA | Table 3 quality is Avg@8; D.2 repetition/aggregation alignment is unspecified. Standalone strategies include debate and self-consistency; a shared candidate model pool is not identical system configuration |
-| **AgentBench** | LLM-as-agent across 8 distinct interactive environments | 8 environments | `github.com/THUDM/AgentBench` | Unverified in this supplement batch | Mixed API/OSS model cohort; not yet a checked organization-cost comparison |
-| **MAEBE** | Emergent behaviour of multi-agent systems (safety-flavoured) | Framework + benchmark | arXiv 2506.03053 | Unverified in this supplement batch | Emergent-behaviour focus; that focus alone cannot prove the absence of cost data |
-| **CoffeeBench / MedAgentBoard / alem-env / DebateLLM / elimination_game / step_game / pgg_bench** | Domain or interaction-specific multi-agent suites (heterogeneous economies, medical tasks, long-horizon coordination, debate truthfulness, social reasoning/deception, public-goods cooperation) | Varies | See §7 references | Unverified in this supplement batch | Each suite still needs its own cost and published-comparison coverage record |
+| **AgentBench** | One LLM as an agent in 8 interactive environments, with environment-specific metrics | 8 environments; dev/test counts in v3 Table 2 | v3 Table 3; fixed repo README links image/FC boards, which were not read | **partial**: Appendix J reports token/round distributions for Completed trajectories, not dollar bills; worker startup time/memory are separate resources | Total-score weights are reciprocals of tested-model mean scores, not means of reciprocals. No organization contrast located in the read v3 text; FC sheet failed to load |
+| **MAEBE** | Moral-preference behaviour and emergence, using the Greatest Good Benchmark | 90 questions, 12 repeats/question/condition, 4 MAS rounds | v2 Figure 2 and appendices; code repository unread | **no** dollar/token cost column located in the read v2 text; >237,000 responses is a workload count, not a bill | Single response vs 6 same-model agents in homogeneous round-robin is a same-model contrast; heterogeneous/star arms are not. These are preference scores, not demonstrated economic gains |
+| **CoffeeBench** | A focal LLM operating roaster_A in a 6-firm simulated economy | 90 simulated days, 3 runs/model | v1 Table 2; fixed repo has an experiment matrix, with only sonnet/passive configs read | **yes (paper)**: net income and API cost ($/run) in Table 2; roughly 8h/run and a separate six-firm ~$250/run estimate | All tested arms keep 5 Sonnet background firms; the variable is the focal model or rule baseline, not multi-vs-single organization. Simulation income, API fees and background fees are separate quantities |
+| **MedAgentBoard / alem-env / DebateLLM / elimination_game / step_game / pgg_bench** | Domain or interaction-specific multi-agent suites | Varies | See §7 references | Unverified in this supplement batch | Each of these six suites still needs its own four-field record |
 
 ### 1.1 Confirmed public score and cost fields
 
@@ -83,6 +89,8 @@ Terminal-Bench 4.0 and SWE-bench's official Verified data both provide machine-r
 scores and costs. HAL describes cost tracking in its paper, but its current row-level
 accounting requires verification (§2.2). PaperBench and RE-Bench also publish paper-level
 scores and monetary estimates (§2.5); tau papers also report monetary estimates (§1.3).
+CoffeeBench Table 2 also publishes net income and API fees (§1.3), with no controlled
+organizational contrast inferred from those columns.
 These are not raw, per-call accounting records.
 This is not an exhaustive list of cost-bearing suites. Optional cost fields, unread
 appendices and unresolved field semantics prevent a
@@ -108,8 +116,13 @@ review gates and memory with unit cost. The checked candidates and remaining sco
   public-benchmark quality and resource tables. D.4 defines tokens as prompt plus
   completion and uses Together AI prices at writing time. Rounded fees, unbound
   repetition counts and asynchronous implementation limit cross-table comparisons.
-- **MAEBE** (arXiv 2506.03053) studies emergent behaviour of multi-agent systems;
-  cost coverage remains unread.
+- **MAEBE v2** studies preference behaviour in single responses and MAS conditions.
+  Its homogeneous round-robin condition uses 6 copies of one model; heterogeneous
+  groups and the extra star supervisor must be separated. No cost column was located
+  in the read text. A preference shift is not a quality or economic improvement.
+- **CoffeeBench v1** evaluates one focal model within a fixed multi-agent economy,
+  not the benefit of adding an organizational layer. It publishes API cost and
+  simulation net income, which must not be treated as the same dollar quantity.
 - **HAL** evaluates model/scaffold configurations and offers a methodological template.
   A scaffold name or process count alone does not establish which organizational
   mechanisms its implementation contains.
@@ -141,7 +154,10 @@ score/cost pairs. "Not found in the inspected source" does not cover other publi
 | TheAgentCompany | v3 paper checked: Table 1 Costs column averages per-task USD; one partial two-arm row (OpenHands 8.6%/$1.3 vs OWL RolePlay 4.0%/N/A) is heterogeneous and conflicts with the prose "Both using GPT-4o"; not a same-model pair. Site board is client-rendered and unread |
 | MultiAgentBench | v1 §3.2/§4/§5 and Fig. 5/6/8 checked; 1/3/5/7-agent comparison exists, but normalized tokens do not establish absolute cost. MARBLE code/data and fee inclusion remain unread |
 | MasBench / MAS-Orchestra | v5 §4.1/§6, Fig. 3/C.1 and D.4/D.2 checked; Table 3 quality and D.2 resource columns are mapped. Aggregation binding, training cost and strictly matched-model/budget attribution remain unresolved |
-| AgentBench / MAEBE / CoffeeBench / MedAgentBoard / alem-env / DebateLLM / elimination_game / step_game / pgg_bench | Original inventory only; per-suite full-source and comparison checks remain unfinished |
+| AgentBench | v3 full text and fixed repo README checked. Table 2 gives environments/weights, Table 3 scores; no multi-vs-single organization contrast located in that text. Appendix J token/round data are conditional on Completed trajectories, which are not necessarily correct. FC sheet returned 502 and remains unverified |
+| MAEBE | v2 full text checked. Independent single responses vs homogeneous 6-agent round-robin give a same-model preference-behaviour contrast; heterogeneous and star conditions do not. No cost column located, so this is not a score+cost pair; 12 repeats/question are not a budget match |
+| CoffeeBench | v1 full text, blog, fixed repo README/tree and two configs checked. Table 2 GPT-5.5 net income 3,109±1,123 and API fee 79.3±14.4 vs Gemini 3.1 Pro 1,695±508 and 31.4±1.5, over 3 runs/model. All arms use 5 Sonnet background firms; this cross-model pair is not multi-vs-single. Table 2 fee inclusion versus the six-firm ~$250/run estimate is not bound, so the estimates cannot be added or declared contradictory |
+| MedAgentBoard / alem-env / DebateLLM / elimination_game / step_game / pgg_bench | Original inventory only; these six per-suite four-field checks remain unfinished |
 
 The owning ticket's published-pair requirement is met at the paper-report level by
 Optima's ARC-C/GSM8K baselines (§2.4). Its original suite-coverage requirement remains open.
@@ -293,7 +309,7 @@ rows retain their stated reading level.
 | Study | Comparison | Score | Cost | Source |
 |---|---|---|---|---|
 | **BudgetMLAgent** | Gemini-Pro + GPT-4 multi-agent vs GPT-4 single agent, 11 MLAgentBench tasks; **different model assignments** | reported average success **32.95% vs 22.72%** | reported **$0.054** with free Gemini, **$0.120** with paid Gemini, vs **$0.931** estimated baseline cost; 94.2% uses the free tier | [2411.07464v2](https://arxiv.org/abs/2411.07464v2), §4.2 and Table 2; baseline cost is estimated, not billed |
-| **AgentPrune** (arXiv 2410.02506) | Pruned communication topology vs SOTA topologies, 6 benchmarks | "comparable results as state-of-the-art topologies" | **$5.6** vs **$43.7** → ~7.8× cheaper | arXiv 2410.02506 abstract |
+| **AgentPrune v1** | Pruned graph vs GPTSwarm, MMLU with five GPT-4-based agents; not a six-benchmark fee aggregate | Author reports comparable performance; this fee headline is not the separate plug-in token experiment | MMLU overall fees **$5.6** vs **$43.7** in abstract, **$43.56** in H.1; about 7.8× by reported values, not a reconstructed bill | [fourth-batch O3](supplements/01-remaining-optimizers-20261014.md) and v1 H.1; query count/pricing basis not established |
 | **Optima trained variants** | Post-trained multi-agent vs prompting baselines sharing the Llama 3 8B base model; **training is a confound** | 2WMHQA iSFT-DPO **74.2 F1** vs MAD **25.9 F1**; this pair is multi-vs-multi | **54.9 vs 543.7** reported inference tokens; about **10.10%**, excluding training | [2410.08115v2](https://arxiv.org/abs/2410.08115v2), Table 1; prose/table conflict described below |
 | **MasRouter** (arXiv 2502.11133) | Learned MAS routing vs SOTA MAS | **+1.8%–8.2%** over SOTA on MBPP | overhead **−52.07%** on HumanEval; **−17.21%–28.17%** as a plug-in | arXiv 2502.11133 abstract |
 
@@ -530,7 +546,7 @@ The research does not choose among them or set numeric gates.
 | **ZEBRA** (arXiv 2605.20485) | arXiv preprint | Zero-shot split of a fixed monetary budget across pipeline phases (nonlinear knapsack, LLM-estimated utility curves) | At α=0.5 of unconstrained spend, recovers **94.4%** of unconstrained quality vs **88.1%** for LLM-directed allocation; +14.3pp on a 3-phase HotpotQA pipeline |
 | **AgentDropout** (arXiv 2503.18891) | arXiv preprint | Dynamically eliminates redundant agents/edges via adjacency-matrix optimisation | **−21.6%** prompt tokens, **−18.4%** completion tokens, **+1.14** performance |
 | **MasRouter** (arXiv 2502.11133) | arXiv preprint | Jointly routes collaboration mode, agent roles and LLMs | **−52.07%** overhead on HumanEval vs SOTA; plug-in **−17.21%–28.17%** |
-| **AgentPrune** (arXiv 2410.02506) | arXiv preprint | One-shot spatio-temporal pruning of the message-passing graph | **$5.6** vs **$43.7** for SOTA topologies on six benchmarks |
+| **AgentPrune v1** | arXiv preprint | Utility-trained graph masks with low-rank regularization, then TopK magnitude pruning; per-query or few-query training schedules | MMLU overall **$5.6** vs GPTSwarm **$43.7** in abstract/**$43.56** in H.1, not six-benchmark total fees. Plug-in prompt-token endpoints and GSM8K conflicts are separate; see the linked optimizer check |
 | **Optima** (arXiv 2410.08115v2) | arXiv preprint | Trains the MAS with a reward balancing task performance, token efficiency and readability | §2.4 separates the post-training result, its prose/table conflict, and the untrained MAD/CoT/SC comparisons; training cost is excluded |
 | **Phase-Scheduled MAS** (arXiv 2604.17400) | arXiv preprint | Agent activation as temporal scheduling over a shared attention space | Mean token reduction **27.3%** (21.4–34.8%) within **2.1pp** of a fully activated baseline |
 | **INFRAMIND** (arXiv 2606.11440) | arXiv preprint | Planning/routing/scheduling aware of serving-infrastructure state and remaining budget | Up to **+7.6pp** accuracy at low load with up to **7× lower latency**; up to 99.9% SLO compliance under high load where baselines drop below 50% |
@@ -601,13 +617,14 @@ enterprise benchmark against real APIs:
 
 The table separates source observations from proposed Pod collection methods. It does
 not select a primary metric, quantile, timeout policy or exchange rate for human time.
-PaperBench and RE-Bench source locations are in §2.5 and its linked supplement.
+PaperBench and RE-Bench source locations are in §2.5 and its linked supplement;
+the fourth-batch suite supplement supplies the additional bounded observations below.
 
 | Quantity | Evidence available in the checked sources | Candidate definition and collection method (project inference) | Limit and missing data |
 |---|---|---|---|
-| Machine usage | Optima reports inference tokens; RE-Bench reports average input/output tokens per 8h run | Record unique calls and provider usage categories using §3.4; report totals and per-task denominators separately | Neither source supplies the complete four-component ledger needed here; tokens are not human time or dollars |
-| Tail latency | PaperBench and RE-Bench give runtime limits and time/score curves, not verified per-attempt latency samples for this metric | Record attempt/task ids and start/terminal timestamps; declare the clock and cohort. For a chosen p, a possible empirical quantile is the smallest duration whose cumulative fraction reaches p; name the estimator and report task and attempt counts | p and the estimator remain for HITL. A mean or budget limit does not determine a tail; repeated attempts on one task are not new independent tasks |
-| Timeouts and failures | RE-Bench's 8h runs and PaperBench's forced-runtime variant show that limits and early stopping differ | Keep all attempts with success/failure/timeout outcomes. Report observed time-to-termination separately from successful completion time; the latter is conditional on success, with timeout counts and censoring stated | A timeout is an observed terminal duration, not an observed time-to-success. Excluding failures from a latency plot requires that label; completion quantiles can remain unidentified |
+| Machine usage | Optima reports inference tokens; RE-Bench reports mean tokens per 8h run. AgentBench v3 Figure 8 Completed trajectories have token median 1,850, mean 2,220.1, IQR 761–2,709; round median 6, mean 7.95, IQR 4–9 | Record unique calls and provider usage categories using §3.4; report totals and per-task denominators separately | No complete four-component ledger is supplied here. AgentBench Completed does not mean correct and excludes other termination classes; its distribution is not total run spending |
+| Tail latency | PaperBench/RE-Bench give runtime limits and curves; CoffeeBench reports about 8h/run on average, not a tail distribution | Record attempt/task ids and start/terminal timestamps; declare the clock and cohort. For a chosen p, a possible empirical quantile is the smallest duration whose cumulative fraction reaches p; name the estimator and report task and attempt counts | p and the estimator remain for HITL. A mean or budget limit does not determine a tail; repeated attempts on one task are not new independent tasks. No p95 located in the fourth-batch sources |
+| Timeouts and failures | Runtime limits and early stopping differ. AgentBench TLE is a round/repeated-generation limit, not wall-clock timeout; CoffeeBench ends a bankrupt firm early | Keep attempts and their outcomes. Separate economic termination, harness failure and timeout. Report time-to-termination separately from successful completion time, with timeout counts and censoring stated | A terminal duration is not an observed time-to-success. The AgentBench Completed-only plot does not cover the failure ledger; completion quantiles may remain unidentified |
 | Human interventions | Neither checked cost passage supplies a per-agent-run intervention count | Log one event id per intervention with actor, trigger and affected attempt; separate intervention count from messages and review actions | Unknown is not zero; task-independent setup/support must be explicitly included or excluded |
 | Active human work and waiting | PaperBench §5.4 tracks active work but adds unattended experiment time to total work hours. RE-Bench's $1,855 has an unspecified denominator | Record active intervals per person, plus waiting and machine-only intervals separately; total active time uses the union of overlapping intervals per person, with declared task allocation | PaperBench total hours cannot be relabelled active human hours; RE-Bench's payment cannot establish hourly labor or intervention time |
 | Machine review | PaperBench separates SimpleJudge estimates from agent rollout estimates | Tag judging/verifier calls within the same unique-call ledger; report the review subtotal without adding it again to an inclusive total | A review label does not create a second bill; an external judge bill may be added only if not already counted |
@@ -615,6 +632,9 @@ PaperBench and RE-Bench source locations are in §2.5 and its linked supplement.
 
 These definitions make missing public fields explicit and identify what a later experiment
 would need to collect. This pass collected no Pod latency, intervention or review observations.
+MAEBE's >237,000 responses and supervisor resource limit are workload observations, not
+latency or human-time measurements. The three fourth-batch sources supply no verified
+active-human-time, intervention-count or review-deduplication field in the declared read scope.
 
 ## 4. Comparability criteria
 
@@ -714,9 +734,10 @@ Gaps that remain, each a real limitation rather than a caveat:
    figure or selected an acceptance metric; fixed/variable cost refers to when a charge
    recurs, not whether its prompt text was written once.
 10. **The original suite checklist is partly closed.** BrowseComp, SWE-Lancer,
-    TheAgentCompany, MultiAgentBench and MasBench have four-field checks (§1.3).
-    AgentBench, MAEBE, CoffeeBench, MedAgentBoard and the remaining listed suites
-    still need per-suite checks. These are core coverage gaps, not bounded empty
+    TheAgentCompany, MultiAgentBench, MasBench, AgentBench, MAEBE and CoffeeBench
+    have four-field checks (§1.3). MedAgentBoard, alem-env, DebateLLM,
+    elimination_game, step_game and pgg_bench still need per-suite checks.
+    These are core coverage gaps, not bounded empty
     results; the owning ticket stays open.
 11. **The same-model published pair is established, not independently reproduced.**
     Optima's untrained MAD/CoT/SC rows satisfy the paper-level pair requirement, but
@@ -732,6 +753,11 @@ Gaps that remain, each a real limitation rather than a caveat:
     training bill remain unknown. SWE-bench's top-15 classification leaves 5 structures
     undetermined, preserves the Warp score conflict and does not cover the other 165
     entries. These checks add no tail-latency, intervention or review-cost observations.
+14. **Fourth-batch source limits remain.** AgentBench FC's sheet failed to load;
+    MAEBE code and CoffeeBench's trajectory viewer were not read. Only two CoffeeBench
+    configs were inspected; their seeds do not bind the paper's individual runs.
+    Table 2 fee inclusion versus six-firm total spending is unknown, not a proven conflict.
+    No new same-model organizational score+cost pair or equal-budget gain was established.
 
 ## 7. Reference list
 
@@ -753,6 +779,10 @@ The third-batch check on 2026-10-14 used MultiAgentBench `2503.01935v1`, MAS-Orc
 `2601.14652v5`, SWE-bench experiments commit `40f164d5b8f1d249bf95a6df8b74b577fd8e519d`
 and mini-SWE-agent v2.0.0 commit `ce91a8c6449bc5a686df8f6b7ee8ca9433d893bc`.
 The supplement lists the 11 submission READMEs, mini source, chart script and full hashes.
+The fourth-batch check used AgentBench `2308.03688v3`, MAEBE `2506.03053v2`,
+CoffeeBench `2606.16613v1`, AgentBench commit `d1e4a10db08c87075c78972e48ecc182be03e2d5`
+and CoffeeBench commit `9e2f3950b5812c8753de81ede9c68babc024b5c8`. Its source table
+binds 21 cached files by full SHA-256; failed/unread sources remain separate.
 
 | Refs | Sources (URL · classification · date/version) |
 |---|---|
