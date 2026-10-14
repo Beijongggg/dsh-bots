@@ -30,43 +30,39 @@
 
 ## 4. 事实源
 
-事实源、文档地图、任务阅读路径、编号解码与落档规范统一路由于 `README.md`。
+事实源、文档地图、任务阅读路径、编号解码与落档规范统一路由在 `README.md`。
 
 ## 5. 工单、triage 与领域文档
 
 - 登记长期观察项前，读 `README.md` §2。
-- 工单面、triage 词表与领域文档的读取路由见下节 `## Agent skills`。
+- 工单面、triage 词表与领域文档的读取路由见 `## Agent skills`。
 
 ## 6. 书写纪律
 
-- **书写面按读者分流**：agent 消费面（技能、本文件、`docs/agents/*` 与一切指针文档）
-  写完过 `/writing-for-agents`（指针前置触发词、信息分层、步骤带完成判据、正向表述、
-  剪重与 no-op）；人看显示面（client 文案、通知／邮件措辞、报告行文）面向人写，不套该
-  技能杠杆。判据＝谁触发读取：agent 经指针或装载读＝agent 面，人打开看＝人面；两读者
-  共用件（票面、CHANGELOG）以事实陈述为共同底线。
-- **禁止 LLM 自陈**：产出以对象与动作为主语、直接陈述——覆盖文档、票面、日志卷、
-  brief、mail 与 client 文案；「作为 AI／模型／助手」类开场、身份自述与能力免责套话
-  一律不写。
+- **书写面按读者分流**：agent 面（技能、本文件、`docs/agents/*` 及一切指针文档）写完过
+  `/writing-for-agents`；人面（client 文案、通知与邮件措辞、报告行文）面向人写，不套该
+  技能。判据是读取由谁触发：agent 经指针或装载读的算 agent 面，人打开看的算人面；共用件
+  （票面、CHANGELOG）以事实陈述为底线。
+- **禁止 LLM 自陈**：文档、票面、日志卷、brief、mail 与 client 文案以对象与动作为主语、
+  直接陈述；「作为 AI／模型／助手」类开场、身份自述与能力免责一律不写。
 
 ## Agent skills
 
-`/setup-matt-pocock-skills` 约定的路由块：技能按此定位工单面、词表与领域文档。
+`/setup-matt-pocock-skills` 路由块：技能按此定位工单面、词表与领域文档。
 
 ### Issue tracker
 
-创建或读取工单、规格、路标及做 triage 打标前，先读
-`docs/agents/issue-tracker.md`。默认工单面为 `Beijongggg/dsh-bots` 的 GitHub Issues；
-现存本地票按该文件的迁移入口与兼容规则处理。
+创建或读取工单、规格、路标及做 triage 打标前，先读 `docs/agents/issue-tracker.md`。
 
 ### Triage labels
 
-五排程角色词表；终态 `resolved`（＋wayfinder 专属 `claimed`）为本仓库扩展，
-重跑 setup 时勿覆盖该节。See `docs/agents/triage-labels.md`.
+五排程角色词表及本仓库扩展的终态、搁置态；重跑 setup 时勿覆盖该节。
+读 `docs/agents/triage-labels.md`。
 
 ### Domain docs
 
 Single-context：`GLOSSARY.md` ＋ `docs/adr/`（有内容需要记录时才创建）；定形领域词
-或立 ADR 前先读该文件。See `docs/agents/domain.md`.
+或立 ADR 前，先读 `docs/agents/domain.md`。
 
 ### Codebase map
 
