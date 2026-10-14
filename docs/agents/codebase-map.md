@@ -11,9 +11,12 @@
 - 找导出：`grep -n "^export" lib/org/<模块>.js`；找定义：`grep -n "function <名>" lib/**/*.js`。
 - 本地旧规格的判据 ID 位置：`node scripts/project-context.mjs --spec-index <feature>`。
 - 触碰冻结面前，按 README §1 定位最新包并读取其
-  `executionEvidence.provenance.sourceManifest`；边界见 AGENTS §3，复验由 preflight ②门执行。
+  `executionEvidence.provenance.sourceManifest`；边界见
+  [AGENTS.md 工作边界](../../AGENTS.md#工作边界) 与
+  [CODING_STANDARDS.md 证据纪律](../../CODING_STANDARDS.md#证据纪律)，复验由 preflight ②门执行。
 - 全库文本搜索先排除 `.scratch/`（实验装配快照内嵌整文件文本，非代码引用面；
   死码判定以 lib／scripts／tests／preview 为准）。
+- 新增 `lib/org/*.js` 须在下方 lib/org 表内落行；preflight ③门的覆盖检查按此表把关。
 
 ## lib/ 根
 
