@@ -68,6 +68,7 @@ Charted: 2026-10-13（建图会话两轮 grilling：第一轮 Q1–Q9 定终点�
 
 <!-- 一行一票：[票题](issues/NN-slug.md): 答案梗概 -->
 
+- [外部产品与本地 DSH 生态（收编与复核）](issues/04-research-external-products-and-ecosystem.md)：按用户授权限定收口，只准入已核字段；停止获取dots/Brown正文，未核原稿不作本图决策依据。
 - [持续演进中的评测过拟合与反复选择偏差](issues/14-research-adaptive-evaluation-and-selection-bias.md)：原文、适用条件和四项防护候选已核；评测与演进票共同消费其「评测复用证据」。
 
 ## Not yet specified

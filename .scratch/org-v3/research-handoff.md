@@ -5,7 +5,16 @@
 2026-10-13 用户已授权原生子代理，可选 ds4.1；实际派发与验收留在所属票 Comments。
 原生子代理共享工作树，以下文件所有权约束不等于工具级写入隔离；本轮不调用本机 DSH。
 
+## 2026-10-14 生态研究授权收口
+
+消费生态事实或判断是否继续补采时，先读[外部产品与本地DSH生态的Answer](issues/04-research-external-products-and-ecosystem.md#answer)
+及末尾授权记录。本票按用户授权限定收口，停止获取dots/Brown正文；两处未核主张及其他未验字段
+不准入本图决策，只保留已核白名单和历史线索。这不是整篇原稿通过，也不放松其他研究票的S1–S5。
+定位票的研究依赖已解除，定位文本与架构、预算仍待用户讨论，不自动推进HITL。
+
 ## 2026-10-14 生态补核
+
+本节保留授权收口前的采集状态，当前结果以上节及票面Answer为准。
 
 继续生态研究时，先读[外部产品与本地DSH生态的当前Answer](issues/04-research-external-products-and-ecosystem.md#answer)
 及末尾移交。新增Anthropic、Google/Microsoft、OpenAI缺口三份补件，前两份只准入列明字段，
@@ -94,11 +103,12 @@ S1–S5 与全部 HITL 选择保持，不改既有冻结规格，不运行论文
 | [组织形态谱系、动态架构与成本经济](issues/01-research-org-patterns-and-phase-transition.md) | 从未验候选选至多三项，例如 AgentSquare、AgentPrune、ScoreFlow，核原则、适用条件、成本及固定基线 | 已核九候选不整包重派；完整费用未知限制净收益，不抹去已发表动态对照，不选择 Pod 路由策略 |
 | [组织理论、复杂系统与控制论](issues/03-research-organization-theory-and-concepts.md) | 补原条目尚缺的作者边界；Varela、Burns & Stalker、Thompson 及矩阵正文有新学术入口时再核 | 原作或可定位权威学术二手才计内容；后期作者文本只支持列明范围，百科、题录和访问失败交回，不降五项要求 |
 
-生态续包由并行会话按[外部产品与本地DSH生态](issues/04-research-external-products-and-ecosystem.md)
-及在办登记推进，本表不重复领票。
+生态研究已限定收口，本表不再安排生态续包；事实准入范围读
+[外部产品与本地DSH生态](issues/04-research-external-products-and-ecosystem.md#answer)的当前Answer。
 
-架构取舍、理论迁移、因果归因、跨报告冲突裁决和最终验收留主会话；没有新资料的访问缺口
-留在原票，不用新增票或移入雾面绕过S4。后续派发仍需按下节固定实际输入、输出与停止条件。
+架构取舍、理论迁移、因果归因、跨报告冲突裁决和最终验收留主会话。其余开放研究票按原问题、
+原判据与S4处理访问缺口；生态票的用户授权不自动适用于其他票。后续派发仍需按下节固定实际
+输入、输出与停止条件。
 
 ## 原侦察的验收问题
 
