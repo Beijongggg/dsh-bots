@@ -1,5 +1,6 @@
 # Research: 组织形态谱系、动态架构（相变）与成本经济
 
+GitHub: https://github.com/Beijongggg/dsh-bots/issues/4
 Type: research
 Status: ready-for-agent
 Deliverable: `../research/multi-agent-organization-landscape.md`

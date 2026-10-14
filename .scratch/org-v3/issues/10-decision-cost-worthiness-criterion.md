@@ -1,5 +1,6 @@
 # 「划算」判据与门槛口径
 
+GitHub: https://github.com/Beijongggg/dsh-bots/issues/13
 Type: grilling
 Blocked by: 02, 09
 

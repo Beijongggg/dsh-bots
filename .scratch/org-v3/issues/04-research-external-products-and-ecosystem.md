@@ -1,5 +1,6 @@
 # Research: 外部产品与本地 DSH 生态（收编与复核）
 
+GitHub: https://github.com/Beijongggg/dsh-bots/issues/7
 Type: research
 Status: resolved
 Deliverable: `../research/external-products-and-dsh-bots-ecosystem.md`（事实引用范围见Answer，未核原稿不计验收通过）

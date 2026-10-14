@@ -1,5 +1,6 @@
 # 相变粒度与防抖闸门
 
+GitHub: https://github.com/Beijongggg/dsh-bots/issues/11
 Type: grilling
 Blocked by: 01, 06, 10
 

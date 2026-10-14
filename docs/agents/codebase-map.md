@@ -3,16 +3,15 @@
 何时读：要改 `lib/`、找某个函数或导出住在哪、或需要跨文件不变量（门的顺序、
 单源常量）时。定位一律以符号名＋`grep` 为锚——行号坐标已按 retro4 裁定移除
 （两个批次内实测漂移 +10～+33 行，行号缓存的维护成本大于价值）；精确事实以
-源码与 `grep` 为准。本图只写「东西在哪」，不重复写设计——设计
-读 `.scratch/<feature>/spec.md` 与票面。
+源码与 `grep` 为准。本图只写「东西在哪」；设计按
+`docs/agents/issue-tracker.md` 的票面与规格指针读取。
 
 ## 查询习惯
 
 - 找导出：`grep -n "^export" lib/org/<模块>.js`；找定义：`grep -n "function <名>" lib/**/*.js`。
-- 判据 ID 在规格里的位置：`node scripts/project-context.mjs --spec-index <feature>`。
-- 冻结面（哪些文件不能碰）＝当前终版包（`artifacts/packages/` 最新序号包）的
-  `executionEvidence.provenance.sourceManifest` 路径清单；漂移由 preflight ②门把守，
-  agent 只需读清单判断可碰性，不必逐层探 JSON 或复验 sha。
+- 本地旧规格的判据 ID 位置：`node scripts/project-context.mjs --spec-index <feature>`。
+- 触碰冻结面前，按 AGENTS §3 读取最新包的
+  `executionEvidence.provenance.sourceManifest`；复验由 preflight ②门执行。
 - 全库文本搜索先排除 `.scratch/`（实验装配快照内嵌整文件文本，非代码引用面；
   死码判定以 lib／scripts／tests／preview 为准）。
 

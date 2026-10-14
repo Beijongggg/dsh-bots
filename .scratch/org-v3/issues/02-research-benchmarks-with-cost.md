@@ -1,5 +1,6 @@
 # Research: 带成本的公开基准与成本口径
 
+GitHub: https://github.com/Beijongggg/dsh-bots/issues/5
 Type: research
 Status: ready-for-agent
 Deliverable: `../research/benchmarks-and-cost-accounting.md`

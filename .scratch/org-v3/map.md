@@ -1,5 +1,6 @@
 # Map: 组织形式 vNext —— 任务相变与持续演进
 
+GitHub: https://github.com/Beijongggg/dsh-bots/issues/3
 Labels: wayfinder:map
 Charted: 2026-10-13（建图会话两轮 grilling：第一轮 Q1–Q9 定终点，第二轮 Q1–Q10 铺雾面；裁定全入 Notes）
 前置侦察：`research/external-products-and-dsh-bots-ecosystem.md`（建图前交付，收编为 04 号票交付物）

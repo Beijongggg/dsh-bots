@@ -1,5 +1,6 @@
 # Research: 组织理论、复杂系统与控制论（纯理念面）
 
+GitHub: https://github.com/Beijongggg/dsh-bots/issues/6
 Type: research
 Status: ready-for-agent
 Deliverable: `../research/organization-theory-and-concepts.md`

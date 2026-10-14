@@ -1,5 +1,6 @@
 # Research: 持续演进中的评测过拟合与反复选择偏差
 
+GitHub: https://github.com/Beijongggg/dsh-bots/issues/17
 Type: research
 Status: resolved
 Deliverable: `../research/adaptive-evaluation-and-selection-bias.md`

@@ -29,6 +29,37 @@ test("读取票面状态与跨目录规格，保留多行留界，不采用 Comm
   assert.doesNotMatch(output, /Status：resolved/);
 });
 
+test("已迁移单票显示 GitHub 入口，不把本地快照当作当前状态或凭据", (t) => {
+  const root = fixture(t, {
+    ".scratch/build/issues/01-migrated.md": "# legacy ticket\n\nGitHub: https://github.com/example/project/issues/4\nStatus: resolved\nBlocked by: 02\n\n## Comments\nGitHub: https://github.com/example/project/issues/999\n",
+  });
+  const output = projectContext(root, ["build", "01"]);
+  assert.match(output, /GitHub：https:\/\/github\.com\/example\/project\/issues\/4/);
+  assert.match(output, /迁移快照/);
+  assert.match(output, /来源：\.scratch\/build\/issues\/01-migrated.md:3/);
+  assert.doesNotMatch(output, /Status：|Blocked by：|裁定与凭据：|issues\/999/);
+});
+
+test("列表保留已迁移入口，不按快照状态筛除或统计为当前本地票态", (t) => {
+  const root = fixture(t, {
+    ".scratch/build/issues/01-migrated-closed.md": "# migrated closed snapshot\nGitHub: https://github.com/example/project/issues/4\nStatus: resolved\n",
+    ".scratch/build/issues/02-migrated-open.md": "# migrated open snapshot\nGitHub: https://github.com/example/project/issues/5\nStatus: ready-for-agent\n",
+    ".scratch/build/issues/03-local-open.md": "# local open task\nStatus: ready-for-human\n",
+    ".scratch/build/issues/04-local-closed.md": "# local closed task\nStatus: resolved\n",
+  });
+  const output = projectContext(root, ["build"]);
+  assert.match(output, /本地未关闭票与迁移入口/);
+  assert.match(output, /### migrated closed snapshot[\s\S]*GitHub：https:\/\/github\.com\/example\/project\/issues\/4/);
+  assert.match(output, /### migrated open snapshot[\s\S]*GitHub：https:\/\/github\.com\/example\/project\/issues\/5/);
+  assert.match(output, /### local open task[\s\S]*Status：ready-for-human/);
+  assert.doesNotMatch(output, /### local closed task|Status：resolved|Status：ready-for-agent/);
+  const summary = projectContext(root);
+  assert.match(summary, /已迁移: 2/);
+  assert.match(summary, /resolved: 1/);
+  assert.doesNotMatch(summary, /resolved: 2|ready-for-agent: 1/);
+  assert.match(projectContext(root, ["build", "--all"]), /### local closed task[\s\S]*Status：resolved/);
+});
+
 test("未关闭视图保留缺失或冲突状态；显式查询可读取关闭票，不借用其它票的规格", (t) => {
   const root = fixture(t, {
     ".scratch/build/issues/01-closed.md": "# closed task\nStatus: resolved\n规格出处：`.scratch/design/spec.md`\n",

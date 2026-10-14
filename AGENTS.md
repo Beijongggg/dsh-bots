@@ -9,15 +9,14 @@
 
 ## 2. 项目落档
 
-项目实质变化与已确认方案，按 `README.md` §6.2 的范围与事件类型落档。
-项目事实以落档内容为准。与项目无关的材料及其清理无需记录，材料所在目录不改变归属。
+项目变更、裁定或豁免落档前，读 `README.md` §6.2。
 
 - 落档提交一律显式 pathspec；changelog 事件用 `scripts/changelog-add-event.mjs --stage`
   按 HEAD 基线精确暂存，防裹挟并行会话预暂存件。
 
 ## 3. 工作边界
 
-- 默认工作面为本仓库工作树。真实运行面包括 `~/.dsh`、部署目录、真实注册表与配置，
+- 默认在本仓库的独立工作树实施。真实运行面包括 `~/.dsh`、部署目录、真实注册表与配置，
   均零写入；C2 部署同步、bot/host 重启等出仓库动作须逐项点名授权。
 - 本仓库为私有单人仓，origin 只作备份/集成分面：批次收口后的 push（含集成分支）
   例行执行，无需点名；force push、删除远端分支、推送收口批次之外的分支仍须点名。
@@ -35,8 +34,7 @@
 
 ## 5. 工单、triage 与领域文档
 
-- 长期观察项不进 `.scratch/`，登记到 `docs/PROJECT_UNDERSTANDING.md` 的 "仍可选题"，
-  并在 CHANGELOG 留界。
+- 登记长期观察项前，读 `README.md` §2。
 - 工单面、triage 词表与领域文档的读取路由见下节 `## Agent skills`。
 
 ## 6. 书写纪律
@@ -56,8 +54,9 @@
 
 ### Issue tracker
 
-一特性一目录 `.scratch/<feature-slug>/`，工单为 `issues/<NN>-<slug>.md`；写工单、
-规格、路标或做 triage 打标前先读该文件。See `docs/agents/issue-tracker.md`.
+创建或读取工单、规格、路标及做 triage 打标前，先读
+`docs/agents/issue-tracker.md`。默认工单面为 `Beijongggg/dsh-bots` 的 GitHub Issues；
+现存本地票按该文件的迁移入口与兼容规则处理。
 
 ### Triage labels
 

@@ -1,5 +1,6 @@
 # 重建范围：继承／修订／重写
 
+GitHub: https://github.com/Beijongggg/dsh-bots/issues/15
 Type: grilling
 Blocked by: 01, 06, 07, 10
 

@@ -1,5 +1,6 @@
 # 规格验收与判据冻结（终点票）
 
+GitHub: https://github.com/Beijongggg/dsh-bots/issues/16
 Type: grilling
 Blocked by: 05, 06, 07, 08, 09, 10, 11, 12
 

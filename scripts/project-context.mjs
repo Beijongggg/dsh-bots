@@ -11,16 +11,17 @@ const HELP = `Usage: node scripts/project-context.mjs [feature [NN]] [--all]
        node scripts/project-context.mjs --logs | --check-log
        node scripts/project-context.mjs --spec-index <feature>
 
-无参数：按 feature 列出票面状态分布与规格指针。
-feature：列出未关闭票；--all 包含 resolved、wontfix。
-feature NN：读取单票的状态、依赖、规格出处与原文坐标。
+无参数：按 feature 列出本地票态、迁移入口数与本地规格指针。
+feature：列出本地未关闭票与迁移入口；--all 包含本地 resolved、wontfix。
+feature NN：读取本地单票或 GitHub 迁移入口。
 --recent：跨月卷读取最近变更，默认 3 条；不足时回读已校验的历史原文。
 --logs：列出日志分卷与历史归档位置。
 --check-log：检查入口／分卷体积、事件编号及历史归档完整性。
 --spec-index：输出该 feature spec.md 的小节与 V-* 判据记号行号索引。
   规格是哈希冻结件，不改原文；索引即时生成避免全文重读与行号漂移。
 
-只读工作树，输出到 stdout；来源内容摘要用于识别读取版本。
+只读工作树，不查询 GitHub；已迁移票的当前状态从 Issue 读取。
+输出到 stdout；来源内容摘要用于识别读取版本。
 仅展示票面声明，不计算开工许可、部署状态或验收结论。
 证据包按 preflight 的序号规则定位，本命令不核验包有效性。`;
 
@@ -71,6 +72,8 @@ function ticketRecord(path, text) {
   const lines = text.split(/\r?\n/);
   const end = lines.findIndex((line) => /^##\s+(?:Comments|Answer)(?:\s|$)/.test(line));
   const header = end < 0 ? lines : lines.slice(0, end);
+  const githubLine = header.findIndex((line) => /^GitHub:\s+\S/.test(line));
+  const github = githubLine < 0 ? null : header[githubLine].replace(/^GitHub:\s+/, "").trim();
   const statuses = field(header, "Status");
   const state = statuses.length === 1
     ? statuses[0].text.replace(/\*\*/g, "").match(/^[A-Za-z-]+/)?.[0] ?? "无法解析"
@@ -79,9 +82,10 @@ function ticketRecord(path, text) {
     path,
     id: path.split("/").at(-1).match(/^\d+/)[0],
     title: header.find((line) => /^#\s/.test(line))?.replace(/^#\s+/, "") ?? path,
+    github,
     state,
     status: statuses.map((value) => value.text).join(" / ") || state,
-    line: statuses[0]?.line ?? 1,
+    line: github ? githubLine + 1 : statuses[0]?.line ?? 1,
     blocked: field(header, "Blocked by").map((value) => value.text).join(" / ") || "未登记",
     spec: field(header, "规格出处").map((value) => value.text).join(" / "),
     specPaths: [...new Set([...header.join("\n").matchAll(/`(\.scratch\/[^`\s]+\/spec\.md)`/g)].map((match) => match[1]))],
@@ -180,26 +184,35 @@ export function projectContext(repoRoot, args = []) {
 
   const specLabel = (path) => `${path}${existsSync(join(repoRoot, path)) ? "" : "（路径不存在）"}`;
   if (!opts.feature) {
-    body.push("| feature | 票面状态分布 | 规格来源 |", "|---|---|---|");
+    body.push("| feature | 本地票态／迁移入口数 | 本地规格来源 |", "|---|---|---|");
     for (const group of groups) {
       const counts = new Map();
-      for (const ticket of group.tickets) counts.set(ticket.state, (counts.get(ticket.state) ?? 0) + 1);
+      for (const ticket of group.tickets) {
+        const state = ticket.github ? "已迁移" : ticket.state;
+        counts.set(state, (counts.get(state) ?? 0) + 1);
+      }
       const states = [...counts].sort().map(([state, count]) => `${state}: ${count}`).join("；") || "无工单";
       body.push(`| ${cell(group.feature)} | ${cell(states)} | ${cell(group.specs.map(specLabel).join("；") || "回读票面／map")} |`);
     }
-    body.push("", "单个状态的来源：.scratch/<feature>/issues/<NN>-*.md 的 Status 字段。",
-      "展开任务：node scripts/project-context.mjs <feature> [NN]；含关闭票加 --all。");
+    body.push("", "本地票态来自未迁移票的 Status 字段；已迁移只计入口数，不判断 GitHub 状态。",
+      "展开任务：node scripts/project-context.mjs <feature> [NN]；含本地关闭票加 --all。");
     return finish(body);
   }
 
   const group = groups[0];
   const tickets = group.tickets.filter((ticket) => opts.ticket
     ? Number(ticket.id) === Number(opts.ticket)
-    : opts.all || !["resolved", "wontfix"].includes(ticket.state));
+    : ticket.github || opts.all || !["resolved", "wontfix"].includes(ticket.state));
   if (opts.ticket && tickets.length !== 1) throw new Error(`票号不存在或不唯一：${opts.feature}/${opts.ticket}`);
-  body.push(`## ${opts.feature}${opts.ticket ? `/${opts.ticket}` : opts.all ? " 全部票" : " 未关闭票"}`, "");
+  body.push(`## ${opts.feature}${opts.ticket ? `/${opts.ticket}` : opts.all ? " 本地票与迁移入口" : " 本地未关闭票与迁移入口"}`, "");
   if (!tickets.length) body.push("未找到符合筛选条件的工单。");
   for (const ticket of tickets) {
+    if (ticket.github) {
+      body.push(`### ${ticket.title}`, "", `GitHub：${ticket.github}`,
+        "本地内容是迁移快照；当前状态、依赖、裁定与凭据读取 GitHub Issue。",
+        `来源：${ticket.path}:${ticket.line}`, "");
+      continue;
+    }
     const specs = ticket.specPaths.length ? ticket.specPaths : group.localSpec ? [group.localSpec] : [];
     body.push(`### ${ticket.title}`, "",
       `Status：${ticket.status}`, `Blocked by：${ticket.blocked}`,

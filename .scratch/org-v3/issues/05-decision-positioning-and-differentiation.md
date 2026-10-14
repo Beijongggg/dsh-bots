@@ -1,5 +1,6 @@
 # 定位与差异化（生态位）
 
+GitHub: https://github.com/Beijongggg/dsh-bots/issues/8
 Type: grilling
 Blocked by: 04
 

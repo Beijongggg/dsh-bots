@@ -1,5 +1,6 @@
 # 评测面构成与公开基准采纳
 
+GitHub: https://github.com/Beijongggg/dsh-bots/issues/12
 Type: grilling
 Blocked by: 02, 14
 
