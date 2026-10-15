@@ -39,6 +39,15 @@ adds three four-field records and bounded non-dollar observations. CoffeeBench p
 net income and API fees, but changes the focal model in a fixed multi-agent economy;
 it is not a multi-vs-single organizational contrast. MAEBE has a homogeneous same-model
 contrast for preference behaviour, without a cost column.
+The [fifth-batch remaining-suite check](supplements/02-remaining-suites-20261015.md)
+adds four-field records for MedAgentBoard, DebateLLM, elimination_game, step_game and
+pgg_bench, and adds two paper-report same-model multi-vs-single score+cost pairs
+(MedAgentBoard Task 1 on DeepSeek-V3-0324; DebateLLM on GPT-3.5). Both costs are
+reported or estimated values, not reconstructed bills. The three lechmazur game suites
+publish no API cost field and no single-agent arm; their `$`/`token` strings are
+in-game currency. The [alem-env check](supplements/02-alem-env-20261015.md) closes the
+original suite checklist: it has a same-model single-vs-multi calibration but no cost
+field. Every original-checklist suite now has its four-field record.
 Uninspected suites and organization comparisons remain open; this is not a field-wide
 claim that costs or comparisons do not exist.
 
@@ -157,10 +166,19 @@ score/cost pairs. "Not found in the inspected source" does not cover other publi
 | AgentBench | v3 full text and fixed repo README checked. Table 2 gives environments/weights, Table 3 scores; no multi-vs-single organization contrast located in that text. Appendix J token/round data are conditional on Completed trajectories, which are not necessarily correct. FC sheet returned 502 and remains unverified |
 | MAEBE | v2 full text checked. Independent single responses vs homogeneous 6-agent round-robin give a same-model preference-behaviour contrast; heterogeneous and star conditions do not. No cost column located, so this is not a score+cost pair; 12 repeats/question are not a budget match |
 | CoffeeBench | v1 full text, blog, fixed repo README/tree and two configs checked. Table 2 GPT-5.5 net income 3,109±1,123 and API fee 79.3±14.4 vs Gemini 3.1 Pro 1,695±508 and 31.4±1.5, over 3 runs/model. All arms use 5 Sonnet background firms; this cross-model pair is not multi-vs-single. Table 2 fee inclusion versus the six-firm ~$250/run estimate is not bound, so the estimates cannot be added or declared contradictory |
-| MedAgentBoard / alem-env / DebateLLM / elimination_game / step_game / pgg_bench | Original inventory only; these six per-suite four-field checks remain unfinished |
+| MedAgentBoard | v2 full text and README checked: four medical task categories (QA/VQA, lay summary, EHR prediction, workflow automation); comparison axis is multi-agent vs single-LLM vs conventional (non-LLM). Cost field: Appendix D Table 13 estimated USD API cost (DeepSeek pricing) for Task 1, plus Table 12 discussion rounds. Task 1 uses DeepSeek-V3-0324 as the base model for all single and multi-agent arms (ReConcile is heterogeneous; visual reasoning uses Qwen-VL-Max). Same-base-model multi-vs-single score+cost pair on MedQA/PubMedQA MC (e.g. single CoT-SC 89.90/$7.99 vs MedAgents 85.25/$2.71). Costs are estimates, not bills |
+| DebateLLM | v2 full text and README checked: multi-agent debate (MAD) vs single-agent prompting on MedQA/PubMedQA/MMLU/CosmosQA/CIAR/GPQA, base model GPT-3.5. Table 3 lists `Score` and `Cost $` per dataset (MedQA: Single Agent SIMPLE 0.76/$0.43, SoM 0.70/$1.73, Multi-Persona 0.72/$1.57, Medprompt 0.72/$2.16). Same-model score+cost pair; per-question cost basis read from the figure caption, not re-derived cell by cell. Finding: MAD does not reliably beat non-debate single-agent prompting |
+| elimination_game | README only (no paper): 8-player elimination tournament; scores are README TrueSkill/rank images, no numeric table. No API cost field; no single-agent arm. Bounded-unfound in the inspected README |
+| step_game | README only (no paper): 3-player step-race; README TrueSkill/rank images. No API cost field; no single-agent arm. Bounded-unfound |
+| pgg_bench | README only (no paper): 5-player public-goods game with punishment, 18 LLMs. `$`/`token` strings are in-game currency, not API cost. No single-agent arm. Bounded-unfound |
+| alem-env | v1 paper, README, leaderboard and its row data checked: open-ended multi-agent coordination in a long-horizon survival world (Craftax-Coop-based), separating base-task competence from explicit coordination; 3-agent zero-shot LLM teams (13 models) plus trained MARL baselines over Easy/Medium/Hard. Scores live on `alem-world.github.io/leaderboard.html` (row data `data/leaderboard.json`, 25 entries, fields `scores{base,coord,total}`; no cost/token column) and in paper Table 1. No cost field anywhere read: paper and board mention API cost only as the reason for fewer proprietary-model seeds; only a compute proxy is given (§C.3: 3× A100 80GB, 10–30 h per 20 seeds per difficulty per model). A same-model (Gemma-4-31B-it) single-vs-multi calibration exists (Fig. 19 base reward 12.8% single-agent → 7.3% full alem, a 43% relative drop; Table 3 diagnostics), but with no cost column — not a score+cost pair |
 
 The owning ticket's published-pair requirement is met at the paper-report level by
-Optima's ARC-C/GSM8K baselines (§2.4). Its original suite-coverage requirement remains open.
+Optima's ARC-C/GSM8K baselines (§2.4); the fifth batch adds two further paper-report
+same-model score+cost pairs (MedAgentBoard Task 1, DebateLLM). alem-env adds a
+same-model single-vs-multi calibration without a cost column, so it is a comparison,
+not a score+cost pair. Its original suite-coverage requirement is now met: every suite
+on the original checklist has a four-field record (§1.3).
 
 ### 1.4 SWE-bench: fields do not establish organizational arms
 
@@ -312,6 +330,8 @@ rows retain their stated reading level.
 | **AgentPrune v1** | Pruned graph vs GPTSwarm, MMLU with five GPT-4-based agents; not a six-benchmark fee aggregate | Author reports comparable performance; this fee headline is not the separate plug-in token experiment | MMLU overall fees **$5.6** vs **$43.7** in abstract, **$43.56** in H.1; about 7.8× by reported values, not a reconstructed bill | [fourth-batch O3](supplements/01-remaining-optimizers-20261014.md) and v1 H.1; query count/pricing basis not established |
 | **Optima trained variants** | Post-trained multi-agent vs prompting baselines sharing the Llama 3 8B base model; **training is a confound** | 2WMHQA iSFT-DPO **74.2 F1** vs MAD **25.9 F1**; this pair is multi-vs-multi | **54.9 vs 543.7** reported inference tokens; about **10.10%**, excluding training | [2410.08115v2](https://arxiv.org/abs/2410.08115v2), Table 1; prose/table conflict described below |
 | **MasRouter** (arXiv 2502.11133) | Learned MAS routing vs SOTA MAS | **+1.8%–8.2%** over SOTA on MBPP | overhead **−52.07%** on HumanEval; **−17.21%–28.17%** as a plug-in | arXiv 2502.11133 abstract |
+| **MedAgentBoard v2** | Multi-agent frameworks vs single-LLM prompting, Task 1 (medical QA/VQA); base model **DeepSeek-V3-0324** for single and multi-agent arms (ReConcile heterogeneous) | MedQA MC: single CoT **87.30**, CoT-SC **89.90**; MedAgents **85.25**, ColaCare **84.65**, MDAgents **78.80**, ReConcile **78.00** | Appendix D Table 13 estimated USD (DeepSeek pricing): single zero-shot **$0.39**, CoT **$1.84**, CoT-SC **$7.99**; MDAgents **$2.13**, ColaCare **$2.64**, MedAgents **$2.71**, ReConcile **$3.05** | [2505.12371v2](https://arxiv.org/abs/2505.12371), Table 3 + Appendix D Table 13; estimates, not bills |
+| **DebateLLM v2** | MAD debate vs single-agent prompting, MedQA/PubMedQA/MMLU/…; base model **GPT-3.5** | MedQA Table 3: Single Agent SIMPLE **0.76**, SoM **0.70**, Multi-Persona **0.72**, Medprompt **0.72** | Table 3 `Cost $` per question: Single Agent SIMPLE **$0.43**, SoM **$1.73**, Multi-Persona **$1.57**, Medprompt **$2.16** | [2311.17371](https://arxiv.org/abs/2311.17371), Table 3; cost basis from the figure caption |
 
 BudgetMLAgent changes model assignments as well as organization. Its GPT-4 baseline
 cost uses other models' average tokens times 0.809 (§4.2), not the original usage bill.
@@ -362,6 +382,19 @@ For the trained 2WMHQA pair, §3.1 says "38.3% (2.8x)" while Table 1 gives
 authors' result. Training used 8 A100 GPUs for up to 12 hours on most tasks and about
 24 hours on MATH; those costs are outside the inference table. None of these checks
 establishes that adding agents alone causes an economic gain.
+
+The fifth batch adds two further paper-report same-model pairs. **MedAgentBoard v2**
+Task 1 runs single and multi-agent arms on one base model (DeepSeek-V3-0324) and
+publishes scores (Table 3) alongside estimated USD costs (Appendix D Table 13) over the
+same ~200-per-dataset sampled test set (Table 7). On MedQA multiple-choice the single
+CoT-SC arm is both the most accurate (89.90) and the most expensive ($7.99), above every
+multi-agent framework — a case where the most expensive arm is *not* the multi-agent one.
+**DebateLLM v2** runs multi-agent debate and single-agent prompting on GPT-3.5 and
+prints `Score`/`Cost $` per dataset (Table 3). Both are same-model, same-task score+cost
+pairs at the paper-report level, joining Optima's ARC-C/GSM8K baselines. Neither is an
+equal-budget or equal-quality dominance claim: the costs are estimates or published
+per-question figures, not reconstructed bills, and the arm configurations differ beyond
+agent count.
 
 ### 2.5 Other claims and paper-level costs
 
@@ -733,12 +766,12 @@ Gaps that remain, each a real limitation rather than a caveat:
 9. **§3.4's candidates are untested on Pod.** This research has not computed a Pod cost-of-pass
    figure or selected an acceptance metric; fixed/variable cost refers to when a charge
    recurs, not whether its prompt text was written once.
-10. **The original suite checklist is partly closed.** BrowseComp, SWE-Lancer,
-    TheAgentCompany, MultiAgentBench, MasBench, AgentBench, MAEBE and CoffeeBench
-    have four-field checks (§1.3). MedAgentBoard, alem-env, DebateLLM,
-    elimination_game, step_game and pgg_bench still need per-suite checks.
-    These are core coverage gaps, not bounded empty
-    results; the owning ticket stays open.
+10. **The original suite checklist is fully covered.** BrowseComp, SWE-Lancer,
+    TheAgentCompany, MultiAgentBench, MasBench, AgentBench, MAEBE, CoffeeBench,
+    MedAgentBoard, DebateLLM, elimination_game, step_game, pgg_bench and alem-env
+    all have four-field checks (§1.3). Individual fields inside those suites remain
+    bounded where recorded above; this is coverage of the checklist, not a field-wide
+    claim that every suite reports costs or organizational contrasts.
 11. **The same-model published pair is established, not independently reproduced.**
     Optima's untrained MAD/CoT/SC rows satisfy the paper-level pair requirement, but
     exact samples, decoding settings, complete token accounting and uncertainty are
@@ -758,6 +791,19 @@ Gaps that remain, each a real limitation rather than a caveat:
     configs were inspected; their seeds do not bind the paper's individual runs.
     Table 2 fee inclusion versus six-firm total spending is unknown, not a proven conflict.
     No new same-model organizational score+cost pair or equal-budget gain was established.
+15. **Fifth-batch source limits remain.** `api.github.com` returned HTTP 403 for all five
+    repositories, so no commit SHA binds the README snapshots; those reads are rolling
+    `main` on 2026-10-15. MedAgentBoard's Table 13 and DebateLLM's Table 3 report
+    estimated or published costs, not reconstructed bills, and MedAgentBoard's cost table
+    covers Task 1 only. The lechmazur game suites publish scores as images (not OCR'd
+    here) and show no cost field in the inspected READMEs — a bounded-unfound result, not
+    proof the field is absent elsewhere. The two new same-model pairs are paper-report
+    comparisons, not equal-budget or equal-quality dominance evidence.
+16. **alem-env's calibration is single-model and reports no cost.** Fig. 19's
+    single-vs-multi comparison uses one model (Gemma-4-31B-it) on the base-reward axis and
+    has no cost column; it does not establish organizational benefit or an economic
+    contrast. The leaderboard's row data (`data/leaderboard.json`, 25 entries) was checked
+    and carries no cost/token column; the paper gives only a compute proxy (§C.3).
 
 ## 7. Reference list
 
@@ -783,6 +829,12 @@ The fourth-batch check used AgentBench `2308.03688v3`, MAEBE `2506.03053v2`,
 CoffeeBench `2606.16613v1`, AgentBench commit `d1e4a10db08c87075c78972e48ecc182be03e2d5`
 and CoffeeBench commit `9e2f3950b5812c8753de81ede9c68babc024b5c8`. Its source table
 binds 21 cached files by full SHA-256; failed/unread sources remain separate.
+The fifth-batch check used MedAgentBoard `2505.12371v2` (updated 2025-10-30) and
+DebateLLM `2311.17371`, plus the `elimination_game`/`step_game`/`pgg_bench` READMEs.
+Its repository reads are rolling `main` snapshots: the GitHub commits API returned
+HTTP 403, so no SHA binds them; full hashes of the fetched files are in the supplement.
+The sixth-batch check used alem-env `2606.08340v1`, its README, its leaderboard and the
+leaderboard's row data (`data/leaderboard.json`, 25 entries, no cost column).
 
 | Refs | Sources (URL · classification · date/version) |
 |---|---|
@@ -794,6 +846,8 @@ binds 21 cached files by full SHA-256; failed/unread sources remain separate.
 | B15–B18 | SWE-Lancer ($1M task value; §3.6 API-cost check) · [2502.12115v4](https://arxiv.org/abs/2502.12115) · primary · 2025-05-29 · [suite remainder supplement](supplements/02-suite-fields-remainder-20261013.md) ‖ TheAgentCompany · [2412.14161v3](https://arxiv.org/abs/2412.14161) · primary · 2025-09-10 · the-agent-company.com · same supplement ‖ **HAL site** (cost-aware; landing previews; updates paused) · hal.cs.princeton.edu · primary · retrieved 2026-10-13 ‖ HAL paper · arxiv/2510.11977 · primary · 2025-10-13 |
 | B19–B22 | MultiAgentBench · arxiv/2503.01935 · primary · 2025-03-03 · github.com/MultiagentBench/MARBLE ‖ AgentBench · arxiv/2308.03688 · primary · 2023-08-07 · github.com/THUDM/AgentBench ‖ MAEBE · arxiv/2506.03053 · primary · 2025-06-03 ‖ multi-agent suite sweep · api.github.com/search/repositories?q=multi-agent+benchmark+LLM · secondary index · 2026-10-13 — covering CoffeeBench github.com/SakanaAI/CoffeeBench · MedAgentBoard github.com/yhzhu99/MedAgentBoard · alem-env github.com/alem-world/alem-env · DebateLLM github.com/instadeepai/DebateLLM · elimination_game / step_game / pgg_bench github.com/lechmazur |
 | B23 | MAS-Orchestra / MasBench · [2601.14652v5](https://arxiv.org/html/2601.14652v5) · primary · retrieved 2026-10-14 · Table 3 and D.2/D.4 checked; [third-batch supplement](supplements/02-multiagent-suites-and-swebench-20261014.md) |
+| B24–B27 | Fifth-batch remaining-suite check (2026-10-15): MedAgentBoard `2505.12371v2` (2025-10-30, NeurIPS 2025 D&B) · primary · Table 3 + Appendix D Table 12/13 · repo `yhzhu99/MedAgentBoard` (rolling main) ‖ DebateLLM `2311.17371` · primary · Table 3 · repo `instadeepai/DebateLLM` (rolling main) ‖ elimination_game / step_game / pgg_bench · `github.com/lechmazur` READMEs (rolling main; no paper) |
+| B28 | alem-env · [2606.08340v1](https://arxiv.org/abs/2606.08340) · primary · `Benchmarking Open-Ended Multi-Agent Coordination in Language Agents` · Table 1 + Fig. 19 + Table 3 + §C.3 checked · repo `alem-world/alem-env` (rolling main) · leaderboard alem-world.github.io/leaderboard.html + `data/leaderboard.json` (25 entries, no cost column) |
 | P1–P3 | **AI Agents That Matter** (cost-controlled eval; Pareto; fixed vs variable cost; ~2 orders-of-magnitude spread; LATS >50× warming) · arxiv/2407.01502 · primary · 2024-07-01 ‖ **MAST / Why Do Multi-Agent LLM Systems Fail?** (Appendix K = *annotator* cost, not MAS cost) · arxiv/2503.13657 · primary · 2025-03-17 ‖ Towards Effective GenAI Multi-Agent Collaboration (+70%, no cost) · arxiv/2412.05449 · primary · 2024-12-06 |
 | P4–P6 | More Agents Is All You Need (no cost) · arxiv/2402.05120 · primary · 2024-02-03 ‖ **BudgetMLAgent** · [2411.07464v2](https://arxiv.org/abs/2411.07464v2) · primary · 2025-01-08 · full-text check and limitations in §2.4 ‖ **AgentPrune / "Cut the Crap"** ($5.6 vs $43.7) · arxiv/2410.02506 · primary · 2024-10-03 |
 | P7–P9 | Optima · [2410.08115v2](https://arxiv.org/abs/2410.08115v2) · primary · 2025-02-18 · full-text Table 1 check in §2.4, including prose/table conflict ‖ MasRouter (−52.07% HumanEval; +1.8–8.2% MBPP) · arxiv/2502.11133 · primary · 2025-02-16 ‖ **BAMAS** — metadata `Comments: Accepted by AAAI 2026 (oral paper)` · arxiv/2511.21572 · primary · 2025-11-26 |
