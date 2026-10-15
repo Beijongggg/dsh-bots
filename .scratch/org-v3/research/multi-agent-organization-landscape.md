@@ -43,25 +43,29 @@ SWE-bench classifications, use the [suite and submission check](supplements/02-m
 The [fourth-batch optimizer check](supplements/01-remaining-optimizers-20261014.md) adds AgentSquare,
 AgentPrune and ScoreFlow. Their optimization objects, stages and fee denominators differ; none
 establishes an equal-budget, topology-only gain or an in-task state-migration benefit.
+For Kim's overhead/statistics, Tran & Kiela's requested-versus-used thinking budget, or OneFlow's
+cache/cost claims, read the [three-source baseline check](supplements/01-cost-and-single-agent-baselines-20261015.md).
+It separates turns from tokens, descriptive associations from causal claims, and ideal cache-cost
+estimates from measured execution. Other forms and the owning ticket's S4 gaps remain open.
 
 ## 0. Executive digest
 
-Twelve candidates from the original survey. Only the checks listed above have completed
-acceptance; the remaining entries still need source-level verification before a decision uses them.
+The checks above cover twelve dynamic/search candidates and the specified claims in three
+existing baseline sources. Remaining entries still need source-level verification before a decision
+uses them; a checked source does not certify every claim attributed to it.
 
-1. **Multi-agent, to first order, is a token-spending mechanism.** Anthropic's own summary: *"Multi-agent
-   systems work mainly because they help spend enough tokens to solve the problem"*, with *"token usage
-   by itself explains 80% of the variance"* (§2.1). Under a **matched thinking-token budget**, a single
-   agent matches or beats five different multi-agent architectures on multi-hop reasoning across three
-   model families (§1.0, arXiv 2604.02460). The crossover happens exactly when the single agent's
-   context degrades.
-2. **The overhead is structural and measured: 1.6×–6.2× tokens at matched performance** — independent
-   +58%, decentralized +263%, centralized +285%, hybrid +515% — with turn count scaling super-linearly
-   (`T = 2.72·(n+0.5)^1.724`, R² = 0.974) (§2.1–2.2, arXiv 2512.08296).
-3. **The quality return is conditional on four measured switches:** task decomposability (+80.8% to
-   −70% spread), tool intensity (tool-heavy tasks lose), single-agent baseline accuracy (**negative
-   returns above ≈45%**), and base-model capability (multi-agent gain falls 10.7pp → 3.0pp as the model
-   strengthens) (§2.4, §2.7).
+1. **Strong single-agent controls matter.** Anthropic describes its named research system as a
+   token-spending mechanism (§2.1). Tran & Kiela compare five multi-agent architectures with SAS
+   and SAS-L under the same requested thinking-token budget on two multi-hop tasks (§1.0).
+   Actual usage differs; controlled context degradation yields some crossovers, not a universal rule.
+2. **Coordination overhead is measured in turns.** Kim's independent +58%, decentralized +263%,
+   centralized +285% and hybrid +515% are ratios of reasoning turns. The authors also call them
+   1.6×–6.2× token budgets, but that wording is not an independently reconciled token bill.
+   Their turn-count fit is `T = 2.72·(n+0.5)^1.724`, R² = 0.974 (§2.1–2.2).
+3. **Quality returns are conditional.** Kim reports task-dependent changes from +80.8% to −70%
+   and an approximately 45% single-agent baseline boundary in its fitted task regimes. Tool-related
+   significance depends on the interaction and inference method (§2.7). None is a Pod constant;
+   the capability-erosion examples from the original survey retain their own reading limits.
 4. **A measured phase-dependent architecture reversal exists.** LUMEN: *"multi-agent design hurts
    screening but is essential for extraction"* (5.7× more poolable analyses), with per-phase cost
    published ($19–$29, median $22.65 per review) — and model ranking **did not transfer** across
@@ -129,17 +133,21 @@ the claim, and measured cost/quality numbers where they exist. Numbers are quote
 
 ### 1.0 The single-agent-first baseline (read this first — it frames every other row)
 
-The strongest recent evidence is that **most published multi-agent gains are not architecture gains**;
-they are unaccounted test-time computation.
+The checked sources below make strong single-agent baselines necessary for interpreting
+multi-agent gains. They identify compute and context confounds in their studied tasks, not a
+measured proportion of all published multi-agent gains.
 
 - **[primary] Tran & Kiela, "Single-Agent LLMs Outperform Multi-Agent Systems on Multi-Hop Reasoning
   Under Equal Thinking Token Budgets"**, arXiv [2604.02460](https://arxiv.org/abs/2604.02460) (2026-04-11,
   v2; Stanford). Controlled study, two datasets (FRAMES, MuSiQue 4-hop), three model families
   (Qwen3-30B-A3B, DeepSeek-R1-Distill-Llama-70B, Gemini 2.5), five MAS architectures (Sequential,
   Subtask-parallel, Parallel-roles, Debate, Ensemble) against a single-agent system (SAS) and a
-  longer-thinking single agent (SAS-L), all under a matched *thinking-token* budget.
+  longer-thinking single agent (SAS-L), under the same **requested** global thinking-token budget.
+  Table 1's 1,000-budget average is SAS 0.418, SAS-L 0.397 and strongest MAS Debate 0.388
+  (+3.0pp / +0.9pp for the two single-agent arms). Actual usage is not equal: Table 3's
+  FRAMES/Qwen3 cell reports 800 / 935 / 1,000 thinking tokens for those arms.
   - Headline: "SAS consistently match or outperform MAS on multi-hop reasoning tasks when reasoning
-    tokens are held constant."
+    tokens are held constant." This is the author's phrasing; it does not certify equal measured spend.
   - Mechanism claimed: an information-theoretic argument from the Data Processing Inequality — a
     multi-agent decomposition inserts a communication bottleneck, so under a fixed reasoning budget and
     *perfect* context utilization the single agent is more information-efficient.
@@ -156,37 +164,35 @@ they are unaccounted test-time computation.
     (particularly in Gemini 2.5) and in standard benchmarks, both of which can inflate apparent gains
     from MAS."
 - **[primary] Xu et al., "Rethinking the Value of Multi-Agent Workflow: A Strong Single Agent
-  Baseline"** (OneFlow), arXiv [2601.12307](https://arxiv.org/abs/2601.12307) (2026-01-18; UT Austin +
-  Amazon). Seven benchmarks (HumanEval, MBPP, HotpotQA, DROP, GSM8K, MATH, Shopping-MMLU,
-  TravelPlanner) with GPT-4o-mini and Claude 3.5 Haiku.
-  - Key structural observation: most deployed MAS are **homogeneous** — every agent shares one base
-    model and differs only in prompt, tools, and position. A homogeneous workflow can therefore be
-    executed by *one* agent in multi-turn conversation, reusing a shared KV cache.
-  - Result: the single-LLM execution matches the multi-agent workflow's performance at substantially
-    lower cost, and OneFlow (an MCTS workflow designer with a Creative Designer + Critical Reviewer
-    pair) "reduc[es] inference costs compared to existing automatic multi-agent design frameworks
-    without trading off accuracy", including a "state-of-the-art performance across 9 out of 10"
-    Shopping-MMLU tasks over AFlow (+4.0% product selection, +2.5% sentiment, +4.8% multilingual).
-  - Cost caveat they report honestly: multi-turn single-agent execution *increases* input tokens
-    because history accumulates (+967 tokens for AFlow, +368 for OneFlow on Qwen-3 8B) — the saving
-    comes from KV-cache reuse of overlapping prefixes, not from fewer turns.
-  - Heterogeneity bound: an automatically designed heterogeneous workflow (GPT-4o-mini + Claude 3.5
-    Haiku via AFlow MCTS) reached DROP F1 85.5, still below the best homogeneous Claude-3.5-Haiku
-    workflow (OneFlow, F1 87.5). So true cross-model heterogeneity was **not** shown to pay in their
-    pilot.
+  Baseline"** (OneFlow), arXiv [2601.12307v1](https://arxiv.org/abs/2601.12307v1) (2026-01-18).
+  The abstract says seven benchmarks, while §4.1 lists eight names: HumanEval, MBPP, HotpotQA,
+  DROP, GSM8K, MATH, Shopping-MMLU and TravelPlanner. Authors include UT Austin, Amazon,
+  Emory, Northeastern and Georgia Tech; the count inconsistency is retained, not silently resolved.
+  - Mechanism: a workflow using one base model can be executed through one multi-turn conversation
+    with shared KV cache rather than separate stateless calls. The studied homogeneous setting,
+    not every organization, is the scope of this claim.
+  - Results vary by task. AFlow's GPT-4o-mini HotpotQA single-agent execution lowers the Table 2
+    cost estimate from $1.438 to $0.530 while Table 1 F1 falls from 72.1 to 68.4 (−3.7pp).
+    HumanEval's printed cost is unchanged at $0.198. OneFlow's Shopping-MMLU Table 7 reports
+    9/10 best cells and +4.0pp product selection, +2.5pp sentiment and +4.8pp multilingual over AFlow.
+  - Cost boundary: GPT-4o-mini shared-cache costs are **ideal simulations** based on the final
+    conversation, not API bills. Qwen-3 8B latency/throughput are measured with vLLM on HumanEval;
+    average input grows by 967 / 368 tokens for AFlow / OneFlow. Design uses 20 optimization rounds,
+    whose full fee is not included in the reported inference-cost comparison.
+  - Heterogeneity pilot: Table 3's automatically designed GPT-4o-mini + Claude-3.5-Haiku AFlow
+    has DROP F1 85.5±0.5 versus homogeneous Haiku OneFlow 87.5±0.0. This pilot does not establish
+    that all heterogeneous workflows lack benefit.
 - **[primary] Kim et al., "Towards a Science of Scaling Agent Systems"**, arXiv
-  [2512.08296](https://arxiv.org/abs/2512.08296) (2025-12). 260 configurations, six agentic benchmarks,
-  five architectures (Single-Agent, Independent, Centralized, Decentralized, Hybrid), three LLM
-  families, with tools/prompts/compute standardized to isolate architecture. Reports a cross-validated
-  predictive model and a **capability-saturation effect**: "tasks where single-agent performance
-  already exceeds 45% accuracy experience negative returns from additional agents". Their own summary:
-  "coordination overhead scales with interaction depth, agents operate on progressively divergent world
-  states, and errors cascade through execution chains rather than being corrected through voting."
+  [2512.08296v3](https://arxiv.org/abs/2512.08296v3) (2026-04-08; first published 2025-12-09).
+  Reports 260 configurations, six benchmarks, five architectures and three LLM families, with a
+  cross-validated predictive model (R²_CV=0.373). Its roughly 45% baseline boundary is a fitted,
+  task-regime result, not a universal routing threshold. The specified source claims are checked
+  in the [baseline supplement K1/K2](supplements/01-cost-and-single-agent-baselines-20261015.md);
+  raw configuration/cost records are not independently reconstructed.
 
-**Reading for Pod:** the single-agent baseline is not a strawman — it is the published state of the art
-on multi-hop reasoning when compute is matched. Any Pod claim of the form "the team beat the single
-agent" is only load-bearing if thinking tokens (or total tokens) were matched, and if the single agent
-was given the same tools.
+**Reading for Pod:** use a strong single-agent control, including comparable tools and declared
+budget rules. Equal-budget quality and additional-spend economics are distinct questions (§7.1);
+a budget cap, actual token use and a bill must not stand in for one another.
 
 ### 1.1 Supervisor / orchestrator–worker
 
@@ -220,9 +226,10 @@ and OpenAI's Agents SDK handoffs.
     outputs through conversation history".
 - **[primary] Wu et al., AutoGen**, arXiv [2308.08155](https://arxiv.org/abs/2308.08155) — conversable
   agents plus a group-chat manager; the framework most production supervisors are built on.
-- **[primary] Kim et al. 2512.08296** measured the *centralized* variant explicitly: **285%
-  coordination overhead** relative to single-agent at matched performance, and **21.5 successes per
-  1,000 tokens vs 67.7 for the single agent (3.1× worse)**.
+- **[primary] Kim et al. 2512.08296v3**, Table 5: the centralized arm has **285% reasoning-turn
+  overhead**, and the printed `Success/1K tokens` column is 21.5 versus SAS 67.7 (3.1488× ratio).
+  The turn formula is checked; the complete token denominator of the efficiency column remains
+  unverified. This is not an independently measured equal-performance token bill.
 - **[primary] Mas-Orchestra**, Ke et al., arXiv [2601.14652](https://arxiv.org/abs/2601.14652) —
   orchestrator synthesized by function-calling RL. The checked v5 D.2 cells show more than 10×
   lower calls, tokens and printed fees than AFlow on AIME24/GPQA, not than every baseline on
@@ -274,18 +281,18 @@ communication beating dense communication**, not for depth per se.
 **Primary evidence.**
 - **[primary] Li et al., CAMEL**, arXiv [2303.17760](https://arxiv.org/abs/2303.17760) — two
   role-playing agents (AI User / AI Assistant) driving a task to completion; the minimal flat peer.
-- **[primary] Kim et al. 2512.08296** measured the *decentralized* variant: **263% coordination
-  overhead**, **23.9 successes per 1,000 tokens (2.8× worse than single agent)**. Same paper:
-  "at n = 3: Independent averages 11.4 turns vs Decentralized 26.1 turns", and message count grows
-  with a **super-linear exponent of 1.724**, which they explicitly attribute to quadratic all-to-all
-  message complexity "tempered by practical bandwidth limits". This is the cleanest quantitative
-  statement in the landscape that flat peer communication is where token cost is *manufactured*.
+- **[primary] Kim et al. 2512.08296v3**, Table 5: the decentralized arm has **263% reasoning-turn
+  overhead**, with the printed `Success/1K tokens` column 23.9 versus SAS 67.7 (2.8326× ratio).
+  At n=3, Independent averages 11.4 turns versus Decentralized 26.1. The fitted exponent 1.724
+  describes total turns across architecture-aggregated means, not a separately measured law of
+  message count or token billing.
 - **[primary] Sparse-topology debate**, arXiv [2406.11776](https://arxiv.org/abs/2406.11776) —
   introducing sparsity into debate communication improves it over dense debate; consistent with the
   same direction.
 
-**Reading.** Flat peer is the least efficient published form and the easiest to beat. For Pod this is
-the form to *avoid* unless messages are externally rate-limited and demand-driven.
+**Reading.** Kim's decentralized arm is less efficient than SAS in its reported column but more
+than centralized or hybrid. This does not rank every flat-peer implementation as the least
+efficient published form or decide which form Pod should use.
 
 ### 1.4 Blackboard / shared-state
 
@@ -462,18 +469,18 @@ comparison. Nearest structural analogues in the literature are (a) hierarchical 
 "role × model" grid (HieraMAS's supernodes, arXiv 2602.20229) and (b) the classic matrix *failure* modes
 from organizational theory (authority ambiguity, resource conflict), which the LLM literature has not
 tested. **This is a null result and is recorded as such**: any Pod use of "matrix" would be design
-inference without comparable literature, and the nearest measured evidence about conflicting authority
-in LLM teams is the opposite — centralized verification reduces error propagation (2512.08296).
+inference without comparable literature. Kim's trace-level architecture association does not test
+matrix dual authority or establish the causal effect of centralized verification (§3.2).
 
 ### 1.10 Cost shape of the whole family (one-line summary table)
 
-| Form | Measured overhead vs single agent | Measured quality vs single agent | Primary source |
+| Form | Reported overhead and unit | Reported quality/efficiency | Primary source |
 |---|---|---|---|
-| Single agent | 1× (reference) | reference; best on multi-hop at matched thinking budget | 2604.02460; 2512.08296 |
-| Independent (N samples, no comms) | **+58%** (1.6×) | — | 2512.08296 |
-| Centralized (supervisor) | **+285%** (3.9×) | 21.5 succ./1K tok vs 67.7 SAS | 2512.08296 |
-| Decentralized (flat peer) | **+263%** (3.6×) | 23.9 succ./1K tok vs 67.7 SAS | 2512.08296 |
-| Hybrid (mixed) | **+515%** (6.2×) | -2.4% vs centralized, n.s.; 13.6 succ./1K tok | 2512.08296 |
+| Single agent | 1× turn reference | strong multi-hop control at the same requested thinking budget | 2604.02460; 2512.08296 |
+| Independent (N samples, no comms) | **+58% turns** (1.6× rounded) | — | 2512.08296 |
+| Centralized (supervisor) | **+285% turns** (3.9× rounded) | printed 21.5 succ./1K tok vs 67.7 SAS; full denominator unverified | 2512.08296 |
+| Decentralized (flat peer) | **+263% turns** (3.6× rounded) | printed 23.9 succ./1K tok vs 67.7 SAS; full denominator unverified | 2512.08296 |
+| Hybrid (mixed) | **+515% turns** (6.2× rounded) | -2.4% vs centralized, n.s.; printed 13.6 succ./1K tok | 2512.08296 |
 | Industrial supervisor | **~15× tokens vs chat**; ~4× for single agent | **+90.2%** on Anthropic internal research eval | Anthropic blog |
 | Blackboard (lazy invalidation, modeled) | up to **95% saving** vs full rebroadcast (simulation) | not measured | 2603.15183 |
 | Dynamic (learned orchestration) | MAS-Orchestra v5 D.2: AFlow/Mas calls 25.25×/28.37×, tokens 115.67×/56.27× on AIME24/GPQA; not single-agent ratios. SC-MAS token claim remains unchecked | Separate quality/resource aggregation not bound (§4.4); SC-MAS +1.46%…+3.34% remains unchecked | 2601.14652v5; 2601.09434 |
@@ -491,10 +498,10 @@ have completed acceptance. The table identifies what still needs bounded source 
 
 | Form | Principle and applicability | Cost evidence accepted so far | Remaining scope |
 |---|---|---|---|
-| Single-agent-first | Matched-budget reasoning and workflow-compilation claims remain at the original survey reading level | Optima's CoT/SC controls are checked in the cost report, not the general §1.0 claims | Check the named §1.0 claims and their task/budget limits |
-| Supervisor | Anthropic's named research architecture and applicability are checked in the linked A1/A5 | 4×/15× use chat denominators; heterogeneous 90.2% result is not an equal-budget gain | Kim centralized overhead remains unchecked; do not derive 15/4 as a controlled ratio |
+| Single-agent-first | Tran & Kiela's requested-budget reasoning and OneFlow's homogeneous execution claims checked in the [baseline supplement](supplements/01-cost-and-single-agent-baselines-20261015.md) | Kim's turn O%, printed efficiency cells and OneFlow's ideal inference-cost estimates are checked within their scopes | Actual full token/bill denominators, equal-used-budget attribution and raw-run replication remain unverified |
+| Supervisor | Anthropic's named research architecture and applicability are checked in the linked A1/A5 | Chat-denominator 4×/15× and Kim's 285% turn overhead are separate objects; heterogeneous 90.2% is not an equal-budget gain | Kim's full efficiency denominator remains unverified; do not derive 15/4 as a controlled ratio |
 | Hierarchical | MetaGPT/ChatDev/HieraMAS claims remain survey candidates | HieraMAS dollars and training ratio not yet accepted | Check hierarchy versus sparse communication and model selection separately |
-| Flat peer | CAMEL and sparse-debate claims remain survey candidates | Kim decentralized overhead not yet accepted | Check the original comparisons before ranking this form as least efficient |
+| Flat peer | CAMEL and sparse-debate claims remain survey candidates | Kim's 263% turn overhead and printed 23.9 efficiency cell are checked, not an independent token bill | Check remaining original comparisons; no all-literature least-efficient ranking follows |
 | Blackboard | Hearsay-II's classical mechanism is checked in the theory supplement | Token Coherence's LLM-cost simulation not yet accepted | Check modern costs and governance claims; classical mechanism does not certify them |
 | Market | Smith's allocation protocol and communication limits are checked in the theory supplement | No accepted shared-benchmark cost comparison in this pass | Check the named LLM candidates and the original bounded-search claim |
 | Swarm | Classical stigmergy is checked in the theory supplement, not the named LLM systems | No accepted LLM cost result in this pass | Check source content rather than deriving a finding from a title or framework name |
@@ -508,18 +515,23 @@ source into an absence result. The owning ticket remains open under S4.
 
 ## 2. Cost structure and economics
 
-### 2.1 The measured multipliers (this is the most solid number-set in the landscape)
+### 2.1 Reported multipliers and their measurement units
 
-| Organization | Multiplier vs single agent / chat | Source | Measured or asserted |
+| Organization | Multiplier vs single agent / chat | Source | Measurement boundary |
 |---|---|---|---|
-| Single agent vs chat | **~4× tokens** | Anthropic blog | measured (their data) |
-| Multi-agent vs chat (industrial supervisor) | **~15× tokens** | Anthropic blog | measured (their data) |
-| Independent (N samples, no coordination) | **+58%** (1.6×) | 2512.08296 | measured, 260 configs |
-| Centralized (supervisor) | **+285%** (3.9×) | 2512.08296 | measured |
-| Decentralized (flat peer) | **+263%** (3.6×) | 2512.08296 | measured |
-| Hybrid | **+515%** (6.2×) | 2512.08296 | measured |
-| Overall stated range | **1.6×–6.2× token budgets** relative to single-agent *at matched performance* | 2512.08296 | measured |
-| Learned/compressed organizations | **up to −86% cost** (BAMAS); **up to −78.9% token cost** (AgentSlimming); **−11.2%…−16.4% tokens** (SC-MAS) | 2511.21572, 2605.08813, 2601.09434 | measured |
+| Single agent vs chat | **~4× tokens** | Anthropic blog | author's deployment data |
+| Multi-agent vs chat (industrial supervisor) | **~15× tokens** | Anthropic blog | author's deployment data |
+| Independent (N samples, no coordination) | **+58% turns** (1.6× rounded) | 2512.08296v3 | Table 5; `(11.4/7.2−1)×100` |
+| Centralized (supervisor) | **+285% turns** (3.9× rounded) | 2512.08296v3 | Table 5; `(27.7/7.2−1)×100` |
+| Decentralized (flat peer) | **+263% turns** (3.6× rounded) | 2512.08296v3 | Table 5; `(26.1/7.2−1)×100` |
+| Hybrid | **+515% turns** (6.2× rounded) | 2512.08296v3 | Table 5; `(44.3/7.2−1)×100` |
+| Overall author wording | **1.6×–6.2× token budgets** “at matched performance” | 2512.08296v3 | stated, not independently reconciled with turn O% and the claimed 4,800 reasoning-token match |
+| Learned/compressed organizations | **up to −86% cost** (BAMAS); **up to −78.9% token cost** (AgentSlimming); **−11.2%…−16.4% tokens** (SC-MAS) | 2511.21572, 2605.08813, 2601.09434 | original survey claims; their accepted scope is not expanded by this check |
+
+Kim's overhead formula uses reasoning turns, not token counts. Its token-budget wording and
+Table 5's matched-token caption are retained as an author-level reconciliation gap, not resolved
+by equating the units. Full cost tracking in Figure 3 covers 180 configurations, not all 260.
+See [baseline supplement K1/K2](supplements/01-cost-and-single-agent-baselines-20261015.md).
 
 **The single most important sentence in the economics literature** is Anthropic's own:
 > "Multi-agent systems work mainly because they help spend enough tokens to solve the problem."
@@ -527,34 +539,25 @@ source into an absence result. The owning ticket remains open under S4.
 
 and its quantitative companion in the same source: "**token usage by itself explains 80% of the
 variance**, with the number of tool calls and the model choice as the two other explanatory factors."
-Read together with the +90.2% internal-research-eval win, the honest reading is that the industrial
-result is a *compute-scaling* result that a single agent with the same budget might also have
-obtained — which is exactly what 2604.02460 then demonstrated under matched thinking-token budgets.
-**A multi-agent system is, to first order, a mechanism for spending more tokens on a task that can
-absorb them.** That is a real capability when the budget exists and the task parallelizes; it is a
-pure cost when it does not.
+Read with the +90.2% internal-research-eval result, this motivates a compute-spend control;
+it does not prove that the same-budget single agent would match that system. Tran & Kiela study
+two different multi-hop tasks under a shared requested thinking-budget cap, not Anthropic's
+research configuration. Tokens, context and organization remain separate possible contributors.
 
 ### 2.2 Where the money actually goes
 
 Three distinct cost centres, and the literature measures them differently:
 
-1. **Coordination / interaction overhead.** 2512.08296 is the authoritative measurement: overhead
-   scales with *interaction depth*, and message count grows with a **super-linear exponent of 1.724**
-   (they attribute this to quadratic all-to-all potential communication, "tempered by practical
-   bandwidth limits"), producing "a distinct agentic scaling regime fundamentally different from
-   neural network parameter scaling". Turn counts at n=3: **Independent 11.4 turns vs Decentralized
-   26.1 turns**. Once coordination saturates, further messages are pure waste: high-performing runs
-   show "convergent token overlap … suggesting message consensus is reached; **further messages add
-   redundancy rather than novel information**."
-2. **The turn-count scaling law (the mechanism behind the overhead).** 2512.08296 fits
-   `T = 2.72 × (n + 0.5)^1.724`, **R² = 0.974**, 95% CI on the exponent **[1.685, 1.763]**, p < 0.001 —
-   a **super-linear** turn count in team size, which they attribute to quadratic all-to-all message
-   complexity "tempered by practical bandwidth limits", and explicitly frame as "a distinct agentic
-   scaling regime fundamentally different from neural network parameter scaling." All systems in that
-   study were **matched to a mean of 4,800 reasoning tokens per trial**. Plain success rates by
-   architecture: SAS **0.466**, Independent 0.370, Decentralized 0.477, Centralized 0.463, Hybrid 0.452.
-   Note that **decentralized has the highest raw success rate and near-worst token efficiency** — the
-   cost and the quality axes genuinely disagree.
+1. **Coordination / interaction overhead.** Kim's O% is the relative reasoning-turn increase.
+   At n=3, Independent has 11.4 turns versus Decentralized 26.1. The authors interpret shared
+   token overlap as convergence and additional messages as possible redundancy; this is a
+   descriptive result within their configurations, not a token bill or proof all later messages waste.
+2. **The turn-count fit.** 2512.08296 reports `T = 2.72 × (n + 0.5)^1.724`, **R² = 0.974**,
+   95% exponent CI **[1.685, 1.763]**, p<0.001, fitted to architecture-aggregated means.
+   Its caption claims a matched mean of 4,800 reasoning tokens/trial, while actual turn overhead
+   is tabulated separately. Success rates are SAS **0.466**, Independent 0.370, Decentralized
+   0.477, Centralized 0.463 and Hybrid 0.452. Raw success and the printed efficiency column rank
+   these arms differently; complete token-denominator reconstruction remains unverified.
 3. **Context rebroadcast.** 2603.15183 names "**broadcast-induced triply-multiplicative overhead**"
    scaling as O(agents × steps × artifact size) and argues it is "a structural residue of full-state
    rebroadcast" rather than intrinsic to coordination. Its lazy-invalidation result: savings lower
@@ -580,17 +583,13 @@ Three distinct cost centres, and the literature measures them differently:
   important tokens for the lead research agent", which "prevents information loss during multi-stage
   processing and **reduces token overhead from copying large outputs through conversation history**"
   (Anthropic `[primary]`).
-- The complementary measurement is the *cost of not* isolating: 2601.12307 measures the penalty of
-  history accumulation inside a single agent's multi-turn execution as **+967 input tokens for AFlow
-  and +368 for OneFlow** on Qwen-3 8B — small in absolute terms, but it shows the single-agent
-  simulation is not free either. The single-agent saving there comes from *KV-cache reuse of over­lapping
-  prefixes*, not from fewer turns.
-- **A real tension:** 2604.02460's DPI argument says a single unified context is *more
-  information-efficient* than a partitioned one at equal reasoning budget, while context isolation is
-  *cheaper per agent* and is Anthropic's stated reason for using subagents. These are reconciled by
-  the degradation result: isolation pays exactly when the single context has become the bottleneck
-  (length, noise, or corruption). That reconciliation is the theoretical core of the owner's dynamic
-  organization idea and it is already in the literature.
+- OneFlow Table 4 measures HumanEval/Qwen-3 8B with vLLM and a 16k context: multi-turn execution
+  adds **967 / 368 average input tokens** for AFlow / OneFlow. Latency/throughput do not uniformly
+  improve: OneFlow changes from 4.31 to 4.83 seconds and 2.47 to 1.70 samples/s. Its separate
+  GPT-4o-mini USD cache-cost comparison is an **ideal simulation**, not this runtime measurement.
+- Tran & Kiela's DPI argument concerns ideal context information; their degradation experiment
+  finds some MAS crossovers on one task/model. Neither establishes that context isolation always
+  saves cost or that a specific degradation threshold transfers to Pod.
 
 ### 2.4 Conditions where multi-agent pays off (measured, not asserted)
 
@@ -606,23 +605,21 @@ Converging conditions across independent sources:
    agents **−35%** while structured coordination gains modestly; Workbench **−11% to +6%**; SWE-bench
    Verified **−15% to −2%** across all MAS architectures ("consistent with high single-agent
    capability").
-3. **Low single-agent capability on the task.** 2512.08296: "tasks where single-agent performance
-   already exceeds **45% accuracy** experience **negative returns** from additional agents". Mas-Orchestra
-   independently: "as the sub-agent becomes more capable, the benefit of MAS decrease[s]".
-4. **Tool-light tasks.** 2512.08296's "tool-coordination trade-off": tool-heavy tasks (e.g. 16-tool
-   business workflows) "suffer from multi-agent coordination overhead, with efficiency penalties
-   compounding as environmental complexity increases" (direction preserved in both the 4- and
-   6-benchmark models, significance lost in the more heterogeneous 6-benchmark model — a caveat the
-   authors state).
+3. **Single-agent baseline in a fitted regime.** Kim describes negative returns above roughly
+   **45% accuracy** in its tested models/tasks; the threshold is not universal. Related Mas-Orchestra
+   statements retain their own configurations and do not independently replicate that constant.
+4. **Tool-related interactions.** Kim's six-benchmark `overhead_x_tools` is directional
+   (naive p=0.211). `efficiency_x_tools` has naive p=0.002 but cluster-robust p=0.205;
+   Holm p=0.026 addresses multiplicity separately. These are not one interchangeable significance claim.
 5. **Verification-heavy or extraction-heavy phases.** LUMEN (§2.6) gives the cleanest per-phase case.
 6. **Available budget with a task that can absorb it.** Anthropic's mechanism claim plus 2604.02460's
    matched-budget reversal.
 
-**The mirror-image list (where it demonstrably does not pay):** sequential planning; already-strong
-single agents (>~45% task accuracy); tool-heavy workflows; homogeneous workflows that a single agent
-with KV-cache reuse can execute (2601.12307); multi-hop reasoning at matched thinking budget
-(2604.02460); logical reasoning by debate (2511.07784); routing/topology complexity in sparse debate
-(2609.27150).
+**Negative/compression cases have different boundaries:** Kim's sequential planning arms lose under
+its controls, but its tool effects depend on interaction and inference method. OneFlow's homogeneous
+execution can lower ideal cache cost, not uniformly retain quality or improve latency. Tran & Kiela
+find strong SAS controls at a common requested thinking-budget cap. The remaining debate and sparse-
+routing candidates below retain their original source-check status; these are not universal exclusions.
 
 ### 2.5 Budget-aware orchestration (the family exists; the flagship is verifiable)
 
@@ -723,13 +720,16 @@ SelfCol/MBPP **16.0** → **1.2**; MathDebate/GSM8K **9** → **0.8**. Their hyb
 statistically significant (β̂ = 0.014, p = 0.658)** — the authors state efficiency and overhead explain
 architectural differences better. **Do not cite 17.2× as causal.**
 
-**Exact decision-boundary statistics (2512.08296).** Capability ceiling β = **−0.236**, p = 0.004,
-p_Holm = 0.018 → standardized boundary ≈0.170 → **≈0.45 raw single-agent accuracy** as the
-negative-returns threshold. Tool-coordination trade-off β = **−0.096**, p = 0.002; mechanism, quoted:
-"**multi-agent systems fragment the per-agent token budget**, leaving insufficient capacity for complex
-tool orchestration." Predictive model R²_CV = **0.373** (0.413 with the task-grounded metric); optimal-
-architecture selection **87%** held-out vs **20% random, 54% capability-only**. Turns per architecture:
-SAS 7.2, Independent 11.4, Decentralized 26.1, Centralized 27.7, Hybrid 44.3.
+**Decision-boundary statistics (2512.08296v3).** The approximate 45% raw-baseline boundary is
+reported from the fitted model, whose R²_CV is **0.373** (0.413 with the task-grounded metric).
+Table 4's `baseline_x_agents` coefficient **−0.236** has naive p=0.004, but Table 14 gives
+cluster-robust p=0.105 and Table 15 Holm p=0.084 for that interaction. The robust p=0.004 /
+Holm p=0.018 values belong to **`single_agent_baseline`**, not the −0.236 interaction.
+`efficiency_x_tools` is −0.096, naive p=0.002, robust p=0.205, Holm p=0.026;
+`overhead_x_tools` is −0.033, naive p=0.211. The author's capability-saturation summary is
+retained, while these coefficient-specific distinctions constrain confidence and transfer.
+Reported optimal-architecture selection is **87%** held-out versus 20% random / 54% capability-only;
+it is a within-regime prediction result, not independent validation of a Pod router.
 
 **Negative result on vendor evidence.** Google's Agent Development Kit announcement
 ([developers.googleblog.com](https://developers.googleblog.com/en/agent-development-kit-easy-to-build-multi-agent-applications/),
@@ -760,27 +760,23 @@ costumes, and checking that is cheap.**
 
 ### 2.8 The economics verdict in one paragraph
 
-The multiplier is real, structural, measured, and roughly **1.6×–6.2×** at matched performance
-(2512.08296), or **~15× chat tokens / ~3.75× a single agent** in one industrial deployment (Anthropic).
-The *quality* return is conditional on four measured switches — task decomposability, tool intensity,
-single-agent baseline accuracy (negative returns above ~45%), and base-model capability (benefits
-shrink as the model strengthens: 10.7pp → 3.0pp in 2505.18286). Where a task is decomposable and the
-single agent is weak, multi-agent can pay; where the task is sequential, tool-heavy, or the single
-agent is already strong, the measured return is **negative**, and the negative cases include SWE-bench
-Verified (−15% to −2%) and PlanCraft (−70% to −39%). And the most efficient organization in the
-measured set is frequently **one agent with a router** (OneFlow: 54% fewer tokens; Skill-compilation:
-54% fewer tokens and 50% less latency) or **isolated self-correction** (10× output budget matches
-debate). Pod's local result, a team passing at 5.71M tokens where a single agent failed at 17.0M,
-records a capability difference under those conditions. It does not by itself establish general
-token efficiency or exempt Pod from testing the counter-evidence.
+Kim reports substantial reasoning-turn overhead and task-dependent quality; its “1.6×–6.2× token
+budgets” wording is not an independent token ledger. Anthropic's ~4× and ~15× use chat as denominator,
+not a controlled multi-agent/single-agent pair. OneFlow offers homogeneous-workflow single-agent
+controls with ideal closed-model cache-cost estimates and task-specific quality/runtime trade-offs.
+The original OneFlow “54% fewer tokens” shorthand was not located in this bounded check and is not
+an accepted finding. Neither these studies nor Pod's team pass at 5.71M versus a single-agent fail
+at 17.0M establishes a general economic law; the project still needs its own declared comparison,
+complete accounting and pre-registered worthiness threshold.
 
 ### 2.9 Cost-accounting pitfalls the literature itself flags
 
 - **API-based budget control is unreliable.** 2604.02460 identifies "significant artifacts in
   API-based budget control (particularly in Gemini 2.5) … which can inflate apparent gains from MAS",
   and had to report both API-side and content-based token proxies.
-- **Provider pricing makes USD numbers expire.** Mas-Orchestra's cost figures are "based on Together AI
-  pricing at the time of writing"; OneFlow uses "OpenAI's official tokenization for GPT-4o-mini".
+- **Provider pricing and estimates have different evidential strength.** Mas-Orchestra uses
+  Together AI pricing at writing. OneFlow's GPT-4o-mini shared-cache USD values are ideal estimates
+  based on tokenization/final conversations; they are not actual cached API bills.
 - **Cost of evaluation is itself material.** MAST reports the API cost of its own LLM-as-judge
   annotation pipeline and notes it scales with trace length; LUMEN publishes full cost logs. A Pod
   experiment that measures cost must budget for measuring.
@@ -844,11 +840,11 @@ the taxonomy; every later mention of "MAST" traces here.
 
 ### 3.2 The reliability findings that are not in MAST
 
-- **Error amplification without centralized verification.** 2512.08296: architectures without
-  centralized verification propagate errors more; independent variants amplify errors to **17.2×
-  baseline**, and the paper states errors "cascade through execution chains rather than being corrected
-  through voting". Centralized coordination absorbs more error. This is the strongest single argument
-  in the landscape for a *verification layer with authority*, not just a review step.
+- **Trace-level error association, not causal authority evidence.** Kim Table 5 reports Independent
+  **17.2×** versus Centralized 4.4× trace-level amplification (SAS=1); task-level amplification is
+  about 1.1–1.3. The controlled main effect has p=0.658 and the tool interaction p=0.332 (§2.7).
+  These descriptive differences motivate verification experiments, not a proven requirement for
+  a particular verification layer with authority.
 - **Three coordination regimes (a reliability reading of cost).** 2512.08296 partitions runs into
   (i) **under-coordination** — minimal overhead, minimal accuracy gain, coordination mechanisms not
   yet engaged; (ii) an **optimal band** — highest success-per-cost ratio, dominated by centralized and
@@ -911,9 +907,10 @@ the taxonomy; every later mention of "MAST" traces here.
   a clarification request before proceeding converts a judgement call into a forced transition.
 - FM-2.4 information withholding — fixable by an artifact-in-handoff contract (what must be passed).
 - FM-2.5 ignored other agent's input — fixable by required acknowledgement/consumption receipts.
-- FM-3.1 premature termination, FM-3.2 no/incomplete verification, FM-3.3 incorrect verification —
-  the entire FC3 category is a *gate design* problem: a mandatory verification step with authority to
-  block. 2512.08296's centralized-verification result is the measurement behind this.
+- FM-3.1 premature termination, FM-3.2 no/incomplete verification and FM-3.3 incorrect verification —
+  an authoritative verification gate is a **project intervention hypothesis**, not proof that all FC3
+  failures are protocol-fixable. Kim's descriptive architecture association does not establish the
+  gate's causal effect or sufficiency; use MAST's own intervention limits (§3.1) as the boundary.
 - The four memory modes in 2606.24535 (leakage, staleness, contradiction, provenance) — governance
   primitives, all addressed there by scoped retrieval, temporal supersession, provenance tracking,
   policy-governed propagation.
@@ -1338,7 +1335,9 @@ the measured degradation regime.
 
 ### 4.8 Checked strong baselines and budget boundaries
 
-This table covers the checked claims in twelve candidates across four supplement batches, not the entire inventory.
+This table covers the checked claims in twelve dynamic/search candidates across four supplement batches,
+not the entire inventory. Strong SAS/SAS-L and homogeneous-execution controls are separately checked in
+[the baseline supplement](supplements/01-cost-and-single-agent-baselines-20261015.md).
 Values are author-reported; differences and ratios are independently recomputed. No experiment was run.
 
 | Source | Single-agent, multi-sample and fixed controls | Published comparison | Budget and attribution limit |
@@ -1551,8 +1550,8 @@ cost report §4, C1–C9.
   resolved by `id_list` + `arxiv.org/abs` title check; treat arXiv-search-derived IDs as unverified
   until the title matches.
 - **Cost is not comparable across benchmark versions or providers.** tau-bench $0.61/task → tau2-bench
-  $0.145/task is a benchmark-revision effect, not a progress effect. Mas-Orchestra's USD figures are
-  Together AI pricing at time of writing; OneFlow's are OpenAI tokenization for GPT-4o-mini.
+  $0.145/task is a benchmark-revision effect, not a progress effect. Mas-Orchestra uses Together AI
+  pricing at writing; OneFlow's GPT-4o-mini cache-cost arm is an ideal tokenization estimate, not a bill.
 - **Evaluation has its own cost.** PaperBench estimates $8,000 for one o1 IterativeAgent 12h rollout
   on each of 20 papers, excluding separate judging; PBCD's ~$4,000 is a runtime-based expectation.
   Other original excerpts: HAL ~$40,000 total, MAST $1.8/trace, MERIT $42.57 for 23,440 episodes.
@@ -1678,12 +1677,11 @@ The examples below motivate checks, not a universal experimental design. The sha
 checklist is [C1–C9 in the cost report](benchmarks-and-cost-accounting.md#4-comparability-criteria).
 Choose the question first: quality under a fixed budget, or the quality gained for additional spend.
 
-1. **Compute normalization (matched budget).** 2604.02460 makes this the primary control and holds
-   *thinking tokens* constant — defined as "the total number of tokens used for intermediate reasoning,
-   **excluding prompts and final answers**" — and only then compares SAS to five MAS architectures.
-   Its result concerns equal thinking-token budgets, not every quality-cost comparison. Different
-   measured spend can be intentional in an economic comparison, provided both arms use one
-   accounting policy and the conclusion does not claim equal-budget superiority.
+1. **Compute normalization (matched budget).** Tran & Kiela use a common **requested** thinking-token
+   budget cap, excluding prompts and final answers. Appendix F reports unequal actual usage (§1.0).
+   This is not equal measured total cost. An economic comparison may intentionally use different
+   spend if both arms follow one accounting policy and the conclusion does not claim equal-used-
+   budget superiority.
 2. **Treatment versus controls.** 2512.08296 reports standardizing tools, prompts and compute for its
    experiment. A Pod organization experiment must version prompts, roles and control flow as part of
    the intended treatment. Requiring these to be identical would remove the organization difference
@@ -1712,11 +1710,11 @@ Choose the question first: quality under a fixed budget, or the quality gained f
 
 | Convention | Example source | What it captures | What it hides |
 |---|---|---|---|
-| Thinking tokens (reasoning only) | 2604.02460 | reasoning compute | prompts, aggregation, retries |
-| USD token expenditure per workflow | 2601.12307 (OneFlow; OpenAI official tokenization, input+output) | bill | wall-clock, tool/compute beyond tokens |
+| Requested thinking-token budget | 2604.02460 | declared reasoning cap; actual use reported separately | prompts, final answers, complete billed spend |
+| USD inference estimate per workflow | 2601.12307 (OneFlow; input+output, ideal closed-model cache simulation) | estimated inference cost, not a cached API bill | design/search fees, real cache behavior, tool/compute beyond tokens |
 | Total tokens (prompt+completion) | 2601.14652 (Mas-Orchestra, Together AI pricing at time of writing) | bill | parallel-wall-clock savings |
 | Number of LLM calls | 2601.14652; 2601.09434 (SC-MAS) | orchestration fan-out | per-call size |
-| Successes per 1,000 tokens | 2512.08296 (SAS 67.7 vs centralized 21.5) | efficiency ratio | absolute quality |
+| Printed successes per 1,000 tokens | 2512.08296 (SAS 67.7 vs centralized 21.5) | reported efficiency column; full denominator unverified | absolute quality and reproducible token ledger |
 | Accuracy + cost in one objective | 2601.12307 (α·perf + β·cost); 2601.09434 (utility − λ·cost) | the trade the designer faces | the choice of λ/β itself |
 | Fixed-cost-level comparison | 2607.15263 (security agents, "compare models at fixed cost levels and decompose performance by inference spend and tool spend") | spend regime | — |
 
@@ -1891,8 +1889,8 @@ These are the load-bearing counter-evidence, ordered by strength.
 | MAD fails to beat CoT / Self-Consistency despite more compute | arXiv [2502.08788](https://arxiv.org/abs/2502.08788), 2025-02-12 `[primary]` | Measured: 5 methods × 9 benchmarks × 4 models | *"MAD often fail to outperform simple single-agent baselines such as Chain-of-Thought and Self-Consistency, even when consuming significantly more inference-time computation."* Caveat: **heterogeneity is "a universal antidote"** |
 | Debate costs more for equal-or-worse accuracy, quantified | arXiv [2605.00914](https://arxiv.org/abs/2605.00914), 2026-04-29 `[primary]` | Measured, budget-explicit (N=10 homogeneous agents, R=3 rounds, GSM-Hard + MMLU-Hard) | *"debate consumes **2.1–3.4× more tokens** (up to **28,631 tokens per problem**) than self-correction **for equal or lower accuracy**"*; sycophantic conformity up to **85.5%**, contextual fragility up to **70.0%**, oracle gap up to **32.3 pp** |
 | Team size has diminishing/negative returns with a fitted law | "The Ringelmann Effect in Multi-Agent LLM Systems", arXiv [2606.02646](https://arxiv.org/abs/2606.02646), 2026-05-31 `[primary]` | Measured: `R(N)=1/(1+c(N−1)N^−β)`, **R² > 0.99** across 44 (model × task × condition) cells, 7B–32B + Gemini frontier check | *"**Thirty dense debating agents produce no more answer diversity than one** on MMLU-Hard."* Also: *"A **noise placebo** tracks self-correction on free-form math and at 4× scale"* — a placebo matches the attributed gain |
-| Single agent ≥ multi-agent on multi-hop reasoning at matched thinking tokens | arXiv [2604.02460](https://arxiv.org/abs/2604.02460), 2026-04-11 `[primary]` | Measured: 3 model families × 5 MAS architectures × 2 datasets, matched budget | See §1.0. Includes artifact findings in API budget control that inflate MAS gains |
-| Homogeneous workflows are simulable by one agent with KV-cache reuse | arXiv [2601.12307](https://arxiv.org/abs/2601.12307), 2026-01-18 `[primary]` | Measured: 7 benchmarks | See §1.0 |
+| Strong SAS/SAS-L controls on multi-hop tasks at the same requested thinking budget | arXiv [2604.02460v2](https://arxiv.org/abs/2604.02460v2), 2026-04-11 `[primary]` | Tables 1/3/5: 3 model families, 5 MAS architectures, 2 tasks; actual usage differs | Table 1 B=1,000 average .418/.397 vs strongest MAS .388; no equal-used-budget or full-cost claim |
+| Homogeneous workflows can have strong single-agent execution controls | arXiv [2601.12307v1](https://arxiv.org/abs/2601.12307v1), 2026-01-18 `[primary]` | Abstract says seven; setup lists eight benchmark names | Ideal GPT-4o-mini cache-cost estimates versus Qwen3 runtime measurements; task-specific quality trade-offs (§1.0) |
 | Architecture gains are bounded by task structure; many are negative | arXiv [2512.08296](https://arxiv.org/abs/2512.08296), 2025-12 `[primary]` | Measured: 260 configs, 6 benchmarks | Relative change vs SAS: **+80.8% to −70%**; SWE-bench Verified **−15% to −2%** across all MAS |
 | Complex topology control is unnecessary for sparse debate | arXiv [2609.27150](https://arxiv.org/abs/2609.27150), 2026-09-22 `[primary]` | Measured | *"Distinct-Peer Random Routing Improves Cost-Efficiency in Sparse Multi-Agent Debate"* — direct counter-evidence to §4's premise |
 
@@ -2009,11 +2007,14 @@ Recorded precisely, because a reconnaissance map's value depends on where its ed
   described qualitatively (e.g. "a single scalar combining fidelity, correlation, and fan-in") rather
   than with the exact constant, because the constant was unreadable in the HTML.** Reading the PDF
   would fix this.
-- **Single-source risk on several load-bearing numbers.** The 1.6×–6.2× overhead multipliers, the ~45%
-  capability ceiling, the +80.8% to −70% spread and the 17.2× error amplification all come from **one
-  paper** (2512.08296). That paper is careful and pre-registers its controls, but these are not yet
-  independently replicated in this map, and its own authors note that one directional finding
-  (tool-coordination) loses significance in the 6-benchmark model.
+- **The three-source baseline check is bounded.** Kim's 1.6×–6.2× range derives from turn O%;
+  its token wording and matched-token caption are not independently reconciled. The ~45% boundary,
+  +80.8% to −70% spread and trace amplification remain author reports from one fitted task regime.
+  Table 14/15 p-values belong to named coefficients, not interchangeable headline effects.
+  Tran & Kiela match requested thinking caps, not actual spend; OneFlow's closed-model cache fee is
+  ideal-estimated, and its quality/runtime are not uniformly preserved. Kim's Table 16 extra-model
+  rows are not reconciled with main-run membership, and its full efficiency denominator remains unverified. See the
+  [baseline supplement](supplements/01-cost-and-single-agent-baselines-20261015.md).
 - **2603.15183 (Token Coherence) is a single-author theory+simulation paper** and its elegant 95%
   saving is a simulation result, not a production measurement. The "86% token duplication in flat
   topologies" figure inside it is second-hand and is marked `[未经一手来源核验]`.
@@ -2072,9 +2073,9 @@ Recorded precisely, because a reconnaissance map's value depends on where its ed
    和成本；Optima未训练基线已核有论文层同集同模型双数字，但不等于组织经济增益。HAL旧行63.9倍
    暂停用于决策。公开表可以提供候选口径，不能替代本项目受控实验。（§5.1、§5.5、§5.7）
 
-**使用这些推断时的一条元规则：** 本图中最强的单篇证据（2512.08296 的 1.6–6.2×、≈45% 天花板、
-+80.8%→−70% 跨度）来自**同一篇论文**且尚未在本图范围内被独立复现；其工具协调方向在 6 基准模型
-中已失去显著性，错误放大 17.2× 在控制其他指标后不显著。**引用这些数字时应带上这些限定。**（§9.2）
+**使用这些推断时的一条元规则：** Kim 的回合倍数、约45%拟合边界与任务差异来自同一来源，未独立复现；
+错误放大主效应控制后不显著，工具交互的显著性须按系数与推断方式分别引用。Tran & Kiela 的请求预算
+不等于实际消耗，OneFlow 理想缓存费不等于账单。项目判据不能省略这些边界。（§9.2及三源补核件）
 
 ## References
 
