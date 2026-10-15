@@ -2,8 +2,8 @@
 
 - **Date:** 2026-10-13
 - **Ticket:** [组织形态谱系、动态架构（相变）与成本经济](../issues/01-research-org-patterns-and-phase-transition.md)
-- **Document state:** partial research deliverable adopted by the map. The owning ticket remains
-  open. This is a survey with unresolved source checks, not a design proposal or decision record.
+- **Source-use boundary:** limited to the claims admitted by the [2026-10-15 scope ruling](organization-evidence-admission-20261015.md).
+  Unchecked survey material is retained as historical leads, not accepted evidence; current ticket state lives on GitHub.
 - **Subject of the map:** the space of organizational forms for LLM multi-agent systems, the
   measured economics of those forms, their failure modes, the runtime-adaptive ("dynamic
   organization") family, the public benchmarks that report score *and* cost, and the
@@ -14,14 +14,15 @@
   inline `[未经一手来源核验]`. Where a source was unreachable, §9 and the reference entry say
   so explicitly. Numbers are quoted as published; no unit conversion or re-derivation was
   performed unless stated.
-- **Reading route:** start with the ticket's current Answer and the correction record below.
-  For individual mechanisms, follow §1–§4; for benchmark and comparison claims, read §5 and §7;
-  check §9 before transferring any result into a decision.
+- **Reading route:** start with the ticket's current Answer and the [admission ruling](organization-evidence-admission-20261015.md).
+  For an admitted empirical claim, follow its named supplement and original reading limits. Sections §1–§10
+  retain unchecked background: absence of an inline warning is not acceptance, and §9 gaps are not a new collection queue.
 - **Sourcing note:** **no citation counts appear anywhere in this document**, because the Semantic
   Scholar API was rate-limited to unusable across two agents and ~30 attempts (§9.1). Every judgement
   about a work's influence rests on venue and citation-chaining, not bibliometrics.
 
-**2026-10-13 correction.** The owning ticket is open pending core-source verification.
+**2026-10-13 correction (historical verification record).** The ticket was reopened pending core-source verification;
+the 2026-10-15 admission ruling now limits which claims are decision inputs rather than requiring every survey source.
 For AdaptOrch baselines, partial adaptation costs and leaderboard integrity, read
 [the primary-source correction record](evidence-corrections-2026-10-13.md) before citing a number.
 The edits below correct those claims; they do not certify every source in this survey.
@@ -46,13 +47,14 @@ establishes an equal-budget, topology-only gain or an in-task state-migration be
 For Kim's overhead/statistics, Tran & Kiela's requested-versus-used thinking budget, or OneFlow's
 cache/cost claims, read the [three-source baseline check](supplements/01-cost-and-single-agent-baselines-20261015.md).
 It separates turns from tokens, descriptive associations from causal claims, and ideal cache-cost
-estimates from measured execution. Other forms and the owning ticket's S4 gaps remain open.
+estimates from measured execution. Remaining unchecked material is excluded by the admission ruling;
+its unknowns are preserved, not promoted to evidence or silently treated as zero.
 
 ## 0. Executive digest
 
 The checks above cover twelve dynamic/search candidates and the specified claims in three
-existing baseline sources. Remaining entries still need source-level verification before a decision
-uses them; a checked source does not certify every claim attributed to it.
+existing baseline sources. Only claims admitted by the scope ruling are decision inputs; other
+entries remain historical leads. A checked source does not certify every claim attributed to it.
 
 1. **Strong single-agent controls matter.** Anthropic describes its named research system as a
    token-spending mechanism (§2.1). Tran & Kiela compare five multi-agent architectures with SAS
@@ -492,9 +494,9 @@ ranking of organizational forms at a common budget.
 
 ### 1.11 Original ten-form checklist: accepted and remaining scope
 
-This is a coverage check against the original principle/applicability/cost requirement, not a new
-closure gate. A source tagged primary in §1 is a source type, not a declaration that its claims
-have completed acceptance. The table identifies what still needs bounded source checks.
+This table records coverage against the original principle/applicability/cost requirement.
+Under the [limited-scope ruling](organization-evidence-admission-20261015.md), its remaining items are
+excluded from accepted evidence, not mandatory further collection. A source's primary tag does not certify its claims.
 
 | Form | Principle and applicability | Cost evidence accepted so far | Remaining scope |
 |---|---|---|---|
@@ -509,9 +511,9 @@ have completed acceptance. The table identifies what still needs bounded source 
 | Voting | Optima's fixed MAD and SC arms are checked in the cost report | Score/token pairs exist, without equal-budget economic attribution | Theorems and broad cheapest/only claims in §1.8 remain unaccepted |
 | Matrix | Dual-authority concept remains a research candidate; theory sources are metadata/abstract only | No accepted measured LLM cost comparison in this pass | Preserve the original bounded query; check definitions and specific pathology claims |
 
-Accepted classical sources are in the [theory report](organization-theory-and-concepts.md) and its
-supplements. This checklist does not certify every supporting paper in a form or turn an unread
-source into an absence result. The owning ticket remains open under S4.
+Accepted classical source excerpts retain the reading limits in the [theory report](organization-theory-and-concepts.md)
+and supplements. This checklist certifies neither unread sources nor absence claims. The owner's
+scope ruling permits closure with those claims excluded; it does not certify the original full survey.
 
 ## 2. Cost structure and economics
 
