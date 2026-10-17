@@ -94,6 +94,47 @@ export function readHostVersionDiagnostic(cliDirs) {
   return null;
 }
 
+// ---------------- 宿主内核双包解析（0.2.1-alpha.5 起随版承载） ----------------
+
+/**
+ * 宿主 0.2.1-alpha.5 起，experimental 双包撤回 peerDependencies 声明后 npm 不再把
+ * 内核双包（dsh-client-ui-slots／dsh-client-ui-primitives）落进宿主安装树——内核
+ * 模块改为前端构建产物内嵌（dsh-web-frontend bundle 的 staticModules 映射），官方
+ * 仍按宿主同版发布 ESM 件。本仓 fixture（tests/fixtures/host-kernel）承载这两个
+ * 发布件（只留 package.json＋lib/index.js），供内核面（SlotCore 实跑／primitives
+ * 导出面＋闭包提取）解析；刷新 runbook 见该目录 README。
+ */
+export function discoverKernelFixtureRoot() {
+  return fileURLToPath(new URL("../tests/fixtures/host-kernel/node_modules/@deepseek-ai", import.meta.url));
+}
+
+/** fixture 刷新提示（版本不一致／全无时的 FAIL reason 尾注）。 */
+const KERNEL_FRESHNESS_HINT =
+  "（宿主 0.2.1-alpha.5 起内核双包不随安装树落盘——fixture 须随宿主升级刷新：tests/fixtures/host-kernel，见其 README）";
+
+function readPackageVersionOf(dir) {
+  try {
+    const pkg = JSON.parse(readFileSync(join(dir, "package.json"), "utf8"));
+    return typeof pkg.version === "string" ? pkg.version : null;
+  } catch { return null; }
+}
+
+/**
+ * 内核包目录解析：宿主根序里取**版本与宿主一致**的首个在位包；hostVersion 已知时
+ * 再兜底 fixture 根（fixture＝版本闸承载件，只在能对版时参与——单测夹具面传空
+ * 版本即完全还原旧根序行为）。版本闸把两类假绿挡在门外：隔离台里全局树残留旧版
+ * 双包、真面升级半途 fixture 落后于宿主。
+ */
+export function resolveKernelPackageDir(roots, hostVersion, pkg) {
+  for (const root of hostVersion ? [...roots, discoverKernelFixtureRoot()] : roots) {
+    const dir = join(root, pkg);
+    if (!existsSync(dir)) continue;
+    if (hostVersion && readPackageVersionOf(dir) !== hostVersion) continue;
+    return dir;
+  }
+  return null;
+}
+
 /** 在候选文件列表中找首个包含 needle 的文件（返回该文件或 null）。 */
 export function findMarkerFile(files, needle) {
   for (const file of files) {
@@ -206,6 +247,11 @@ export function makeRecordingClientCtx() {
     provide: (name, svc) => { provided[name] = svc; record.push({ op: "provide", name }); return NOOP; },
     reflect: { provide: (name, svc) => { provided[name] = svc; record.push({ op: "provide", name }); return NOOP; } },
     on: () => NOOP, emit: () => {},
+    // cordis 子插件 DI 面（宿主 0.2.1-alpha.5 起官方 theme 等 bundle 在用）：
+    // ctx.inject(deps, def)＝plugin({inject: deps, apply: def})，服务就绪才 apply。
+    // 无头环境不提供 shortcuts/locale 等服务 ⇒ 永久 parked＝官方语义下的合法终态，
+    // 故只留痕不实调（拿假服务实调测的是桩而非宿主）。
+    inject: (names) => { record.push({ op: "inject-plugin", names: [...names] }); return NOOP; },
     get: () => ({ getSnapshot: () => ({}), subscribe: () => () => {}, getTheme: () => ({}), panels: { getSnapshot: () => ({}) } }),
     locale: {
       register: () => NOOP, subscribe: () => () => {},
@@ -490,9 +536,10 @@ async function loadOurClientForProbe(primitivesExportNames) {
  * 而非扫描宿主产物推契约；渲染期**实际**使用与否由入口实跑兜底
  * （`loadOurClientForProbe` 的导出名比对＋`verifyClientSlotRegistrations`）。
  */
-export function readPrimitivesExportNames(roots) {
-  const entry = resolveCandidates(roots, "dsh-client-ui-primitives", "lib", "index.js")[0];
-  if (!entry) return null;
+export function readPrimitivesExportNames(roots, hostVersion) {
+  const dir = resolveKernelPackageDir(roots, hostVersion, "dsh-client-ui-primitives");
+  const entry = dir === null ? null : join(dir, "lib", "index.js");
+  if (!entry || !existsSync(entry)) return null;
   const source = readFileSync(entry, "utf8");
   const names = new Set();
   for (const match of source.matchAll(/^export\s*\{([\s\S]*?)\}\s*;?\s*$/gm)) {
@@ -597,13 +644,13 @@ export async function probeClientSlotsStage(roots) {
  * 与 `probeClientSlotsStage` 分开：前者只断言宿主**声明面**（合成 fixture 可测），
  * 本 stage 需要真实宿主包（官方 layout/sidebar/slots/primitives 实体包）。
  */
-export async function probeClientConformanceStage(roots, declared) {
+export async function probeClientConformanceStage(roots, declared, hostVersion) {
   if (!declared?.rootChildren || !declared?.sidebarChildren) {
     return { state: "FAIL", reason: "缺少宿主声明树（须先跑 probeClientSlotsStage 取声明面）", coordinate: "probeClientSlotsStage.declared" };
   }
-  const primitives = readPrimitivesExportNames(roots);
+  const primitives = readPrimitivesExportNames(roots, hostVersion);
   if (!primitives) {
-    return { state: "FAIL", reason: "官方 primitives 实体包不在本机或未声明导出面（导出名集无法取得）", coordinate: "dsh-client-ui-primitives/lib/index.js" };
+    return { state: "FAIL", reason: `官方 primitives 实体包不在本机或未声明导出面（导出名集无法取得）${KERNEL_FRESHNESS_HINT}`, coordinate: "dsh-client-ui-primitives/lib/index.js" };
   }
   const primitivesNames = primitives.names;
   const clientSourcePath = fileURLToPath(new URL("../lib/client.js", import.meta.url));
@@ -616,14 +663,17 @@ export async function probeClientConformanceStage(roots, declared) {
     };
   }
   let SlotCore;
-  try {
-    const slotsApi = await importHostIndex(roots, "dsh-client-ui-slots");
-    SlotCore = slotsApi?.SlotCore;
-  } catch (error) {
-    return { state: "FAIL", reason: `官方 slots 包无法装载：${errMsg(error)}`, coordinate: "dsh-client-ui-slots" };
+  const slotsDir = resolveKernelPackageDir(roots, hostVersion, "dsh-client-ui-slots");
+  if (slotsDir !== null) {
+    try {
+      const slotsApi = await import(pathToFileURL(join(slotsDir, "lib", "index.js")).href);
+      SlotCore = slotsApi?.SlotCore;
+    } catch (error) {
+      return { state: "FAIL", reason: `官方 slots 包无法装载：${errMsg(error)}`, coordinate: `${slotsDir}/lib/index.js` };
+    }
   }
   if (typeof SlotCore !== "function") {
-    return { state: "FAIL", reason: "官方 slots 包未导出 SlotCore（槽装载协议漂移）", coordinate: "dsh-client-ui-slots/lib/index.js" };
+    return { state: "FAIL", reason: `官方 slots 包未导出 SlotCore（槽装载协议漂移，或双包不在本机）${KERNEL_FRESHNESS_HINT}`, coordinate: "dsh-client-ui-slots/lib/index.js" };
   }
   let client;
   try { client = await loadOurClientForProbe(primitivesNames); }
@@ -1234,7 +1284,7 @@ export function resolveOverlayLayerFacts(bundle) {
  * 我方整屏层的 portal 锚点与祖先链「无 transform 类属性」属真实浏览器坐标——
  * **显式降级**：归 V-A6.8 人工目视清单（同 HF-CLIENT-SLOTS 的降级口径）。
  */
-export async function probeShellOverlayGeometryStage(roots) {
+export async function probeShellOverlayGeometryStage(roots, hostVersion) {
   let layout;
   try { layout = await runClientBundle(roots, "dsh-client-ui-layout"); }
   catch (error) {
@@ -1328,14 +1378,17 @@ export async function probeShellOverlayGeometryStage(roots) {
   const declaredBands = Object.fromEntries(bandModes.map((row) => [row.entry.source, row.modes]));
   // 同层 order 语义：真实 SlotCore 实跑（乱序注册 → list 槽按 order 升序读回）
   let SlotCore;
-  try {
-    const slotsApi = await importHostIndex(roots, "dsh-client-ui-slots");
-    SlotCore = slotsApi?.SlotCore;
-  } catch (error) {
-    return { state: "FAIL", reason: `官方 slots 包无法装载：${errMsg(error)}`, coordinate: "dsh-client-ui-slots" };
+  const slotsDir = resolveKernelPackageDir(roots, hostVersion, "dsh-client-ui-slots");
+  if (slotsDir !== null) {
+    try {
+      const slotsApi = await import(pathToFileURL(join(slotsDir, "lib", "index.js")).href);
+      SlotCore = slotsApi?.SlotCore;
+    } catch (error) {
+      return { state: "FAIL", reason: `官方 slots 包无法装载：${errMsg(error)}`, coordinate: `${slotsDir}/lib/index.js` };
+    }
   }
   if (typeof SlotCore !== "function") {
-    return { state: "FAIL", reason: "官方 slots 包未导出 SlotCore（槽装载协议漂移）", coordinate: "dsh-client-ui-slots/lib/index.js" };
+    return { state: "FAIL", reason: `官方 slots 包未导出 SlotCore（槽装载协议漂移，或双包不在本机）${KERNEL_FRESHNESS_HINT}`, coordinate: "dsh-client-ui-slots/lib/index.js" };
   }
   const core = new SlotCore();
   core.register({ name: "root", children: { "shell.overlay": { kind: "list" } } }, () => null);
@@ -1887,15 +1940,15 @@ export function keyEvent(patch = {}) {
  * 真实浏览器里的 `inert`（不可聚焦／不可点）与 portal 渲染属渲染期坐标——**显式降级**：
  * 归 V-A6.8 人工目视清单。
  */
-export async function probeShellFocusLayerStage(roots) {
-  const pkgDirs = resolveCandidates(roots, "dsh-client-ui-primitives");
-  if (pkgDirs.length === 0) {
-    return { state: "FAIL", reason: "官方 primitives 实包不在本机（焦点隔离面载体缺失）", coordinate: roots.join(" ; ") || "discoverPackageRoots" };
+export async function probeShellFocusLayerStage(roots, hostVersion) {
+  const pkgDir = resolveKernelPackageDir(roots, hostVersion, "dsh-client-ui-primitives");
+  if (pkgDir === null) {
+    return { state: "FAIL", reason: `官方 primitives 包不在本机（焦点隔离面载体缺失）${KERNEL_FRESHNESS_HINT}`, coordinate: roots.join(" ; ") || "discoverPackageRoots" };
   }
   let loaded;
-  try { loaded = await loadHostFrontendFacade(pkgDirs[0], FOCUS_LAYER_SYMBOLS); }
+  try { loaded = await loadHostFrontendFacade(pkgDir, FOCUS_LAYER_SYMBOLS); }
   catch (error) {
-    return { state: "FAIL", reason: `官方 primitives 实包无法调起：${errMsg(error)}`, coordinate: pkgDirs.map((dir) => `${dir}/lib/index.js`).join(" ; ") };
+    return { state: "FAIL", reason: `官方 primitives 实包无法调起：${errMsg(error)}`, coordinate: `${pkgDir}/lib/index.js` };
   }
   const primitives = loaded.exports;
   for (const symbol of FOCUS_LAYER_SYMBOLS) {
@@ -2032,7 +2085,8 @@ function makeProbeContext() {
   try {
     webAssets = discoverWebFrontendAssets();
   } catch { /* 产物不可读 → 空面（种子解析走 FAIL） */ }
-  return { roots, cliDirs, webAssets, hostInstalled: roots.length > 0 || cliDirs.length > 0 };
+  const hostVersion = readHostVersionDiagnostic(cliDirs);
+  return { roots, cliDirs, webAssets, hostVersion, hostInstalled: roots.length > 0 || cliDirs.length > 0 };
 }
 
 const marker = (files, needle) => findMarkerFile(files, needle) !== null;
@@ -2087,7 +2141,7 @@ export const HOST_CONTRACT_PROBES = [
       if (!ctx.hostInstalled) return noHostSkip();
       const declaration = await probeClientSlotsStage(ctx.roots);
       if (declaration.state !== "PASS") return declaration;
-      const conformance = await probeClientConformanceStage(ctx.roots, declaration.declared);
+      const conformance = await probeClientConformanceStage(ctx.roots, declaration.declared, ctx.hostVersion);
       if (conformance.state !== "PASS") return conformance;
       return { state: "PASS", coordinate: `${declaration.coordinate}；${conformance.coordinate}` };
     }
@@ -2365,7 +2419,7 @@ export const HOST_CONTRACT_PROBES = [
     describe: "整屏层几何与层叠语义：行为探针——真实 apply 官方 layout bundle，从运行期注入样式断言层本体整屏几何档（position:absolute／inset:0／z-index:20／pointer-events:none＋>* auto；类名按几何语义签名反解），再由各官方浮层 bundle 的注入样式实测 z-index 构成（官方浮层须全在整屏层之上），同层 order 升序以真实 SlotCore 实跑；我方 portal 锚点与祖先链「无 transform 类属性」属渲染期坐标——显式降级归 V-A6.8 人工目视清单",
     async run(ctx) {
       if (!ctx.hostInstalled) return noHostSkip();
-      return probeShellOverlayGeometryStage(ctx.roots);
+      return probeShellOverlayGeometryStage(ctx.roots, ctx.hostVersion);
     }
   },
   {
@@ -2383,7 +2437,7 @@ export const HOST_CONTRACT_PROBES = [
     describe: "焦点／键盘隔离面：行为探针——真实装载官方 primitives 实包（构建产物依赖以 loader 桩替换）断言 `useModalLayer`／`modalSelector`／`closeTopModal`／`isBehindModal` 导出在位且 `modalSelector` 字面精确，再以合成 DOM 实调 `useModalLayer`：焦点入园／`[inert]` 子树排除／Tab 囚笼／Escape 只关栈顶／LIFO 焦点归还／被盖元素让键；真实浏览器 inert 语义——显式降级归 V-A6.8 人工目视清单",
     async run(ctx) {
       if (!ctx.hostInstalled) return noHostSkip();
-      return probeShellFocusLayerStage(ctx.roots);
+      return probeShellFocusLayerStage(ctx.roots, ctx.hostVersion);
     }
   }
 ];

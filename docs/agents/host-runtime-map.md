@@ -15,31 +15,50 @@
   `probeId`）；真实宿主三态探针在 preflight ④门跑。发现新缝后回登记表加行
   并补探针断言，防宿主升级静默失效。
 
-## 安装包布局（实证于 2026-10-03；2026-10-13 对 0.2.1-alpha.2 复核——坐标漂移按条目内注记；实测包差：新增 tool-schedule／tool-session-query／tool-terminal／tool-working-directory／working-directory／session-title-all-prompts-llm＋experimental-* 系，移除 hooks 双包／webhook 双包／invariants／subagent-in-process-driver／schedule-bundle——两向都与 HF 登记面引用的包零交集〔逐名对拍新旧安装树〕）
+## 安装包布局（实证于 2026-10-03；2026-10-13 对 0.2.1-alpha.2 复核、2026-10-17 对 0.2.1-alpha.5 复核——坐标漂移按条目内注记；alpha.5 实测包差：新增 plugin-market 三包＋client-ui-plugin-market／client-ui-secret-mask／api-remote-access／harness-dev-context／experimental-plugin-market-bundle，**移除 client-store／client-ui-slots／client-ui-primitives**——experimental 双包撤 peerDependencies 后 npm 不再自动落盘，内核模块改前端产物内嵌（见「内核双包」条目）；两向都与 HF 登记面引用的包零交集〔逐名对拍新旧安装树〕）
 
 - 根：`/usr/lib/node_modules/@deepseek-ai/dsh`。`lib/bin.js` 是编译产物，
   cordis 核心语义（`ctx.inject`/`ctx.effect`/disposer）读不到源码——用探针或
   隔离副本实证，别找源码。
 - 子包在 `node_modules/@deepseek-ai/` 下，常用的：
   - `dsh-agent-loop`：回合循环；`turn/end` 事件发射在
-    `lib/index.js:1029`（0.2.1-alpha.2 实测；0.2.0-rc.1 为 1027。reason 形状：`{ turn, reason }`，error 终止
+    `lib/index.js:1029`（0.2.1-alpha.2 实测；0.2.0-rc.1 为 1027；0.2.1-alpha.5
+    复核仍 1029。reason 形状：`{ turn, reason }`，error 终止
     `reason.kind === "error"` 带 error 对象）。
   - `dsh-api-session-controller`：`sessionController.create`（入参形状见
-    `lib/types/` 的 `SessionCreateRequest`）。
+    `lib/types/` 的 `SessionCreateRequest`；0.2.1-alpha.5 复核在位——
+    typert.host.js 行号大移〔1273→1533 等〕但类型名与 types 路径未动）。
   - `dsh-tools`：ToolRuntime、呈现模式（`native`/`ptc`/`both`）、
     `presentAs`、preset 注册。
   - `dsh-agent-tool-presentation`：preset 的工具呈现行。
   - `dsh-web-app`：**工具呈现环境缝**在 `cordis.patch.yml:34–38`——
     `mode: !!js process.env.DSH_TOOLS_MODE`（官方 TEMPORARY workaround，
-    unset＝native；0.2.1-alpha.2 复核仍在原行位）。presets 目录含
+    unset＝native；0.2.1-alpha.2 复核仍在原行位，0.2.1-alpha.5 复核仍 34–38）。
+    presets 目录含
     `ptc.patch.yml`、`standard.patch.yml`、`minimal.patch.yml`
     （standard 插件行集随版本漂移——32 行／4 字面 disabled
     （0.2.0-rc.1）→ 31 行／1 字面 disabled（0.2.1-alpha.2，移除 ralph＋
-    codex 双行、新增 time-context＋tool-schedule），模型可见工具 27→31，
-    冻结值见 tests/pod-harness-base.test.mjs::V-P7.2）。
+    codex 双行、新增 time-context＋tool-schedule）→ 32 行／2 字面 disabled
+    （0.2.1-alpha.5，新增出厂即 disabled 的 tool-plugin-market），模型可见工具
+    27→31→31，冻结值见 tests/pod-harness-base.test.mjs::V-P7.2；alpha.5 另移除
+    subagent 行内 config 的 schedule_* toolFilter.deny——子代理内部过滤，不动
+    顶层清单）。
   - `dsh-app-boot`：`loadOverlayPatches`（我方探针用它实调官方装载器；
-    装载器不求值 `!!js` 表达式，保留 `__jsExpr` 标记）。
+    装载器不求值 `!!js` 表达式，保留 `__jsExpr` 标记；0.2.1-alpha.5 复核在位
+    ——lib/index.js 行位 1014／1028→1028／1042，语义未动）。
   - `cordis*`：插件框架本体（编译，不可读源码）。
+
+- **内核双包（0.2.1-alpha.5 起的结构变化）**：`dsh-client-ui-slots`／
+  `dsh-client-ui-primitives`（与 `dsh-client-store`、新增 `dockkit`）不再随宿主
+  安装树落盘——experimental 双包撤 peerDependencies 后 npm 不再自动安装，内核
+  模块改为 `dsh-web-frontend/dist` bundle 内嵌（staticModules 映射键
+  `"@deepseek-ai/dsh-client-ui-primitives":<minified>` 等；成员名在 bundle 里
+  以属性字面保留）。官方仍按宿主同版发布 ESM 件：本仓以
+  `tests/fixtures/host-kernel/`（只收 package.json＋lib/index.js）承载，
+  探针 `resolveKernelPackageDir` 按「版本＝宿主版本」闸解析（刷新 runbook 见
+  fixture README）；slots 零依赖可直 import（SlotCore 实跑），primitives 为
+  纯 ESM（react/clsx 不随盘）——导出面取 `export {…}` 自述、行为面走探针
+  「闭包提取」（`loadHostFrontendFacade`）。
 
 ## 已知环境缝与生效口径
 
