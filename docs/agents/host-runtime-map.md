@@ -15,7 +15,7 @@
   `probeId`）；真实宿主三态探针在 preflight ④门跑。发现新缝后回登记表加行
   并补探针断言，防宿主升级静默失效。
 
-## 安装包布局（实证于 2026-10-03；2026-10-13 对 0.2.1-alpha.2 复核、2026-10-17 对 0.2.1-alpha.5 复核——坐标漂移按条目内注记；alpha.5 实测包差：新增 plugin-market 三包＋client-ui-plugin-market／client-ui-secret-mask／api-remote-access／harness-dev-context／experimental-plugin-market-bundle，**移除 client-store／client-ui-slots／client-ui-primitives**——experimental 双包撤 peerDependencies 后 npm 不再自动落盘，内核模块改前端产物内嵌（见「内核双包」条目）；两向都与 HF 登记面引用的包零交集〔逐名对拍新旧安装树〕）
+## 安装包布局（实证于 2026-10-03；2026-10-13 对 0.2.1-alpha.2 复核、2026-10-17 对 0.2.1-alpha.5 与 0.2.1-rc.2 复核——坐标漂移按条目内注记；alpha.5 实测包差：新增 plugin-market 三包＋client-ui-plugin-market／client-ui-secret-mask／api-remote-access／harness-dev-context／experimental-plugin-market-bundle，**移除 client-store／client-ui-slots／client-ui-primitives**——experimental 双包撤 peerDependencies 后 npm 不再自动落盘，内核模块改前端产物内嵌（见「内核双包」条目）；rc.2 对 alpha.5 增量＝新增 client-ui-deepseek-model-label-1017＋web-deepseek-api 两包，standard preset 与关键坐标零漂移，内核双包仍同版发布（fixture 随刷 rc.2）；两向都与 HF 登记面引用的包零交集〔逐名对拍新旧安装树〕）
 
 - 根：`/usr/lib/node_modules/@deepseek-ai/dsh`。`lib/bin.js` 是编译产物，
   cordis 核心语义（`ctx.inject`/`ctx.effect`/disposer）读不到源码——用探针或
