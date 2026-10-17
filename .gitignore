@@ -1,3 +1,5 @@
 node_modules/
 .DS_Store
 /artifacts/runtime-archives/
+# 宿主内核双包 fixture（官方发布件承载，见 tests/fixtures/host-kernel/README.md）
+!tests/fixtures/host-kernel/node_modules/

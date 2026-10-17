@@ -36,7 +36,10 @@ const ISSUE_PATH = join(repoRoot, ".scratch/pod/issues/10-harness-base-explicit.
  *  0.2.1-alpha.2 重测（host-alpha2-adapt/01）：preset 移除 3 行字面 disabled 行
  *  （ralph／subagent-codex／subagent-claude-code，本就 0 模型可见工具）＋新增
  *  tool-schedule（4 工具）→ 31。名称来源＝官方工具包 ctx.tools.register 注册名，
- *  其余 15 个工具贡献包新旧版名称面逐包对拍一致）。 */
+ *  其余 15 个工具贡献包新旧版名称面逐包对拍一致。
+ *  0.2.1-alpha.5 复核（host-alpha5-adapt/01）：preset 新增字面 disabled 行
+ *  tool-plugin-market（0 模型可见工具），顶层清单仍 31；subagent 行内 config 的
+ *  schedule_* toolFilter.deny 被官方移除（子代理内部过滤，不动顶层清单）。 */
 const FROZEN_31 = Object.freeze([
   "bash", "read", "write", "edit", "read_image", "glob", "grep", "job_output", "job_list",
   "job_kill", "schedule_create", "schedule_list", "schedule_delete", "schedule_update",
@@ -46,7 +49,8 @@ const FROZEN_31 = Object.freeze([
   "web_fetch", "present"
 ]);
 
-/** 官方 standard preset 的全量插件行（31 行，0.2.1-alpha.2 实测；行 id 含 group 子项）。 */
+/** 官方 standard preset 的全量插件行（32 行，0.2.1-alpha.5 实测；行 id 含 group 子项；
+ *  alpha.2→alpha.5 增量＝末尾新增 tool-plugin-market）。 */
 const STANDARD_ROWS = Object.freeze([
   "persona", "agent-instructions", "time-context", "tool-bash", "tool-pwsh", "tool-fs",
   "tool-fs-search", "tool-jobs", "tool-schedule", "skill-filesystem", "tool-skill",
@@ -54,13 +58,14 @@ const STANDARD_ROWS = Object.freeze([
   "command-compact", "tool-result-pruner", "delegation", "tool-subagent-control",
   "tool-subagent-list-agents", "tool-subagent", "tool-subagent-fork", "workflow-ptc",
   "tool-workflow", "tool-ask-user", "tool-todo", "tool-web", "present",
-  "tool-plugin-manager"
+  "tool-plugin-manager", "tool-plugin-market"
 ]);
 
-/** 官方 preset 里字面 `disabled: true` 的行（平台无关；0.2.1-alpha.2 起仅余
- *  tool-plugin-manager——旧版另三行 ralph／codex 双行已随 preset 移除）。 */
+/** 官方 preset 里字面 `disabled: true` 的行（平台无关；0.2.1-alpha.5 起为
+ *  tool-plugin-manager＋tool-plugin-market——plugin-market 为 alpha.5 新增行且
+ *  出厂即 disabled，0 模型可见工具）。 */
 const STANDARD_DISABLED_LITERAL = Object.freeze([
-  "tool-plugin-manager"
+  "tool-plugin-manager", "tool-plugin-market"
 ]);
 
 /** 工具行 → 模型可见工具名（名称来源＝官方工具包注册名；`tool-subagent` 行随附

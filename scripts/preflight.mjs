@@ -74,6 +74,7 @@ export function verifyFrozenFace(pkgPath, repoRoot) {
  * 第③门命名 lint：领域文档旧名（`CONTEXT` ＋ `.md`，mattpocock/skills v1.3 起更名
  * `GLOSSARY.md`）不得再出现在活文件里。豁免＝历史面（.scratch 票面、docs/changelog
  * 冻结卷、CHANGELOG-legacy、PLAN-*、artifacts、.worktrees、.tmp）与 `GLOSSARY.md`
+ * ＋tests/fixtures/host-kernel（官方内核双包发布件＝外部字节，非本仓活文件）
  * 自身的卷首更名注记（旧名的唯一合法出处，见 EV-20261005-glossary-rename）。
  * 本模块内旧名拆写为 OLD_DOC_NAME 字面量的拼接，免本文件自指违例。
  */
@@ -90,6 +91,7 @@ function isNamingExempt(relPath) {
     /^\.worktrees\//.test(relPath) ||
     /^\.tmp\//.test(relPath) ||
     /^docs\/changelog\//.test(relPath) ||
+    /^tests\/fixtures\/host-kernel\//.test(relPath) ||
     /^CHANGELOG-legacy-.*\.md$/.test(relPath) ||
     /^PLAN-.*\.md$/.test(relPath)
   );

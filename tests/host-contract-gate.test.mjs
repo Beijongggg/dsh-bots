@@ -21,6 +21,7 @@ import {
 import {
   HOST_CONTRACT_PROBES, findMarkerFile, parseFaceMode, pendingFaces,
   registryGateChecks, summarizeGate, runClientBundle, probeClientSlotsStage, discoverPackageRoots,
+  discoverDshCliDirs, readHostVersionDiagnostic, resolveKernelPackageDir,
   probeClientVisualStage, probeCtxServicesNamesStage, probeCtxServicesBaseUrlStage,
   probeSessionLogStage, probeConfigIdsStage, CONFIG_IDS_CRITICAL,
   verifyClientSlotRegistrations, checkPrimitivesReferences, makeClientReactStub, withDomStubs,
@@ -1235,13 +1236,12 @@ test("pod 02：样式解析件（层本体签名／固定层档位／定制属�
 
 // ---------------- pod 02 号票：焦点隔离面（真实 primitives 实包，宿主不在则整文件 SKIP） ----------------
 
-/** 官方 primitives 实包入口（本机候选根里第一个存在的）。 */
+/** 官方 primitives 实包目录（内核双包解析：根序＋fixture，按宿主版本对版；无宿主→不过滤）。 */
 function hostPrimitivesEntry() {
-  for (const root of discoverPackageRoots()) {
-    const entry = join(root, "dsh-client-ui-primitives", "lib", "index.js");
-    if (existsSync(entry)) return entry;
-  }
-  return null;
+  const cliDirs = discoverDshCliDirs();
+  const hostVersion = readHostVersionDiagnostic(cliDirs);
+  const dir = resolveKernelPackageDir(discoverPackageRoots(), hostVersion, "dsh-client-ui-primitives");
+  return dir === null ? null : join(dir, "lib", "index.js");
 }
 
 test("pod 02 P-SHELL-FOCUS-LAYER：真实 primitives 实包导出面＋useModalLayer 合成 DOM 实跑", async (t) => {
